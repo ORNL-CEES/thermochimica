@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#cd bin
-cd test
+cd bin
 
 ./TestThermo01
 ./TestThermo02
