@@ -11,4 +11,4 @@ necessary for modeling of materials and processes.
 License
 -------
 
-DTK has a [BSD 3-clause open-source license](LICENSE).
+Thermochimica has a [BSD 3-clause open-source license](LICENSE).
