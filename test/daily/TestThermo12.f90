@@ -59,7 +59,7 @@ program ThermoTest12
         print *, 'TestThermo12: PASS'
     else
         ! The unit test failed.
-        print *, 'TestThermo12: FAIL <---', INFOThermo
+        print *, 'TestThermo12: FAIL <---'
     end if
         
     ! Reset Thermochimica:
