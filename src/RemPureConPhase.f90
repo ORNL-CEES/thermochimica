@@ -11,7 +11,7 @@
     !
     ! Revisions:
     ! ==========
-    !
+    ! 
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   03/31/2011      M.H.A. Piro         Original code
@@ -27,14 +27,14 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to remove a pure condensed phase from the estimated phase
+    !> \details The purpose of this subroutine is to remove a pure condensed phase from the estimated phase 
     !! assemblage.
     !
     !
     ! Pertinent variables:
     ! ====================
     !
-    !> \param[in]   iPhaseChange    An integer scalar representing the index of the pure condensed phase to be
+    !> \param[in]   iPhaseChange    An integer scalar representing the index of the pure condensed phase to be 
     !!                               removed from the system.
     !> \param[out]  lSwapLater      A logical scalar indicating whether this phase should be swapped later.
     !> \param[out]  lPhasePass      A logical scalar indicating whether the new phase assemblage has passed.
@@ -53,37 +53,37 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     integer,dimension(nConPhases)::  iTempVec
     real(8)::                        dTemp
     real(8),dimension(nConPhases)::  dTempVec
-    logical::                        lSwapLater, lPhasePass
-
-
+    logical::                        lSwapLater, lPhasePass   
+    
+    
     ! Initialize variables:
     lSwapLater = .FALSE.
     lPhasePass = .FALSE.
-
+    
     ! Store the phase assemblage and number of moles in a temporary vector:
     iTempVec(1:nConPhases) = iAssemblage(1:nConPhases)
     dTempVec(1:nConPhases) = dMolesPhase(1:nConPhases)
     nConPhasesLast         = nConPhases
-
+    
     ! If iPhaseChange was the last one added, give the system a chance to converge:
     if ((iConPhaseLast == iAssemblage(iPhaseChange)).AND.(iterGlobal - iterLastCon < iterStep)) return
-
+            
     ! Remove the pure condensed phase corresponding to iPhaseChange:
     iConPhaseLast             = iAssemblage(iPhaseChange)
     iAssemblage(iPhaseChange) = iAssemblage(nConPhases)
-    iAssemblage(nConPhases)   = 0
+    iAssemblage(nConPhases)   = 0        
     dTemp                     = dMolesPhase(iPhaseChange)
     dMolesPhase(iPhaseChange) = dMolesPhase(nConPhases)
     dMolesPhase(nConPhases)   = 0D0
     nConPhases                = nConPhases - 1
     dMolesPhase               = dMolesPhase * 0.95D0
 
-    ! Check that this phase change is acceptable:
+    ! Check that this phase change is acceptable:                    
     k = MAX(1, nConPhases)
-    do i = 1, k
-
+    do i = 1, k            
+            
         call CheckPhaseChange(lPhasePass,INFO)
-
+                                                        
         if (INFO > nElements + nSolnPhases) then
             ! A pure condensed phase should be removed.
             j = INFO - nElements - nSolnPhases
@@ -96,11 +96,11 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         else
             ! This phase assemblage is appropriate.
             exit
-        end if
-    end do
-
+        end if        
+    end do         
+    
     if (lPhasePass .EQV. .FALSE.) then
-        ! The phase in question cannot be removed.  Add it back to the assemblage:
+        ! The phase in question cannot be removed.  Add it back to the assemblage:                
         nConPhases                = nConPhasesLast
         iAssemblage(1:nConPhases) = iTempVec(1:nConPhases)
         dMolesPhase(1:nConPhases) = dTempVec(1:nConPhases)
@@ -110,12 +110,12 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         iterLastCon               = iterGlobal
         iterLast                  = iterGlobal
         dMolesPhase               = DABS(dMolesPhase)
-
+        
         ! Compute the number of moles of all phases:
         call CompMolAllSolnPhases
-
+        
     end if
-
+            
     return
-
+            
 end subroutine RemPureConPhase

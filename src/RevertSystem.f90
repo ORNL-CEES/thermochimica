@@ -9,11 +9,11 @@
     !
     ! Revisions:
     ! ==========
-    !
+    ! 
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   02/28/2012      M.H.A. Piro         Original code
-    !   03/08/2012      M.H.A. Piro         Added the capability to revert to any previously considered phase
+    !   03/08/2012      M.H.A. Piro         Added the capability to revert to any previously considered phase 
     !                                       assemblage, instead of just the last phase assemblage.
     !   05/02/2012      M.H.A. Piro         Add the capability to revert to a particular phase assemblage if
     !                                       requested.
@@ -23,8 +23,8 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to revert the system to the last successfully tested phase
-    !! assemblage.
+    !> \details The purpose of this subroutine is to revert the system to the last successfully tested phase 
+    !! assemblage.  
     !
     !
     ! Pertinent variables:
@@ -62,20 +62,19 @@ subroutine RevertSystem(iterSpecific)
 
     ! Do not revert the system if the system has not yet changed:
     if (iterlast <= 0) return
-
+    
     ! Initialize variables:
     dTempVec      = dMolesPhase
     dMolesPhase   = 0D0
     lRevertSystem = .FALSE.
 
-
    ! dElementPotential = dElementPotentialRevert
-
+    
     if (iterSpecific /= 0) then
     ! Revert to a specific iteration:
-
+            
         iWork(1:nElements) = iterHistory(1:nElements,iterSpecific)
-
+    
         ! If the row of iterHistory is full of zeros, return:
         if (SUM(ABS(iWork)) == 0) then
             dMolesPhase = dTempVec
@@ -84,13 +83,13 @@ subroutine RevertSystem(iterSpecific)
 
         ! Check if this phase assemblage is the same as the current phase assemblage:
         call CheckPhaseAssemblageID(iWork, lPhasePass)
-
+    
         ! Return if they are the same:
         if (lPhasePass .EQV. .TRUE.) then
             dMolesPhase = dTempVec
             return
         end if
-
+        
         ! Map the number of moles of consistent phases:
         LOOP_Outter: do j = 1, nElements
             LOOP_Inner: do k = 1, nElements
@@ -99,14 +98,14 @@ subroutine RevertSystem(iterSpecific)
                 end if
             end do LOOP_Inner
         end do LOOP_Outter
-
+            
         iAssemblage(1:nElements) = iWork(1:nElements)
         nConPhases               = 0
         nSolnPhases              = 0
         lSolnPhases              = .FALSE.
-
+            
         ! Count the number of pure condensed phases and the number of solution phases in the system:
-        do j = 1, nElements
+        do j = 1, nElements     
             if (iAssemblage(j) > 0) then
                 nConPhases = nConPhases + 1
             elseif (iAssemblage(j) < 0) then
@@ -115,28 +114,28 @@ subroutine RevertSystem(iterSpecific)
                 dMolesPhase(j) = MAX(dMolesPhase(j), 1D0)
 
                 k = -iAssemblage(j)
-
+                
                 ! Compute the mole fractions of solution species in this phase:
                 call CompMolFraction(k)
-
+                
                 ! Compute the number of moles of each species:
                 do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
                     dMolesSpecies(i) = dMolesPhase(j) * dMolFraction(i)
                 end do
-
+                
                 lSolnPhases(-iAssemblage(j)) = .TRUE.
                 dMolesPhaseLast(j) = dMolesPhase(j)
-            else
+            else 
                 ! If iAssemblage(j) = 0, then it is an empty placeholder.
             end if
-
+                
         end do
-
+        
         iterLast = iterGlobal
-
-    else
+        
+    else    
         ! Revert to the last iteration:
-
+    
         ! Determine the iteration # to start checking:
         if (iterRevert == 0) then
             iterStart = iterlast
@@ -145,19 +144,19 @@ subroutine RevertSystem(iterSpecific)
         else
             iterStart = iterRevert - 1
         end if
-
+    
         ! Search for the iteration to revert to:
-        LOOP_A: do i = iterStart, 1, - 1
+        LOOP_A: do i = iterStart, 1, - 1 
             iWork(1:nElements) = iterHistory(1:nElements,i)
             iWorkB(1:nElements) = iterHistory(1:nElements,i+1) - iterHistory(1:nElements,i)
-
+                                  
             if (SUM(iWorkB) == 0) then
                 cycle LOOP_A
             end if
-
+                    
             if ((SUM(iWork) /= 0).AND.(SUM(iWork(1:nElements) - iAssemblage(1:nElements)) /= 0)) then
                 ! The system will revert to this iteration.
-
+                                    
                 ! Map the number of moles of consistent phases:
                 LOOP_B: do j = 1, nElements
                     LOOP_C: do k = 1, nElements
@@ -166,57 +165,57 @@ subroutine RevertSystem(iterSpecific)
                         end if
                     end do LOOP_C
                 end do LOOP_B
-
+            
                 iAssemblage(1:nElements) = iWork(1:nElements)
                 nConPhases               = 0
                 nSolnPhases              = 0
                 lSolnPhases              = .FALSE.
-
+            
                 ! Count the number of pure condensed phases and the number of solution phases in the system:
-                do j = 1, nElements
+                do j = 1, nElements     
                     if (iAssemblage(j) > 0) then
                         nConPhases = nConPhases + 1
                     elseif (iAssemblage(j) < 0) then
                         nSolnPhases = nSolnPhases + 1
                         if (dMolesPhase(j) == 0D0) dMolesPhase(j) = 1D0
                         dMolesPhase(j) = MAX(dMolesPhase(j), 1D0)
-
+                        
                         k = -iAssemblage(j)
-
+                
                         ! Compute the mole fractions of solution species in this phase:
                         call CompMolFraction(k)
-
+                
                         ! Compute the number of moles of each species:
                         do l = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
                             dMolesSpecies(l) = dMolesPhase(j) * dMolFraction(l)
                         end do
-
+                        
                         lSolnPhases(-iAssemblage(j)) = .TRUE.
-                    else
+                    else 
                         ! If iAssemblage(j) = 0, then it is an empty placeholder.
                     end if
-
+                
                 end do
-
+        
                 iterlast = iterGlobal
-
+            
                 ! Store the iteration # that the system is reverted to:
                 iterRevert = i
-
+                        
                 return
             end if
-
+        
             iterRevert = 1
-
+                
         end do LOOP_A
-
+    
         ! The system was not reverted, return dMolesPhase to its original value:
         dMolesPhase = dTempVec
-
+        
     end if
-
+    
     dMolesPhase = DABS(dMolesPhase)
-
+        
     return
-
+    
 end subroutine RevertSystem

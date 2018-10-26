@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    !
+    ! 
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   03/31/2011      M.H.A. Piro         Original code
@@ -24,19 +24,19 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to check whether a particular phase assemblage is a valid
-    !! candidate.  It is possible for a particular combination of phases to yield non-real values when evaluating
-    !! the Jacobian.  For example, suppose there is 1 mol of uranium in the system and the only uranium containing
-    !! phase is removed from the assemblage.  Clearly, there must be at least one phase containing uranium for the
+    !> \details The purpose of this subroutine is to check whether a particular phase assemblage is a valid 
+    !! candidate.  It is possible for a particular combination of phases to yield non-real values when evaluating 
+    !! the Jacobian.  For example, suppose there is 1 mol of uranium in the system and the only uranium containing 
+    !! phase is removed from the assemblage.  Clearly, there must be at least one phase containing uranium for the 
     !! system to be defined.
     !
     !
     ! Pertinent variables:
     ! ====================
     !
-    !> \param[out]  lPhasePass  A logical variable indicating whether the candidate phase assemblage is
+    !> \param[out]  lPhasePass  A logical variable indicating whether the candidate phase assemblage is 
     !!                           appropriate (i.e., .TRUE.) or not (i.e., .FALSE.).
-    !> \param[out]  INFO        An integer scalar used to identify a successful exit or an error by the
+    !> \param[out]  INFO        An integer scalar used to identify a successful exit or an error by the 
     !!                           GEMNewton.f90 subroutine.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -47,23 +47,23 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     USE ModuleGEMSolver
 
     implicit none
-
+    
     integer  ::  i, j, INFO, nMiscPhases
     real(8)  ::  dTemp
     logical  ::  lPhasePass
-
-
+    
+        
     ! Initialize variables:
     INFO        = 0
     nMiscPhases = 0
     lPhasePass  = .TRUE.
-
+    
     ! Count the number of miscible phases:
     do i = 1, nSolnPhases
         j = -iAssemblage(nElements - i + 1)
         if (lMiscibility(j) .EQV. .TRUE.) nMiscPhases = nMiscPhases + 1
     end do
-
+    
     ! Determine tolerance:
     !if ((iterGlobal - iterLast < 10).OR.(iterLast == 0).OR. (nMiscPhases > 0)) then
     if ((iterGlobal > 50).AND.(iterLast == 0)) then
@@ -77,14 +77,13 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     else
         dTemp = 1D100
     end if
-
-
+        
     ! Establish the Hessian matrix and compute the direction vector:
     call GEMNewton(INFO)
 
     ! Reinitialize variables:
     lRevertSystem = .FALSE.
-
+    
     ! Check if this candidate phase assemblage is appropriate:
     if (INFO /= 0) lPhasePass = .FALSE.
 
@@ -92,5 +91,5 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     if (MAXVAL(DABS(dUpdateVar)) >= dTemp) lPhasePass = .FALSE.
 
     return
-
+            
 end subroutine CheckPhaseChange

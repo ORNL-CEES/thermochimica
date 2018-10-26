@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    !
+    ! 
     !    Date          Programmer        Description of change
     !    ----          ----------        ---------------------
     !    10/18/2011    M.H.A. Piro       Original code
@@ -19,7 +19,7 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to return the name of each chemical element on the periodic
+    !> \details The purpose of this subroutine is to return the name of each chemical element on the periodic 
     !! table.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ subroutine GetElementName(cElementNamePT)
     USE ModuleThermo
 
     implicit none
-
+        
     character(3),dimension(0:nElementsPT):: cElementNamePT
 
 
@@ -153,8 +153,8 @@ subroutine GetElementName(cElementNamePT)
     cElementNamePT(116) = 'Uuh'
     cElementNamePT(117) = 'Uus'
     cElementNamePT(118) = 'Uuo'
-
+    
     return
-
+    
 end subroutine GetElementName
 

@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    !
+    ! 
     !    Date          Programmer        Description of change
     !    ----          ----------        ---------------------
     !    08/30/2011    M.H.A. Piro       Original code
@@ -23,13 +23,13 @@
     !! and to ensure that the input variables are appropriate.  The working units for temperature,
     !! absolute hydrostaic pressure and mass are Kelvin [K], atmospheres [atm] and moles [mol], respectively.
     !! These variables are tested to ensure that they are within an acceptable range and that they are
-    !! real.  An integer scalar INFOThermo is returned in a similar style as LAPACK to identify an error.
+    !! real.  An integer scalar INFOThermo is returned in a similar style as LAPACK to identify an error.  
     !!
     !! A description of each value of INFOThermo that could be returned from this subroutine is given below:
-    !!
+    !!   
     !   INFOThermo Value:       Description:
     !   -----------------       -------------
-    !> \details
+    !> \details 
     !! <ul>
     !! <li> 0 - Successful exit, </li>
     !! <li> 1 - Temperature is out of range or a NAN, </li>
@@ -40,7 +40,7 @@
     !!
     !! The variable cThermoInputUnits can take on the following values:
     !!
-    !> \details
+    !> \details 
     !! <table border="1" width="400">
     !! <tr>
     !!    <td> <b> cThermoInputUnits </td> <td> Description </b> </td>
@@ -48,39 +48,39 @@
     !! <tr>
     !!    <td> "K" </td>
     !!    <td> Temperature in Kelvin </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "C" </td>
     !!    <td> Temperature in Celsius </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "F" </td>
     !!    <td> Temperature in Fahrenheit </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "R" </td>
     !!    <td> Temperature in Rankine </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "atm" </td>
     !!    <td> Pressure in atmospheres </td>
-    !! </tr>
+    !! </tr>  
     !! <tr>
     !!    <td> "psi" </td>
     !!    <td> Pressure in pounds per square inch </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "bar" </td>
     !!    <td> Pressure in bars </td>
-    !! </tr>
+    !! </tr>  
     !! <tr>
     !!    <td> "Pa" </td>
     !!    <td> Pressure in Pascals </td>
-    !! </tr>
+    !! </tr>   
     !! <tr>
     !!    <td> "kPa" </td>
     !!    <td> Pressure in kiloPascals </td>
-    !! </tr>
+    !! </tr>   
     !! </table>
     !
     !
@@ -89,9 +89,9 @@
     !
     ! dTemperature              Temperature (converted to K)
     ! dPresssure                Absolute hydrostatic pressure (converted to atm)
-    ! dElementMass              Total mass of an element, where the coefficient corresponds to the
+    ! dElementMass              Total mass of an element, where the coefficient corresponds to the 
     !                            atomic number (e.g., dMolesElement(92) refers to uranium).
-    ! cThermoInputUnits         A character vector containing the units for temperature, pressure and
+    ! cThermoInputUnits         A character vector containing the units for temperature, pressure and 
     !                            mass.
     ! INFOThermo                A scalar integer that indicates a successful exit or identifies an error.
     !
@@ -106,7 +106,7 @@ subroutine CheckThermoInput
     USE ModuleThermoIO
 
     implicit none
-
+    
     integer::   i
 
 
@@ -119,7 +119,7 @@ subroutine CheckThermoInput
         case ('F')
             dTemperature = (dTemperature + 459.67D0) * (5D0/9D0)
         case ('R')
-            dTemperature = dTemperature * (5D0/9D0)
+            dTemperature = dTemperature * (5D0/9D0)        
         case default
             ! Temperature unit not recognized.
             INFOThermo = 4
@@ -131,13 +131,13 @@ subroutine CheckThermoInput
         INFOThermo = 1
         return
     end if
-
+    
     ! Convert absolute hydrostatic pressure to atm:
     select case (cInputUnitPressure)
         case ('atm')
             ! Do nothing.
         case ('psi')
-            dPressure = dPressure * 0.068045957064D0
+            dPressure = dPressure * 0.068045957064D0 
         case ('bar')
             dPressure = dPressure * 0.98692316931D0
         case ('Pa')
@@ -149,13 +149,13 @@ subroutine CheckThermoInput
             INFOThermo = 4
             return
     end select
-
+    
     ! Check that the absolute hydrostatic pressure [atm] is within an acceptable range and real:
     if ((dPressure < 1D-6).OR.(dPressure > 1D6).OR.(dPressure /= dPressure)) then
         INFOThermo = 2
         return
     end if
-
+    
     ! Check that all input quantities are real and non-negative:
     do i = 0,nElementsPT
         if ((dElementMass(i) /= dElementMass(i)).OR.(dElementMass(i) < 0D0)) then
@@ -165,7 +165,7 @@ subroutine CheckThermoInput
     end do
 
     ! Note: the mass conversion of each element is performed in the CheckSystem.f90 subroutine.
-
+    
     return
-
-end subroutine CheckThermoInput
+    
+end subroutine CheckThermoInput 

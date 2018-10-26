@@ -10,7 +10,7 @@
 !
 ! Revisions:
 ! ==========
-!
+! 
 !   Date            Programmer      Description of change
 !   ----            ----------      ---------------------
 !   20/08/2015      M.H.A. Piro     Original code
@@ -22,7 +22,7 @@
 !> \details The purpose of this subroutine is to correct the mole fractions
 !! of minor species.  At equilibrium, the chemical potential of every stable
 !! species and phase must be related to the chemical potentials of the system
-!! components.  However, there might be some residual, which often happens
+!! components.  However, there might be some residual, which often happens 
 !! with minor species.  This subroutine corrects for that error.
 !
 !
@@ -34,25 +34,25 @@
 !
 ! nSolnPhasesSys            Number of solution phases in the system.
 ! nSpeciesPhase             Index of last species in a particular solution phase.
-! dMolFraction              Double real vector representing the current
+! dMolFraction              Double real vector representing the current 
 !                            estimated mole fraction.
 ! dSumMolFractionSoln       Sum of all mole fractions within a solution phase.
-! dEffStoichSolnPhase       Effective stoichiometry of a particular element in
+! dEffStoichSolnPhase       Effective stoichiometry of a particular element in 
 !                            a solution phase.
-! dPartialExcessGibbs       The partial molar excess Gibbs energy of mixing of
+! dPartialExcessGibbs       The partial molar excess Gibbs energy of mixing of 
 !                            a phase constituent.
-! dChemicalPotential        A double real vector representing the chemical
-!                            potential of each species.  To be precise, this is
-!                            defined as the difference between the standard
-!                            molar Gibbs energy and the chemical potential
-!                            defined by the element potentials (represented in
+! dChemicalPotential        A double real vector representing the chemical 
+!                            potential of each species.  To be precise, this is 
+!                            defined as the difference between the standard 
+!                            molar Gibbs energy and the chemical potential 
+!                            defined by the element potentials (represented in 
 !                            dimensionless units and per formula mass).
 ! iParticlesPerMole         The number of particles per mole of constituent.
-! dStoichSpecies            The number of atoms of a particular element for a
+! dStoichSpecies            The number of atoms of a particular element for a 
 !                            particular species.
-! dSpeciesTotalAtoms        The total number of atoms per formula mass of a
+! dSpeciesTotalAtoms        The total number of atoms per formula mass of a 
 !                            species.
-! cSolnPhaseType            Character vector representing the type of solution
+! cSolnPhaseType            Character vector representing the type of solution 
 !                            phase (see above).
 !
 !-------------------------------------------------------------------------------
@@ -60,12 +60,12 @@
 
 subroutine CorrectMolFraction
 
-!    USE ModuleThermoIO, ONLY: INFOThermo
+    USE ModuleThermoIO, ONLY: INFOThermo
     USE ModuleThermo
     USE ModuleGEMSolver
 
     implicit none
-
+    
     integer :: i, j, k, l
     real(8) :: dTemp, dURF
     logical :: lCompEverything
@@ -114,7 +114,7 @@ print *, csolnPhaseName(k), cSpeciesName(i), dTemp, dMolFraction(i), dMolFractio
     end do LOOP_PHASE
 
     call CompChemicalPotential(lCompEverything)
-
+    
     return
 
 end subroutine CorrectMolFraction

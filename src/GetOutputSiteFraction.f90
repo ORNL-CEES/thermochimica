@@ -2,19 +2,18 @@
 !-------------------------------------------------------------------------------
 !
 !> \file    GetOutputSiteFraction.f90
-!> \brief   Get the output site fraction of a particular constituent on a
-!>          particular sublattice of a particular phase.
+!> \brief   Get the output site fraction of a particular constituent on a 
+!>          particular sublattice of a particular phase. 
 !> \author  M.H.A. Piro
 !> \date    June 10, 2016
 !
 !
 ! Revisions:
 ! ==========
-!
+! 
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   06/10/2016      M.H.A. Piro         Original code
-!   11/10/2016      S.Simunovic         Fixed /= on SUBL test
 !
 !
 ! Purpose:
@@ -29,28 +28,28 @@
 !! site fraction.
 !!
 !! This subroutine will check to make sure that the solution phase is stable,
-!! that the sublattice index is correct, and if the constituent index is
+!! that the sublattice index is correct, and if the constituent index is 
 !! correct.
 !
 !
 ! Pertinent variables:
 ! ====================
 !
-!> \param[in]     cSolnOut              A character string represnting the solution
+!> \param[in]     cSolnOut              A character string represnting the solution 
 !!                                       phase name.
-!> \param[in]     iSublatticeOut        An integer scalar representing the
-!!                                       sublattice index.
-!> \param[in]     iConstituentOut        An integer scalar representing the
-!!                                       constituent index.
+!> \param[in]     iSublatticeOut        An integer scalar representing the 
+!!                                       sublattice index. 
+!> \param[in]     iConstituentOut        An integer scalar representing the 
+!!                                       constituent index. 
 !> \param[out]    dSiteFractionOut      A double real scalar representing the
 !!                                       site fraction of said constituent.
-!> \param[out]    INFO                  An integer scalar indicating a successful
+!> \param[out]    INFO                  An integer scalar indicating a successful 
 !!                                       exit (== 0) or an error (/= 0).
 !!
 !
 !-------------------------------------------------------------------------------
 
-
+    
 subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
 
     USE ModuleThermo
@@ -62,9 +61,9 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     integer                      :: i, j, k
     integer                      :: iSublatticeOut, iConstituentOut
     real(8),       intent(out)   :: dSiteFractionOut
-    character(*),  intent(in)    :: cSolnOut
+    character(25), intent(inout) :: cSolnOut
     character(25)                :: cTemp
-    cTemp = cSolnOut(1:min(25,len(cSolnOut)))
+
 
     ! Initialize variables:
     INFO             = 0
@@ -74,8 +73,7 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     if (INFOThermo == 0) then
 
         ! Remove trailing blanks:
-        ! cSolnOut    = TRIM(cSolnOut)
-        ! cTemp    = TRIM(cTemp)
+        cSolnOut    = TRIM(cSolnOut)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -85,18 +83,16 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
             ! Get the absolute solution phase index:
             k = -iAssemblage(nElements - i + 1)
 
-            ! write(*,*) 'c ', cTemp, len(cTemp), ' = ', cSolnPhaseName(k)
-            ! if (cSolnOut == cSolnPhaseName(k)) then
-            if (cTemp == cSolnPhaseName(k)) then
+            if (cSolnOut == cSolnPhaseName(k)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = k
 
                 ! Verify that this solution phase has the correct
-                ! phase type:
-                if ((cSolnPhaseType(j) == 'SUBLM').OR.(cSolnPhaseType(j) == 'SUBL')) then
+	  	! phase type:
+                if ((cSolnPhaseType(j) /= 'SUBLM').OR.(cSolnPhaseType(j) /= 'SUBL')) then
                     ! Do nothing.
                 else
-                    j = 0
+                    j = 0 
                 end if
 
                 exit LOOP_SOLN
@@ -114,7 +110,7 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
             ! of the actual phase:
             if ((iSublatticeOut > i).OR.(iSublatticeOut < 1)) then
                INFO = 2
-               return
+               return  
             end if
 
             ! Return the site fration of this constituent:
@@ -131,5 +127,5 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     end if
 
     return
-
+      
 end subroutine GetOutputSiteFraction
