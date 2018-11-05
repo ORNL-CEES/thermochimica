@@ -31,8 +31,6 @@ program ThermoTest13
 
     implicit none
 
-    real(8):: dTemp
-
     ! Initialize variables:
     dTemperature            = 300D0
     dPressure               = 1D0
