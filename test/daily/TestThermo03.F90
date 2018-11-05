@@ -35,9 +35,9 @@ program TestThermo03
     dTemperature            = 300D0
     dPressure               = 1D0
     dElementMass            = 1D0
-    !cThermoInputUnits(1)    = 'K'
-    !cThermoInputUnits(2)    = 'atm'
-    !cThermoInputUnits(3)    = 'moles'
+    !cInputUnitTemperature   = 'K'
+    !cInputUnitPressure      = 'atm'
+    !cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
 
 
