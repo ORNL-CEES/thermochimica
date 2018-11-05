@@ -30,7 +30,7 @@ program TestThermo01
     USE ModuleThermoIO
 
     implicit none
-! look for this line
+    
     ! Initialize variables:
     dTemperature            = 300D0
     dPressure               = 1D0
