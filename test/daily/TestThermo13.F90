@@ -40,7 +40,7 @@ program ThermoTest13
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'elephants'  !an unsupported unit mass.
-    cThermoFileName         = '../data/C-O.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

@@ -38,7 +38,7 @@ program TestThermo02
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
-    cThermoFileName         = '../../../../data/C-O.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'dsts/C-O.dat'
 
 
     ! Parse the ChemSage data-file:

@@ -37,7 +37,7 @@ program TestThermo48
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = '../data/Kaye_NobleMetals.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'Kaye_NobleMetals.dat'
 
     ! Specify values:
     dPressure              = 1D0

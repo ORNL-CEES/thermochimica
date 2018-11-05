@@ -36,7 +36,7 @@ program TestThermo32
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = '../data/W-Au-Ar-Ne-O_03.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'W-Au-Ar-Ne-O_03.dat'
 
     ! Specify values:
     dPressure              = 1D0

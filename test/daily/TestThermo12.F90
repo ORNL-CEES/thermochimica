@@ -43,7 +43,7 @@ program ThermoTest12
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
-    cThermoFileName         = '../data/C-O.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
 
 
     ! Parse the ChemSage data-file:

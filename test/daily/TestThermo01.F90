@@ -30,7 +30,7 @@ program TestThermo01
     USE ModuleThermoIO
 
     implicit none
-    
+
     ! Initialize variables:
     dTemperature            = 300D0
     dPressure               = 1D0
@@ -38,7 +38,7 @@ program TestThermo01
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     CInputUnitMass          = 'moles'
-    ! cThermoFileName       = '../data/C-O.dat'
+    ! cThermoFileName       = DATA_DIRECTORY // 'C-O.dat'
 
 
     ! Parse the ChemSage data-file:

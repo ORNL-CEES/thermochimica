@@ -39,7 +39,7 @@ program ThermoTest11
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
-    cThermoFileName         = '../data/C-O.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
 
 
     dTemperature = dTemperature * dTemperature
