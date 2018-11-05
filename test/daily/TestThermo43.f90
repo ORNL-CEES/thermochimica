@@ -4,14 +4,14 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the 
+    !
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
@@ -28,7 +28,7 @@
 program TestThermo43
 
     USE ModuleThermoIO
-    USE ModuleThermo 
+    USE ModuleThermo
 
     implicit none
 
@@ -49,7 +49,7 @@ program TestThermo43
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-                
+
     ! Call Thermochimica:
     call Thermochimica
 
@@ -58,15 +58,24 @@ program TestThermo43
         if (((DABS(dMolFraction(3) - 0.9945D0)/0.9945D0) < 1D-3).AND. &
         ((DABS(dMolFraction(4) - 5.4695D-3)/5.4695D-3) < 1D-3).AND. &
         ((DABS(dGibbsEnergySys - (-1.338D4))/(1.338D4)) < 1D-3))  then
-            ! The test passed: 
+            ! The test passed:
             print *, 'TestThermo43: PASS'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(0)
         else
             ! The test failed.
             print *, 'TestThermo43: FAIL <---'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(1)
         end if
     else
         ! The test failed.
         print *, 'TestThermo43: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(1)
     end if
 
     ! Reset Thermochimica:

@@ -4,14 +4,14 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the 
+    !
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer           Description of change
     !    ----          ----------           ---------------------
     !    05/14/2013    M.H.A. Piro          Original code
@@ -21,7 +21,7 @@
     ! Purpose:
     ! ========
     !
-    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a 
+    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a
     ! fictive system.
     !----------------------------------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@
 program TestThermo31
 
     USE ModuleThermoIO
-    USE ModuleThermo 
+    USE ModuleThermo
 
     implicit none
 
@@ -41,7 +41,7 @@ program TestThermo31
     cThermoFileName        = '../data/W-Au-Ar-O_02.dat'
 
     ! Specify values:
-    dPressure              = 1D0  
+    dPressure              = 1D0
     dTemperature           = 1000D0
     dElementMass(74)       = 1D0        ! W
     dElementMass(79)       = 3D0        ! Au
@@ -50,7 +50,7 @@ program TestThermo31
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-                
+
     ! Call Thermochimica:
     call Thermochimica
 
@@ -62,18 +62,27 @@ program TestThermo31
         if ((DABS(dGibbsEnergySys - (6.769E5))/((6.769D5))) < 1D-3) then
             ! The test passed:
             print *, 'TestThermo31: PASS'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(0)
         else
             ! The test failed.
             print *, 'TestThermo31: FAIL <---'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(1)
         end if
     else
         ! The test failed.
         print *, 'TestThermo31: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(1)
     end if
 
     !call ThermoDebug
 
     ! Reset Thermochimica:
     call ResetThermo
-    
+
 end program TestThermo31
