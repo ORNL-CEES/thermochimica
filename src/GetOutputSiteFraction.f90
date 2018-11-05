@@ -2,15 +2,15 @@
 !-------------------------------------------------------------------------------
 !
 !> \file    GetOutputSiteFraction.f90
-!> \brief   Get the output site fraction of a particular constituent on a 
-!>          particular sublattice of a particular phase. 
+!> \brief   Get the output site fraction of a particular constituent on a
+!>          particular sublattice of a particular phase.
 !> \author  M.H.A. Piro
 !> \date    June 10, 2016
 !
 !
 ! Revisions:
 ! ==========
-! 
+!
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   06/10/2016      M.H.A. Piro         Original code
@@ -28,28 +28,28 @@
 !! site fraction.
 !!
 !! This subroutine will check to make sure that the solution phase is stable,
-!! that the sublattice index is correct, and if the constituent index is 
+!! that the sublattice index is correct, and if the constituent index is
 !! correct.
 !
 !
 ! Pertinent variables:
 ! ====================
 !
-!> \param[in]     cSolnOut              A character string represnting the solution 
+!> \param[in]     cSolnOut              A character string represnting the solution
 !!                                       phase name.
-!> \param[in]     iSublatticeOut        An integer scalar representing the 
-!!                                       sublattice index. 
-!> \param[in]     iConstituentOut        An integer scalar representing the 
-!!                                       constituent index. 
+!> \param[in]     iSublatticeOut        An integer scalar representing the
+!!                                       sublattice index.
+!> \param[in]     iConstituentOut        An integer scalar representing the
+!!                                       constituent index.
 !> \param[out]    dSiteFractionOut      A double real scalar representing the
 !!                                       site fraction of said constituent.
-!> \param[out]    INFO                  An integer scalar indicating a successful 
+!> \param[out]    INFO                  An integer scalar indicating a successful
 !!                                       exit (== 0) or an error (/= 0).
 !!
 !
 !-------------------------------------------------------------------------------
 
-    
+
 subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
 
     USE ModuleThermo
@@ -62,7 +62,7 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     integer                      :: iSublatticeOut, iConstituentOut
     real(8),       intent(out)   :: dSiteFractionOut
     character(25), intent(inout) :: cSolnOut
-    character(25)                :: cTemp
+    ! character(25)                :: cTemp
 
 
     ! Initialize variables:
@@ -92,7 +92,7 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
                 if ((cSolnPhaseType(j) /= 'SUBLM').OR.(cSolnPhaseType(j) /= 'SUBL')) then
                     ! Do nothing.
                 else
-                    j = 0 
+                    j = 0
                 end if
 
                 exit LOOP_SOLN
@@ -110,7 +110,7 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
             ! of the actual phase:
             if ((iSublatticeOut > i).OR.(iSublatticeOut < 1)) then
                INFO = 2
-               return  
+               return
             end if
 
             ! Return the site fration of this constituent:
@@ -127,5 +127,5 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     end if
 
     return
-      
+
 end subroutine GetOutputSiteFraction
