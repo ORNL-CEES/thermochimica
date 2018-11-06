@@ -106,7 +106,7 @@ program TestThermo102
         ! Reset Thermochimica:
         call ResetThermo
         call PrintResults
-        call EXIT(0)
+        call EXIT(1)
     end if
 
 end program TestThermo102
