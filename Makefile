@@ -115,10 +115,13 @@ WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 all:  directories $(MODS_LNK) $(SHARED_LNK) $(EXEC_LNK) $(EXE_BIN)
 
-directories: ${OBJ_DIR}
+directories: ${OBJ_DIR} ${BIN_DIR}
 
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
+
+${BIN_DIR}:
+	${MKDIR_P} ${BIN_DIR}
 
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
