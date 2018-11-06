@@ -50,9 +50,15 @@ program TestThermo03
     if (INFOThermo == 4) then
         ! The unit test passed: the correct error code was reported and exited gracefully.
         print *, 'TestThermo03: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The unit test failed.
         print *, 'TestThermo03: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(1)
     end if
 
     ! Reset Thermochimica:
