@@ -102,8 +102,8 @@ DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 ## WEEKLY TESTS:
 ## =============
 
-WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.f90))
-WTEST_OBJ   = $(WTEST_SRC:.f90=.o)
+WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.F90))
+WTEST_OBJ   = $(WTEST_SRC:.F90=.o)
 WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ))
 
 WTST_OBJ    = $(basename $(WTEST_SRC))
@@ -178,7 +178,7 @@ $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 
 weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN)
 
-$(OBJ_DIR)/%.o: $(WTST_DIR)/%.f90
+$(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 ## ===========

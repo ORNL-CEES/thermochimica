@@ -4,14 +4,14 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the 
+    !
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date           Programmer          Description of change
     !    ----           ----------          ---------------------
     !    07/17/2013     M.H.A. Piro         Original code
@@ -22,7 +22,7 @@
     ! Purpose:
     ! ========
     !
-    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a 
+    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a
     ! sample problem representing the Zr-H binary system.  Unlike other tests involving CEF phases, this particular
     ! system contains phases where there is only one constituent on the first sublattice and the mixing terms
     ! represent constituents mixing on the second sublattice (i.e., other phases mix constituents on the first
@@ -39,7 +39,7 @@
 program TestThermo102
 
     USE ModuleThermoIO
-    USE ModuleThermo 
+    USE ModuleThermo
 
     implicit none
 
@@ -47,14 +47,14 @@ program TestThermo102
     real(8):: dTemp
 
 
-    ! Specify units:                                                                              
+    ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName       = '../data/UPMZ_MHP.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'UPMZ_MHP.dat'
 
     ! Specify values:
-    dPressure              = 1D0  
+    dPressure              = 1D0
     iCount                 = 0
 
     ! Initialize random number generator:
@@ -96,12 +96,17 @@ program TestThermo102
     if ((INFOThermo == 0)) then
         ! The unit test passed: the correct error code was reported and exited gracefully.
         print *, 'TestThermo102: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call PrintResults
+        call EXIT(0)
     else
         ! The unit test failed.
         print *, 'TestThermo102: FAIL <--- '
+        ! Reset Thermochimica:
+        call ResetThermo
+        call PrintResults
+        call EXIT(0)
     end if
 
-    ! Reset Thermochimica:
-    call ResetThermo
-    
 end program TestThermo102
