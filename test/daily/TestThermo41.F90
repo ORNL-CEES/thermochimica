@@ -4,14 +4,14 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the 
+    !
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
@@ -25,10 +25,10 @@
     !-----------------------------------------------------------------------------------------------------------
 
 
-program TestThermo43
+program TestThermo41
 
     USE ModuleThermoIO
-    USE ModuleThermo 
+    USE ModuleThermo
 
     implicit none
 
@@ -37,41 +37,51 @@ program TestThermo43
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = '../data/Kaye_NobleMetals.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'Kaye_NobleMetals.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 400D0
-    dElementMass(46)       = 0.4D0        ! Pd
-    dElementMass(44)       = 0.6D0        ! Ru
+    dTemperature           = 2250D0
+    dElementMass(42)       = 4.3D0        ! Mo
+    dElementMass(44)       = 4.5D0        ! Ru
 
 
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-                
+
     ! Call Thermochimica:
     call Thermochimica
 
+
     ! Check results:
     if (INFOThermo == 0) then
-        if (((DABS(dMolFraction(3) - 0.9945D0)/0.9945D0) < 1D-3).AND. &
-        ((DABS(dMolFraction(4) - 5.4695D-3)/5.4695D-3) < 1D-3).AND. &
-        ((DABS(dGibbsEnergySys - (-1.338D4))/(1.338D4)) < 1D-3))  then
-            ! The test passed: 
-            print *, 'TestThermo43: PASS'
+        if (((DABS(dMolFraction(4) - 0.39340558D0)/0.39340558D0) < 1D-3).AND. &
+        ((DABS(dMolFraction(5) - 0.60659D0)/0.60659D0) < 1D-3).AND. &
+        ((DABS(dGibbsEnergySys - (-1.30624D6))/(-1.30624D6)) < 1D-3))  then
+            ! The test passed:
+            print *, 'TestThermo41: PASS'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(0)
         else
             ! The test failed.
-            print *, 'TestThermo43: FAIL <---'
+            print *, 'TestThermo41: FAIL <---'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(1)
         end if
     else
         ! The test failed.
-        print *, 'TestThermo43: FAIL <---'
+        print *, 'TestThermo41: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(1)
     end if
 
-    ! Reset Thermochimica:
-    call ResetThermo
+
+! Reset Thermochimica:
+call ResetThermo
 
 
-
-end program TestThermo43
+end program TestThermo41

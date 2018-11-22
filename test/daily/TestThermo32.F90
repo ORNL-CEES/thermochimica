@@ -4,14 +4,14 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the 
+    !
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
@@ -27,7 +27,7 @@
 program TestThermo32
 
     USE ModuleThermoIO
-    USE ModuleThermo 
+    USE ModuleThermo
 
     implicit none
 
@@ -36,10 +36,10 @@ program TestThermo32
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = '../data/W-Au-Ar-Ne-O_03.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'W-Au-Ar-Ne-O_03.dat'
 
     ! Specify values:
-    dPressure              = 1D0  
+    dPressure              = 1D0
     dTemperature           = 2452D0
     dElementMass(74)       = 1.95D0        ! W
     dElementMass(79)       = 1D0           ! Au
@@ -49,7 +49,7 @@ program TestThermo32
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-                
+
     ! Call Thermochimica:
     call Thermochimica
 
@@ -60,18 +60,27 @@ program TestThermo32
     if (INFOThermo == 0) then
         ! The fluorite oxide phase should be the only one stable at equilibrium.
         if ((DABS(dGibbsEnergySys - (1.672D7))/((1.672D7))) < 1D-3) then
-            ! The test passed: 
+            ! The test passed:
             print *, 'TestThermo32: PASS'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(0)
         else
             ! The test failed.
             print *, 'TestThermo32: FAIL <---'
+            ! Reset Thermochimica:
+            call ResetThermo
+            call EXIT(1)
         end if
     else
         ! The test failed.
         print *, 'TestThermo32: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(1)
     end if
-        
+
     ! Reset Thermochimica:
     call ResetThermo
-    
+
 end program TestThermo32

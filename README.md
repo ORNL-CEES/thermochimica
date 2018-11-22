@@ -1,4 +1,4 @@
-THERMOCHIMICA
+THERMOCHIMICA [![Build Status](https://travis-ci.com/ORNL-CEES/thermochimica.svg?branch=master)](https://travis-ci.com/ORNL-CEES/thermochimica)
 =============
 
 THERMOCHIMICA is a computational library for chemical thermodynamics.

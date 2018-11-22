@@ -1,5 +1,5 @@
 
-program TestThermo10
+program TestThermo10A
 
     !-------------------------------------------------------------------------------------------------------------
     !
@@ -51,7 +51,7 @@ program TestThermo10
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
-    cThermoFileName         = '../data/Example4.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'Example4.dat'
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -59,19 +59,22 @@ program TestThermo10
     ! Call Thermochimica:
     call Thermochimica
 
-    ! Check results (error code & oxygen partial pressure):
-    if (INFOThermo == 0) then
-        print *, 'TestThermo10: PASS'
-    else
-        ! The unit test failed.
-        print *, 'TestThermo10: FAIL <---'
-    end if
-
     iPrintResultsMode = 2
 
-    call PrintResults
-
-    ! Reset Thermochimica:
-    call ResetThermo
-
-end program TestThermo10
+    ! Check results (error code & oxygen partial pressure):
+    if (INFOThermo == 0) then
+        print *, 'TestThermo10A: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call PrintResults
+        call EXIT(0)
+    else
+        ! The unit test failed.
+        print *, 'TestThermo10A: FAIL <---'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call PrintResults
+        call EXIT(1)
+    end if
+    
+end program TestThermo10A
