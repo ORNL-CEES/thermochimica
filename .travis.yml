@@ -6,7 +6,7 @@ before_install:
  - docker pull maxposchmann/thermochimica
 
 script:
- - docker run -v $PWD/thermochimica:/thermochimica maxposchmann/thermochimica /bin/bash -c "make"
+ - docker run -v $PWD:/thermochimica maxposchmann/thermochimica /bin/bash -c "make"
  - ls
 
 branches:
