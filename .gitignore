@@ -1,0 +1,3 @@
+# ignore bin/ and obj/
+bin/
+obj/
