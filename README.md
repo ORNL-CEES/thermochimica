@@ -1,4 +1,4 @@
-THERMOCHIMICA [![Build Status](https://travis-ci.com/maxposchmann/thermochimica.svg?branch=master)](https://travis-ci.com/maxposchmann/thermochimica)
+THERMOCHIMICA [![Build Status](https://travis-ci.com/maxposchmann/thermochimica.svg?branch=cdashTests)](https://travis-ci.com/maxposchmann/thermochimica)
 =============
 
 THERMOCHIMICA is a computational library for chemical thermodynamics.
