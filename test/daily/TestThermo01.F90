@@ -2,6 +2,10 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
+    !> \file    TestThermo01.f90
+    !> \brief   Unit test - no data file specified.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !
     ! DISCLAIMER
     ! ==========
     !
@@ -20,8 +24,8 @@
     ! Purpose:
     ! ========
     !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed when the data file isn't
-    ! specified
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the data file isn't
+    !! specified
     !
     !-------------------------------------------------------------------------------------------------------------
 

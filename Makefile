@@ -162,6 +162,9 @@ dochtml:
 doclatex: dochtml
 	cd $(TEX_DIR); make
 
+doctest:
+	cd $(TST_DIR); doxygen Doxyfile-test
+
 cleandoc:
 	rm -r -f $(DOC_DIR)/html; rm -r -f $(DOC_DIR)/latex
 
