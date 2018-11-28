@@ -1,40 +1,37 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo101.F90
+    !> \brief   Convergence test - Zr-H.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date           Programmer          Description of change
     !    ----           ----------          ---------------------
     !    07/17/2013     M.H.A. Piro         Original code
     !    05/13/2014     M.H.A. Piro         Write data to a data-file and check to see if the epsilon phase
     !                                        is predicted to be stable (which would be incorrect).
     !
-    !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a
-    ! sample problem representing the Zr-H binary system.  Unlike other tests involving CEF phases, this particular
-    ! system contains phases where there is only one constituent on the first sublattice and the mixing terms
-    ! represent constituents mixing on the second sublattice (i.e., other phases mix constituents on the first
-    ! sublattice).  A reference for the thermodynamic database for this test follows:
-    !
-    !   N. Dupin, I. Ansara, C. Servant, C. Toffolon, C. Lemaignan, J.C. Brachet, "A Thermodynamic Database for
-    !   Zirconium Alloys," Journal of Nuclear Materials, 275 (1999) 287-295.
-    !
-    ! This test carpet bombs a region of the Zr-H phase diagram to ensure that the epsilon phase does not form.
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct results
+    !! for a sample problem representing the Zr-H binary system.  Unlike other tests involving CEF phases, this
+    !! particular system contains phases where there is only one constituent on the first sublattice and the
+    !! mixing terms represent constituents mixing on the second sublattice (i.e., other phases mix constituents
+    !! on the first sublattice).  A reference for the thermodynamic database for this test follows:
+    !!
+    !!   N. Dupin, I. Ansara, C. Servant, C. Toffolon, C. Lemaignan, J.C. Brachet, "A Thermodynamic Database for
+    !!   Zirconium Alloys," Journal of Nuclear Materials, 275 (1999) 287-295.
+    !!
+    !! This test carpet bombs a region of the Zr-H phase diagram to ensure that the epsilon phase does not form.
     !
     !-------------------------------------------------------------------------------------------------------------
-
 
 program TestThermo101
 
@@ -44,7 +41,6 @@ program TestThermo101
     implicit none
 
     integer:: i, k, m, b, INFO
-
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
