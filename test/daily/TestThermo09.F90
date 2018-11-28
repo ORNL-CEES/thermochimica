@@ -1,18 +1,17 @@
 
-program TestThermo09
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo09.F90
+    !> \brief   Unit test - mass out of range.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,12 +19,12 @@ program TestThermo09
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed when the mass is
-    ! out of range.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the mass is
+    !! out of range.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program TestThermo09
 
     USE ModuleThermoIO
 
@@ -39,7 +38,6 @@ program TestThermo09
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

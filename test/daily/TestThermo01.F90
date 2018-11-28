@@ -1,21 +1,17 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo01.f90
+    !> \file    TestThermo01.F90
     !> \brief   Unit test - no data file specified.
     !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -23,9 +19,8 @@
     !
     ! Purpose:
     ! ========
-    !
-    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the data file isn't
-    !! specified
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the data file
+    !! isn't specified.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -43,7 +38,6 @@ program TestThermo01
     cInputUnitPressure      = 'atm'
     CInputUnitMass          = 'moles'
     ! cThermoFileName       = DATA_DIRECTORY // 'C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

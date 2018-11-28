@@ -1,18 +1,17 @@
 
-program ThermoTest11
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo11.F90
+    !> \brief   Unit test - temperature infinite.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,17 +19,16 @@ program ThermoTest11
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed if the temperature of the
-    ! system is an INF.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed if the temperature
+    !! of the system is an INF.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program ThermoTest11
 
     USE ModuleThermoIO
 
     implicit none
-
 
     ! Initialize variables:
     dTemperature            = 1E37
@@ -40,7 +38,6 @@ program ThermoTest11
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
-
 
     dTemperature = dTemperature * dTemperature
 

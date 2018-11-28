@@ -1,30 +1,28 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo31.F90
+    !> \brief   Spot test - W-Au-Ar-O_02.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer           Description of change
     !    ----          ----------           ---------------------
     !    05/14/2013    M.H.A. Piro          Original code
     !    08/31/2018    B.W.N. Fitzpatrick   Change to a fictive database
     !
-    !
     ! Purpose:
     ! ========
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !! results for a fictive W-Au-Ar-O_02 system.
     !
-    ! The purpose of this application test is to ensure that Thermochimica computes the correct results for a
-    ! fictive system.
-    !----------------------------------------------------------------------------------------------------------
-
+    !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo31
 
@@ -32,7 +30,6 @@ program TestThermo31
     USE ModuleThermo
 
     implicit none
-
 
     ! Specify units:
     cInputUnitTemperature  = 'K'

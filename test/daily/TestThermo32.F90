@@ -1,17 +1,17 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo32.F90
+    !> \brief   Spot test - W-Au-Ar-Ne-O, 2452K.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
@@ -19,10 +19,10 @@
     !
     ! Purpose:
     ! ========
-    !    The purpose of this application test is to ensure that Thermochimica computes the correct results for a
-    !    fictive system labelled W-Au-Ar-Ne-O
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !! results for a fictive system labelled W-Au-Ar-Ne-O at 2452K.
+    !
     !-------------------------------------------------------------------------------------------------------------
-
 
 program TestThermo32
 
@@ -30,7 +30,6 @@ program TestThermo32
     USE ModuleThermo
 
     implicit none
-
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -45,7 +44,7 @@ program TestThermo32
     dElementMass(79)       = 1D0           ! Au
     dElementMass(18)       = 2D0           ! Ar
     dElementMass(8)        = 10D0          ! O
-    dElementMass(10)        = 10D0          ! Ne
+    dElementMass(10)       = 10D0          ! Ne
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
