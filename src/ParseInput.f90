@@ -89,9 +89,8 @@ subroutine ParseInput(cInputFileName)
     if (scan(cLine,'!@#$%&*/\?|') == 1) then
       cycle LOOP_ReadFile
     endif
-    ! Also look for blank line: TODO: make this not idiotic if at all possible
-    ! Worth noting (maybe): if a line contains only single quotes, parser will break. Neat!
-    if (scan(cLine,'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`!@#$%^&*()-=_+{}|\[];:",./?><') == 0) then
+    ! Also look for lines without "="
+    if (scan(cLine,'=') == 0) then
       cycle LOOP_ReadFile
     endif
     ! If we get to here, should be a data line, and therefore contain '=' delimiter separating tag and value terms
@@ -122,8 +121,6 @@ subroutine ParseInput(cInputFileName)
       endif
       cTag = trim(adjustl(cTag(1 : (iOpenPosition - 1))))
     endif
-    print *,  cTag
-    print *,  cValue
 
     ! Now look through possible tags to assign variables
     select case (cTag)
