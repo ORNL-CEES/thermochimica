@@ -11,4 +11,5 @@ script:
 
 branches:
   only:
-    - master
+    - gh-pages
+    - /.*/
