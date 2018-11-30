@@ -1,18 +1,17 @@
 
-program TestThermo06
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo06.F90
+    !> \brief   Unit test - no mass specified.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,17 +19,16 @@ program TestThermo06
     !
     ! Purpose:
     ! ========
-    !
-    ! To verify that Thermochimica gracefully exits when mass is not specified.
+    !> \details To verify that Thermochimica gracefully exits when mass is not specified.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program TestThermo06
 
     USE ModuleThermoIO
     USE ModuleThermo
 
     implicit none
-
 
     ! Initialize variables:
     dTemperature            = 2000D0
@@ -39,7 +37,6 @@ program TestThermo06
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

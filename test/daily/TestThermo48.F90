@@ -1,18 +1,17 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo48.F90
+    !> \brief   Spot test - 1973K with 10% Mo, 30% Pd, 60% Ru.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
@@ -20,10 +19,10 @@
     !
     ! Purpose:
     ! ========
-    !    The purpose of this application test is to ensure that Thermochimica computes the correct results for
-    !    the Pd-Ru-Tc-Mo system.
-    !-----------------------------------------------------------------------------------------------------------
-
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !! results for the Pd-Ru-Tc-Mo system at 1973K with 10% Mo, 30% Pd, 60% Ru.
+    !
+    !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo48
 
@@ -31,7 +30,6 @@ program TestThermo48
     USE ModuleThermo
 
     implicit none
-
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -45,8 +43,6 @@ program TestThermo48
     dElementMass(42)       = 0.1D0        ! Mo
     dElementMass(46)       = 0.3D0        ! Pd
     dElementMass(44)       = 0.6D0        ! Ru
-
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -80,10 +76,7 @@ program TestThermo48
         call EXIT(1)
     end if
 
-
-
 ! Reset Thermochimica:
 call ResetThermo
-
 
 end program TestThermo48

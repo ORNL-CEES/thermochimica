@@ -1,18 +1,17 @@
 
-program TestThermo02
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo02.F90
+    !> \brief   Unit test - non-existent data file specified.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,12 +19,12 @@ program TestThermo02
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed if a data-file is specified,
-    ! but there is a typo in the pathname.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed if a data-file is
+    !! specified, but there is a typo in the pathname.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program TestThermo02
 
     USE ModuleThermoIO
 
@@ -39,7 +38,6 @@ program TestThermo02
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'dsts/C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -60,7 +58,6 @@ program TestThermo02
         call ResetThermo
         call EXIT(1)
     end if
-
 
     ! Reset Thermochimica:
     call ResetThermo

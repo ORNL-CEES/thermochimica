@@ -1,18 +1,17 @@
 
-program ThermoTest13
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo13.F90
+    !> \brief   Unit test - unsupported mass unit.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,12 +19,12 @@ program ThermoTest13
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed if a mass unit is specified,
-    ! but is not supported.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed if a mass unit is
+    !! specified, but is not supported.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program ThermoTest13
 
     USE ModuleThermoIO
 

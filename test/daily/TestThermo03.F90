@@ -1,17 +1,17 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo03.F90
+    !> \brief   Unit test - no input units.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -19,9 +19,8 @@
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed when the input units are
-    ! not specified.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the input
+    !! units are not specified.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -39,7 +38,6 @@ program TestThermo03
     !cInputUnitPressure      = 'atm'
     !cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

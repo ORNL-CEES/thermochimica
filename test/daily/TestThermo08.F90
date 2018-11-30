@@ -1,18 +1,17 @@
 
-program TestThermo08
-
     !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo08.F90
+    !> \brief   Unit test - pressure out of range.
+    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
     ! ==========
-    !
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
-    !
     ! Revisions:
     ! ==========
-    !
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
@@ -20,12 +19,12 @@ program TestThermo08
     !
     ! Purpose:
     ! ========
-    !
-    ! The purpose of this unit test is to ensure that Thermochimica does not proceed when the pressure is
-    ! out of range.
+    !> \details The purpose of this unit test is to ensure that Thermochimica does not proceed when the pressure
+    !! is out of range.
     !
     !-------------------------------------------------------------------------------------------------------------
 
+program TestThermo08
 
     USE ModuleThermoIO
 
@@ -39,7 +38,6 @@ program TestThermo08
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
     cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
-
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
