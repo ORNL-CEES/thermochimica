@@ -1,25 +1,21 @@
 
-
     !-------------------------------------------------------------------------------------------------------------
     !
     ! DISCLAIMER
-    ! ==========
-    !
+    ! ===========
     ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
     ! programming are given below.
     !
     !
     ! Revisions:
-    ! ==========
-    !
+    ! ===========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    31/10/2018    M. Poschmann        Messing around begins
+    !    28/11/2018    M. Poschmann        Creation
     !
     ! Purpose:
-    ! ========
-    !
-    ! The purpose of this is for Max to mess around with.
+    ! =========
+    ! Test the new ParseInput subroutine.
     !
     !-------------------------------------------------------------------------------------------------------------
 
