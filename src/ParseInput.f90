@@ -124,7 +124,7 @@ subroutine ParseInput(cInputFileName)
 
     ! Now look through possible tags to assign variables
     select case (cTag)
-    case ('p')
+    case ('p','P','pressure','press','Pressure','Press')
       read(cValue,*,IOSTAT = INFO) dPressure
       if (INFO /= 0) then
         INFOThermo = 44
@@ -133,7 +133,7 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lPressure = .TRUE.
-    case ('t')
+    case ('t','temp','temperature','T','Temp','Temperature')
       read(cValue,*,IOSTAT = INFO) dTemperature
       if (INFO /= 0) then
         INFOThermo = 44
@@ -142,7 +142,7 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lTemperature = .TRUE.
-    case ('m')
+    case ('m','mass','M','Mass')
       read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
       if (INFO /= 0) then
         INFOThermo = 44
@@ -151,7 +151,12 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lMass = .TRUE.
-    case ('p_unit')
+    case ('p_unit','pressure_unit','Pressure_unit','Pressure_Unit','P_unit','pressure unit',&
+      'Pressure Unit','Pressure unit','press_unit','press unit','Press unit','Press Unit',&
+      'p unit','P unit','P Unit',&
+      'p_units','pressure_units','Pressure_units','Pressure_Units','P_units','P_Units','pressure units',&
+        'Pressure Units','Pressure units','press_units','press units','Press units','Press Units'&
+        'p units','P units','P Units')
       read(cValue,*,IOSTAT = INFO) cInputUnitPressure
       if (INFO /= 0) then
         INFOThermo = 44
@@ -160,7 +165,12 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lPressureUnit = .TRUE.
-    case ('t_unit')
+    case ('t_unit','temperature_unit','Temperature_unit','Temperature_Unit','T_unit','T_Unit',&
+      'temperature unit','Temperature Unit','Temperature unit','temp_unit','temp unit',&
+      'Temp unit','Temp Unit','t unit','T unit','T Unit',&
+      't_units','temperature_units','Temperature_units','Temperature_Units','T_units','T_Units',&
+        'temperature units','Temperature Units','Temperature units','temp_units','temp units',&
+        'Temp units','Temp Units','t units','T units','T Units')
       read(cValue,*,IOSTAT = INFO) cInputUnitTemperature
       if (INFO /= 0) then
         INFOThermo = 44
@@ -169,7 +179,8 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lTemperatureUnit = .TRUE.
-    case ('m_unit')
+    case ('m_unit','mass_unit','Mass_unit','Mass_Unit','m unit','mass unit','Mass unit','Mass Unit',&
+      'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
       read(cValue,*,IOSTAT = INFO) cInputUnitMass
       if (INFO /= 0) then
         INFOThermo = 44
@@ -178,7 +189,8 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lMassUnit = .TRUE.
-    case ('data')
+    case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
+      'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
       read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
       if (INFO /= 0) then
         INFOThermo = 44
@@ -187,7 +199,8 @@ subroutine ParseInput(cInputFileName)
         return
       endif
       lData = .TRUE.
-    case ('print_mode')
+    case ('print_mode','Print_mode','Print_Mode',&
+      'print mode','Print mode','Print Mode')
       read(cValue,*,IOSTAT = INFO) iPrintResultsMode
       if (INFO /= 0) then
         INFOThermo = 44
@@ -195,7 +208,8 @@ subroutine ParseInput(cInputFileName)
         print *,  trim(cErrMsg)
         return
       endif
-    case ('debug_mode')
+    case ('debug_mode','Debug_mode','Debug_Mode',&
+      'debug mode','Debug mode','Debug Mode')
       read(cValue,*,IOSTAT = INFO) lDebugMode
       if (INFO /= 0) then
         INFOThermo = 44
