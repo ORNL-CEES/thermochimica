@@ -1,0 +1,13 @@
+! Initialize variables:
+pressure          = 2
+temperature       = 900
+mass(6)           = 1
+mass(8)           = 1
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = data/C-O.dat
+
+! Specify output and debug modes:
+print mode        = 2
+debug mode        = .FALSE.
