@@ -6,7 +6,7 @@ m(8)    = 1
 t_unit  = K
 p_unit  = atm
 m_unit  = moles
-data    = ../data/C-O.dat
+data    = data/C-O.dat
 ! Specify output and debug modes:
 print_mode  = 2
 debug_mode  = .FALSE.
