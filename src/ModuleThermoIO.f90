@@ -56,7 +56,7 @@ module ModuleThermoIO
     real(8),       dimension(0:118)        :: dElementMass
     character(15)                          :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(120)                         :: cThermoFileName
-    logical                                :: lRestart = .FALSE.
+    logical                                :: lRestartAvailable = .FALSE., lRestartLoaded = .FALSE.
 
     ! OUTPUT VARIABLES:
     integer                                :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut

@@ -1,10 +1,10 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    SaveRestartData.f90
-    !> \brief   Save data for restarting calculation from previous results.
+    !> \file    LoadRestartData.f90
+    !> \brief   Load data for restarting calculation from previous results.
     !> \author  M. Poschmann
-    !> \sa      LoadRestartData.f90
+    !> \sa      SaveRestartData.f90
     !
     !
     ! References:
@@ -29,7 +29,7 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine SaveRestartData
+subroutine LoadRestartData
 
   USE ModuleThermo
   USE ModuleRestart
@@ -39,22 +39,19 @@ subroutine SaveRestartData
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lRestartAvailable) then
-    allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies))
-    allocate(iPhase_Old(nSpecies),iAssemblage_Old(nElements))
-    allocate(cSolnPhaseType_Old(nSolnPhasesSys),cSolnPhaseName_Old(nSolnPhasesSys))
+    print *, 'Restart requested but data not available'
+    return
   endif
 
   ! Save old chemical potential data
-  dChemicalPotential_Old  = dChemicalPotential
+  dChemicalPotential  = dChemicalPotential_Old
   ! Save old phase data
-  cSolnPhaseName_Old      = cSolnPhaseName
-  cSolnPhaseType_Old      = cSolnPhaseType
-  iAssemblage_Old         = iAssemblage
-  iPhase_Old              = iPhase
-  dMolesPhase_Old         = dMolesPhase
+  cSolnPhaseName      = cSolnPhaseName_Old
+  cSolnPhaseType      = cSolnPhaseType_Old
+  iAssemblage         = iAssemblage_Old
+  iPhase              = iPhase_Old
+  dMolesPhase         = dMolesPhase_Old
 
-  ! Set restart data flag to true
-  lRestartAvailable = .TRUE.
-  return
+  lRestartLoaded = .TRUE.
 
-end subroutine SaveRestartData
+end subroutine LoadRestartData

@@ -12,12 +12,12 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   10/17/2011      M.H.A. Piro         Original code
     !   05/01/2012      M.H.A. Piro         Corrected storage of mixing component indices when solution species
-    !                                       are no longer considered.  This affected the variable iSpeciesPass.    
+    !                                       are no longer considered.  This affected the variable iSpeciesPass.
     !                                       This also affected the way that pure condensed phases are represented
     !                                       by iSpeciesPass.
     !   02/17/2012      M.H.A. Piro         Check if allocatable arrays have been allocated and if so, have they
@@ -30,7 +30,7 @@
     !   01/14/2013      M.H.A. Piro         Move code relavent to excess terms into a separate subroutine.
     !   02/05/2013      M.H.A. Piro         The check for the minimum number of system components now includes
     !                                        constraints imposed by charge neutrality.
-    !   05/14/2013      M.H.A. Piro         Fixed bug in allocating arrays specific to ionic phases.  This was 
+    !   05/14/2013      M.H.A. Piro         Fixed bug in allocating arrays specific to ionic phases.  This was
     !                                        done when the size of cSolnPhaseName changes. This should be independent.
     !   10/23/2018      M.H.A. Piro         Fixed a bug in allocating variables for SUBG phases.
     !
@@ -38,13 +38,13 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to ensure that the selection of system components in the 
-    !! parsed ChemSage data-file and the data provided to Thermochimica are consistent.  System components are 
-    !! always taken to be chemical elements in Thermochimica, or "elements" for sake of brevity.  An element will 
-    !! only be considered if thermodynamic data is provided by the data-file and if the mass of that particular 
-    !! element is provided.  If the mass of a particular element is provided but there isn't any data for it 
-    !! (via the data-file), that element will not be considered.  Similarly, if thermodynamic data (via the 
-    !! data-file) is provided for a particular element, but the mass of that element is not available, that 
+    !> \details The purpose of this subroutine is to ensure that the selection of system components in the
+    !! parsed ChemSage data-file and the data provided to Thermochimica are consistent.  System components are
+    !! always taken to be chemical elements in Thermochimica, or "elements" for sake of brevity.  An element will
+    !! only be considered if thermodynamic data is provided by the data-file and if the mass of that particular
+    !! element is provided.  If the mass of a particular element is provided but there isn't any data for it
+    !! (via the data-file), that element will not be considered.  Similarly, if thermodynamic data (via the
+    !! data-file) is provided for a particular element, but the mass of that element is not available, that
     !! element will not be considered.
     !!
     !! This subroutine will select all species and phases that are relevant to this system from the data
@@ -54,46 +54,46 @@
     !!
     ! cThermoInputUnits(3)      Description
     ! --------------------      -----------
-    !> \details 
+    !> \details
     !!
     !! <table border="1" width="800">
     !! <tr>
     !!    <td> <b> Units </td> <td> Description </b> </td>
     !! </tr>
     !! <tr>
-    !!    <td> "mass fraction" </td> 
+    !!    <td> "mass fraction" </td>
     !!    <td> Mass fraction in dimensionless units (e.g., gram/gram, kilogram/kilogram, pound/pound, wt%).  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "mole fraction" </td> 
+    !!    <td> "mole fraction" </td>
     !!    <td> Mole fraction in dimensionless units (e.g., mole/mole, mol%).  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "atom fraction" </td> 
+    !!    <td> "atom fraction" </td>
     !!    <td> Atom fraction in dimensionless units (e.g., atom/atom, at%).  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "kilograms" </td> 
+    !!    <td> "kilograms" </td>
     !!    <td> All quantities are in kilograms.  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "grams" </td> 
+    !!    <td> "grams" </td>
     !!    <td> All quantities are in grams.  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "pounds" </td> 
+    !!    <td> "pounds" </td>
     !!    <td> All quantities are in pounds.  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "moles" </td> 
+    !!    <td> "moles" </td>
     !!    <td> All quantities are in moles.  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "gram-atoms" </td> 
+    !!    <td> "gram-atoms" </td>
     !!    <td> All quantities are in gram-atoms (same as moles for the pure elements);  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "atoms"   </td> 
+    !!    <td> "atoms"   </td>
     !!    <td>  All quantities are in atoms.  </td>
     !! </tr>
     !! </table>
@@ -102,17 +102,17 @@
     ! Pertinent variables:
     ! ====================
     !
-    ! dNormalizeInput                   A double scalar that normalizes the mass units.  This is performed to 
-    !                                    minimize numerical error when evaluating the Jacobian/Broyden matrix in 
+    ! dNormalizeInput                   A double scalar that normalizes the mass units.  This is performed to
+    !                                    minimize numerical error when evaluating the Jacobian/Broyden matrix in
     !                                    the GEMSolver.
     !
     ! dTemperature                      Temperature [K]
     ! dPressure                         Absolute hydrostatic pressure [atm]
-    ! dElementMass                      Total mass of each element, where the coefficient corresponds to the 
+    ! dElementMass                      Total mass of each element, where the coefficient corresponds to the
     !                                    atomic number (e.g., dMolesElement(92) refers to uranium).
     ! dElementMoleFractionMin           A minimum allowable value for the number of moles of an element.
     ! INFOThermo                        A scalar integer that indicates a successful exit or identifies an error.
-    ! cInputThermo                      A character vector containing the units for temperature, pressure and 
+    ! cInputThermo                      A character vector containing the units for temperature, pressure and
     !                                    elemental quantity.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -126,7 +126,7 @@ subroutine CheckSystem
     USE ModuleGEMSolver, ONLY: lSolnPhases, lMiscibility
 
     implicit none
-    
+
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nChargedPhaseTemp
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
@@ -137,12 +137,12 @@ subroutine CheckSystem
     ! Check to see if the allocatable arrays have already been allocated
     if (allocated(iElementSystem)) then
         ! Do nothing.
-    else 
+    else
         ! Allocate memory:
         allocate(iElementSystem(1:nElementsCS))
         allocate(iSpeciesPass(nSpeciesCS))
     end if
-    
+
     ! Check if there are any solution phases with a sublattice:
     if (nChargedPhaseCS > 0) then
         ! Allocate array to check if a constituent passes:
@@ -151,7 +151,7 @@ subroutine CheckSystem
         allocate(iConstituentPass(nChargedPhaseCS,nMaxSublatticeCS,j))
         iConstituentPass = 0
     end if
-    
+
     ! Initialize variables:
     iElementSystem      = 0
     iTempVec            = 0
@@ -161,26 +161,26 @@ subroutine CheckSystem
     nMaxConstituentSys  = 0
     nMaxSpeciesPhase    = 0
     nChargedPhaseTemp   = 0
-    nChargedConstraints = 0 
+    nChargedConstraints = 0
     n                   = 0
     dSum                = 0D0
-    dElementMoleFractionMin = dTolerance(6) 
+    dElementMoleFractionMin = dTolerance(6)
 
     ! Get the name of all the elements on the periodic table:
     call GetElementName(cElementNamePT)
-    
-    ! Perform a mass conversion:    
+
+    ! Perform a mass conversion:
     LOOP_Small: do j = 1, nElementsCS
         ! Map the character string of this element to its atomic number:
         LOOP_Big: do i = 0, nElementsPT
             if (cElementNameCS(j) == cElementNamePT(i)) then
                 ! Convert the mass of each element to moles:
                 select case (cInputUnitMass)
-                    case ('mass fraction','kilograms','grams','pounds')            
+                    case ('mass fraction','kilograms','grams','pounds')
                         ! Convert mass unit to moles:
                         dElementMass(i) = dElementMass(i) / dAtomicMass(j)
                     case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
-                        ! Do nothing 
+                        ! Do nothing
                     case default
                         ! The character string representing input units is not recognized.
                         INFOThermo = 4
@@ -191,17 +191,17 @@ subroutine CheckSystem
                 cycle LOOP_Small
             elseif (cElementNameCS(j) == 'e-') then
                 ! Electron
-                iElementSystem(j) = i 
+                iElementSystem(j) = i
                 dElementMass(i)   = 0D0
                 cycle LOOP_Small
             end if
         end do LOOP_Big
-        ! The chemical element stored by cElementNameCS(j) does not correspond to an 
+        ! The chemical element stored by cElementNameCS(j) does not correspond to an
         ! element in cElementNamePT.  Report an error and exit:
         INFOThermo = 31
         return
     end do LOOP_Small
-    
+
     ! Make sure that the sum of element masses is not zero:
     if (dSum == 0D0) then
         INFOThermo = 5
@@ -210,14 +210,14 @@ subroutine CheckSystem
 
     ! Make dSum multiplicative and normalize:
     dNormalizeInput = dNormalizeInput / dSum
-        
-    k = 0 
+
+    k = 0
     ! Normalize dElementMass to mole fraction and establish the elements of the system:
     do j = 1, nElementsCS
         dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
-            iElementSystem(j) = 0                        
+            iElementSystem(j) = 0
             if (cElementNameCS(j) == 'e-') then
                 nElements         = nElements + 1
                 iElementSystem(j) = -1
@@ -241,7 +241,7 @@ subroutine CheckSystem
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
-            LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)                
+            LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
                 do k = 1, nElementsCS
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
@@ -253,17 +253,17 @@ subroutine CheckSystem
                 iSpeciesPass(j) = m
                 l = j   ! If there is only one species in this phase, this species will be removed later.
             end do LOOP_SpeciesInSolnPhase
-            
+
             ! Store temporary counter for the number of charged phases from the CS data-file:
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
                 nChargedPhaseTemp = nChargedPhaseTemp + 1
             end if
-            
+
             ! Count the number of solution phases in the system:
-            iTempVec(nSolnPhasesSys+1) = nSpecies            
+            iTempVec(nSolnPhasesSys+1) = nSpecies
             if (iTempVec(nSolnPhasesSys+1) > iTempVec(nSolnPhasesSys) + 1) then
                 nSolnPhasesSys = nSolnPhasesSys + 1
-                nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))                
+                nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
                 ! Check if this is a charged phase:
                 if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
                     ! Count the number of charged phases:
@@ -279,13 +279,13 @@ subroutine CheckSystem
                 nSpecies                 = nSpecies - 1
                 iTempVec(nSolnPhasesSys) = nSpecies
             else
-                ! Do nothing.  The number of species in this solution phase is zero and this phase will not be 
+                ! Do nothing.  The number of species in this solution phase is zero and this phase will not be
                 ! considered.
             end if
         end do LOOP_SolnPhases
-        
+
         ! Loop through pure condensed phases:
-        LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS             
+        LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
             do k = 1, nElementsCS
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                     ! This species should not be considered
@@ -295,32 +295,32 @@ subroutine CheckSystem
             nSpecies        = nSpecies + 1
             iSpeciesPass(j) = 1
         end do LOOP_PureConPhases
-    else    
+    else
         ! The system has not changed.
-        
+
         nSolnPhasesSys             = nSolnPhasesSysCS
         nSpecies                   = nSpeciesCS
         iTempVec(0:nSolnPhasesSys) = nSpeciesPhaseCS(0:nSolnPhasesSys)
 
         if (nChargedPhaseCS > 0) then
             nMaxSublatticeSys          = MAXVAL(nSublatticePhaseCS)
-            nMaxConstituentSys         = MAXVAL(nConstituentSublatticeCS)    
+            nMaxConstituentSys         = MAXVAL(nConstituentSublatticeCS)
         end if
-        
+
         do i = 1, nSolnPhasesSysCS
-            m = 0            
+            m = 0
             do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
                 m = m + 1
                 iSpeciesPass(j) = m
             end do
-            nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(i) - iTempVec(i-1)) 
+            nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(i) - iTempVec(i-1))
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) nChargedPhase = nChargedPhase + 1
         end do
-        
+
         j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1
         k = nSpeciesCS
         iSpeciesPass(j:k) = 1
-        
+
     end if IF_Elements
 
     ! Re-establish the character vector representing the element names:
@@ -331,17 +331,17 @@ subroutine CheckSystem
             if (cDummy == 'e-') nChargedConstraints = nChargedConstraints + 1
         end if
     end do
-    
+
     ! Add dummy species representing electrons to the number of species in the system:
     nSpecies = nSpecies + nChargedConstraints
-        
+
     ! Check if these variables have already been allocated:
     if (allocated(dChemicalPotential)) then
         ! Check to see if the number of species has changed:
-        
+
         i = SIZE(dChemicalPotential)
         if (i /= nSpecies) then
-            ! The number of species has changed.  
+            ! The number of species has changed.
             deallocate(dChemicalPotential,iPhase,dSpeciesTotalAtoms,cSpeciesName,&
                 iParticlesPerMole,dStdGibbsEnergy,dCoeffGibbsMagnetic,dMagGibbsEnergy, STAT = n)
             if (n /= 0) then
@@ -351,13 +351,13 @@ subroutine CheckSystem
             ! Allocate memory for variables:
             allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
             allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies))
-            allocate(iParticlesPerMole(nSpecies), dCoeffGibbsMagnetic(nSpecies,4), dMagGibbsEnergy(nSpecies))   
+            allocate(iParticlesPerMole(nSpecies), dCoeffGibbsMagnetic(nSpecies,4), dMagGibbsEnergy(nSpecies))
         end if
-                
+
         ! Check to see if the number of elements has changed:
         j = SIZE(cElementName)
         if (j /= nElements) then
-            ! The numebr of elements has changed.  
+            ! The numebr of elements has changed.
             deallocate(cElementName,dMolesElement, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
@@ -367,7 +367,7 @@ subroutine CheckSystem
             allocate(cElementName(nElements),dMolesElement(nElements))
         end if
 
-        ! Check to see if either the number of species or the number of elements has changed:         
+        ! Check to see if either the number of species or the number of elements has changed:
         if ((i /= nSpecies).OR.(j /= nElements)) then
             deallocate(dAtomFractionSpecies,dStoichSpecies, STAT = n)
             if (n /= 0) then
@@ -377,7 +377,7 @@ subroutine CheckSystem
             ! Allocate memory:
             allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
         end if
-        
+
         ! Check to see if the number of solution phases in the system has changed:
         k = SIZE(cSolnPhaseName)
         if (k /= nSolnPhasesSys) then
@@ -392,15 +392,15 @@ subroutine CheckSystem
             allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys))
             allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
             allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
-        
+
         end if
-        
+
         ! Only allocate if there are charged phases:
         if (nChargedPhase > 0) then
-            
+
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice, STAT = n)
-        
+
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nChargedPhase))
             allocate(nConstituentSublattice(nChargedPhase,nMaxSublatticeSys))
             allocate(dStoichSublattice(nChargedPhase,nMaxSublatticeSys))
@@ -408,13 +408,13 @@ subroutine CheckSystem
             allocate(cConstituentNameSUB(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
             allocate(iConstituentSublattice(nChargedPhase,nMaxSublatticeSys,nMaxSpeciesPhase))
         end if
-        
+
     else
 
         ! Allocate memory for variables:
         allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
         allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies))
-        allocate(iParticlesPerMole(nSpecies),dCoeffGibbsMagnetic(nSpecies,4),dMagGibbsEnergy(nSpecies))   
+        allocate(iParticlesPerMole(nSpecies),dCoeffGibbsMagnetic(nSpecies,4),dMagGibbsEnergy(nSpecies))
         allocate(cElementName(nElements),dMolesElement(nElements))
         allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
         allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys))
@@ -444,7 +444,7 @@ subroutine CheckSystem
             allocate(dStoichSublattice(nChargedPhase,nMaxSublatticeSys))
             allocate(dSiteFraction(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
             allocate(cConstituentNameSUB(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
-            allocate(iConstituentSublattice(nChargedPhase,nMaxSublatticeSys,nMaxSpeciesPhase))            
+            allocate(iConstituentSublattice(nChargedPhase,nMaxSublatticeSys,nMaxSpeciesPhase))
         end if
 
     end if
@@ -458,7 +458,7 @@ subroutine CheckSystem
     nParamPhase          = 0
     iPairID              = 0
     nPairsSRO            = 0
-    dChemicalPotential   = 0D0
+    dChemicalPotential   = 0D0 ! Potentially interferes with restarting
     dStdGibbsEnergy      = 0D0
     dMolesElement        = 0D0
     dAtomFractionSpecies = 0D0
@@ -480,10 +480,10 @@ subroutine CheckSystem
     if (nChargedPhase > 0) then
         dSiteFraction          = 0D0
         iConstituentSublattice = 0
-        nSublatticePhase       = 0 
+        nSublatticePhase       = 0
         nConstituentSublattice = 0
     end if
-                
+
     ! Re-establish the character vector representing the element names:
     j = 0
     do i = 1, nElementsCS
@@ -494,10 +494,10 @@ subroutine CheckSystem
             if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i))
         end if
     end do
-    
+
     ! Redefine the tolerance for the minimum number of moles of a solution phase that is introduced to the system:
     dTolerance(9) = DMIN1(1000D0 * MINVAL(dMolesElement, MASK = dMolesElement > 0D0),dTolerance(9))
-    
+
     ! Re-establish the nSpeciesPhase vector:
     nSpeciesPhase(0:nSolnPhasesSys) = iTempVec(0:nSolnPhasesSys)
 

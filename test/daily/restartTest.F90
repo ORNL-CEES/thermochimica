@@ -53,6 +53,8 @@ program RestartTest
   call Thermochimica
   ! Save restart data
   call SaveRestartData
+  ! Load restart data
+  if(lRestartAvailable) call LoadRestartData  
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
   LOOP_time: do i = 1,1
