@@ -51,10 +51,16 @@ program RestartTest
 
   ! Call Thermochimica:
   call Thermochimica
+
+  ! Print first run output
+  if (iPrintResultsMode > 0)  call PrintResults
+
   ! Save restart data
   call SaveRestartData
+
   ! Load restart data
-  if(lRestartAvailable) call LoadRestartData  
+  if(lRestartAvailable) call LoadRestartData
+
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
   LOOP_time: do i = 1,1
@@ -63,7 +69,7 @@ program RestartTest
   call cpu_time(finish)
   print '("Time = ",f6.3," seconds.")',finish-start
 
-  ! Perform post-processing of results:
+  ! Print second run output
   if (iPrintResultsMode > 0)  call PrintResults
 
   ! Reset Thermochimica:
