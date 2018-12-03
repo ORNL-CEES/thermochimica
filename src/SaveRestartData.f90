@@ -39,7 +39,7 @@ subroutine SaveRestartData
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lRestartAvailable) then
-    allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies))
+    allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements))
     allocate(iPhase_Old(nSpecies),iAssemblage_Old(nElements))
     allocate(cSolnPhaseType_Old(nSolnPhasesSys),cSolnPhaseName_Old(nSolnPhasesSys))
   endif

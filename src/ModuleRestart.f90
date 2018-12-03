@@ -19,6 +19,6 @@ module ModuleRestart
     integer,       dimension(:),   allocatable::  iPhase_Old, iAssemblage_Old
     character(8),  dimension(:),   allocatable::  cSolnPhaseType_Old
     character(25), dimension(:),   allocatable::  cSolnPhaseName_Old
-    real(8),       dimension(:),   allocatable::  dChemicalPotential_Old, dMolesPhase_Old
+    real(8),       dimension(:),   allocatable::  dChemicalPotential_Old, dMolesPhase_Old, dElementPotential_Old
 
 end module ModuleRestart
