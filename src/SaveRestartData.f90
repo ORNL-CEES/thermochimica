@@ -46,6 +46,7 @@ subroutine SaveRestartData
 
   ! Save old chemical potential data
   dChemicalPotential_Old  = dChemicalPotential
+  dElementPotential_Old   = dElementPotential
   ! Save old phase data
   cSolnPhaseName_Old      = cSolnPhaseName
   cSolnPhaseType_Old      = cSolnPhaseType
