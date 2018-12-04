@@ -44,13 +44,13 @@ subroutine ResetRestart
 
     if (allocated(dMolesPhase_Old)) then
         ! Deallocate integer arrays from ModuleThermo:
-        deallocate (dMolesPhase_Old,dChemicalPotential_Old, STAT = INFO)
+        deallocate (dMolesPhase_Old,dChemicalPotential_Old,dMolFraction_Old,dElementPotential_Old, STAT = INFO)
         i = i + INFO
     end if
 
-    if (allocated(iPhase_Old)) then
+    if (allocated(iAssemblage_Old)) then
         ! Deallocate real arrays from ModuleThermo:
-        deallocate (iPhase_Old,iAssemblage_Old,STAT = INFO)
+        deallocate (iAssemblage_Old,STAT = INFO)
         i = i + INFO
     end if
 
