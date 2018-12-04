@@ -42,15 +42,12 @@ subroutine SaveRestartData
     allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
     dMolFraction_Old(nSpecies))
     allocate(iAssemblage_Old(nElements))
-    allocate(cSolnPhaseType_Old(nSolnPhasesSys),cSolnPhaseName_Old(nSolnPhasesSys))
   endif
 
   ! Save old chemical potential data
   dChemicalPotential_Old  = dChemicalPotential
   dElementPotential_Old   = dElementPotential
   ! Save old phase data
-  cSolnPhaseName_Old      = cSolnPhaseName
-  cSolnPhaseType_Old      = cSolnPhaseType
   iAssemblage_Old         = iAssemblage
   dMolesPhase_Old         = dMolesPhase
   dMolFraction_Old        = dMolFraction

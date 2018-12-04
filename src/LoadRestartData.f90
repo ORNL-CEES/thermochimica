@@ -47,15 +47,18 @@ subroutine LoadRestartData
 
   ! Check that the number of elements hasn't changed.
   ! If it has, don't load data.
-  i = SIZE(iAssemblage)
+  i = SIZE(iAssemblage_Old)
   if (i /= nElements) return
 
   ! Save old chemical potential data
+  if (.NOT. allocated(dChemicalPotential)) allocate(dChemicalPotential(nSpecies))
+  if (.NOT. allocated(dElementPotential)) allocate(dElementPotential(nElements))
   dChemicalPotential  = dChemicalPotential_Old
   dElementPotential   = dElementPotential_Old
   ! Save old phase data
-  cSolnPhaseName      = cSolnPhaseName_Old
-  cSolnPhaseType      = cSolnPhaseType_Old
+  if (.NOT. allocated(iAssemblage)) allocate(iAssemblage(nElements))
+  if (.NOT. allocated(dMolesPhase)) allocate(dMolesPhase(nElements))
+  if (.NOT. allocated(dMolFraction)) allocate(dMolFraction(nSpecies))
   iAssemblage         = iAssemblage_Old
   dMolesPhase         = dMolesPhase_Old
   dMolFraction        = dMolFraction_Old

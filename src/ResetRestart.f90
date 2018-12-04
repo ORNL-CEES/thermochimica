@@ -54,12 +54,6 @@ subroutine ResetRestart
         i = i + INFO
     end if
 
-    if (allocated(cSolnPhaseType_Old)) then
-        ! Deallocate character arrays from ModuleThermo:
-        deallocate (cSolnPhaseType_Old,cSolnPhaseName_Old, STAT = INFO)
-        i = i + INFO
-    end if
-
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then
         INFOThermo = 15
