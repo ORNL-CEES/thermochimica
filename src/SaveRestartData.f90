@@ -51,6 +51,8 @@ subroutine SaveRestartData
   iAssemblage_Old         = iAssemblage
   dMolesPhase_Old         = dMolesPhase
   dMolFraction_Old        = dMolFraction
+  ! Save which elements were included
+  iElementsUsed_Old       = min(ceiling(dElementMass),1)
 
   ! Set restart data flag to true
   lRestartAvailable = .TRUE.

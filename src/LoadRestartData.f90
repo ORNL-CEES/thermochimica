@@ -37,7 +37,8 @@ subroutine LoadRestartData
 
   implicit none
 
-  integer::                               i
+  integer                              :: i, j
+  integer,     dimension(0:118)        :: iElementsUsed
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lRestartAvailable) then
@@ -45,10 +46,14 @@ subroutine LoadRestartData
     return
   endif
 
-  ! Check that the number of elements hasn't changed.
-  ! If it has, don't load data.
+  ! Check that the number of elements hasn't changed. If it has, don't load data.
   i = SIZE(iAssemblage_Old)
   if (i /= nElements) return
+  ! Also check that the elements involved themselves are the same.
+  iElementsUsed = min(ceiling(dElementMass),1)
+  do j = 1, (nElementsPT + 1)
+    if (iElementsUsed(j) /= iElementsUsed_Old(j)) return
+  enddo
 
   ! Save old chemical potential data
   if (.NOT. allocated(dChemicalPotential)) allocate(dChemicalPotential(nSpecies))

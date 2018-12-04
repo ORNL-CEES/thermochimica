@@ -17,6 +17,7 @@ module ModuleRestart
     SAVE
 
     integer,       dimension(:),   allocatable::  iAssemblage_Old
+    integer,       dimension(0:118)           ::  iElementsUsed_Old
     real(8),       dimension(:),   allocatable::  dChemicalPotential_Old, dMolesPhase_Old, dElementPotential_Old
     real(8),       dimension(:),   allocatable::  dMolFraction_Old
 
