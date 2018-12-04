@@ -59,6 +59,8 @@ subroutine LoadRestartData
   iAssemblage         = iAssemblage_Old
   iPhase              = iPhase_Old
   dMolesPhase         = dMolesPhase_Old
+  !dMolesElement       = dMolesElement_Old
+  dMolFraction        = dMolFraction_Old
 
   lRestartLoaded = .TRUE.
 

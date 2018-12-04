@@ -22,28 +22,24 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program RestartTest
+program RestartTestCO
 
   USE ModuleThermoIO
   USE ModuleThermo
   USE ModuleGEMSolver
 
   implicit none
-  integer :: i, j
+  integer :: i
   real    :: start, finish
 
   ! Initialize variables:
-  dPressure             = 1D0
-  dTemperature          = 2452D0
-  dElementMass(74)      = 1.95D0        ! W
-  dElementMass(79)      = 1D0           ! Au
-  dElementMass(18)      = 2D0           ! Ar
-  dElementMass(8)       = 10D0          ! O
-  dElementMass(10)      = 10D0          ! Ne
-  cInputUnitTemperature = 'K'
-  cInputUnitPressure    = 'atm'
-  cInputUnitMass        = 'moles'
-  cThermoFileName       = DATA_DIRECTORY // 'W-Au-Ar-Ne-O_03.dat'
+  dTemperature            = 300D0
+  dPressure               = 1D0
+  dElementMass            = 1D0
+  cInputUnitTemperature   = 'K'
+  cInputUnitPressure      = 'atm'
+  CInputUnitMass          = 'moles'
+  cThermoFileName       = DATA_DIRECTORY // 'C-O.dat'
 
   ! Specify output and debug modes:
   iPrintResultsMode     = 2
@@ -58,35 +54,30 @@ program RestartTest
   ! Print first run output
   if (iPrintResultsMode > 0)  call PrintResults
 
-  LOOP_restart: do j = 1,1
-    ! Save restart data
-    call SaveRestartData
+  ! Save restart data
+  call SaveRestartData
 
-    ! Re-state input variables
-    dElementMass(74)      = 1.95D0        ! W
-    dElementMass(79)      = 1D0           ! Au
-    dElementMass(18)      = 2D0           ! Ar
-    dElementMass(8)       = 10D0          ! O
-    dElementMass(10)      = 10D0          ! Ne
-    ! Load restart data
-    if(lRestartAvailable) call LoadRestartData
+  ! Re-state input variables
+  dPressure               = 1D0
+  dElementMass            = 1D0
+  ! Load restart data
+  if(lRestartAvailable) call LoadRestartData
 
-    ! Call Thermochimica a bunch more for timing
-    call cpu_time(start)
-    LOOP_time: do i = 1,1
-      call Thermochimica
-    end do LOOP_time
-    call cpu_time(finish)
-    print '("Time = ",f6.3," seconds.")',finish-start
+  ! Call Thermochimica a bunch more for timing
+  call cpu_time(start)
+  LOOP_time: do i = 1,1
+    call Thermochimica
+  end do LOOP_time
+  call cpu_time(finish)
+  print '("Time = ",f6.3," seconds.")',finish-start
 
-    ! Print second run output
-    if (iPrintResultsMode > 0)  call PrintResults
+  ! Print second run output
+  if (iPrintResultsMode > 0)  call PrintResults
 
-  end do LOOP_restart
   ! Reset Thermochimica:
   call ResetThermo
 
   ! Call the debugger:
   call ThermoDebug
 
-end program RestartTest
+end program RestartTestCO
