@@ -41,7 +41,7 @@ subroutine SaveRestartData
   if (.NOT. lRestartAvailable) then
     allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
     dMolFraction_Old(nSpecies))
-    allocate(iPhase_Old(nSpecies),iAssemblage_Old(nElements))
+    allocate(iAssemblage_Old(nElements))
     allocate(cSolnPhaseType_Old(nSolnPhasesSys),cSolnPhaseName_Old(nSolnPhasesSys))
   endif
 
@@ -52,7 +52,6 @@ subroutine SaveRestartData
   cSolnPhaseName_Old      = cSolnPhaseName
   cSolnPhaseType_Old      = cSolnPhaseType
   iAssemblage_Old         = iAssemblage
-  iPhase_Old              = iPhase
   dMolesPhase_Old         = dMolesPhase
   dMolFraction_Old        = dMolFraction
 

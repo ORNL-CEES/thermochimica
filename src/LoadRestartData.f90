@@ -57,7 +57,6 @@ subroutine LoadRestartData
   cSolnPhaseName      = cSolnPhaseName_Old
   cSolnPhaseType      = cSolnPhaseType_Old
   iAssemblage         = iAssemblage_Old
-  iPhase              = iPhase_Old
   dMolesPhase         = dMolesPhase_Old
   dMolFraction        = dMolFraction_Old
 
