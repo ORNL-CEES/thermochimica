@@ -33,17 +33,17 @@ program RestartTest
   real    :: start, finish
 
   ! Initialize variables:
-  dPressure             = 1D0
-  dTemperature          = 2452D0
-  dElementMass(74)      = 1.95D0        ! W
-  dElementMass(79)      = 1D0           ! Au
-  dElementMass(18)      = 2D0           ! Ar
-  dElementMass(8)       = 10D0          ! O
-  dElementMass(10)      = 10D0          ! Ne
+  dPressure             = 2D0
+  dTemperature          = 900D0
+  dElementMass(74)      = 20D0        ! W
+  dElementMass(79)      = 2D0         ! Au
+  dElementMass(18)      = 7D0         ! Ar
+  dElementMass(8)       = 5D0         ! O
+  dElementMass(10)      = 1D0         ! Ne
   cInputUnitTemperature = 'K'
   cInputUnitPressure    = 'atm'
   cInputUnitMass        = 'moles'
-  cThermoFileName       = DATA_DIRECTORY // 'W-Au-Ar-Ne-O_03.dat'
+  cThermoFileName       = DATA_DIRECTORY // 'W-Au-Ar-Ne-O_04.dat'
 
   ! Specify output and debug modes:
   iPrintResultsMode     = 2
@@ -63,13 +63,15 @@ program RestartTest
     call SaveRestartData
 
     ! Re-state input variables
-    dElementMass(74)      = 1.95D0        ! W
-    dElementMass(79)      = 1D0           ! Au
-    dElementMass(18)      = 2D0           ! Ar
-    dElementMass(8)       = 10D0          ! O
-    dElementMass(10)      = 10D0          ! Ne
+    dPressure              = 2D0
+    dTemperature           = 900D0
+    dElementMass(74)       = 20D0        ! W
+    dElementMass(79)       = 2D0         ! Au
+    dElementMass(18)       = 7D0         ! Ar
+    dElementMass(8)        = 5D0         ! O
+    dElementMass(10)       = 1D0         ! Ne
     ! Load restart data
-    if(lRestartAvailable) call LoadRestartData
+    lRestartRequested = .TRUE.
 
     ! Call Thermochimica a bunch more for timing
     call cpu_time(start)
