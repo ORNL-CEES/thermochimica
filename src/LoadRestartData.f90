@@ -51,7 +51,7 @@ subroutine LoadRestartData
   if (i /= nElements) return
   ! Also check that the elements involved themselves are the same.
   iElementsUsed = min(ceiling(dElementMass),1)
-  do j = 1, (nElementsPT + 1)
+  do j = 0, (nElementsPT)
     if (iElementsUsed(j) /= iElementsUsed_Old(j)) return
   enddo
 
