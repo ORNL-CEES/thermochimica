@@ -79,7 +79,7 @@ program RestartTestNuc
     ! Save restart data
     call SaveRestartData
     ! Inside loop in case you don't want to re-save
-    LOOP_time: do i = 1,100
+    LOOP_time: do i = 1,500
       ! Reset
       call ResetThermo
       ! Re-state input variables
@@ -105,10 +105,10 @@ program RestartTestNuc
       dElementMass(42)        = 0.14263d-4
       dElementMass(40)        = 0.11667d-6
       dElementMass(39)        = 0D0
-      !dElementMass(38)        = 0.86762d-7
-      !dElementMass(37)        = 1D-2
+      dElementMass(38)        = 0.86762d-7
+      !dElementMass(38)        = 0.86762d-6
       dElementMass(8)         = 1.14467207D-2
-      dElementMass(1)         = 1D-2
+      !dElementMass(1)         = 1D-2
       cInputUnitTemperature   = 'K'
       cInputUnitPressure      = 'atm'
       cInputUnitMass          = 'moles'
