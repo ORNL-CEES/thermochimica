@@ -1,0 +1,15 @@
+services:
+ - docker
+
+before_install:
+ - echo $PWD
+ - docker pull maxposchmann/thermochimica
+
+script:
+ - docker run -v $PWD:/thermochimica maxposchmann/thermochimica /bin/bash -c "make; make test; ./run_tests"
+ - ls
+
+branches:
+  only:
+    - gh-pages
+    - /.*/

@@ -22,7 +22,7 @@
 ## ===================
 
 FC          = gfortran
-FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero
+FCFLAGS     = -Wall -g -pg -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
 #FCFLAGS     = -Wall -g -fbounds-check
 #FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check
 #LDFLAGS     = -framework Accelerate -g -fbounds-check
@@ -55,13 +55,15 @@ DTST_DIR    = $(TST_DIR)/daily
 WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
 
+CURR_DIR    = $(shell pwd)
+DATA_DIR    = $(CURR_DIR)/data/
 
 ## ========
 ## MODULES:
 ## ========
 
 MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o
-MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC)) 
+MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 
 ## =================
@@ -70,7 +72,7 @@ MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 SHARED_SRC  = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.f90)))
 SHARED_OBJ  = $(SHARED_SRC:.f90=.o)
-SHARED_LNK  = $(addprefix $(OBJ_DIR)/,$(SHARED_OBJ)) 
+SHARED_LNK  = $(addprefix $(OBJ_DIR)/,$(SHARED_OBJ))
 
 
 ## ============
@@ -79,33 +81,33 @@ SHARED_LNK  = $(addprefix $(OBJ_DIR)/,$(SHARED_OBJ))
 
 EXEC_SRC    = $(notdir $(wildcard $(TST_DIR)/*.f90))
 EXEC_OBJ    = $(EXEC_SRC:.f90=.o)
-EXEC_LNK    = $(addprefix $(OBJ_DIR)/,$(EXEC_OBJ)) 
+EXEC_LNK    = $(addprefix $(OBJ_DIR)/,$(EXEC_OBJ))
 
 EXE_OBJ     = $(basename $(EXEC_SRC))
-EXE_BIN     = $(addprefix $(BIN_DIR)/,$(EXE_OBJ)) 
+EXE_BIN     = $(addprefix $(BIN_DIR)/,$(EXE_OBJ))
 
 ## ============
 ## DAILY TESTS:
 ## ============
 
-DTEST_SRC   = $(notdir $(wildcard $(DTST_DIR)/*.f90))
-DTEST_OBJ   = $(DTEST_SRC:.f90=.o)
-DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ)) 
+DTEST_SRC   = $(notdir $(wildcard $(DTST_DIR)/*.F90))
+DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
+DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 
 DTST_OBJ    = $(basename $(DTEST_SRC))
-DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ)) 
+DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 
 
 ## =============
 ## WEEKLY TESTS:
 ## =============
 
-WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.f90))
-WTEST_OBJ   = $(WTEST_SRC:.f90=.o)
-WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ)) 
+WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.F90))
+WTEST_OBJ   = $(WTEST_SRC:.F90=.o)
+WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ))
 
 WTST_OBJ    = $(basename $(WTEST_SRC))
-WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ)) 
+WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 ## =======
 ## COMPILE
@@ -113,19 +115,22 @@ WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 all:  directories $(MODS_LNK) $(SHARED_LNK) $(EXEC_LNK) $(EXE_BIN)
 
-directories: ${OBJ_DIR}
+directories: ${OBJ_DIR} ${BIN_DIR}
 
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
 
+${BIN_DIR}:
+	${MKDIR_P} ${BIN_DIR}
+
 %.o: %.f90
-	$(FC) $(FCFLAGS) -c $< -o $@ 
+	$(FC) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
-	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@ 
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.f90
-	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@ 
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) $(LDFLAGS) -o $(BIN_DIR)/$* $< $(SHARED_LNK) $(LDLOC)
@@ -137,11 +142,12 @@ $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
 ## CLEAN
 ## =====
 
-clean: 
+clean:
 	rm -f $(OBJ_DIR)/*
+	rm -f $(BIN_DIR)/*
 
 veryclean: clean cleandoc
-	rm -fr $(BIN_DIR)/* 
+	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
 
 ## =============
@@ -150,32 +156,35 @@ veryclean: clean cleandoc
 
 doc: dochtml doclatex
 
-dochtml: 
+dochtml:
 	doxygen Doxyfile
 
 doclatex: dochtml
 	cd $(TEX_DIR); make
 
+doctest:
+	cd $(TST_DIR); doxygen Doxyfile; cd $(TEX_DIR); make
+
 cleandoc:
-	rm -r -f $(DOC_DIR)/html; rm -r -f $(DOC_DIR)/latex
+	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR)
 
 
 ## ===========
 ## DAILY TESTS
 ## ===========
 
-dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN) 
+dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
 
-$(OBJ_DIR)/%.o: $(DTST_DIR)/%.f90
+$(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 ## ============
 ## WEEKLY TESTS
 ## ============
 
-weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN) 
+weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN)
 
-$(OBJ_DIR)/%.o: $(WTST_DIR)/%.f90
+$(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 ## ===========
@@ -183,4 +192,3 @@ $(OBJ_DIR)/%.o: $(WTST_DIR)/%.f90
 ## ===========
 
 test: dailytest weeklytest
-
