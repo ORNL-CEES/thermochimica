@@ -11,6 +11,9 @@
     !> \sa      CompFunctionNorm.f90
     !> \todo    Figure out a long term solution for the condition to allow the solution
     !!           to only perform 1 iteration if the functional norm is less than 1E-6.
+    !! \todo    Figure out a more permanent solution to how dMaxGamma shoudl be handled.
+    !!           I think that I need to get away from that and focus on ensuring that the 
+    !!           Wolfe conditions have been satisfied.
     !
     !
     ! Revisions:
@@ -62,6 +65,11 @@
     !                                    the minimum dStepLength that corresponds to reducing dMolesSpecies
     !                                    by 100.  Now, this is NOT applied when dMolesSpecies is incredibly
     !                                    small (e.g., less than numerical tolerance).
+    !   12/18/2018      M.H.A. Piro     I effectively removed the constraint applied to the maximum
+    !                                    change to the element potentials. I think that this is inefficient
+    !                                    because it's probably best to leave it to ensuring that the
+    !                                    Wolfe conditions have been satisfied. Furthermore, it seems to 
+    !                                    be an issue for SUBG phases, which are effectively on a knife edge.
     !
     !
     ! Purpose:
@@ -310,9 +318,16 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         dMaxDecrease = 0.85D0
     end if
 
-    dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
-    dMaxGamma = DMIN1(dMaxGamma,5D0)
-    dMaxGamma = DMAX1(dMaxGamma,1D0)
+    ! TEMPORARY: I should figure out a better and more permanent solution. My gut tells me that
+    ! I need to go away from constraining the maximum change to the element potentials and a more
+    ! elegant approach would be leaving it to the Wolfe conditions. For now, do this:
+    if (iterGlobal > 1000) then
+        dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
+        dMaxGamma = DMIN1(dMaxGamma,5D0)
+        dMaxGamma = DMAX1(dMaxGamma,1D0)
+    else
+        dMaxGamma = 100D0
+    end if
 
     ! Update the number of moles of pure condensed phases:
     do i = 1, nConPhases
@@ -367,7 +382,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     end do
 
     ! Initialize the steplength (constrain the element potentials to only 
-    ! change by 1 unit):
+    ! change by dMaxGamma):
     do i = 1, nElements
         dTemp = DABS(dElementPotential(i) - dUpdateVar(i))
         
@@ -416,8 +431,6 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
 ! THIS FOLLOWING SECTION NEEDS TO BE BETTER FIGURED OUT.  WHY WOULD IT DAMPEN IF A SOLUTOIN PHASE IS 
 ! BECOMING NEGATIVE WITH DTEMP > 0.011 OR DTEMP < 0.009??
-
-
 
 
         if (dTemp < 1D0) then

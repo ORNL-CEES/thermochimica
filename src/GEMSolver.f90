@@ -130,10 +130,10 @@ subroutine GEMSolver
 
         ! If in debug mode, call the debugger:
         if (lDebugMode .EQV. .TRUE.) call GEMDebug(9)
-        
+
         ! Return control to the main program if an error has occured or if the solution has converged:
         if ((INFOThermo /= 0).OR.(lConverged .EQV. .TRUE.)) exit LOOP_GEMSolver
-        
+
     end do LOOP_GEMSolver
 
     ! Report an error if the GEMSolver did not converge but no other errors were encountered:

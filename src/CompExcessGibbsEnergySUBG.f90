@@ -5,7 +5,7 @@
     !> \brief   Compute the partial molar excess Gibbs energy of mixing of solution phase species in a SUBG
     !!           phase.
     !> \author  M.H.A. Piro
-    !> \date    April 1, 2018
+    !> \date    December 10, 2018
     !> \sa      CompExcessGibbsEnergy.f90
     !> \sa      CompExcessGibbsEnergyRKMP.f90
     !> \sa      CompExcessGibbsEnergyQKTO.f90  
@@ -17,7 +17,9 @@
     ! 
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
-    !   04/01/2018      M.H.A. Piro         Original code.
+    !   04/01/2018      M.H.A. Piro         Original code.  
+    !   12/10/2018      M.H.A. Piro         Fixed a bug in the partial molar excess Gibbs energy
+    !                                        expression for BB and AB.
     !
     !
     ! Purpose:
@@ -75,7 +77,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     real(8) :: dTemp, dSum
     real(8) :: dZAAA, dZABA, dZBAB
     real(8) :: x, y, z
-    real(8),allocatable,dimension(:) :: dX, dY
+    real(8), allocatable, dimension(:) :: dX, dY
 
 
     ! Only proceed if the correct phase type is selected:
@@ -85,6 +87,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         iFirst = nSpeciesPhase(iSolnIndex-1) + 1
         iLast  = nSpeciesPhase(iSolnIndex)
 
+        ! Allocate allocatable arrays:
         if (allocated(dX)) deallocate(dX)
         if (allocated(dY)) deallocate(dY)
         j = iLast - iFirst + 1
@@ -193,35 +196,33 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Loop through excess mixing parameters: 
         LOOP_Param: do m = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
-            i = iRegularParam(m,2)      ! Index of AA
-            j = iRegularParam(m,3)      ! Index of BB
-            k = iRegularParam(m,4)      ! Index of AB
-            p = iRegularParam(m,6)      ! Exponent of AA
-            q = iRegularParam(m,7)      ! Exponent of BB
-            r = iRegularParam(m,8)      ! Exponent of AB
-
-            ! For convenience, store mole numbers of pairs involved:
-            x = dMolesSpecies(iFirst + i - 1)
-            y = dMolesSpecies(iFirst + j - 1)
-            z = dMolesSpecies(iFirst + k - 1)
+            i = iRegularParam(m,2)              ! Index of AA
+            j = iRegularParam(m,3)              ! Index of BB
+            k = iRegularParam(m,4)              ! Index of AB
+            p = iRegularParam(m,6)              ! Exponent of AA
+            q = iRegularParam(m,7)              ! Exponent of BB
+            r = iRegularParam(m,8)              ! Exponent of AB
+            x = dMolFraction(iFirst + i - 1)    ! x_AA
+            y = dMolFraction(iFirst + j - 1)    ! x_BB
+            z = dMolFraction(iFirst + k - 1)    ! x_AB
 
             ! Contribution to AA:
-            dTemp = z * x**(p-1) * y**q * (DBLE(p)*(y+z) - DBLE(q)*x)
-            dSum = 2D0 * (x + y + z)**(3-p-q)
-            dTemp = dTemp / dSum * dExcessGibbsParam(m)
+            dTemp = z * x**(p-1) * y**(q) * (DBLE(p)*(y+z) - DBLE(q)*x)
+            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
             dPartialExcessGibbs(iFirst + i - 1) = dPartialExcessGibbs(iFirst + i - 1) + dTemp
 
             ! Contribution to BB:
-            dTemp = z * dMolFraction(iFirst + i - 1)**(p+1) * dMolFraction(iFirst + j - 1)**q * (DBLE(q)*(x+z) - DBLE(p)*y)
-            dTemp = dTemp / (2D0 * x * y) * dExcessGibbsParam(m)
+            dTemp = z * x**(p+1) * y**(q) * (DBLE(q)*(x+z) - DBLE(p)*y)
+            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y)
             dPartialExcessGibbs(iFirst + j - 1) = dPartialExcessGibbs(iFirst + j - 1) + dTemp
 
             ! Contribution to AB:
-            dTemp = dMolFraction(iFirst + i -1)**(p+1) * dMolFraction(iFirst + j -1)**q * (z*(1D0-DBLE(p)-DBLE(q)) + x + y)
-            dTemp = dTemp / (2D0 * x) * dExcessGibbsParam(m)
+            dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
+            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
             dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
 
         end do LOOP_Param
+
     end if IF_SUBG
 
     ! Deallocate allocatable arrays:

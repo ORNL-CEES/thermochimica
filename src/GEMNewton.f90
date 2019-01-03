@@ -188,7 +188,7 @@ subroutine GEMNewton(INFO)
     end if
 
     ! Call the linear equation solver:
-    call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )  
+    call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
 
     ! Check for a NAN:
     LOOP_CheckNan: do i = 1, nVar

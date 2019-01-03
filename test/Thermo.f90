@@ -70,16 +70,16 @@ program thermo
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = '../data/LiFUBe_Benes_crop2.dat'
+    cThermoFileName       = '../data/debug_02.dat'
 
     ! Specify values:
-    dTemperature          = 1000D0
+    dTemperature          = 1485D0
     dPressure             = 1D0
     dElementMass          = 0D0
-    dElementMass(3)       = 1D0                                 ! Li
-    dElementMass(4)       = 2D0                                 ! Be
-    dElementMass(92)      = 3D0                                 ! U 
-    dElementMass(9)       = dElementMass(3) + 2D0* dElementMass(4) + 4D0* dElementMass(92)                     ! F
+    dElementMass(3)       = 0.002D0                                 ! Li
+    dElementMass(4)       = 1D0 -  dElementMass(3)                  ! Be
+    dElementMass(9)       = dElementMass(3) + 2D0* dElementMass(4)  ! F
+
 
     ! Specify output and debug modes:
     iPrintResultsMode     = 2

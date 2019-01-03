@@ -58,7 +58,6 @@
 !!          methods employed in this work and the principles of computational 
 !!          thermodynamics, refer to the following literature:  
 !!
-!!          - M.H.A. Piro and B. Sundman, CALPHAD, to be published.
 !!          - M.H.A. Piro, S. Simunovic, T.M. Besmann, B.J. Lewis, W.T. Thompson,
 !!            "The Thermochemistry Library Thermochimica," Computational Materials
 !!            Science, 67 (2013) 266-272.
