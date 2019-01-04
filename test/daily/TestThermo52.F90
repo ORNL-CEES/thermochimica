@@ -24,7 +24,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program TestThermo47
+program TestThermo52
 
     USE ModuleThermoIO
     USE ModuleThermo
