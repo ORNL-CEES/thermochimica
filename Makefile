@@ -22,7 +22,7 @@
 ## ===================
 
 FC          = gfortran
-FCFLAGS     = -Wall -g -pg -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
 #FCFLAGS     = -Wall -g -fbounds-check
 #FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check
 #LDFLAGS     = -framework Accelerate -g -fbounds-check
