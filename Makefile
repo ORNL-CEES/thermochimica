@@ -159,6 +159,9 @@ veryclean: clean cleandoc
 ## =======
 ## INSTALL
 ## =======
+ifeq ($(PREFIX),)
+  PREFIX := /usr/local
+endif
 
 install: $(SHARED_LIB)
 	install -d $(DESTDIR)$(PREFIX)/lib/
