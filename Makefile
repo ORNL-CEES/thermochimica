@@ -163,10 +163,10 @@ doclatex: dochtml
 	cd $(TEX_DIR); make
 
 doctest:
-	cd $(TST_DIR); doxygen Doxyfile; cd $(TEX_DIR); make
+	cd $(TST_DIR); doxygen Doxyfile; cd $(TEX_DIR); make; cd ../..; mv $(DOC_DIR) ../$(DOC_DIR)/$(TST_DIR)
 
 cleandoc:
-	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR)
+	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR); rm -r -f $(DOC_DIR)/$(TST_DIR)
 
 
 ## ===========
