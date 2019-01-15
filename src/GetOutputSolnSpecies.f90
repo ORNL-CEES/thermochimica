@@ -51,7 +51,7 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
     integer,       intent(out)   :: INFO
     integer                      :: i, j, k
     real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
-    character(25), intent(inout) :: cSolnOut, cSpeciesOut
+    character(*), intent(inout) :: cSolnOut, cSpeciesOut
     character(25)                :: cTemp
 
 
@@ -62,10 +62,6 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
-
-        ! Remove trailing blanks:
-        cSolnOut    = TRIM(cSolnOut)
-        cSpeciesOut = TRIM(cSpeciesOut)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
