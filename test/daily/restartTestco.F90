@@ -57,15 +57,13 @@ program RestartTestCO
   ! Save restart data
   call SaveRestartData
 
-  ! Re-state input variables
-  dPressure               = 1D0
-  dElementMass            = 1D0
-  ! Load restart data
-  if(lRestartAvailable) call LoadRestartData
-
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
-  LOOP_time: do i = 1,1
+  LOOP_time: do i = 1,1000
+    dTemperature            = 300D0
+    dPressure               = 1D0
+    dElementMass            = 1D0
+    lRestartRequested       = .TRUE.
     call Thermochimica
   end do LOOP_time
   call cpu_time(finish)
