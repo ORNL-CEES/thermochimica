@@ -81,8 +81,8 @@ SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 ## OLD EXECUTABLES:
 ## ============
 
-EXEC_SRC    = $(notdir $(wildcard $(TST_DIR)/*.f90))
-EXEC_OBJ    = $(EXEC_SRC:.f90=.o)
+EXEC_SRC    = $(notdir $(wildcard $(TST_DIR)/*.F90))
+EXEC_OBJ    = $(EXEC_SRC:.F90=.o)
 EXEC_LNK    = $(addprefix $(OBJ_DIR)/,$(EXEC_OBJ))
 
 EXE_OBJ     = $(basename $(EXEC_SRC))
@@ -131,7 +131,7 @@ ${BIN_DIR}:
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.f90
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
