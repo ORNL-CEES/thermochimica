@@ -151,31 +151,11 @@ subroutine ParseCSHeader
     backspace(UNIT = 1)
 
     ! Continue reading the rest of Line 2:
-    j = MIN(nSolnPhasesSysCS,13)
-    if (j == 1) then
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1), nSpeciesCS
-    elseif ((j < 13).AND.(j > 1)) then
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:j), nSpeciesCS
-    elseif (j == 0) then
-        ! There aren't any solution phases in the system.
+    j = nSolnPhasesSysCS
+    if (j == 0) then
         read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesCS
     else
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:j)
-    end if
-
-    ! If the number of solution phases exceeds 12, then the "Line 2" extends to another line:
-    if ((nSolnPhasesSysCS >= 13).AND.(nSolnPhasesSysCS < 28)) then
-        j = MIN(nSolnPhasesSysCS,28)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(14:j), nSpeciesCS
-    elseif ((nSolnPhasesSysCS >= 13).AND.(nSolnPhasesSysCS >= 28)) then
-        j = MIN(nSolnPhasesSysCS,28)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(14:j)
-    end if
-
-    !If the number of solution phases exceeds 27, then the "Line 2" exceeds to yet another line:
-    if ((nSolnPhasesSysCS >= 28).AND.(nSolnPhasesSysCS <= 42)) then
-        j = MIN(nSolnPhasesSysCS,42)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(29:j), nSpeciesCS
+        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:j), nSpeciesCS
     end if
 
     if ((nSolnPhasesSysCS == 1).AND.(nSpeciesPhaseCS(1) == 0)) then
