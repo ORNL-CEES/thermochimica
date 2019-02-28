@@ -31,7 +31,8 @@ FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA
 #LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
 
 # links to lapack and blas libraries:
-LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
+#LDLOC     =  -L/usr/lib -llapack -L/usr/lib -lblas -lgfortran
+LDLOC     =  -L/home/tools/gcc-5.4.0/tpls/opt/lapack-3.3.1/lib -llapack -L/home/tools/gcc-5.4.0/tpls/opt/lapack-3.3.1/lib -lblas -lgfortran
 
 # link flags for linux users:
 LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
