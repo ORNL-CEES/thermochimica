@@ -9,7 +9,7 @@
 !
 ! Revisions:
 ! ==========
-! 
+!
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   09/16/2015      M.H.A. Piro         Original code
@@ -26,21 +26,21 @@
 ! Pertinent variables:
 ! ====================
 !
-!> \param[in]     cSolnOut              A character string represnting the solution 
+!> \param[in]     cSolnOut              A character string represnting the solution
 !!                                       phase name.
-!> \param[in]     cSpeciesOut           A character string representing the 
+!> \param[in]     cSpeciesOut           A character string representing the
 !!                                       species.
 !> \param[out]    dMolFractionOut       A double real scalar representing the
 !!                                       mole fraction of said species.
-!> \param[out]    dChemPotSpecies       A double real scalar representing the 
+!> \param[out]    dChemPotSpecies       A double real scalar representing the
 !!                                       chemical potential of said species.
-!> \param[out]    INFO                  An integer scalar indicating a successful 
+!> \param[out]    INFO                  An integer scalar indicating a successful
 !!                                       exit (== 0) or an error (/= 0).
 !!
 !
 !-------------------------------------------------------------------------------
 
-    
+
 subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO)
 
     USE ModuleThermo
@@ -127,5 +127,5 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
     end if
 
     return
-      
+
 end subroutine GetOutputSolnSpecies

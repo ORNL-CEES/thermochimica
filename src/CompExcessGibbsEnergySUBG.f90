@@ -8,16 +8,16 @@
     !> \date    December 10, 2018
     !> \sa      CompExcessGibbsEnergy.f90
     !> \sa      CompExcessGibbsEnergyRKMP.f90
-    !> \sa      CompExcessGibbsEnergyQKTO.f90  
+    !> \sa      CompExcessGibbsEnergyQKTO.f90
     !> \sa      CompExcessGibbsEnergySUBL.f90
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
-    !   04/01/2018      M.H.A. Piro         Original code.  
+    !   04/01/2018      M.H.A. Piro         Original code.
     !   12/10/2018      M.H.A. Piro         Fixed a bug in the partial molar excess Gibbs energy
     !                                        expression for BB and AB.
     !
@@ -26,18 +26,18 @@
     ! ========
     !
     !> \details The purpose of this subroutine is to compute the chemical potentials of pairs of species
-    !! (short range order) in a non-ideal solution phase designated as 'SUBG', which is a modified 
+    !! (short range order) in a non-ideal solution phase designated as 'SUBG', which is a modified
     !! quasichemical model (MQM). A unique characteristic of the MQM model is that the focus is not
-    !! placed on the species (aka 'compound end members'), but rather the pairs of nearest neigbours. 
+    !! placed on the species (aka 'compound end members'), but rather the pairs of nearest neigbours.
     !! For example, if one had a binary solution phase A-B, this model consideres A-A, B-B, and A-B
     !! as pairs of species, which are distributed about a quasi-lattice. Since the focus is on pairs
-    !! of species rather than the species themselves, this considerably changes the calculation in 
+    !! of species rather than the species themselves, this considerably changes the calculation in
     !! comparison to other models (e.g., QKTO, RBMK, SUBL).
     !!
-    !! For more information on the SUBG model and the derivation of equations, the reader is referred 
+    !! For more information on the SUBG model and the derivation of equations, the reader is referred
     !! to the following literature:
     !!
-    !!      A.D. Pelton, S.A. Degterov, G. Eriksson, C. Robelin, Y. Dessureault, ``The Modified 
+    !!      A.D. Pelton, S.A. Degterov, G. Eriksson, C. Robelin, Y. Dessureault, ``The Modified
     !!       Quasichemical Model I -- Binary Solutions'', Metallurgical and Materials Transactions B,
     !!       31B (2000) 651-659.
     !!
@@ -55,11 +55,11 @@
     ! iPairID(:,:)              An integer array representing the indices of pairs.
     !
     ! dCoordinationNumber(:,:)  A double array representing the coordination number of pairs.
-    ! dX(:)                     A temporary double real vector used to represent the mole fractions of the 
+    ! dX(:)                     A temporary double real vector used to represent the mole fractions of the
     !                            species.
     ! dY(:)                     A temporary double vector used to represent the coordinate equivalent
     !                            fractions of the species.
-    ! 
+    !
     !-------------------------------------------------------------------------------------------------------------
 
 
@@ -68,9 +68,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    
+
     implicit none
-        
+
     integer :: i, j, k, m, p, q, r
     integer :: iSolnIndex
     integer :: iFirst, iLast
@@ -100,7 +100,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dChemicalPotential(iFirst:iLast)  = 0D0
         dPartialExcessGibbs(iFirst:iLast) = 0D0
 
-        ! Compute moles of compound end members 
+        ! Compute moles of compound end members
         ! (See eq. [14] from Pelton, Chartrand, Met. Mat. Trans., 32 (2001) 1355):
         LOOP_A: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
             j     = i - iFirst + 1
@@ -194,7 +194,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Re-initialize variables:
         dPartialExcessGibbs(iFirst:iLast) = 0D0
 
-        ! Loop through excess mixing parameters: 
+        ! Loop through excess mixing parameters:
         LOOP_Param: do m = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
             i = iRegularParam(m,2)              ! Index of AA
             j = iRegularParam(m,3)              ! Index of BB

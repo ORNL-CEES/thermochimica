@@ -10,7 +10,7 @@
 !
 ! Revisions:
 ! ==========
-! 
+!
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   07/28/2014      M.H.A. Piro         Original code
@@ -19,12 +19,12 @@
 ! Purpose:
 ! ========
 !
-!> \details The purpose of this subroutine is to compute the oxygen to metal 
+!> \details The purpose of this subroutine is to compute the oxygen to metal
 !! ratio of the UO2 solid solution phase.  Note that this value differs from the
 !! oxygen to metal ratio of the system, since the system is heterogeneous.  For
-!! the latter case, this value necessarily increases as a result of fission; 
+!! the latter case, this value necessarily increases as a result of fission;
 !! however, the former is expected to decrease with irradiation since many of the
-!! fission products dissolved in this phase have a valence less than 4+.  In 
+!! fission products dissolved in this phase have a valence less than 4+.  In
 !! order for the phase to be "stoichiometric", the average valency has to equal
 !! 4+ (i.e., for O/M = 2, 2*(O2-) + 1*(M) = 0; thus, M = 4+).
 !!
@@ -40,7 +40,7 @@
 ! Pertinent variables:
 ! ====================
 !
-!> \param[in]     cPhaseIn      A character string representing the name of the 
+!> \param[in]     cPhaseIn      A character string representing the name of the
 !!                               phase in question.
 !> \param[out]    dOtoMRatio    A double real scalar represetning the oxygen to
 !!                               metal ratio.
@@ -56,13 +56,13 @@
 !
 !-------------------------------------------------------------------------------
 
-    
+
 subroutine CompOtoMRatio(cPhaseIn, dOtoMRatio, INFO)
 
     USE ModuleThermo
 
     implicit none
-    
+
     integer      :: i, j, iPhaseID, iChargedPhaseID, INFO
     character(*) :: cPhaseIn
     real(8)      :: dOtoMRatio
@@ -73,7 +73,7 @@ subroutine CompOtoMRatio(cPhaseIn, dOtoMRatio, INFO)
     iPhaseID   = 0
     dOtoMRatio = 0D0
 
-    ! Loop through stable solution phases to find the index corresponding to the 
+    ! Loop through stable solution phases to find the index corresponding to the
     ! solution phase in question:
     LOOP_CheckPhaseName: do i = 1, nSolnPhases
         j = -iAssemblage(nElements - i + 1)
@@ -99,7 +99,7 @@ subroutine CompOtoMRatio(cPhaseIn, dOtoMRatio, INFO)
         dOtoMRatio =  2D0 * dSiteFraction(iChargedPhaseID,2,1) + dSiteFraction(iChargedPhaseID,3,1)
 
     end if
-    
+
     return
-      
+
 end subroutine CompOtoMRatio

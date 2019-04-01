@@ -13,7 +13,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   03/31/2011      M.H.A. Piro         Original code
@@ -26,14 +26,14 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to swap one pure condensed phase for another pure condensed 
+    !> \details The purpose of this subroutine is to swap one pure condensed phase for another pure condensed
     !! phase in the estimated phase assemblage .
     !
     !
     ! Pertinent variables:
     ! ====================
     !
-    !> \param[in]   iPhaseChange        An integer scalar representing the absolute phase index of a pure 
+    !> \param[in]   iPhaseChange        An integer scalar representing the absolute phase index of a pure
     !!                                   condensed phase.
     !> \param[out]  lPhasePass          A logical variable indicating whether the phase assemblage has passed or
     !!                                   failed.
@@ -54,7 +54,7 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     integer                       :: i, iPhaseChange, INFO, iterBack
     integer, dimension(nElements) :: iAssemblageTest
     real(8), dimension(nElements) :: dTempVec
-    logical                       :: lSwapLater, lPhasePass   
+    logical                       :: lSwapLater, lPhasePass
 
 
     ! Initialize variables:
@@ -67,31 +67,31 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     end do
 
     LOOP_ConPhase: do i = 1, nConPhases
-                        
+
         ! Check the iteration history:
         if (iterGlobal > 50) then
             iAssemblageTest    = iAssemblage
             iAssemblageTest(i) = iPhaseChange
-            
+
             ! Check whether this particular phase assemblage has been previously considered:
             call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
-            
+
             ! If this phase assemblage has been previously considered, skip to the next phase:
             if (lSwapLater .EQV. .TRUE.) cycle LOOP_ConPhase
-            
+
         end if
-        
+
         ! Store temporary variables:
         dTempVec        = dMolesPhase
         iAssemblageTest = iAssemblage
         iConPhaseLast   = iAssemblage(i)
         iAssemblage(i)  = iPhaseChange
-        
-        ! Check that this phase change is acceptable:                    
+
+        ! Check that this phase change is acceptable:
         call CheckPhaseChange(lPhasePass,INFO)
-        
+
         if (lPhasePass .EQV. .FALSE.) then
-            ! The phase in question cannot be swapped.  Revert back to the previous assemblage:                
+            ! The phase in question cannot be swapped.  Revert back to the previous assemblage:
             iAssemblage = iAssemblageTest
             dMolesPhase = dTempVec
             lSwapLater  = .TRUE.
@@ -102,13 +102,13 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
             iterLast       = iterGlobal
             iterSwap       = iterGlobal
             iPureConSwap   = iPhaseChange
-            iSolnSwap      = 0 
+            iSolnSwap      = 0
             dMolesPhase(i) = 0D0
             exit LOOP_ConPhase
         end if
-        
+
     end do LOOP_ConPhase
-    
+
     return
 
 end subroutine SwapPureConPhase
