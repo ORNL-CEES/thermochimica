@@ -11,7 +11,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   03/25/2012      M.H.A. Piro         Original code
@@ -21,7 +21,7 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to remove a particular pure condensed phase and add a 
+    !> \details The purpose of this subroutine is to remove a particular pure condensed phase and add a
     !! solution phase.
     !
     !
@@ -47,21 +47,21 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
 
     integer::   i, iPhaseAdd, iPhaseRem
     real(8)::   dTemp
-    logical::   lSwapLater, lPhasePass  
+    logical::   lSwapLater, lPhasePass
 
-    
-    ! Initialize variables: 
+
+    ! Initialize variables:
     iPhaseAdd  = 0
     iPhaseRem  = MAXVAL(MINLOC(dMolesPhase(1:nConPhases)))
     iPhaseRem  = MAX(iPhaseRem,1)
     lPhasePass = .FALSE.
-    
+
     ! First, check to see if there are any solution phases that could be added to the system:
     LOOP_SolnPhaseSys: do i = 1, nSolnPhasesSys
 
         ! Skip this phase if it is already predicted to be stable:
         if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_SolnPhaseSys
-        
+
         ! Skip this phase if it is not the first "phase" in a phase with a miscibility gap:
         if (lMiscibility(i) .EQV. .TRUE.) cycle LOOP_SolnPhaseSys
 
@@ -70,18 +70,18 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
 
         ! This solution phase is not already part of the assemblage.  Check if it should be added:
         if (dSumMolFractionSoln(i) >= 1D0) then
-            iPhaseAdd = i 
+            iPhaseAdd = i
             exit LOOP_SolnPhaseSys
         end if
     end do LOOP_SolnPhaseSys
-            
+
     ! Continue only if there is at least one solution phase that can be added to the system:
     if (iPhaseAdd > 0) then
-    
+
         ! Remove the pure condensed phase manually:
         iConPhaseLast           = iAssemblage(iPhaseRem)
         iAssemblage(iPhaseRem)  = iAssemblage(nConPhases)
-        iAssemblage(nConPhases) = 0        
+        iAssemblage(nConPhases) = 0
         dTemp                   = dMolesPhase(iPhaseRem)
         dMolesPhase(iPhaseRem)  = dMolesPhase(nConPhases)
         dMolesPhase(nConPhases) = 0D0
@@ -90,7 +90,7 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
 
         ! Add the solution phase:
         call AddSolnPhase(iPhaseAdd,lSwapLater,lPhasePass)
-    
+
         if (lPhasePass .EQV. .TRUE.) then
             ! The new phase assemblage has passed.
             iterLast                = iterGlobal
@@ -101,9 +101,9 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
             iAssemblage(nConPhases) = iConPhaseLast
             dMolesPhase(nConPhases) = dTemp
         end if
-    
+
     end if
-    
+
     return
 
 end subroutine RemPureConAddSolnPhase

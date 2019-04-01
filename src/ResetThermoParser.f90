@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer         Description of change
     !    ----          ----------         ---------------------
     !    02/17/2012    M.H.A. Piro        Original code
@@ -19,8 +19,8 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to deallocate all allocatable arrays from the  
-    !! ModuleParseCS.f90 module, which are allocated in the ParseCS*.f90 subroutines and then used in several 
+    !> \details The purpose of this subroutine is to deallocate all allocatable arrays from the
+    !! ModuleParseCS.f90 module, which are allocated in the ParseCS*.f90 subroutines and then used in several
     !! subroutines by Thermochimica.  A value of INFOThermo = 18 is returned if an error has occured during
     !! deallocation.
     !
@@ -30,7 +30,7 @@
     !
     ! INFO                  An error is returned if deallocation is unsuccessful.
     ! INFOThermo            An integer scalar identifying whether the program exits successfully or if
-    !                       it encounters an error.  A description for each error is given in ThermoDebug.f90.    
+    !                       it encounters an error.  A description for each error is given in ThermoDebug.f90.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -41,40 +41,40 @@ subroutine ResetThermoParser
     USE ModuleThermoIO, ONLY: INFOThermo
 
     implicit none
-    
-    integer::   i 
+
+    integer::   i
 
 
     ! Initialize variables:
     i    = 0
     INFO = 0
-        
+
     ! Deallocate integer arrays from ModuleParseCS:
     if (allocated(nSpeciesPhaseCS)) then
         deallocate (nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS, nParamPhaseCS, &
-            iParamPassCS, dStoichSpeciesCS, iRegularParamCS, STAT = INFO)  
+            iParamPassCS, dStoichSpeciesCS, iRegularParamCS, STAT = INFO)
         i = i + INFO
     end if
-    
+
     ! Deallocate real arrays from ModuleParseCS:
     if (allocated(dAtomicMass)) then
-        deallocate (dAtomicMass, dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, STAT = INFO)  
+        deallocate (dAtomicMass, dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, STAT = INFO)
         i = i + INFO
     end if
 
     ! Deallocate character arrays from ModuleParseCS:
     if (allocated(cElementNameCS)) then
-        deallocate (cElementNameCS,cSolnPhaseTypeCS,cSolnPhaseNameCS,cSpeciesNameCS, STAT = INFO)  
+        deallocate (cElementNameCS,cSolnPhaseTypeCS,cSolnPhaseNameCS,cSpeciesNameCS, STAT = INFO)
         i = i + INFO
     end if
 
     ! Deallocate arrays used for sublattice phases:
     if (allocated(cConstituentNameSUBCS)) then
-        deallocate(cConstituentNameSUBCS,iPhaseSublatticeCS,nConstituentSublatticeCS, & 
+        deallocate(cConstituentNameSUBCS,iPhaseSublatticeCS,nConstituentSublatticeCS, &
             iConstituentSublatticeCS,dStoichSublatticeCS,nSublatticePhaseCS, STAT = INFO)
         i = i + INFO
     end if
-    
+
     if (allocated(dGibbsMagneticCS)) then
         deallocate(dGibbsMagneticCS,STAT = INFO)
         i = i + INFO
@@ -89,7 +89,7 @@ subroutine ResetThermoParser
     if (i > 0) then
         INFOThermo = 18
     end if
-    
+
     return
-    
+
 end subroutine ResetThermoParser

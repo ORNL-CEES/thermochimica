@@ -9,7 +9,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   01/14/2013      M.H.A. Piro         Original code.
@@ -24,7 +24,7 @@
     ! Pertinent variables:
     ! ====================
 
-    ! 
+    !
     !-------------------------------------------------------------------------------------------------------------
 
 
@@ -33,27 +33,27 @@ subroutine PostProcess
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    
+
     implicit none
-        
+
     integer :: i
 
-    
+
     ! Initiate variables:
     dGibbsEnergySys = 0d0
-    
+
     ! Multiply the number of moles of all phases by the normalizing constant:
     dNormalizeInput = 1D0 / dNormalizeInput
     dMolesPhase     = dMolesPhase   * dNormalizeInput
     dMolesElement   = dMolesElement * dNormalizeInput
     dMolesSpecies   = dMolesSpecies * dNormalizeInput
-        
+
     ! Compute the integral Gibbs energy of the system:
     do i = 1, nElements
         dGibbsEnergySys = dGibbsEnergySys + dElementPotential(i) * dMolesElement(i)
     end do
     dGibbsEnergySys = dGibbsEnergySys * dIdealConstant * dTemperature
-          
+
     return
 
 end subroutine PostProcess

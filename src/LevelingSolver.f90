@@ -13,7 +13,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !
@@ -30,18 +30,18 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to provide initial estimates of the equilibrium phase 
-    !! assemblage for the GEMSolver using the "Leveling" technique of Eriksson and Thompson.  The fundamental 
+    !> \details The purpose of this subroutine is to provide initial estimates of the equilibrium phase
+    !! assemblage for the GEMSolver using the "Leveling" technique of Eriksson and Thompson.  The fundamental
     !! principle of the leveling technique is to temporarily assume that all species may be treated as pure
     !! stoichiometric phases.  In more mathematical terms, the mixing terms in the chemical potential
     !! function of a solution species becomes zero and the Gibbs energy of the system becomes a linear function.
-    !! The Leveling subroutine can therefore be interpreted as a linear optimizer that provides initial 
-    !! estimates for the GEMSolver subroutine.  
+    !! The Leveling subroutine can therefore be interpreted as a linear optimizer that provides initial
+    !! estimates for the GEMSolver subroutine.
     !!
-    !! There are several advantages in employing the Leveling technique: 
+    !! There are several advantages in employing the Leveling technique:
     !! <ol>
     !! <li> Close estimates are provided for dElementPotential and dChemicalPotential, </li>
-    !! <li> An estimate is provided for the phase assemblage, which is often fairly close to the equilibrium 
+    !! <li> An estimate is provided for the phase assemblage, which is often fairly close to the equilibrium
     !!      assemblage (i.e., which phases are expected to be most stable), </li>
     !! <li> The estimated phase assemblage is determined with relatively few iterations, and </li>
     !! <li> Estimates are provided for the mole fractions of all constituents in all solution phases. </li>
@@ -53,13 +53,13 @@
     !
     !> \details For further information regarding the "Leveling" method, refer to the following literature:
     !!
-    !! <ul> 
+    !! <ul>
     !!
-    !! <li>     G. Eriksson and W.T. Thompson, "A Procedure to Estimate Equilibrium 
-    !!          Concentrations in Multicomponent Systems and Related Applications," 
+    !! <li>     G. Eriksson and W.T. Thompson, "A Procedure to Estimate Equilibrium
+    !!          Concentrations in Multicomponent Systems and Related Applications,"
     !!          CALPHAD, V. 13, N. 4, pp. 389-400 (1989).
     !! </li>
-    !! <li> 
+    !! <li>
     !!          M.H.A. Piro, "Computation of Thermodynamic Equilibria Pertinent to Nuclear Materials
     !!          in Multi-Physics Codes," PhD Dissertation, Royal Military College of Canada, 2011.
     !! </li>
@@ -69,7 +69,7 @@
     !!          Top Fuel Conference, Paris, France (2009).
     !! </li>
     !! <li>
-    !!          M.H.A. Piro and S. Simunovic, "Performance Enhancing Algorithms for Computing 
+    !!          M.H.A. Piro and S. Simunovic, "Performance Enhancing Algorithms for Computing
     !!          Thermodynamic Equilibria," CALPHAD, 39 (2012) 104-110.
     !! </li>
     !! </ul>
@@ -78,22 +78,22 @@
     ! Pertinent variables:
     ! ====================
     !
-    ! INFOThermo            An integer scalar indicating a successful exit (0) or an error that is 
+    ! INFOThermo            An integer scalar indicating a successful exit (0) or an error that is
     !                        encountered.
     ! nElements             The number of elements in the system.
     ! iAssemblage           Integer vector containing the indices of species (temporarily treated as pure
-    !                        stoichiometric phases) estimated to be part of the equilibrium phase 
+    !                        stoichiometric phases) estimated to be part of the equilibrium phase
     !                        assemblage.
-    ! iSpeciesTotalAtoms    An integer vector representing the total number of atoms per formula mass of 
+    ! iSpeciesTotalAtoms    An integer vector representing the total number of atoms per formula mass of
     !                        a particular species.
     ! dMolesPhase           Number of moles of a phase at equilibrium
     ! dMolesElement         Total number of moles of an element (normalized for numerical purposes).
     ! dLevel                The adjustment applied to the element potentials as a result of leveling.
-    ! dChemicalPotential    A double real vector representing the chemical potential of each species and 
-    !                        pure condensed phase.  This variable is numerical adjusted and represented 
+    ! dChemicalPotential    A double real vector representing the chemical potential of each species and
+    !                        pure condensed phase.  This variable is numerical adjusted and represented
     !                        with respect to the element potentials.
     ! dElementPotential     The chemical potentals of the pure elements.
-    ! dTolerance            A double real vector representing numerical tolerances (defined in 
+    ! dTolerance            A double real vector representing numerical tolerances (defined in
     !                        InitThermo.f90).
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -103,19 +103,19 @@ subroutine LevelingSolver
 
     USE ModuleThermo
     USE ModuleThermoIO
-    
+
     implicit none
-                                
-    integer :: iter, i, n 
+
+    integer :: iter, i, n
 
 
     ! Initialize variables:
     n = 0
-    
+
     ! Check to see if allocatable arrays have already been allocated:
     if (allocated(dMolesPhase)) then
         i = SIZE(iAssemblage)
-                
+
         if (i /= nElements) then
             ! The number of elements in the system has changed.
             deallocate(dMolesPhase,dElementPotential,iAssemblage,iterHistoryLevel,dLevel, STAT = n)
@@ -129,52 +129,52 @@ subroutine LevelingSolver
     else
         ! Allocate memory to allocatable arrays for the first time:
         allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
-        allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))    
+        allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
     end if
-        
+
     ! Initialize allocatable variables:
     dElementPotential = 0D0
     iterHistoryLevel  = 0
     iAssemblage       = 0
     dLevel            = 0D0
     nConPhases        = nElements
-    
+
     ! Establish the very first phase assemblage:
     call GetFirstAssemblage
-    
+
     ! START LEVELING:
     LOOP_Leveling: do iter = 1, 1000
-                       
+
         ! Readjust the chemical potentials of all species and phases in the system:
         dChemicalPotential = dChemicalPotential - MATMUL(dAtomFractionSpecies,dLevel)
-        
+
         ! Update the element potentials:
         dElementPotential = dElementPotential + dLevel
-                      
+
         ! Levelling is complete when all chemical potentials are non-negative (within tolerance):
         if (MINVAL(dChemicalPotential) >= dTolerance(4)) exit LOOP_Leveling
-        
+
         ! Determine the next phase assemblage to be tested:
         call GetNewAssemblage(iter)
-        
+
         ! Exit if an error has been encountered:
         if (INFOThermo /= 0) exit LOOP_Leveling
 
-    end do LOOP_Leveling 
-    
-    ! If the GetFirstAssemblage subroutine determined the correct phase assemblage, then the 
+    end do LOOP_Leveling
+
+    ! If the GetFirstAssemblage subroutine determined the correct phase assemblage, then the
     ! GetNewAssemblage subroutine was not called and the number of moles of each phase was not computed and
-    ! the number of moles of each constituent was not computed.  
+    ! the number of moles of each constituent was not computed.
     if ((iter == 1).AND.(INFOThermo == 0)) then
-    
+
         ! Since the phase assemblage is comprised of only pure species, the number of moles of each phase
         ! can be easily computed (the stoichiometry matrix is a diagonal matrix) by the following:
         do i = 1, nElements
             dMolesPhase(i) = dMolesElement(i) / dSpeciesTotalAtoms(i)
         end do
-            
+
     end if
 
     return
-    
+
 end subroutine LevelingSolver

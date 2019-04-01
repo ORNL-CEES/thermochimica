@@ -13,7 +13,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   06/20/2012      M.H.A. Piro         Original code
@@ -30,11 +30,11 @@
     !> \details The purpose of this subroutine is to estimate the number of moles of each solution and pure
     !! condensed phase in the system.  The stoichiometry of each solution phase and (obviously) pure condensed
     !! phase is fixed and this subroutine determines a particular combination of molar quantities that minimizes
-    !! the mass balance residuals using a Linear Leasr Squares (LLS) technique.  
+    !! the mass balance residuals using a Linear Leasr Squares (LLS) technique.
     !!
     !! This subroutine addresses a particular issue that occasionally arises when a pure condensed phase is
-    !! driven out of the system (when it should), but it also drives a solution phase to almost be removed when 
-    !! it shouldn't.  At this point, the system may have sufficiently diverged that it may be impossible for 
+    !! driven out of the system (when it should), but it also drives a solution phase to almost be removed when
+    !! it shouldn't.  At this point, the system may have sufficiently diverged that it may be impossible for
     !! the system to recover.  The element potentials may be close to the equilibrium values, but the molar
     !! quantities of solution speices are way off.  This subroutine therefore fixes the chemical potentials
     !! and determines the best combination of molar quantities of the phases.
@@ -45,7 +45,7 @@
     !
     ! iAssemblage               Integer vector containing the indices of phases at equilibrium
     ! dStoichSpecies            The number of atoms of a particular element for a particular species.
-    ! dMolesElement             Total number of moles of an element, where the coefficient corresponds to the 
+    ! dMolesElement             Total number of moles of an element, where the coefficient corresponds to the
     !                           atomic number (e.g., dMolesElement(92) refers to uranium).
     ! dMolesPhase               Number of moles of a phase at equilibrium
     ! dEffStoichSolnPhase       The effective stoichiometry of a solution phase
@@ -72,7 +72,7 @@ subroutine CompMolAllSolnPhases
 
     ! Return if there aren't any solution phases:
     if (nSolnPhases == 0) return
-    
+
     ! Initialize variables:
     TRANS     = 'N'
     INFO      = 0
@@ -84,7 +84,7 @@ subroutine CompMolAllSolnPhases
     MN        = MIN(M,N)
     LWORK     = MAX(1,MN + MAX(MN, NRHS))
     dURF      = 0.5D0
-    
+
     ! Allocate memory:
     allocate(A(M,N))
     allocate(B(M))
@@ -95,36 +95,36 @@ subroutine CompMolAllSolnPhases
     B        = 0D0
     WORK     = 0D0
 
-    ! Construct matrix A representing the "effective stoichiometry" of each solution phase:    
+    ! Construct matrix A representing the "effective stoichiometry" of each solution phase:
     do j = 1, nSolnPhases
-    
+
         ! Absolute solution phase index:
         k = -iAssemblage(nElements - j + 1)
-    
+
         ! Compute the stoichiometry of this solution phase:
         call CompStoichSolnPhase(k)
-    
+
         do i = 1,nElements
            A(i,j) = dEffStoichSolnPhase(k,i)
         end do
-        
+
     end do
-    
-    ! Construct matrix A representing the stoichiometry of each pure condensed phase:    
+
+    ! Construct matrix A representing the stoichiometry of each pure condensed phase:
     do j = nSolnPhases + 1, nSolnPhases + nConPhases
         k = iAssemblage(j - nSolnPhases)
-            
+
         do i = 1, nElements
             A(i,j) = dStoichSpecies(k,i)
         end do
     end do
-    
+
     ! Apply the right hand side vector:
     do i = 1, nElements
         B(i) = dMolesElement(i)
     end do
-        
-    ! This routine solves the Linear Least Squares (LLS) problem using QR or LQ factorization 
+
+    ! This routine solves the Linear Least Squares (LLS) problem using QR or LQ factorization
     ! in double precision:
     call DGELS( TRANS, M, N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO )
 
@@ -132,17 +132,17 @@ subroutine CompMolAllSolnPhases
     LOOP_SolnPhases: do k = 1, nSolnPhases
         j = nElements - k + 1
         dTemp = dMolesPhase(j)
-                
+
         if (dMolesPhase(j) <= 0D0) then
             dMolesPhase(j) = dURF * B(k)
-            dMolesPhase(j) = DMIN1(dMolesPhase(j),dTolerance(10))  
+            dMolesPhase(j) = DMIN1(dMolesPhase(j),dTolerance(10))
         elseif (dMolesPhase(j) > 0D0) then
             if (B(k) > 0D0) dMolesPhase(j) = dURF * B(k) + (1D0 - dURF) * dMolesPhase(j)
-        end if 
-        
+        end if
+
         dMolesPhase(j) = DMAX1(dMolesPhase(j),dTolerance(9))
-        dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))  
-              
+        dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
+
         if (dTemp > 0D0) then
             dTemp = dMolesPhase(j) / dTemp
             j = -iAssemblage(j)
@@ -152,14 +152,14 @@ subroutine CompMolAllSolnPhases
         end if
 
     end do LOOP_SolnPhases
-    
+
     ! Deallocate memory:
     i = 0
     deallocate(A, B, WORK, STAT = i)
-    
+
     ! Check for any issues and report an error if appropriate:
     if (i /= 0) INFOThermo = 26
-    
+
     return
-            
+
 end subroutine CompMolAllSolnPhases
