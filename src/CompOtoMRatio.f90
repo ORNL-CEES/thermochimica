@@ -57,15 +57,21 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine CompOtoMRatio(cPhaseIn, dOtoMRatio, INFO)
+subroutine CompOtoMRatio(cPhaseIn, lcPhaseIn, dOtoMRatio, INFO)
 
     USE ModuleThermo
 
     implicit none
 
     integer      :: i, j, iPhaseID, iChargedPhaseID, INFO
-    character(*) :: cPhaseIn
-    real(8)      :: dOtoMRatio
+    ! character(25):: cPhaseIn
+    character(*)  :: cPhaseIn
+    integer       :: lcPhaseIn
+    real(8)       :: dOtoMRatio
+    character(15) :: cPhaseInLen
+
+    cPhaseInLen = cPhaseIn(1:min(15,lcPhaseIn))
+!    cPhaseInLen = cPhaseIn(1:min(15,len(cPhaseIn)))
 
 
     ! Initialize variables:
@@ -78,7 +84,7 @@ subroutine CompOtoMRatio(cPhaseIn, dOtoMRatio, INFO)
     LOOP_CheckPhaseName: do i = 1, nSolnPhases
         j = -iAssemblage(nElements - i + 1)
         ! Check if the solution phase name matches the input variable:
-        if (cSolnPhaseName(j) == cPhaseIn) then
+        if (cSolnPhaseName(j) == cPhaseInLen) then
             iPhaseID = j
             exit LOOP_CheckPhaseName
         end if

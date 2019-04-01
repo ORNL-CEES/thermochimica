@@ -41,7 +41,7 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO)
+subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -51,9 +51,14 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
     integer,       intent(out)   :: INFO
     integer                      :: i, j, k
     real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
-    character(25), intent(inout) :: cSolnOut, cSpeciesOut
+    character(*),  intent(in)    :: cSolnOut, cSpeciesOut
+    integer,       intent(in)    :: lcSolnOut, lcSpeciesOut
     character(25)                :: cTemp
 
+    character(15)                :: cSolnOutLen, cSpeciesOutLen
+
+    cSolnOutLen    = cSolnOut(1:min(15,lcSolnOut))
+    cSpeciesOutLen = cSpeciesOut(1:min(15,lcSpeciesOut))
 
     ! Initialize variables:
     INFO            = 0
@@ -64,8 +69,8 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
     if (INFOThermo == 0) then
 
         ! Remove trailing blanks:
-        cSolnOut    = TRIM(cSolnOut)
-        cSpeciesOut = TRIM(cSpeciesOut)
+        cSolnOutLen    = TRIM(cSolnOutLen)
+        cSpeciesOutLen = TRIM(cSpeciesOutLen)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -73,7 +78,7 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
         LOOP_SOLN: do i = 1, nSolnPhases
             k = -iAssemblage(nElements - i + 1)
 
-            if (cSolnOut == cSolnPhaseName(k)) then
+            if (cSolnOutLen == cSolnPhaseName(k)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = k
                 exit LOOP_SOLN
@@ -91,7 +96,7 @@ subroutine GetOutputSolnSpecies(cSolnOut, cSpeciesOut, dMolFractionOut, dChemPot
                 cTemp = ADJUSTL(cSpeciesName(i))
 
                 ! Loop through species in this phase:
-                if (cTemp == cSpeciesOut) then
+                if (cTemp == cSpeciesOutLen) then
                     ! Solution species found.  Record index and exit loop.
                     k = i
                     exit LOOP_SPECIES
