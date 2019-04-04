@@ -145,7 +145,7 @@ subroutine ParseCSDataBlock
             ! Read in two integers representing the number of species and the number of pairs:
             read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
 
-            if (INFO /= 0)
+            if (INFO /= 0) then
             {
               INFO = 1600 + i;
               return
