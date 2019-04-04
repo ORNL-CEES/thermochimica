@@ -146,10 +146,9 @@ subroutine ParseCSDataBlock
             read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
 
             if (INFO /= 0) then
-            {
               INFO = 1600 + i;
               return
-            }
+            end if
 
         end if
 
