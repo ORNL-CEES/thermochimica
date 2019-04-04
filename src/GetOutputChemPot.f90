@@ -9,7 +9,7 @@
 !
 ! Revisions:
 ! ==========
-! 
+!
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   09/16/2015      M.H.A. Piro         Original code
@@ -31,12 +31,12 @@
 !!                                       element.
 !> \param[out]    dElementChemPot       A double real scalar representing the
 !!                                       chemical potential of this element.
-!> \param[out]    INFO                  An integer scalar indicating a successful 
+!> \param[out]    INFO                  An integer scalar indicating a successful
 !!                                       exit (== 0) or an error (/= 0).
 !
 !-------------------------------------------------------------------------------
 
-    
+
 subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
 
     USE ModuleThermo
@@ -72,7 +72,7 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
 
         ! Check to make sure that the element was found:
         if (j /= 0) then
-            ! The element was found in the list.  Store the chemical potential 
+            ! The element was found in the list.  Store the chemical potential
             ! of this element and convert back to units of J/g-at:
             dElementChemPot = dElementPotential(j) * dIdealConstant * dTemperature
         else
@@ -86,5 +86,5 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     end if
 
     return
-      
+
 end subroutine GetOutputChemPot

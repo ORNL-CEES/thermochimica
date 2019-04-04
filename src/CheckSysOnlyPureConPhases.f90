@@ -1,4 +1,4 @@
-    
+
     !-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CheckSysOnlyPureConPhases.f90
@@ -22,7 +22,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   02/10/2012      M.H.A. Piro         Original code
@@ -37,10 +37,10 @@
     ! Purpose:
     ! ========
     !
-    !\details The purpose of this subroutine is to test whether a phase assemblage is appropriate when the 
-    !! system is comprised of only pure condensed phases.  The number of moles of each phase is computed 
-    !! twice (by using the residuals from the first call as the input to the second call to the linear equation 
-    !! solver) to minimize numerical errors since this is a direct calculation (as opposed to an iterative one 
+    !\details The purpose of this subroutine is to test whether a phase assemblage is appropriate when the
+    !! system is comprised of only pure condensed phases.  The number of moles of each phase is computed
+    !! twice (by using the residuals from the first call as the input to the second call to the linear equation
+    !! solver) to minimize numerical errors since this is a direct calculation (as opposed to an iterative one
     !! when solution phases are included, where the errors are progressively reduced).
     !
     !
@@ -48,13 +48,13 @@
     ! ====================
     !
     ! A                         Stoichiometry matrix
-    ! B                         Constraint vector (before call to LAPACK); moles of pure condensed phases 
+    ! B                         Constraint vector (before call to LAPACK); moles of pure condensed phases
     !                           (after call to LAPACK)
     ! dStoichSpecies            Stoichiometry coefficient (used here for pure condensed phases)
     ! iAssemblage               Integer vector representing the indices of phases included in the current
     !                           estimated phase assemblage.
     ! dMolesElement             Double real vector representing the total number of moles of each element.
-    ! lPhasePass                Logical variable indicating whether the phase assemblage has passed or failed. 
+    ! lPhasePass                Logical variable indicating whether the phase assemblage has passed or failed.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -63,9 +63,9 @@ subroutine CheckSysOnlyPureConPhases
 
     USE ModuleThermo
     USE ModuleGEMSolver
-    
+
     implicit none
-    
+
     integer                                 :: i, j, INFO
     integer, dimension(nElements)           :: IPIV
     real(8), dimension(nElements,nElements) :: A, AA
@@ -91,7 +91,7 @@ subroutine CheckSysOnlyPureConPhases
     ! Check if there are any charged phases in the database:
     if (nChargedPhase > 0) then
         ! Pure condensed phases are necessarily neutrally charged; thus, this must
-        ! be removed from the mass balance calculation. 
+        ! be removed from the mass balance calculation.
         do j = nElements, nElements - nChargedConstraints + 1, -1
             A(j,j) = 1D0
         end do
@@ -99,33 +99,33 @@ subroutine CheckSysOnlyPureConPhases
 
     ! Store the stoichiometry matrix:
     AA = A
- 
+
     ! Call the linear equation solver to solve the number of moles of each phase:
-    call DGESV( nElements, 1, A, nElements, IPIV, B, nElements, INFO ) 
-    
+    call DGESV( nElements, 1, A, nElements, IPIV, B, nElements, INFO )
+
     ! Compute the residual vector:
     BB = dMolesElement - MATMUL(AA,B)
 
     ! Perform an additional calculation to refine the number of moles of each phase
     ! (this reduces numerical errors):
-    call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO ) 
-        
+    call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
+
     ! Update the number of moles of the pure condensed phases:
     dMolesPhase = BB + B
-    
+
     ! Compute the mole fractions of all solution phase constituents:
     do i = 1, nSolnPhasesSys
-    
+
         call CompMolFraction(i)
-            
+
     end do
 
     ! Check Convergence:
     call CheckConvergence
-    
+
     ! Compute functional norm:
     call CompFunctionNorm
-        
+
     return
-    
+
 end subroutine CheckSysOnlyPureConPhases
