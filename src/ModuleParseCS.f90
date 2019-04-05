@@ -6,6 +6,14 @@
     !> \author  M.H.A. Piro
     !> \date    Apr. 24, 2012
     !
+    ! Revisions:
+    ! ==========
+    !
+    !   Date            Programmer      Description of change
+    !   ----            ----------      ---------------------
+    !   04/24/2012      M.H.A Piro      Original code
+    !   03/25/2019      P. Bajpai       Added SUBQ to supported models
+    !
     !> \param INFO                      A scalar integer that indicates a successful exit or identifies
     !!                                    an error.
     !> \param nElementsCS               Number of elements in the system.
@@ -69,7 +77,7 @@ module ModuleParseCS
     integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO, nSROPhasesCS
     integer                                     :: nParamCS, nChargedPhaseCS
     integer,        parameter                   :: nSolnPhasesSysMax = 42, nMaxSublatticeCS = 5
-    integer,        parameter                   :: nSolnTypeSupport = 7
+    integer,        parameter                   :: nSolnTypeSupport = 8
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
@@ -87,9 +95,7 @@ module ModuleParseCS
     character(8),   dimension(:,:,:), allocatable :: cConstituentNameSUBCS
 
     character(8),   dimension(nSolnTypeSupport), parameter :: cSolnPhaseTypeSupport = &
-                                                    ['IDMX    ','QKTO    ','SUBL    ','RKMP    ','RKMPM   ','SUBLM   ','SUBG    ']
-
+                                                    ['IDMX    ','QKTO    ','SUBL    ','RKMP    ','RKMPM   ','SUBLM   ','SUBG    ', &
+                                                    'SUBQ    ']
 
 end module ModuleParseCS
-
-
