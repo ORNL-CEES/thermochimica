@@ -228,7 +228,7 @@ subroutine CheckSystemExcess
 
                 nParamPhase(nCounter) = nParam
 
-            case ('SUBG')
+            case ('SUBG', 'SUBQ')
 
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)

@@ -81,7 +81,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
 
     ! Only proceed if the correct phase type is selected:
-    IF_SUBG: if (cSolnPhaseType(iSolnIndex) == 'SUBG') then
+    IF_SUBG: if (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ') then
 
         ! Define temporary variables for sake of convenience:
         iFirst = nSpeciesPhase(iSolnIndex-1) + 1

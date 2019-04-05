@@ -342,7 +342,7 @@ subroutine CompThermoData
     ! In this case, there are necessarily more pairs than pure species. The following
     ! accounts for SUBG phases.
     do j = 1, nSolnPhasesSys
-        if (cSolnPhaseType(j) == 'SUBG') then
+        if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
             cSpeciesNameOld = cSpeciesName
             ! Loop through all A-B pairs:
 
