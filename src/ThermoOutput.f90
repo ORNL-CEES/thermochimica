@@ -54,7 +54,7 @@ subroutine ThermoOutput
 
     implicit none
 
-    integer::   i, j, k, GetSolnPhaseIndex
+    integer::   i, j, k, GetSolnPhaseIndex, clength
     logical::   IsSolnPhaseInSys, IsPureConPhaseInSys
 
 
@@ -103,7 +103,9 @@ subroutine ThermoOutput
 
                 if (k == 0) cycle LOOP_SpeciesOut
 
-                cSpeciesNameOut(i) = ' ' // cSpeciesNameOut(i)
+                clength=LEN(cSpeciesNameOut(i))
+                clength=clength-1
+                cSpeciesNameOut(i) = ' ' // cSpeciesNameOut(i)(1:clength)
 
                 ! Loop through all species in this solution phase:
                 LOOP_SpeciesInSoln: do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)

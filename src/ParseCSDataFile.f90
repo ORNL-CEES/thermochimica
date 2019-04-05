@@ -117,6 +117,9 @@ subroutine ParseCSDataFile(cFileName)
     implicit none
 
     character(*)::  cFileName
+    character(120) :: cFileNameLen
+
+    cFileNameLen = cFileName(1:min(120,len(cFileName)))
 
 
     ! Initialize variables:
@@ -124,7 +127,7 @@ subroutine ParseCSDataFile(cFileName)
     INFO       = 0
 
     ! Attempt to open the ChemSage datafile:
-    open (UNIT = 1, FILE = cFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
+    open (UNIT = 1, FILE = cFileNameLen, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
 
     ! Record an error if there are issues opening the data-file:
     if (INFO /= 0) then
