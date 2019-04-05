@@ -150,16 +150,24 @@ subroutine ParseCSDataBlock
               return
             end if
 
+        elseif (cSolnPhaseTypeCS(i) == 'SUBQ') then
+            ! Do I need to do this?
+            ! The SUBQ phase data files seems to not have the magnetic term so skipping this part.
+            nSROPhasesCS = nSROPhasesCS + 1
+
+            ! Read in two integers representing the number of species and the number of pairs:
+            read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
+
         end if
 
         ! Loop through species in solution phase:
         LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
 
-            ! SUBG phases contain a certain number of species, which are necessarily less
+            ! SUBG and SUBQ phases contain a certain number of species, which are necessarily less
             ! than the number of pair fractions. The # of species indicated in the
             ! header file actually represents the number of pairs. Therefore, there are
             ! fewer species listed than what has been allocated.
-            if (cSolnPhaseTypeCS(i) == 'SUBG') then
+            if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                 if (j >= nSpeciesPhaseCS(i-1) + 1 + nPairsSROCS(nSROPhasesCS,1) ) then
                     exit LOOP_SpeciesInSolnPhase
                 end if
@@ -172,9 +180,15 @@ subroutine ParseCSDataBlock
             ! Store the phase index corresponding to the current species:
             iPhaseCS(j) = i
 
-            ! The following subroutine parses the Gibbs energy equations (entries 3-5):
-            call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
-
+            if (cSolnPhaseTypeCS(i) == 'SUBQ') then
+              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+              ! Read the magnetic terms which are present for every species in SUBQ
+              read (1,*,IOSTAT = INFO) dDummy
+            else
+              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+            endif
 
             ! Entry 6: Definition of temperature and pressure dependence terms (I don't understand the reasoning):
             if (cSolnPhaseTypeCS(i) == 'QKTO') then
@@ -222,6 +236,12 @@ subroutine ParseCSDataBlock
 
                 ! Parse the data-block section for SUBG phases:
                 call ParseCSDataBlockSUBG(i)
+
+            ! Quadruplet quasichemical model:
+            case ('SUBQ')
+
+                ! Parse the data-block section for SUBQ phases:
+                call ParseCSDataBlockSUBQ(i)
 
             case default
 
