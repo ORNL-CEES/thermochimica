@@ -232,7 +232,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
             return
         end if
     elseif (i > 0) then ! This checks if the phase type is not a pure condensed phase to avoid indexing error (i.e., i == 0).
-        if (cSolnPhaseTypeCS(i) == 'SUBG') then
+        if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
             ! For some reason that I do not understand, species in SUBG phases end with a
             ! real vector that appears to correspond to the stoichiometry of the species.
             ! This is odd since it's already defined (?).
