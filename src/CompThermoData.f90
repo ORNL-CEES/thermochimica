@@ -351,17 +351,15 @@ subroutine CompThermoData
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(i)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(i)))
             end do
 
-            do i = nSpeciesPhase(j-1) + 1 + nPairsSRO(1,1), nSpeciesPhase(j)
+            ! do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
+            ! do i = nSpeciesPhase(j-1) + 1 + nPairsSRO(1,1), nSpeciesPhase(j)
+            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
                 k = iPairID(m,1) + nSpeciesPhase(j-1)   ! Index of AA
                 l = iPairID(m,2) + nSpeciesPhase(j-1)   ! Index of BB
 
-                ! I'm using dLogT and dLogP here to avoid taking up more memory...they don't mean log(T) or log(P) here.
-                dLogT = dCoordinationNumber(m,1)        ! Z_AB^A
-                dLogP = dCoordinationNumber(m,2)        ! Z_BA_B
-
-                dStoichSpecies(i,1:nElements) = dStoichSpecies(k,1:nElements) / dLogT + dStoichSpecies(l,1:nElements) / dLogP
-
+                dStoichSpecies(i,1:nElements) = dStoichSpecies(k,1:nElements) / dCoordinationNumber(m,1) &
+                                              + dStoichSpecies(l,1:nElements) / dCoordinationNumber(m,2)
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
             end do
@@ -385,6 +383,9 @@ subroutine CompThermoData
         ! entries will be created with no stoichiometric values. To avoid dividing by
         ! zero, the following is included:
         !dSpeciesTotalAtoms(i) = DMAX1(dSpeciesTotalAtoms(i),0.1D0)
+        if (dSpeciesTotalAtoms(i) == 0) then
+            dSpeciesTotalAtoms(i) = 0.00001D0
+        end if
 
         ! Convert chemical potentials from [J/mol] to [J/g-at]:
         dTemp                 = 1D0 / dSpeciesTotalAtoms(i)
