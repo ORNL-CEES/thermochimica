@@ -345,14 +345,6 @@ subroutine CompThermoData
         if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
             cSpeciesNameOld = cSpeciesName
             ! Loop through all A-B pairs:
-
-            ! Update names of species:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
-                cSpeciesName(i) = TRIM(cSpeciesNameOld(i)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(i)))
-            end do
-
-            ! do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
-            ! do i = nSpeciesPhase(j-1) + 1 + nPairsSRO(1,1), nSpeciesPhase(j)
             do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
                 k = iPairID(m,1) + nSpeciesPhase(j-1)   ! Index of AA
@@ -362,12 +354,6 @@ subroutine CompThermoData
                                               + dStoichSpecies(l,1:nElements) / dCoordinationNumber(m,2)
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
-            end do
-
-            ! Loop through all A-A and B-B pairs:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
-                m = i - nSpeciesPhase(j-1)         ! Index of AB
-                dStoichSpecies(i,1:nElements) = 2D0 * dStoichSpecies(i,1:nElements) / dCoordinationNumber(m,1)
             end do
         end if
     end do
