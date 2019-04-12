@@ -75,9 +75,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: iSolnIndex
     integer :: iFirst, iLast
     real(8) :: dTemp, dSum
-    real(8) :: dZAAA, dZABA, dZBAB
+    real(8) :: dZAAA, dZABA, dZBAB, dZBBB
     real(8) :: x, y, z
-    real(8), allocatable, dimension(:) :: dX, dY
+    real(8), allocatable, dimension(:) :: dX, dY, dN
+    ! dX is X_i in Pelton et al., while X_ij in that paper corresponds to dMolesSpecies
 
 
     ! Only proceed if the correct phase type is selected:
@@ -90,12 +91,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Allocate allocatable arrays:
         if (allocated(dX)) deallocate(dX)
         if (allocated(dY)) deallocate(dY)
+        if (allocated(dN)) deallocate(dN)
         j = iLast - iFirst + 1
-        allocate(dX(j),dY(j))
+        allocate(dX(j),dY(j),dN(j))
 
         ! Initialize variables:
         dX                                = 0D0
         dY                                = 0D0
+        dN                                = 0D0
         dSum                              = 0D0
         dChemicalPotential(iFirst:iLast)  = 0D0
         dPartialExcessGibbs(iFirst:iLast) = 0D0
@@ -122,17 +125,18 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end do
 
-            ! Temporarily use the dPartialExcessGibbs for storing the number of moles
-            ! this species (to reduce memory requirements):
-            dPartialExcessGibbs(i) = dTemp
+            dN(j) = dTemp
             dSum = dSum + dTemp
         end do LOOP_A
 
         ! Now, compute mole fractions of compound end members and the coordination equivalent fractions:
         LOOP_B: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
             j = i - iFirst + 1
-            dX(j) = dPartialExcessGibbs(i) / dSum
+            ! Eq [4]:
+            dX(j) = dN(j) / dSum
 
+            !dTemp = dMolFraction(i)
+            ! Eqs [6]:
             dTemp = dMolFraction(i)
             ! Verify that AB is indeed paired with AA or BB:
             do k = iFirst + nPairsSRO(1,1), iLast
@@ -145,9 +149,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dY(j) = dTemp
         end do LOOP_B
 
-        ! -----------------------------------------------------
+        ! ---------------------------------------------------------------
         ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
-        ! -----------------------------------------------------
+        ! ---------------------------------------------------------------
 
         ! Loop through A-A pairs:
         LOOP_C: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
@@ -158,10 +162,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Store coordination numbers:
             dZAAA = dCoordinationNumber(j,1)
 
-            ! Compute standard reference Gibbs energy:
+            ! Compute standard reference Gibbs energy (Eq [15]):
             dChemicalPotential(i) = dStdGibbsEnergy(i) * 2D0 / dZAAA
 
-            ! Compute ideal mixing component:
+            ! Compute ideal mixing component (Eq [34]?):
             dChemicalPotential(i) = dChemicalPotential(i) + (2D0 / dZAAA) * DLOG(dX(j)) + DLOG(dMolFraction(i) / dY(j)**2)
 
         end do LOOP_C
@@ -169,8 +173,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Loop through A-B pairs:
         LOOP_D: do i = iFirst + nPairsSRO(1,1), iLast
             m = i - iFirst + 1          ! Index of AB
-            j = iPairID(m,1)            ! Index of AA
-            k = iPairID(m,2)            ! Index of BB
+            j = iPairID(m,1) + iFirst - 1            ! Index of AA
+            k = iPairID(m,2) + iFirst - 1            ! Index of BB
 
             ! Store coordination numbers:
             dZABA = dCoordinationNumber(m,1)
@@ -179,11 +183,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Compute standard reference Gibbs energy:
             ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
             ! to include it in the excess mixing section.
+            ! Eq [16]:
             dChemicalPotential(i) = dStdGibbsEnergy(j + iFirst - 1) / dZABA + dStdGibbsEnergy(k + iFirst - 1) / dZBAB
 
             ! Compute ideal mixing component:
             dChemicalPotential(i) = dChemicalPotential(i) + DLOG(dMolFraction(i) / (2D0 * dY(j) * dY(k))) &
-                + DLOG(dX(j)) / dZABA + DLOG(dX(k)) / dZBAB
+                                                          + DLOG(dX(j)) / dZABA + DLOG(dX(k)) / dZBAB
 
         end do LOOP_D
 
@@ -191,42 +196,44 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! COMPUTE PARTIAL MOLAR EXCESS GIBBS ENERGY OF MIXING TERMS
         ! ---------------------------------------------------------
 
-        ! Re-initialize variables:
-        dPartialExcessGibbs(iFirst:iLast) = 0D0
-
         ! Loop through excess mixing parameters:
         LOOP_Param: do m = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
             i = iRegularParam(m,2)              ! Index of AA
             j = iRegularParam(m,3)              ! Index of BB
-            k = iRegularParam(m,4)              ! Index of AB
+            k = iRegularParam(m,4)              ! Index of AB (this is not true, need a different way to get this)
             p = iRegularParam(m,6)              ! Exponent of AA
             q = iRegularParam(m,7)              ! Exponent of BB
             r = iRegularParam(m,8)              ! Exponent of AB
-            x = dMolFraction(iFirst + i - 1)    ! x_AA
-            y = dMolFraction(iFirst + j - 1)    ! x_BB
-            z = dMolFraction(iFirst + k - 1)    ! x_AB
+            x = dX(i)                           ! x_AA
+            y = dX(j)                           ! x_BB
+            !x = dMolFraction(iFirst + i - 1)   ! x_A
+            !y = dMolFraction(iFirst + j - 1)   ! x_B
+            z = 0d0!dMolFraction(iFirst + k - 1)    ! x_AB
+
+            dZAAA = dCoordinationNumber(i,1)
+            dZBBB = dCoordinationNumber(j,1)
 
             ! Contribution to AA:
             dTemp = z * x**(p-1) * y**(q) * (DBLE(p)*(y+z) - DBLE(q)*x)
-            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
+            dTemp = dTemp * dExcessGibbsParam(m) / 2D0 !* (dZAAA / 2D0)
             dPartialExcessGibbs(iFirst + i - 1) = dPartialExcessGibbs(iFirst + i - 1) + dTemp
 
             ! Contribution to BB:
             dTemp = z * x**(p+1) * y**(q) * (DBLE(q)*(x+z) - DBLE(p)*y)
-            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y)
+            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y) !* (dZBBB / 2D0)
             dPartialExcessGibbs(iFirst + j - 1) = dPartialExcessGibbs(iFirst + j - 1) + dTemp
 
             ! Contribution to AB:
             dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
             dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
-            dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
+            !dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
 
         end do LOOP_Param
 
     end if IF_SUBG
 
     ! Deallocate allocatable arrays:
-    deallocate(dX,dY)
+    deallocate(dX,dY,dN)
 
     return
 
