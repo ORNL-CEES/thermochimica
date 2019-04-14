@@ -71,11 +71,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, m, p, q, r
+    integer :: i, j, k, l, m, p, q, r
     integer :: iSolnIndex
     integer :: iFirst, iLast
     real(8) :: dTemp, dSum
-    real(8) :: dZAAA, dZABA, dZBAB, dZBBB
+    real(8) :: dZAAA, dZABA, dZBAB
     real(8) :: x, y, z
     real(8), allocatable, dimension(:) :: dX, dY, dN
     ! dX is X_i in Pelton et al., while X_ij in that paper corresponds to dMolesSpecies
@@ -200,35 +200,40 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         LOOP_Param: do m = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
             i = iRegularParam(m,2)              ! Index of AA
             j = iRegularParam(m,3)              ! Index of BB
-            k = iRegularParam(m,4)              ! Index of AB (this is not true, need a different way to get this)
+            k = 0
+            ! Find which (if any) position AB is stored at:
+            LOOP_FindPair: do l = iFirst, iLast
+                if (((iPairID(l,1) == i) .AND. (iPairID(l,2) == j)) .OR. &
+                    ((iPairID(l,1) == j) .AND. (iPairID(l,2) == i)))  then
+                    k = l
+                    EXIT LOOP_FindPair
+                end if
+            end do LOOP_FindPair
             p = iRegularParam(m,6)              ! Exponent of AA
             q = iRegularParam(m,7)              ! Exponent of BB
             r = iRegularParam(m,8)              ! Exponent of AB
-            !x = dX(i)                           ! x_AA
-            !y = dX(j)                           ! x_BB
-            !z = 1D0 - x - y
             x = dMolFraction(iFirst + i - 1)   ! x_A
             y = dMolFraction(iFirst + j - 1)   ! x_B
             !z = dMolFraction(iFirst + k - 1)    ! x_AB
             z = 1D0 - x - y
-
-            dZAAA = dCoordinationNumber(i,1)
-            dZBBB = dCoordinationNumber(j,1)
+            dSum = x + y + z
 
             ! Contribution to AA:
             dTemp = z * x**(p-1) * y**(q) * (DBLE(p)*(y+z) - DBLE(q)*x)
-            dTemp = dTemp * dExcessGibbsParam(m) / 2D0 !* (dZAAA / 2D0)
+            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
             dPartialExcessGibbs(iFirst + i - 1) = dPartialExcessGibbs(iFirst + i - 1) + dTemp
 
             ! Contribution to BB:
             dTemp = z * x**(p+1) * y**(q) * (DBLE(q)*(x+z) - DBLE(p)*y)
-            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y) !* (dZBBB / 2D0)
+            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y)
             dPartialExcessGibbs(iFirst + j - 1) = dPartialExcessGibbs(iFirst + j - 1) + dTemp
 
-            ! Contribution to AB:
-            dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
-            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
-            dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
+            ! Contribution to AB (only if pair exists):
+            if (k > 0) then
+                dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
+                dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
+                dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
+            end if
 
         end do LOOP_Param
 
