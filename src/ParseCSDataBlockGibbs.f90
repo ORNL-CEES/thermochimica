@@ -114,7 +114,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     l = SCAN(cSpeciesNameCS(j),')', back = .TRUE.)
 
     ! The phase index of a dummy species is set to -1:
-    if ((i == 0).AND.(l == 0)) then
+    if ((i == 0)) then
         ! First, make sure that this is a dummy species.
 
         ! Go back one line:
@@ -124,6 +124,17 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
 
         if (cDummy == '#') then
             iPhaseCS(j) = -1
+        else
+          ! If we don't find a # it's not a dummy so back up and reset
+            backspace(UNIT = 1)
+            read (1,*, IOSTAT = INFO) cSpeciesNameDummy
+            if (cSpeciesNameDummy /= cSpeciesNameCS(j)) then
+              ! If we ran off the end of the line we'll need to back up twice
+                backspace(UNIT = 1)
+                backspace(UNIT = 1)
+                read (1,*, IOSTAT = INFO) cSpeciesNameDummy
+                if (cSpeciesNameDummy /= cSpeciesNameCS(j)) INFO = 1
+            end if
         end if
     end if
 
