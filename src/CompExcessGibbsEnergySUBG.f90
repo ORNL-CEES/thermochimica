@@ -173,8 +173,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Loop through A-B pairs:
         LOOP_D: do i = iFirst + nPairsSRO(1,1), iLast
             m = i - iFirst + 1          ! Index of AB
-            j = iPairID(m,1) + iFirst - 1            ! Index of AA
-            k = iPairID(m,2) + iFirst - 1            ! Index of BB
+            j = iPairID(m,1)            ! Index of AA
+            k = iPairID(m,2)            ! Index of BB
 
             ! Store coordination numbers:
             dZABA = dCoordinationNumber(m,1)
