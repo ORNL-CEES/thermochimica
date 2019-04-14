@@ -107,6 +107,7 @@ subroutine CompThermoData
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
     real(8)                            :: dLogT, dLogP, dTemp
     real(8), dimension(6)              :: dGibbsCoeff
+    real(8), dimension(nSpecies,nElements) :: dStoichSpeciesOld
     character(25), dimension(nSpecies) :: cSpeciesNameOld
 
 
@@ -344,14 +345,15 @@ subroutine CompThermoData
     do j = 1, nSolnPhasesSys
         if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
             cSpeciesNameOld = cSpeciesName
+            dStoichSpeciesOld = dStoichSpecies
             ! Loop through all A-B pairs:
             do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
                 k = iPairID(m,1) + nSpeciesPhase(j-1)   ! Index of AA
                 l = iPairID(m,2) + nSpeciesPhase(j-1)   ! Index of BB
 
-                dStoichSpecies(i,1:nElements) = dStoichSpecies(k,1:nElements) / dCoordinationNumber(m,1) &
-                                              + dStoichSpecies(l,1:nElements) / dCoordinationNumber(m,2)
+                dStoichSpecies(i,1:nElements) = dStoichSpeciesOld(k,1:nElements) / dCoordinationNumber(m,1) &
+                                              + dStoichSpeciesOld(l,1:nElements) / dCoordinationNumber(m,2)
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
             end do
