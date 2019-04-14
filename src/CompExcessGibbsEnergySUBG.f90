@@ -105,48 +105,51 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Compute moles of compound end members
         ! (See eq. [14] from Pelton, Chartrand, Met. Mat. Trans., 32 (2001) 1355):
-        LOOP_A: do i = iFirst, iFirst + nPairsSRO(iSolnIndex,1) - 1
-            j     = i - iFirst + 1
-            dZAAA = dCoordinationNumber(j,1)
+        LOOP_A: do i = 1, nPairsSRO(iSolnIndex,2)
+            ! Skip AB pairs:
+            if (iPairID(i,1) /= iPairID(i,2)) CYCLE LOOP_A
+            j = iFirst + i - 1
+            dZAAA = dCoordinationNumber(i,1)
 
             ! Loop through i-j pairs to compute
-            dTemp = 2D0 * dMolesSpecies(i) / dZAAA
-            do k = iFirst + nPairsSRO(iSolnIndex,1), iLast
-                ! Index of i-j pair (amoung pairs):
-                m = k - iFirst + 1
-
+            dTemp = 2D0 * dMolesSpecies(j) / dZAAA
+            LOOP_A_interior: do k = 1, nPairsSRO(iSolnIndex,2)
+                ! Skip AA pairs:
+                if (iPairID(k,1) == iPairID(k,2)) CYCLE LOOP_A_interior
+                l = iFirst + k - 1
                 ! Verify that AB is indeed paired with AA or BB:
-                if (iPairID(j,1) == iPairID(m,1))  then
-                    dZABA = dCoordinationNumber(m,1)
-                    dTemp = dTemp + dMolesSpecies(k) / dZABA
-                elseif (iPairID(j,1) == iPairID(m,2))  then
-                    dZBAB = dCoordinationNumber(m,2)
-                    dTemp = dTemp + dMolesSpecies(k) / dZBAB
+                if (iPairID(i,1) == iPairID(k,1))  then
+                    dZABA = dCoordinationNumber(k,1)
+                    dTemp = dTemp + dMolesSpecies(l) / dZABA
+                elseif (iPairID(i,1) == iPairID(k,2))  then
+                    dZBAB = dCoordinationNumber(k,2)
+                    dTemp = dTemp + dMolesSpecies(l) / dZBAB
                 end if
-            end do
+            end do LOOP_A_interior
 
-            dN(j) = dTemp
+            dN(i) = dTemp
             dSum = dSum + dTemp
         end do LOOP_A
 
         ! Now, compute mole fractions of compound end members and the coordination equivalent fractions:
-        LOOP_B: do i = iFirst, iFirst + nPairsSRO(iSolnIndex,1) - 1
-            j = i - iFirst + 1
+        LOOP_B: do i = 1, nPairsSRO(iSolnIndex,2)
+            ! Skip AB pairs:
+            if (iPairID(i,1) /= iPairID(i,2)) CYCLE LOOP_B
+            j = iFirst + i - 1
             ! Eq [4]:
-            dX(j) = dN(j) / dSum
-
-            !dTemp = dMolFraction(i)
+            dX(i) = dN(i) / dSum
             ! Eqs [6]:
-            dTemp = dMolFraction(i)
+            dTemp = dMolFraction(j)
             ! Verify that AB is indeed paired with AA or BB:
-            do k = iFirst + nPairsSRO(iSolnIndex,1), iLast
-                ! Index of i-j pair (amoung pairs):
-                m = k - iFirst + 1
-                if ((iPairID(j,1) == iPairID(m,1)).OR.(iPairID(j,1) == iPairID(m,2)))  then
-                    dTemp = dTemp + dMolFraction(k) / 2D0
+            LOOP_B_interior: do k = 1, nPairsSRO(iSolnIndex,2)
+                ! Skip AA pairs:
+                if (iPairID(k,1) == iPairID(k,2)) CYCLE LOOP_B_interior
+                l = iFirst + k - 1
+                if ((iPairID(i,1) == iPairID(k,1)).OR.(iPairID(i,1) == iPairID(k,2)))  then
+                    dTemp = dTemp + dMolFraction(l) / 2D0
                 end if
-            end do
-            dY(j) = dTemp
+            end do LOOP_B_interior
+            dY(i) = dTemp
         end do LOOP_B
 
         ! ---------------------------------------------------------------
