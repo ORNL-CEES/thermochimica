@@ -435,7 +435,7 @@ subroutine CheckSystem
         ! TEMPORARY:
         allocate(iPairID(12,4))
         allocate(dCoordinationNumber(12,4))
-        allocate(nPairsSRO(nSROPhasesCS,2))
+        allocate(nPairsSRO(nSolnPhasesSys,2))
 
         ! Only allocate if there are charged phases:
         if (nChargedPhase > 0) then
@@ -474,7 +474,7 @@ subroutine CheckSystem
 
     iPairID(1:k,1:4) = iPairIDCS(1:k,1:4)
     dCoordinationNumber(1:k,1:4) = dCoordinationNumberCS(1:k,1:4)
-    nPairsSRO(1:nSROPhasesCS,1:2) = nPairsSROCS(1:nSROPhasesCS,1:2)
+    nPairsSRO(1:nSolnPhasesSys,1:2) = nPairsSROCS(1:nSolnPhasesSys,1:2)
 
     ! Initialize arrays (if necessary) for charged phases:
     if (nChargedPhase > 0) then

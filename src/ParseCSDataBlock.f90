@@ -143,7 +143,7 @@ subroutine ParseCSDataBlock
             read (1,*,IOSTAT = INFO) dDummy
 
             ! Read in two integers representing the number of species and the number of pairs:
-            read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
+            read (1,*,IOSTAT = INFO) nPairsSROCS(i,1:2)
 
             if (INFO /= 0) then
               INFO = 1600 + i;
@@ -156,7 +156,7 @@ subroutine ParseCSDataBlock
             nSROPhasesCS = nSROPhasesCS + 1
 
             ! Read in two integers representing the number of species and the number of pairs:
-            read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
+            read (1,*,IOSTAT = INFO) nPairsSROCS(i,1:2)
 
         end if
 
@@ -168,7 +168,7 @@ subroutine ParseCSDataBlock
             ! header file actually represents the number of pairs. Therefore, there are
             ! fewer species listed than what has been allocated.
             if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
-                if (j >= nSpeciesPhaseCS(i-1) + 1 + nPairsSROCS(nSROPhasesCS,1) ) then
+                if (j >= nSpeciesPhaseCS(i-1) + 1 + nPairsSROCS(i,1) ) then
                     exit LOOP_SpeciesInSolnPhase
                 end if
             end if
