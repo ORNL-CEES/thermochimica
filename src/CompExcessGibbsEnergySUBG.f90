@@ -206,9 +206,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             r = iRegularParam(m,8)              ! Exponent of AB
             x = dX(i)                           ! x_AA
             y = dX(j)                           ! x_BB
+            z = 1D0 - x - y
             !x = dMolFraction(iFirst + i - 1)   ! x_A
             !y = dMolFraction(iFirst + j - 1)   ! x_B
-            z = 0d0!dMolFraction(iFirst + k - 1)    ! x_AB
+            !z = 0d0!dMolFraction(iFirst + k - 1)    ! x_AB
 
             dZAAA = dCoordinationNumber(i,1)
             dZBBB = dCoordinationNumber(j,1)
