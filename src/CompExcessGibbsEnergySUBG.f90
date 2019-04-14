@@ -105,13 +105,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Compute moles of compound end members
         ! (See eq. [14] from Pelton, Chartrand, Met. Mat. Trans., 32 (2001) 1355):
-        LOOP_A: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
+        LOOP_A: do i = iFirst, iFirst + nPairsSRO(iSolnIndex,1) - 1
             j     = i - iFirst + 1
             dZAAA = dCoordinationNumber(j,1)
 
             ! Loop through i-j pairs to compute
             dTemp = 2D0 * dMolesSpecies(i) / dZAAA
-            do k = iFirst + nPairsSRO(1,1), iLast
+            do k = iFirst + nPairsSRO(iSolnIndex,1), iLast
                 ! Index of i-j pair (amoung pairs):
                 m = k - iFirst + 1
 
@@ -130,7 +130,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do LOOP_A
 
         ! Now, compute mole fractions of compound end members and the coordination equivalent fractions:
-        LOOP_B: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
+        LOOP_B: do i = iFirst, iFirst + nPairsSRO(iSolnIndex,1) - 1
             j = i - iFirst + 1
             ! Eq [4]:
             dX(j) = dN(j) / dSum
@@ -139,7 +139,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Eqs [6]:
             dTemp = dMolFraction(i)
             ! Verify that AB is indeed paired with AA or BB:
-            do k = iFirst + nPairsSRO(1,1), iLast
+            do k = iFirst + nPairsSRO(iSolnIndex,1), iLast
                 ! Index of i-j pair (amoung pairs):
                 m = k - iFirst + 1
                 if ((iPairID(j,1) == iPairID(m,1)).OR.(iPairID(j,1) == iPairID(m,2)))  then
@@ -153,44 +153,40 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
         ! ---------------------------------------------------------------
 
-        ! Loop through A-A pairs:
-        LOOP_C: do i = iFirst, iFirst + nPairsSRO(1,1) - 1
-            ! Store indices:
-            j = i - iFirst + 1                      ! Index of pairs for coordination number
-            k = iFirst + nPairsSRO(1,1) + j         ! Index of AB pair
+        ! Loop through all pairs:
+        LOOP_C: do i = 1, nPairsSRO(iSolnIndex,2)
+            j = iFirst + i - 1
+            if (iPairID(i,1) == iPairID(i,2)) then
+                ! These are AA pairs
+                ! Store coordination numbers:
+                dZAAA = dCoordinationNumber(i,1)
 
-            ! Store coordination numbers:
-            dZAAA = dCoordinationNumber(j,1)
+                ! Compute standard reference Gibbs energy (Eq [15]):
+                dChemicalPotential(j) = dStdGibbsEnergy(j) * 2D0 / dZAAA
 
-            ! Compute standard reference Gibbs energy (Eq [15]):
-            dChemicalPotential(i) = dStdGibbsEnergy(i) * 2D0 / dZAAA
+                ! Compute ideal mixing component (Eq [34]?):
+                dChemicalPotential(j) = dChemicalPotential(j) + (2D0 / dZAAA) * DLOG(dX(i)) + DLOG(dMolFraction(j) / dY(i)**2)
+            else
+                ! These are AB pairs
+                k = iPairID(i,1)            ! Index of AA
+                l = iPairID(i,2)            ! Index of BB
 
-            ! Compute ideal mixing component (Eq [34]?):
-            dChemicalPotential(i) = dChemicalPotential(i) + (2D0 / dZAAA) * DLOG(dX(j)) + DLOG(dMolFraction(i) / dY(j)**2)
+                ! Store coordination numbers:
+                dZABA = dCoordinationNumber(i,1)
+                dZBAB = dCoordinationNumber(i,2)
+
+                ! Compute standard reference Gibbs energy:
+                ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
+                ! to include it in the excess mixing section.
+                ! Eq [16]:
+                dChemicalPotential(j) = dStdGibbsEnergy(k + iFirst - 1) / dZABA + dStdGibbsEnergy(l + iFirst - 1) / dZBAB
+
+                ! Compute ideal mixing component:
+                dChemicalPotential(j) = dChemicalPotential(j) + DLOG(dMolFraction(j) / (2D0 * dY(k) * dY(l))) &
+                                                              + DLOG(dX(k)) / dZABA + DLOG(dX(l)) / dZBAB
+            end if
 
         end do LOOP_C
-
-        ! Loop through A-B pairs:
-        LOOP_D: do i = iFirst + nPairsSRO(1,1), iLast
-            m = i - iFirst + 1          ! Index of AB
-            j = iPairID(m,1)            ! Index of AA
-            k = iPairID(m,2)            ! Index of BB
-
-            ! Store coordination numbers:
-            dZABA = dCoordinationNumber(m,1)
-            dZBAB = dCoordinationNumber(m,2)
-
-            ! Compute standard reference Gibbs energy:
-            ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
-            ! to include it in the excess mixing section.
-            ! Eq [16]:
-            dChemicalPotential(i) = dStdGibbsEnergy(j + iFirst - 1) / dZABA + dStdGibbsEnergy(k + iFirst - 1) / dZBAB
-
-            ! Compute ideal mixing component:
-            dChemicalPotential(i) = dChemicalPotential(i) + DLOG(dMolFraction(i) / (2D0 * dY(j) * dY(k))) &
-                                                          + DLOG(dX(j)) / dZABA + DLOG(dX(k)) / dZBAB
-
-        end do LOOP_D
 
         ! ---------------------------------------------------------
         ! COMPUTE PARTIAL MOLAR EXCESS GIBBS ENERGY OF MIXING TERMS
@@ -202,7 +198,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             j = iRegularParam(m,3)              ! Index of BB
             k = 0
             ! Find which (if any) position AB is stored at:
-            LOOP_FindPair: do l = iFirst, iLast
+            LOOP_FindPair: do l = 1, nPairsSRO(iSolnIndex,2)
                 if (((iPairID(l,1) == i) .AND. (iPairID(l,2) == j)) .OR. &
                     ((iPairID(l,1) == j) .AND. (iPairID(l,2) == i)))  then
                     k = l
