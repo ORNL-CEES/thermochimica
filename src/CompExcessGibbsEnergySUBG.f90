@@ -228,7 +228,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Contribution to AB:
             dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
             dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
-            !dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
+            dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
 
         end do LOOP_Param
 
