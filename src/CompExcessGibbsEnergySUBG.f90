@@ -106,23 +106,23 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Compute moles of compound end members
         ! (See eq. [14] from Pelton, Chartrand, Met. Mat. Trans., 32 (2001) 1355):
         LOOP_A: do i = 1, nPairsSRO(iSolnIndex,2)
-            ! Skip AB pairs:
-            if (iPairID(i,1) /= iPairID(i,2)) CYCLE LOOP_A
             j = iFirst + i - 1
-            dZAAA = dCoordinationNumber(i,1)
+            ! Skip AB pairs:
+            if (iPairID(j,1) /= iPairID(j,2)) CYCLE LOOP_A
+            dZAAA = dCoordinationNumber(j,1)
 
             ! Loop through i-j pairs to compute
             dTemp = 2D0 * dMolesSpecies(j) / dZAAA
             LOOP_A_interior: do k = 1, nPairsSRO(iSolnIndex,2)
-                ! Skip AA pairs:
-                if (iPairID(k,1) == iPairID(k,2)) CYCLE LOOP_A_interior
                 l = iFirst + k - 1
+                ! Skip AA pairs:
+                if (iPairID(l,1) == iPairID(l,2)) CYCLE LOOP_A_interior
                 ! Verify that AB is indeed paired with AA or BB:
-                if (iPairID(i,1) == iPairID(k,1))  then
-                    dZABA = dCoordinationNumber(k,1)
+                if (iPairID(j,1) == iPairID(l,1))  then
+                    dZABA = dCoordinationNumber(l,1)
                     dTemp = dTemp + dMolesSpecies(l) / dZABA
-                elseif (iPairID(i,1) == iPairID(k,2))  then
-                    dZBAB = dCoordinationNumber(k,2)
+                elseif (iPairID(j,1) == iPairID(l,2))  then
+                    dZBAB = dCoordinationNumber(l,2)
                     dTemp = dTemp + dMolesSpecies(l) / dZBAB
                 end if
             end do LOOP_A_interior
@@ -133,19 +133,19 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Now, compute mole fractions of compound end members and the coordination equivalent fractions:
         LOOP_B: do i = 1, nPairsSRO(iSolnIndex,2)
-            ! Skip AB pairs:
-            if (iPairID(i,1) /= iPairID(i,2)) CYCLE LOOP_B
             j = iFirst + i - 1
+            ! Skip AB pairs:
+            if (iPairID(j,1) /= iPairID(j,2)) CYCLE LOOP_B
             ! Eq [4]:
             dX(i) = dN(i) / dSum
             ! Eqs [6]:
             dTemp = dMolFraction(j)
             ! Verify that AB is indeed paired with AA or BB:
             LOOP_B_interior: do k = 1, nPairsSRO(iSolnIndex,2)
-                ! Skip AA pairs:
-                if (iPairID(k,1) == iPairID(k,2)) CYCLE LOOP_B_interior
                 l = iFirst + k - 1
-                if ((iPairID(i,1) == iPairID(k,1)).OR.(iPairID(i,1) == iPairID(k,2)))  then
+                ! Skip AA pairs:
+                if (iPairID(l,1) == iPairID(l,2)) CYCLE LOOP_B_interior
+                if ((iPairID(j,1) == iPairID(l,1)).OR.(iPairID(j,1) == iPairID(l,2)))  then
                     dTemp = dTemp + dMolFraction(l) / 2D0
                 end if
             end do LOOP_B_interior
@@ -159,10 +159,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Loop through all pairs:
         LOOP_C: do i = 1, nPairsSRO(iSolnIndex,2)
             j = iFirst + i - 1
-            if (iPairID(i,1) == iPairID(i,2)) then
+            if (iPairID(j,1) == iPairID(j,2)) then
                 ! These are AA pairs
                 ! Store coordination numbers:
-                dZAAA = dCoordinationNumber(i,1)
+                dZAAA = dCoordinationNumber(j,1)
 
                 ! Compute standard reference Gibbs energy (Eq [15]):
                 dChemicalPotential(j) = dStdGibbsEnergy(j) * 2D0 / dZAAA
@@ -171,12 +171,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 dChemicalPotential(j) = dChemicalPotential(j) + (2D0 / dZAAA) * DLOG(dX(i)) + DLOG(dMolFraction(j) / dY(i)**2)
             else
                 ! These are AB pairs
-                k = iPairID(i,1)            ! Index of AA
-                l = iPairID(i,2)            ! Index of BB
+                k = iPairID(j,1)            ! Index of AA
+                l = iPairID(j,2)            ! Index of BB
 
                 ! Store coordination numbers:
-                dZABA = dCoordinationNumber(i,1)
-                dZBAB = dCoordinationNumber(i,2)
+                dZABA = dCoordinationNumber(j,1)
+                dZBAB = dCoordinationNumber(j,2)
 
                 ! Compute standard reference Gibbs energy:
                 ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
@@ -202,8 +202,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             k = 0
             ! Find which (if any) position AB is stored at:
             LOOP_FindPair: do l = 1, nPairsSRO(iSolnIndex,2)
-                if (((iPairID(l,1) == i) .AND. (iPairID(l,2) == j)) .OR. &
-                    ((iPairID(l,1) == j) .AND. (iPairID(l,2) == i)))  then
+                if (((iPairID(l + iFirst - 1,1) == i) .AND. (iPairID(l + iFirst - 1,2) == j)) .OR. &
+                    ((iPairID(l + iFirst - 1,1) == j) .AND. (iPairID(l + iFirst - 1,2) == i)))  then
                     k = l
                     EXIT LOOP_FindPair
                 end if

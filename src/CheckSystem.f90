@@ -433,8 +433,8 @@ subroutine CheckSystem
         !allocate(iPairID(j*2+1,4))     ! This is no good...this shouldn't be a function of the # of soln phases.
         !allocate(dCoordinationNumber(j*2+1,4))
         ! TEMPORARY:
-        allocate(iPairID(12,4))
-        allocate(dCoordinationNumber(12,4))
+        allocate(iPairID(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
+        allocate(dCoordinationNumber(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
         allocate(nPairsSRO(nSolnPhasesSys,2))
 
         ! Only allocate if there are charged phases:

@@ -137,15 +137,11 @@ subroutine ParseCSHeader
 !    allocate(dCoordinationNumberCS(j*2+1,4))
 
     ! TEMPORARY:
-    allocate(iPairIDCS(12,4))
-    allocate(dCoordinationNumberCS(12,4))
 
     ! Initialize variables:
     nSpeciesPhaseCS       = 0
     iPhaseSublatticeCS    = 0
     nPairsSROCS           = 0
-    iPairIDCS             = 0
-    dCoordinationNumberCS = 0D0
 
     ! Go back to Line 2:
     backspace(UNIT = 1)
@@ -198,6 +194,11 @@ subroutine ParseCSHeader
 
     ! Compute the total number of species in the system:
     nSpeciesCS = nSpeciesCS + nSpeciesPhaseCS(nSolnPhasesSysCS)
+
+    allocate(iPairIDCS(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
+    allocate(dCoordinationNumberCS(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
+    iPairIDCS             = 0
+    dCoordinationNumberCS = 0D0
 
     ! Allocate allocatable arrays:
     allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))

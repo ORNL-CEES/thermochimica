@@ -127,7 +127,7 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Note that a quadruplet must satisfy the following constraint:
     ! q(i)/Z(i) + q(j)/Z(j) =  q(x)/Z(x) + q(y)/Z(y)
     do j = 1, nPairsSROCS(i,2)
-        read (1,*,IOSTAT = INFO) iPairIDCS(j, 1:4), dCoordinationNumberCS(j,1:4)
+        read (1,*,IOSTAT = INFO) iPairIDCS(j + nSpeciesPhaseCS(i-1), 1:4), dCoordinationNumberCS(j + nSpeciesPhaseCS(i-1),1:4)
     end do
 
     ! Loop through excess mixing parameters:
