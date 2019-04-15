@@ -60,7 +60,7 @@ subroutine CheckSystemExcess
     nCounter        = 0
     nCountSublatticeCS = 0
     nCountSublattice   = 0
-    iPhaseSublattice   = 0
+    if (allocated(iPhaseSublattice)) iPhaseSublattice   = 0
 
     ! Check the mixing parameters:
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
