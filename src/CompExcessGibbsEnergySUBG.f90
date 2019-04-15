@@ -226,14 +226,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dPartialExcessGibbs(iFirst + i - 1) = dPartialExcessGibbs(iFirst + i - 1) + dTemp
 
             ! Contribution to BB:
-            dTemp = z * x**(p+1) * y**(q) * (DBLE(q)*(x+z) - DBLE(p)*y)
-            dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x * y)
+            dTemp = z * x**(p) * y**(q-1) * (DBLE(q)*(x+z) - DBLE(p)*y)
+            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
             dPartialExcessGibbs(iFirst + j - 1) = dPartialExcessGibbs(iFirst + j - 1) + dTemp
 
             ! Contribution to AB (only if pair exists):
             if (k > 0) then
-                dTemp = x**(p+1) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
-                dTemp = dTemp * dExcessGibbsParam(m) / (2D0 * x)
+                dTemp = x**(p) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
+                dTemp = dTemp * dExcessGibbsParam(m) / 2D0
                 dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
             end if
 
