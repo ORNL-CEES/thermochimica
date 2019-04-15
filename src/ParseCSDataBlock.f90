@@ -73,7 +73,7 @@ subroutine ParseCSDataBlock
 
     implicit none
 
-    integer               :: i, j, k, iCounterGibbsEqn, nCountSublattice
+    integer               :: i, j, k, iCounterGibbsEqn
     real(8)               :: dDummy
     real(8),dimension(15) :: dTempVec
 
@@ -84,7 +84,6 @@ subroutine ParseCSDataBlock
     nParamCS            = 0
     dTempVec            = 0D0
     nParamPhaseCS       = 0
-    nCountSublattice    = 0
     dGibbsMagneticCS    = 0D0
 
     ! Loop through all solution phases:
@@ -226,16 +225,20 @@ subroutine ParseCSDataBlock
             case ('SUBL', 'SUBLM')
 
                 ! Count the number of phases with a sublattice:
-                nCountSublattice      = nCountSublattice + 1
-                iPhaseSublatticeCS(i) = nCountSublattice
+                nCountSublatticeCS    = nCountSublatticeCS + 1
+                iPhaseSublatticeCS(i) = nCountSublatticeCS
 
-                call ParseCSDataBlockSUBL(i, nCountSublattice)
+                call ParseCSDataBlockSUBL(i, nCountSublatticeCS)
 
             ! Quadruplet quasichemical model:
             case ('SUBG')
 
+                ! Count the number of phases with a sublattice:
+                nCountSublatticeCS      = nCountSublatticeCS + 1
+                iPhaseSublatticeCS(i) = nCountSublatticeCS
+
                 ! Parse the data-block section for SUBG phases:
-                call ParseCSDataBlockSUBG(i)
+                call ParseCSDataBlockSUBG(i, nCountSublatticeCS)
 
             ! Quadruplet quasichemical model:
             case ('SUBQ')
@@ -258,12 +261,6 @@ subroutine ParseCSDataBlock
         nParamPhaseCS(i) = nParamCS
 
     end do LOOP_SolnPhases      ! Variable i
-
-    ! Recount the number of charged phases:
-    nChargedPhaseCS = 0
-    do i = 1, nSolnPhasesSysCS
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) nChargedPhaseCS = nChargedPhaseCS + 1
-    end do
 
     allocate(iParamPassCS(nParamCS))
     iParamPassCS = 0

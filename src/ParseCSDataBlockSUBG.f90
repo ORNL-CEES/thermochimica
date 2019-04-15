@@ -115,10 +115,10 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 1, 1:iTempVec(1))
 
     ! This entry appears to represent the IDs matching constituents on the second sublattice to species:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 2, 1:iTempVec(1))
 
     ! Parse the co-ordination numbers corresponding to all pairs in the phase.
     ! Note that since these lines correspond to pairs, there will always be the same number of

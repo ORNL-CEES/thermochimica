@@ -58,8 +58,9 @@ subroutine CheckSystemExcess
 
     ! Initialize variables:
     nCounter        = 0
-    nChargedPhaseCS = 0
-    nChargedPhase   = 0
+    nCountSublatticeCS = 0
+    nCountSublattice   = 0
+    iPhaseSublattice   = 0
 
     ! Check the mixing parameters:
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
@@ -69,7 +70,7 @@ subroutine CheckSystemExcess
         l = MAXVAL(iSpeciesPass(j:k))
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
-            nChargedPhaseCS = nChargedPhaseCS + 1
+            nCountSublatticeCS = nCountSublatticeCS + 1
         end if
 
         if (l > 0) then
@@ -135,15 +136,15 @@ subroutine CheckSystemExcess
             case ('SUBL', 'SUBLM')
 
                 ! Check if the constituents pass for a phase with a sublattice:
-                nChargedPhase                    = nChargedPhase + 1
-                iPhaseSublattice(nCounter)       = nChargedPhase
+                nCountSublattice                  = nCountSublattice + 1
+                iPhaseSublattice(nCounter)       = nCountSublattice
 
-                nSublatticePhase(nChargedPhase)  = nSublatticePhaseCS(nChargedPhaseCS)
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
                 j = SIZE(nConstituentSublattice,DIM=2)
-                n = nSublatticePhase(nChargedPhase)
-                dStoichSublattice(nChargedPhase,1:n) = dStoichSublatticeCS(nChargedPhaseCS,1:n)
+                n = nSublatticePhase(nCountSublattice)
+                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
-                iConstituentSublattice(nChargedPhase,1:n,1:k) = iConstituentSublatticeCS(nChargedPhaseCS,1:n,1:k)
+                iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 k = iPhaseSublatticeCS(i)
 
                 ! Loop through species in phase to determine which constituents are stable:
@@ -169,14 +170,14 @@ subroutine CheckSystemExcess
                     ! Loop through constituents on sublattice s:
                     j = 0
                     do c = 1, nConstituentSublatticeCS(k,s)
-                        nConstituentSublattice(nChargedPhase,s) = nConstituentSublattice(nChargedPhase,s) &
+                        nConstituentSublattice(nCountSublattice,s) = nConstituentSublattice(nCountSublattice,s) &
                             + iConstituentPass(k, s, c)
 
                         ! Store the correct constituent name:
                         if (iConstituentPass(k,s,c) /= 0) then
-                            iConstituentPass(k,s,c) = nConstituentSublattice(nChargedPhase,s)
+                            iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
                             j = j + 1
-                            cConstituentNameSUB(nChargedPhase,s,j) = cConstituentNameSUBCS(nChargedPhaseCS,s,c)
+                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
                         end if
                     end do
                 end do
@@ -229,6 +230,9 @@ subroutine CheckSystemExcess
                 nParamPhase(nCounter) = nParam
 
             case ('SUBG', 'SUBQ')
+                ! Check if the constituents pass for a phase with a sublattice:
+                nCountSublattice                 = nCountSublattice + 1
+                iPhaseSublattice(nCounter)       = nCountSublattice
 
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)

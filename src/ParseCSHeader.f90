@@ -53,7 +53,7 @@
     ! INFO                      A scalar integer that indicates a successful exit or identifies an error.
     ! nElementsPT               Number of elements in the periodic table.
     ! nElements                 Number of elements in the system.
-    ! nChargedPhaseCS           Number of charged phases in the system.
+    ! nCountSublatticeCS        Number of sublattice phases in the system.
     ! nSolnPhasesSys            Number of solution phases in the system.
     ! nSolnPhasesSysMax         Maximum number of solution phases in a system that can be considered.
     ! nSpeciesPhase             Number of species in a solution phase.
@@ -86,10 +86,6 @@ subroutine ParseCSHeader
     integer,dimension(2) :: iDummy
     character(8)         :: cDummy
     character(78)        :: cSystemTitle
-
-
-    ! Initialize varirables:
-    nChargedPhaseCS = 0
 
     ! Line 1: Read title of system:
     read (1,*,IOSTAT = INFO) cDummy, cSystemTitle
@@ -139,6 +135,7 @@ subroutine ParseCSHeader
     ! TEMPORARY:
 
     ! Initialize variables:
+    nCountSublatticeCS  = 0
     nSpeciesPhaseCS       = 0
     iPhaseSublatticeCS    = 0
     nPairsSROCS           = 0
@@ -245,7 +242,6 @@ subroutine ParseCSHeader
     do i = 1, nElementsCS
         cDummy = cElementNameCS(i)
         if (cDummy(1:2) == 'e(') then
-            nChargedPhaseCS   = nChargedPhaseCS + 1
             cElementNameCS(i) = 'e-'
         end if
     end do

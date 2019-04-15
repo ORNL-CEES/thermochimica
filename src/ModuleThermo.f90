@@ -65,7 +65,7 @@
     !> \param       cSpeciesName   A character vector representing the name of each species in short-form.
     !> \param       cSolnPhaseName      A character vector representing the name of each solution phase.
     !> \param       cSolnPhaseType      A character vector representing the type of each solution phase.
-    !> \param       nChargedPhase       An integer scalar representing the number of charged phases (e.g., the
+    !> \param       nCountSublattice    An integer scalar representing the number of sublattice phases (e.g., the
     !!                                   Compound Energy Formalism, aqueous, etc.).
     !> \param       iPhaseSublattice    An integer vector representing the sublattice # for each soluton phase.
     !> \param       dSiteFraction       A double real array with 3 dimensions representing the site fractions
@@ -85,7 +85,7 @@ module ModuleThermo
 
     integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
-    integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nChargedPhase
+    integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass

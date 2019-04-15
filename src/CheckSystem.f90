@@ -127,7 +127,7 @@ subroutine CheckSystem
 
     implicit none
 
-    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nChargedPhaseTemp
+    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
@@ -144,11 +144,11 @@ subroutine CheckSystem
     end if
 
     ! Check if there are any solution phases with a sublattice:
-    if (nChargedPhaseCS > 0) then
+    if (nCountSublatticeCS > 0) then
         ! Allocate array to check if a constituent passes:
         j = SIZE(iConstituentSublatticeCS, DIM=3)
         if (allocated(iConstituentPass)) deallocate(iConstituentPass)
-        allocate(iConstituentPass(nChargedPhaseCS,nMaxSublatticeCS,j))
+        allocate(iConstituentPass(nCountSublatticeCS,nMaxSublatticeCS,j))
         iConstituentPass = 0
     end if
 
@@ -156,11 +156,11 @@ subroutine CheckSystem
     iElementSystem      = 0
     iTempVec            = 0
     iSpeciesPass        = 0
-    nChargedPhase       = 0
+    nCountSublattice       = 0
     nMaxSublatticeSys   = 0
     nMaxConstituentSys  = 0
     nMaxSpeciesPhase    = 0
-    nChargedPhaseTemp   = 0
+    nCountSublatticeTemp   = 0
     nChargedConstraints = 0
     n                   = 0
     dSum                = 0D0
@@ -256,7 +256,7 @@ subroutine CheckSystem
 
             ! Store temporary counter for the number of charged phases from the CS data-file:
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
-                nChargedPhaseTemp = nChargedPhaseTemp + 1
+                nCountSublatticeTemp = nCountSublatticeTemp + 1
             end if
 
             ! Count the number of solution phases in the system:
@@ -265,12 +265,13 @@ subroutine CheckSystem
                 nSolnPhasesSys = nSolnPhasesSys + 1
                 nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
                 ! Check if this is a charged phase:
-                if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
+                if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+                     (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ') ) then
                     ! Count the number of charged phases:
-                    nChargedPhase = nChargedPhase + 1
+                    nCountSublattice = nCountSublattice + 1
                     ! Determine the maximum number of sublattice of any stable phase:
-                    nMaxSublatticeSys  = MAX(nMaxSublatticeSys,nSublatticePhaseCS(nChargedPhaseTemp))
-                    m = MAXVAL(nConstituentSublatticeCS(nChargedPhaseTemp,1:nMaxSublatticeCS))
+                    nMaxSublatticeSys  = MAX(nMaxSublatticeSys,nSublatticePhaseCS(nCountSublatticeTemp))
+                    m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
                     nMaxConstituentSys = MAX(nMaxConstituentSys,m)
                 end if
             elseif (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
@@ -302,7 +303,7 @@ subroutine CheckSystem
         nSpecies                   = nSpeciesCS
         iTempVec(0:nSolnPhasesSys) = nSpeciesPhaseCS(0:nSolnPhasesSys)
 
-        if (nChargedPhaseCS > 0) then
+        if (nCountSublatticeCS > 0) then
             nMaxSublatticeSys          = MAXVAL(nSublatticePhaseCS)
             nMaxConstituentSys         = MAXVAL(nConstituentSublatticeCS)
         end if
@@ -314,7 +315,10 @@ subroutine CheckSystem
                 iSpeciesPass(j) = m
             end do
             nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(i) - iTempVec(i-1))
-            if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) nChargedPhase = nChargedPhase + 1
+            if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+                 (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ') ) then
+                 nCountSublattice = nCountSublattice + 1
+            end if
         end do
 
         j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1
@@ -395,18 +399,18 @@ subroutine CheckSystem
 
         end if
 
-        ! Only allocate if there are charged phases:
-        if (nChargedPhase > 0) then
+        ! Only allocate if there are sublattice phases:
+        if (nCountSublattice > 0) then
 
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice, STAT = n)
 
-            allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nChargedPhase))
-            allocate(nConstituentSublattice(nChargedPhase,nMaxSublatticeSys))
-            allocate(dStoichSublattice(nChargedPhase,nMaxSublatticeSys))
-            allocate(dSiteFraction(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
-            allocate(cConstituentNameSUB(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
-            allocate(iConstituentSublattice(nChargedPhase,nMaxSublatticeSys,nMaxSpeciesPhase))
+            allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
+            allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
+            allocate(dStoichSublattice(nCountSublattice,nMaxSublatticeSys))
+            allocate(dSiteFraction(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
+            allocate(cConstituentNameSUB(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
+            allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
         end if
 
     else
@@ -438,13 +442,13 @@ subroutine CheckSystem
         allocate(nPairsSRO(nSolnPhasesSys,2))
 
         ! Only allocate if there are charged phases:
-        if (nChargedPhase > 0) then
-            allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nChargedPhase))
-            allocate(nConstituentSublattice(nChargedPhase,nMaxSublatticeSys))
-            allocate(dStoichSublattice(nChargedPhase,nMaxSublatticeSys))
-            allocate(dSiteFraction(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
-            allocate(cConstituentNameSUB(nChargedPhase,nMaxSublatticeSys,nMaxConstituentSys))
-            allocate(iConstituentSublattice(nChargedPhase,nMaxSublatticeSys,nMaxSpeciesPhase))
+        if (nCountSublattice > 0) then
+            allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
+            allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
+            allocate(dStoichSublattice(nCountSublattice,nMaxSublatticeSys))
+            allocate(dSiteFraction(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
+            allocate(cConstituentNameSUB(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
+            allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
         end if
 
     end if
@@ -477,7 +481,7 @@ subroutine CheckSystem
     nPairsSRO(1:nSolnPhasesSys,1:2) = nPairsSROCS(1:nSolnPhasesSys,1:2)
 
     ! Initialize arrays (if necessary) for charged phases:
-    if (nChargedPhase > 0) then
+    if (nCountSublattice > 0) then
         dSiteFraction          = 0D0
         iConstituentSublattice = 0
         nSublatticePhase       = 0

@@ -48,8 +48,8 @@
     !                                    to dummy species.
     !> \param dAtomicMass               Atomic mass of an element.
     !> \param dGibbsCoeffSpeciesTemp    Temporary double array of coefficients for a Gibbs energy equation.
-    !> \param nChargedPhaseCS           An integer scalar representing the number of charged phases (e.g., the
-    !!                                   Compound Energy Formalism, aqueous, etc.).
+    !> \param nCountSublatticeCS        An integer scalar representing the number of phases with sublattices
+    !!                                  (e.g., SUBL, SUBG, SUBQ).
     !> \param nSolnTypeSupport          An integer scalar representing the number of supported solution phase types.
     !> \param cSolnPhaseTypeSupport     A character array representing the solution phase types that are supported.
     !> \param nSublatticePhaseCS        An integer vector representing the number of sublattices per phase.  This
@@ -75,7 +75,7 @@ module ModuleParseCS
     SAVE
 
     integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO, nSROPhasesCS
-    integer                                     :: nParamCS, nChargedPhaseCS
+    integer                                     :: nParamCS, nCountSublatticeCS
     integer,        parameter                   :: nSolnPhasesSysMax = 42, nMaxSublatticeCS = 5
     integer,        parameter                   :: nSolnTypeSupport = 8
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4

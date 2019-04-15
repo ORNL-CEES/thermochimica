@@ -323,7 +323,6 @@ subroutine CompThermoData
     ! If necessary, add dummy species for each ionic phase:
     if (nChargedConstraints > 0) then
         j = 0
-        !do i = nSpecies, nSpecies - nChargedPhase + 1, -1
 
         do i = nSpecies, nSpecies - nChargedConstraints + 1, -1
             j = j + 1
