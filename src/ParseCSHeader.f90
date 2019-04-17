@@ -246,12 +246,14 @@ subroutine ParseCSHeader
         end if
     end do
 
-    ! Allocate variables specific to ionic phases:
+    ! Allocate variables specific to sublattice phases:
     allocate(nSublatticePhaseCS(nSolnPhasesSysCS))
     allocate(dStoichSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(nConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(cConstituentNameSUBCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
+    allocate(iSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS,nElementsCS))
+    allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0

@@ -69,7 +69,8 @@ subroutine CheckSystemExcess
         k = nSpeciesPhaseCS(i)
         l = MAXVAL(iSpeciesPass(j:k))
 
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
+        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
             nCountSublatticeCS = nCountSublatticeCS + 1
         end if
 
@@ -136,7 +137,7 @@ subroutine CheckSystemExcess
             case ('SUBL', 'SUBLM')
 
                 ! Check if the constituents pass for a phase with a sublattice:
-                nCountSublattice                  = nCountSublattice + 1
+                nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
@@ -234,6 +235,17 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
+                j = SIZE(nSublatticeElements,DIM=2)
+                nSublatticeElements(nCountSublattice,1:j) = nSublatticeElementsCS(nCountSublatticeCS,1:j)
+
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                j = SIZE(nConstituentSublattice,DIM=2)
+                n = nSublatticePhase(nCountSublattice)
+                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
+                k = SIZE(iConstituentSublattice, DIM=3)
+                iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
+                k = SIZE(iSublatticeElements, DIM=3)
+                iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublattice,1:n,1:k)
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     nParam          = nParam + 1

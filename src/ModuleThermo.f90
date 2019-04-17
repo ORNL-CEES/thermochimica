@@ -91,7 +91,8 @@ module ModuleThermo
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, iPairID, nPairsSRO
-    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice
+    integer,       dimension(:,:), allocatable::  nSublatticeElements
+    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput
     real(8),       dimension(iTolNum)::           dTolerance

@@ -82,7 +82,8 @@ module ModuleParseCS
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
     integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iPairIDCS
-    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS
+    integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
+    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
     real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dCoordinationNumberCS
