@@ -485,7 +485,6 @@ subroutine CheckSystem
 
     iPairID(1:k,1:4) = iPairIDCS(1:k,1:4)
     dCoordinationNumber(1:k,1:4) = dCoordinationNumberCS(1:k,1:4)
-    nPairsSRO(1:nSolnPhasesSys,1:2) = nPairsSROCS(1:nSolnPhasesSys,1:2)
 
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
