@@ -257,7 +257,6 @@ subroutine ParseCSHeader
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0
-    nSROPhasesCS             = 0
     nConstituentSublatticeCS = 0
     iConstituentSublatticeCS = 0
     dStoichSublatticeCS      = 0D0

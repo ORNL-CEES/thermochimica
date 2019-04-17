@@ -121,6 +121,13 @@ subroutine ParseCSDataBlock
             return
         end if
 
+        ! Count sublattice phases
+        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+             nCountSublatticeCS = nCountSublatticeCS + 1
+             iPhaseSublatticeCS(i) = nCountSublatticeCS
+        end if
+
         ! Check if the solution phase contains magnetic ordering terms, and if so,
         ! read in the terms:
         if ((cSolnPhaseTypeCS(i) == 'RKMPM').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
@@ -136,7 +143,6 @@ subroutine ParseCSDataBlock
             end if
 
         elseif (cSolnPhaseTypeCS(i) == 'SUBG') then
-            nSROPhasesCS = nSROPhasesCS + 1
 
             ! ---> I'm not sure why, but SUBG phases appear to have some strange magnetic terms (?).
             read (1,*,IOSTAT = INFO) dDummy
@@ -152,7 +158,6 @@ subroutine ParseCSDataBlock
         elseif (cSolnPhaseTypeCS(i) == 'SUBQ') then
             ! Do I need to do this?
             ! The SUBQ phase data files seems to not have the magnetic term so skipping this part.
-            nSROPhasesCS = nSROPhasesCS + 1
 
             ! Read in two integers representing the number of species and the number of pairs:
             read (1,*,IOSTAT = INFO) nPairsSROCS(i,1:2)
@@ -224,21 +229,13 @@ subroutine ParseCSDataBlock
             ! Compound Energy Formalism (sublattice) model:
             case ('SUBL', 'SUBLM')
 
-                ! Count the number of phases with a sublattice:
-                nCountSublatticeCS    = nCountSublatticeCS + 1
-                iPhaseSublatticeCS(i) = nCountSublatticeCS
-
-                call ParseCSDataBlockSUBL(i, nCountSublatticeCS)
+                call ParseCSDataBlockSUBL(i)
 
             ! Quadruplet quasichemical model:
             case ('SUBG')
 
-                ! Count the number of phases with a sublattice:
-                nCountSublatticeCS      = nCountSublatticeCS + 1
-                iPhaseSublatticeCS(i) = nCountSublatticeCS
-
                 ! Parse the data-block section for SUBG phases:
-                call ParseCSDataBlockSUBG(i, nCountSublatticeCS)
+                call ParseCSDataBlockSUBG(i)
 
             ! Quadruplet quasichemical model:
             case ('SUBQ')
