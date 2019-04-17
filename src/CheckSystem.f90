@@ -255,7 +255,8 @@ subroutine CheckSystem
             end do LOOP_SpeciesInSolnPhase
 
             ! Store temporary counter for the number of charged phases from the CS data-file:
-            if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
+            if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+                 (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ') ) then
                 nCountSublatticeTemp = nCountSublatticeTemp + 1
             end if
 
