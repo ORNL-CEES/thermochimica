@@ -464,7 +464,6 @@ subroutine CheckSystem
     dAtomFractionSpecies = 0D0
     dGibbsSolnPhase      = 0D0
     dCoeffGibbsMagnetic  = 0D0
-    dCoordinationNumber  = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
 
@@ -478,6 +477,7 @@ subroutine CheckSystem
         iSublatticeElements  = 0
         nPairsSRO            = 0
         iPairID              = 0
+        dCoordinationNumber  = 0D0
     end if
 
     ! Re-establish the character vector representing the element names:
