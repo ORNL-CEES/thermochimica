@@ -90,9 +90,9 @@ module ModuleThermo
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
-    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, iPairID, nPairsSRO
+    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO
     integer,       dimension(:,:), allocatable::  nSublatticeElements
-    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements
+    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements, iPairID
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput
     real(8),       dimension(iTolNum)::           dTolerance
@@ -100,9 +100,9 @@ module ModuleThermo
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
     real(8),       dimension(:),   allocatable::  dElementPotential, dMolesPhase, dMolesElement, dMolFraction
     real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies
-    real(8),       dimension(:,:), allocatable:: dCoeffGibbsMagnetic, dCoordinationNumber
+    real(8),       dimension(:,:), allocatable:: dCoeffGibbsMagnetic
 
-    real(8),      dimension(:,:,:),allocatable::  dSiteFraction
+    real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber
 
     character(3),  dimension(:),   allocatable::  cElementName
     character(25), dimension(:),   allocatable::  cSpeciesName

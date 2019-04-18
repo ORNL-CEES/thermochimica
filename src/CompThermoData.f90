@@ -345,14 +345,14 @@ subroutine CompThermoData
         if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
             cSpeciesNameOld = cSpeciesName
             dStoichSpeciesOld = dStoichSpecies
-            ! Loop through all A-B pairs:
+            ! Loop through all pairs:
             do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
-                k = iPairID(i,1) + nSpeciesPhase(j-1)   ! Index of AA
-                l = iPairID(i,2) + nSpeciesPhase(j-1)   ! Index of BB
+                k = iPairID(iPhaseSublattice(j),m,1) + nSpeciesPhase(j-1)   ! Index of AA
+                l = iPairID(iPhaseSublattice(j),m,2) + nSpeciesPhase(j-1)   ! Index of BB
 
-                dStoichSpecies(i,1:nElements) = dStoichSpeciesOld(k,1:nElements) / dCoordinationNumber(i,1) &
-                                              + dStoichSpeciesOld(l,1:nElements) / dCoordinationNumber(i,2)
+                dStoichSpecies(i,1:nElements) = dStoichSpeciesOld(k,1:nElements) / dCoordinationNumber(iPhaseSublattice(j),m,1) &
+                                              + dStoichSpeciesOld(l,1:nElements) / dCoordinationNumber(iPhaseSublattice(j),m,2)
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
             end do

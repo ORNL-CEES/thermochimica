@@ -236,7 +236,10 @@ subroutine CheckSystemExcess
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
 
-                nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublattice,1:2)
+                nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublatticeCS,1:2)
+                k = SIZE(iPairID,DIM = 2)
+                iPairID(nCountSublattice,1:k,1:4) = iPairIDCS(nCountSublatticeCS,1:k,1:4)
+                dCoordinationNumber(nCountSublattice,1:k,1:4) = dCoordinationNumberCS(nCountSublatticeCS,1:k,1:4)
 
                 j = SIZE(nSublatticeElements,DIM=2)
                 nSublatticeElements(nCountSublattice,1:j) = nSublatticeElementsCS(nCountSublatticeCS,1:j)

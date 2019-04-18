@@ -72,7 +72,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, m, p, q, r
-    integer :: iSolnIndex
+    integer :: iSolnIndex, iSublPhaseIndex
     integer :: iFirst, iLast
     real(8) :: dTemp, dSum
     real(8) :: dZAAA, dZABA, dZBAB
@@ -87,6 +87,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Define temporary variables for sake of convenience:
         iFirst = nSpeciesPhase(iSolnIndex-1) + 1
         iLast  = nSpeciesPhase(iSolnIndex)
+        iSublPhaseIndex = iPhaseSublattice(iSolnIndex)
 
         ! Allocate allocatable arrays:
         if (allocated(dX)) deallocate(dX)
@@ -105,24 +106,24 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Compute moles of compound end members
         ! (See eq. [14] from Pelton, Chartrand, Met. Mat. Trans., 32 (2001) 1355):
-        LOOP_A: do i = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
+        LOOP_A: do i = 1, nPairsSRO(iSublPhaseIndex,2)
             j = iFirst + i - 1
             ! Skip AB pairs:
-            if (iPairID(j,1) /= iPairID(j,2)) CYCLE LOOP_A
-            dZAAA = dCoordinationNumber(j,1)
+            if (iPairID(iSublPhaseIndex,i,1) /= iPairID(iSublPhaseIndex,i,2)) CYCLE LOOP_A
+            dZAAA = dCoordinationNumber(iSublPhaseIndex,i,1)
 
             ! Loop through i-j pairs to compute
             dTemp = 2D0 * dMolesSpecies(j) / dZAAA
-            LOOP_A_interior: do k = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
+            LOOP_A_interior: do k = 1, nPairsSRO(iSublPhaseIndex,2)
                 l = iFirst + k - 1
                 ! Skip AA pairs:
-                if (iPairID(l,1) == iPairID(l,2)) CYCLE LOOP_A_interior
+                if (iPairID(iSublPhaseIndex,k,1) == iPairID(iSublPhaseIndex,k,2)) CYCLE LOOP_A_interior
                 ! Verify that AB is indeed paired with AA or BB:
-                if (iPairID(j,1) == iPairID(l,1))  then
-                    dZABA = dCoordinationNumber(l,1)
+                if (iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,k,1))  then
+                    dZABA = dCoordinationNumber(iSublPhaseIndex,k,1)
                     dTemp = dTemp + dMolesSpecies(l) / dZABA
-                elseif (iPairID(j,1) == iPairID(l,2))  then
-                    dZBAB = dCoordinationNumber(l,2)
+                elseif (iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,k,2))  then
+                    dZBAB = dCoordinationNumber(iSublPhaseIndex,k,2)
                     dTemp = dTemp + dMolesSpecies(l) / dZBAB
                 end if
             end do LOOP_A_interior
@@ -132,20 +133,21 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do LOOP_A
 
         ! Now, compute mole fractions of compound end members and the coordination equivalent fractions:
-        LOOP_B: do i = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
+        LOOP_B: do i = 1, nPairsSRO(iSublPhaseIndex,2)
             j = iFirst + i - 1
             ! Skip AB pairs:
-            if (iPairID(j,1) /= iPairID(j,2)) CYCLE LOOP_B
+            if (iPairID(iSublPhaseIndex,i,1) /= iPairID(iSublPhaseIndex,i,2)) CYCLE LOOP_B
             ! Eq [4]:
             dX(i) = dN(i) / dSum
             ! Eqs [6]:
             dTemp = dMolFraction(j)
             ! Verify that AB is indeed paired with AA or BB:
-            LOOP_B_interior: do k = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
+            LOOP_B_interior: do k = 1, nPairsSRO(iSublPhaseIndex,2)
                 l = iFirst + k - 1
                 ! Skip AA pairs:
-                if (iPairID(l,1) == iPairID(l,2)) CYCLE LOOP_B_interior
-                if ((iPairID(j,1) == iPairID(l,1)).OR.(iPairID(j,1) == iPairID(l,2)))  then
+                if (iPairID(iSublPhaseIndex,k,1) == iPairID(iSublPhaseIndex,k,2)) CYCLE LOOP_B_interior
+                if ((iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,k,1)).OR. &
+                    (iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,k,2)))  then
                     dTemp = dTemp + dMolFraction(l) / 2D0
                 end if
             end do LOOP_B_interior
@@ -157,26 +159,26 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! ---------------------------------------------------------------
 
         ! Loop through all pairs:
-        LOOP_C: do i = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
+        LOOP_C: do i = 1, nPairsSRO(iSublPhaseIndex,2)
             j = iFirst + i - 1
-            if (iPairID(j,1) == iPairID(j,2)) then
-                ! These are AA pairs
+            ! AA pairs:
+            if (iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,i,2)) then
                 ! Store coordination numbers:
-                dZAAA = dCoordinationNumber(j,1)
+                dZAAA = dCoordinationNumber(iSublPhaseIndex,i,1)
 
                 ! Compute standard reference Gibbs energy (Eq [15]):
                 dChemicalPotential(j) = dStdGibbsEnergy(j) * 2D0 / dZAAA
 
-                ! Compute ideal mixing component (Eq [34]?):
+                ! Compute ideal mixing component:
                 dChemicalPotential(j) = dChemicalPotential(j) + (2D0 / dZAAA) * DLOG(dX(i)) + DLOG(dMolFraction(j) / dY(i)**2)
+            ! AB pairs:
             else
-                ! These are AB pairs
-                k = iPairID(j,1)            ! Index of AA
-                l = iPairID(j,2)            ! Index of BB
+                k = iPairID(iSublPhaseIndex,i,1)            ! Index of AA
+                l = iPairID(iSublPhaseIndex,i,2)            ! Index of BB
 
                 ! Store coordination numbers:
-                dZABA = dCoordinationNumber(j,1)
-                dZBAB = dCoordinationNumber(j,2)
+                dZABA = dCoordinationNumber(iSublPhaseIndex,i,1)
+                dZBAB = dCoordinationNumber(iSublPhaseIndex,i,2)
 
                 ! Compute standard reference Gibbs energy:
                 ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
@@ -201,9 +203,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             j = iRegularParam(m,3)              ! Index of BB
             k = 0
             ! Find which (if any) position AB is stored at:
-            LOOP_FindPair: do l = 1, nPairsSRO(iPhaseSublattice(iSolnIndex),2)
-                if (((iPairID(l + iFirst - 1,1) == i) .AND. (iPairID(l + iFirst - 1,2) == j)) .OR. &
-                    ((iPairID(l + iFirst - 1,1) == j) .AND. (iPairID(l + iFirst - 1,2) == i)))  then
+            LOOP_FindPair: do l = 1, nPairsSRO(iSublPhaseIndex,2)
+                if (((iPairID(iSublPhaseIndex,l,1) == i) .AND. (iPairID(iSublPhaseIndex,l,2) == j)) .OR. &
+                    ((iPairID(iSublPhaseIndex,l,1) == j) .AND. (iPairID(iSublPhaseIndex,l,2) == i)))  then
                     k = l
                     EXIT LOOP_FindPair
                 end if

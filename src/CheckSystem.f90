@@ -404,7 +404,8 @@ subroutine CheckSystem
         if (nCountSublattice > 0) then
 
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
-                    dSiteFraction,cConstituentNameSUB,iConstituentSublattice, STAT = n)
+                    dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
+                     iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -415,6 +416,9 @@ subroutine CheckSystem
             allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
             j = MAXVAL(nSublatticeElementsCS)
             allocate(iSublatticeElements(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(nPairsSRO(nCountSublattice,2))
+            allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
+            allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
         end if
 
     else
@@ -429,22 +433,6 @@ subroutine CheckSystem
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
         allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
 
-        j = 0
-        k = SIZE(nPairsSROCS,DIM=1)
-        do i = 1, k
-            j = nPairsSROCS(i,2) + j
-        end do
-        j = MAX(j,1)
-        ! Think about cleaning this up later:
-        j = MAX(1,nSolnPhasesSysCS)
-        !allocate(iPairID(j,4),dCoordinationNumber(j,4))
-        !allocate(iPairID(j*2+1,4))     ! This is no good...this shouldn't be a function of the # of soln phases.
-        !allocate(dCoordinationNumber(j*2+1,4))
-        ! TEMPORARY:
-        allocate(iPairID(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
-        allocate(dCoordinationNumber(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
-        allocate(nPairsSRO(nSolnPhasesSys,2))
-
         ! Only allocate if there are charged phases:
         if (nCountSublattice > 0) then
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
@@ -456,6 +444,9 @@ subroutine CheckSystem
             allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
             j = MAXVAL(nSublatticeElementsCS)
             allocate(iSublatticeElements(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(nPairsSRO(nCountSublattice,2))
+            allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
+            allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
         end if
 
     end if
@@ -467,8 +458,6 @@ subroutine CheckSystem
     dStoichSpecies       = 0
     nSpeciesPhase        = 0
     nParamPhase          = 0
-    iPairID              = 0
-    nPairsSRO            = 0
     dChemicalPotential   = 0D0
     dStdGibbsEnergy      = 0D0
     dMolesElement        = 0D0
@@ -479,13 +468,6 @@ subroutine CheckSystem
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
 
-    ! This might need to be updated:
-    !k = SIZE(iPairID,DIM = 1)
-    k = SIZE(iPairIDCS,DIM = 1)
-
-    iPairID(1:k,1:4) = iPairIDCS(1:k,1:4)
-    dCoordinationNumber(1:k,1:4) = dCoordinationNumberCS(1:k,1:4)
-
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
         dSiteFraction          = 0D0
@@ -494,6 +476,8 @@ subroutine CheckSystem
         nConstituentSublattice = 0
         nSublatticeElements  = 0
         iSublatticeElements  = 0
+        nPairsSRO            = 0
+        iPairID              = 0
     end if
 
     ! Re-establish the character vector representing the element names:

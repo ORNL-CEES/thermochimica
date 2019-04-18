@@ -81,13 +81,14 @@ module ModuleParseCS
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
-    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iPairIDCS
+    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS
     integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
-    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS
+    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS, iPairIDCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
-    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dCoordinationNumberCS
+    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS
     real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS
+    real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS
 
     character(3),   dimension(:),   allocatable :: cElementNameCS
     character(8),   dimension(:),   allocatable :: cSolnPhaseTypeCS

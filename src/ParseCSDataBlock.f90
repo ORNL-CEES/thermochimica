@@ -241,7 +241,7 @@ subroutine ParseCSDataBlock
             case ('SUBQ')
 
                 ! Parse the data-block section for SUBQ phases:
-                call ParseCSDataBlockSUBQ(i)
+                call ParseCSDataBlockSUBG(i)
 
             case default
 

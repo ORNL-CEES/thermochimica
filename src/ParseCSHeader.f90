@@ -127,10 +127,6 @@ subroutine ParseCSHeader
     allocate(cSolnPhaseNameCS(j),cSolnPhaseTypeCS(j))
     allocate(iPhaseSublatticeCS(j))
     allocate(nPairsSROCS(j,2))
-    !allocate(iPairIDCS(j*2,4))
-!    allocate(dCoordinationNumberCS(j*2,4))
-!    allocate(iPairIDCS(j*2+1,4))
-!    allocate(dCoordinationNumberCS(j*2+1,4))
 
     ! TEMPORARY:
 
@@ -192,8 +188,8 @@ subroutine ParseCSHeader
     ! Compute the total number of species in the system:
     nSpeciesCS = nSpeciesCS + nSpeciesPhaseCS(nSolnPhasesSysCS)
 
-    allocate(iPairIDCS(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
-    allocate(dCoordinationNumberCS(nSpeciesPhaseCS(nSolnPhasesSysCS),4))
+    allocate(iPairIDCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,4))
+    allocate(dCoordinationNumberCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,4))
     iPairIDCS             = 0
     dCoordinationNumberCS = 0D0
 
