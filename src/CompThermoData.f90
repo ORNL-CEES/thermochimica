@@ -105,6 +105,7 @@ subroutine CompThermoData
     implicit none
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
+    integer                            :: ii, jj, iSublPhaseIndex, iElementIndexSubl, iElementIndex
     real(8)                            :: dLogT, dLogP, dTemp
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpecies,nElements) :: dStoichSpeciesOld
@@ -343,16 +344,31 @@ subroutine CompThermoData
     ! accounts for SUBG phases.
     do j = 1, nSolnPhasesSys
         if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
+            iSublPhaseIndex = iPhaseSublattice(j)
             cSpeciesNameOld = cSpeciesName
             dStoichSpeciesOld = dStoichSpecies
             ! Loop through all pairs:
             do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
-                k = iPairID(iPhaseSublattice(j),m,1) + nSpeciesPhase(j-1)   ! Index of AA
-                l = iPairID(iPhaseSublattice(j),m,2) + nSpeciesPhase(j-1)   ! Index of BB
+                k = iPairID(iSublPhaseIndex,m,1) + nSpeciesPhase(j-1)   ! Index of AA
+                l = iPairID(iSublPhaseIndex,m,2) + nSpeciesPhase(j-1)   ! Index of BB
 
-                dStoichSpecies(i,1:nElements) = dStoichSpeciesOld(k,1:nElements) / dCoordinationNumber(iPhaseSublattice(j),m,1) &
-                                              + dStoichSpeciesOld(l,1:nElements) / dCoordinationNumber(iPhaseSublattice(j),m,2)
+                dStoichSpecies(i,1:nElements) = dStoichSpeciesOld(k,1:nElements) / dCoordinationNumber(iSublPhaseIndex,m,1) &
+                                              + dStoichSpeciesOld(l,1:nElements) / dCoordinationNumber(iSublPhaseIndex,m,2)
+                ! Loop over sublattices in phase (i.e. cation then anion):
+                ! do ii = 1, nSublatticePhase(iSublPhaseIndex)
+                !     ! Loop over elements on each sublattice in phase:
+                !     do jj = 1, nSublatticeElements(iSublPhaseIndex,ii)
+                !         ! Get index of element in sublattice order:
+                !         iElementIndexSubl = iConstituentSublattice(iSublPhaseIndex,ii,jj)
+                !         ! Get index of element in global order:
+                !         iElementIndex = iSublatticeElements(iSublPhaseIndex,ii,iElementIndexSubl)
+                !         dStoichSpecies(i,iElementIndex) = dStoichSpeciesOld(k,iElementIndex) &
+                !                                           / dCoordinationNumber(iSublPhaseIndex,m,1+2*(ii-1)) &
+                !                                         + dStoichSpeciesOld(l,iElementIndex) &
+                !                                           / dCoordinationNumber(iSublPhaseIndex,m,2+2*(ii-1))
+                !     end do
+                ! end do
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
             end do
