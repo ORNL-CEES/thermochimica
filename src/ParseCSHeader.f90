@@ -140,31 +140,11 @@ subroutine ParseCSHeader
     backspace(UNIT = 1)
 
     ! Continue reading the rest of Line 2:
-    j = MIN(nSolnPhasesSysCS,13)
-    if (j == 1) then
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1), nSpeciesCS
-    elseif ((j < 13).AND.(j > 1)) then
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:j), nSpeciesCS
-    elseif (j == 0) then
+    if (nSolnPhasesSysCS == 0) then
         ! There aren't any solution phases in the system.
         read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesCS
     else
-        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:j)
-    end if
-
-    ! If the number of solution phases exceeds 12, then the "Line 2" extends to another line:
-    if ((nSolnPhasesSysCS >= 13).AND.(nSolnPhasesSysCS < 28)) then
-        j = MIN(nSolnPhasesSysCS,28)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(14:j), nSpeciesCS
-    elseif ((nSolnPhasesSysCS >= 13).AND.(nSolnPhasesSysCS >= 28)) then
-        j = MIN(nSolnPhasesSysCS,28)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(14:j)
-    end if
-
-    !If the number of solution phases exceeds 27, then the "Line 2" exceeds to yet another line:
-    if ((nSolnPhasesSysCS >= 28).AND.(nSolnPhasesSysCS <= 42)) then
-        j = MIN(nSolnPhasesSysCS,42)
-        read (1,*,IOSTAT = INFO) nSpeciesPhaseCS(29:j), nSpeciesCS
+        read (1,*,IOSTAT = INFO) nElementsCS, iDummy(1:iGasPhase+1), nSpeciesPhaseCS(1:nSolnPhasesSysCS), nSpeciesCS
     end if
 
     if ((nSolnPhasesSysCS == 1).AND.(nSpeciesPhaseCS(1) == 0)) then
@@ -208,26 +188,7 @@ subroutine ParseCSHeader
 
     ! Line 3: List of system components:
     j = MIN(nElementsCS,3)
-    read (1,*,IOSTAT = INFO) cElementNameCS(1:j)
-
-    ! Determine how many lines the names of the elements are on:
-    j = MOD(nElementsCS,3)
-    j = (nElementsCS - j) / 3
-
-     ! Read the names of the system components (i.e., chemical elements):
-    if (nElementsCS > 3) then
-        do i = 2, j
-            k = (i - 1) * 3 + 1
-            read (1,*,IOSTAT = INFO) cElementNameCS(k:k+2)
-        end do
-    end if
-
-    ! Read the last line of the names of the system components (i.e., chemical elements):
-    k = j * 3 + 1
-    i = MIN(k+2,nElementsCS)
-    if ((nElementsCS > 3).AND.(MOD(nElementsCS,3) /= 0)) then
-        read (1,*,IOSTAT = INFO) cElementNameCS(k:i)
-    end if
+    read (1,*,IOSTAT = INFO) cElementNameCS(1:nElementsCS)
 
     if (INFO /= 0) then
         INFO = 103
@@ -259,22 +220,7 @@ subroutine ParseCSHeader
 
     ! Line 4: List of atomic masses of the elements:
     k = MIN(nElementsCS,3)
-    read (1,*,IOSTAT = INFO) dAtomicMass(1:k)
-
-    ! Read the atomic masses of the system components (i.e., chemical elements):
-    if (nElementsCS > 3) then
-        do i = 2, j
-            k = (i - 1) * 3 + 1
-            read (1,*,IOSTAT = INFO) dAtomicMass(k:k+2)
-        end do
-    end if
-
-    ! Read the last line of the atomic masses of the system components (i.e., chemical elements):
-    k = j * 3 + 1
-    i = MIN(k+2,nElementsCS)
-    if ((nElementsCS > 3).AND.(MOD(nElementsCS,3) /= 0)) then
-        read (1,*,IOSTAT = INFO) dAtomicMass(k:i)
-    end if
+    read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)
 
     if (INFO /= 0) then
         !INFO = 14

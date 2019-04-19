@@ -75,7 +75,7 @@ program compoundnikf
 
     ! Specify values:
     ! dTemperature          = 1773.15D0
-    dTemperature          = 1300D0
+    dTemperature          = 1500D0
     dPressure             = 1.0D0
     dElementMass          = 0D0
     ! dElementMass(28)      = 0.9D0                              ! Ni
@@ -89,8 +89,8 @@ program compoundnikf
     dCompoundStoich(1,19) = 1D0
     dCompoundStoich(2,9)  = 2D0
     dCompoundStoich(2,28) = 1D0
-    dCompoundMass(1)      = 0.1D0
-    dCompoundMass(2)      = 0.9D0
+    dCompoundMass(1)      = 0.5D0
+    dCompoundMass(2)      = 0.5D0
 
     ! Specify output and debug modes:
     iPrintResultsMode     = 2

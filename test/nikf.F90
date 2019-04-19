@@ -68,14 +68,14 @@ program nikf
     implicit none
 
     ! Specify units:
-    cInputUnitTemperature = 'C'
+    cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
     cThermoFileName       = DATA_DIRECTORY // 'NiKF_Smith.dat'
 
     ! Specify values:
     ! dTemperature          = 1773.15D0
-    dTemperature          = 1500D0
+    dTemperature          = 1200D0
     dPressure             = 1.0D0
     dElementMass          = 0D0
     dElementMass(28)      = 0.9D0                              ! Ni
