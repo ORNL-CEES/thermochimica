@@ -431,9 +431,6 @@ subroutine Thermochimica
     ! Initialize Thermochimica:
     if (INFOThermo == 0) call InitThermo
 
-    ! If compounds are used, convert elements to compounds
-    ! if ((INFOThermo == 0) .AND. (nCompounds > 0)) call CheckCompounds
-
     ! Check that the system in the data-file is consistent with the input data
     ! variables:
     if (INFOThermo == 0) call CheckSystem
