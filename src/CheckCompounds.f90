@@ -1,3 +1,51 @@
+
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    CheckCompounds.f90
+    !> \brief   Calculate stoichiometry and masses in terms of compounds rather than elements.
+    !> \author  M. Poschmann
+    !> \date    Apr. 19, 2019
+    !> \sa      CheckSystem.f90
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !
+    !   Date            Programmer          Description of change
+    !   ----            ----------          ---------------------
+    !   04/19/2019      M. Poschmann        File creation.
+    !
+    !
+    ! Purpose:
+    ! ========
+    !
+    !> \details To avoid a situation in which the Gibbs tangent plane is underdetermined (or just for convenience)
+    !! input mass may be specified in terms of compounds rather than pure elements. If input is given in terms of
+    !! compounds, all following calculations will progress in terms of the amounts of those compounds. In other
+    !! words, compounds will replace elements everywhere. To do this, the stoichiometry matrix has to be
+    !! recalculated in therms of compounds, and the element masses and names replaced by compound masses and names.
+    !! Some index recalculation is required as well. All these changes are made here (called shortly after the
+    !! start of CheckSystem) to simplify this process (except the name changes, see CheckSystem).
+    !
+    !
+    ! Pertinent variables:
+    ! ====================
+    !
+    ! nCompounds                        A scalar integer specifying the number of compounds.
+    ! dCompoundStoich                   A double array supplied by the user which specifies the stoichiometry of
+    !                                    each of the compounds to be used.
+    !
+    ! dElementMass                      Total mass of each element, where the coefficient corresponds to the
+    !                                    atomic number (e.g., dMolesElement(92) refers to uranium). This gets
+    !                                    by the masses of compounds (stored at the end of the array).
+    ! dStoichSpecies                    A double array specifying the stoichiometry of each species. Usually this
+    !                                    would be in terms of elements, but is converted here to compounds.
+    ! iElementSystem                    An integer array that points to the index of each element in the system.
+    !                                    Here the element indices are replaced by compound indices.
+    ! INFOThermo                        A scalar integer that indicates a successful exit or identifies an error.
+    !
+    !-------------------------------------------------------------------------------------------------------------
+
 subroutine CheckCompounds
 
     USE ModuleParseCS
@@ -17,6 +65,7 @@ subroutine CheckCompounds
     lwork = 32 * nCompounds
     allocate(work(lwork))
 
+    ! Allocate temporary arrays.
     allocate(iElementSystemTemp(nCompounds))
     allocate(dStoichSpeciesTemp(nElementsCS))
     allocate(dStoichSpeciesCompounds(nSpeciesCS,nCompounds))
@@ -24,14 +73,13 @@ subroutine CheckCompounds
     dCompoundStoichSmall = 0D0
 
     ! Check elements in compounds
-    nElementsTemp = 0
     do i = 1, nCompounds
         LOOP_AllElements: do j = 1, nElementsPT
             if (dCompoundStoich(i,j) > 0d0) then
                 do k = 1, nElementsCS
                     if (iElementSystem(k) == j) then
+                        ! Create stoichiometry matrix nElementsCS in length
                         dCompoundStoichSmall(i,k) = dCompoundStoich(i,j)
-                        nElementsTemp = nElementsTemp + 1
                         cycle LOOP_AllElements
                     end if
                 end do
@@ -65,13 +113,16 @@ subroutine CheckCompounds
     ! Convert stoichiometry of all species to compounds
     do i = 1, nSpeciesCS
         do j = 1, nElementsCS
+            ! Make vector to pass stoichiometry to LAPACK
             dStoichSpeciesTemp(j) = dStoichSpeciesCS(i,j)
         end do
         do j = 1, nCompounds
             do k = 1, nElementsCS
+                ! Make matrix for LAPACK
                 A(k,j) = dCompoundStoichSmall(j,k)
             end do
         end do
+        ! Linear solve on rectangular (overdetermined) system
         call DGELS( 'N', nElementsCS, nCompounds, 1, A, nElementsCS, &
                          dStoichSpeciesTemp, nElementsCS, work, lwork, INFO )
         if (INFO > 0) then
@@ -79,11 +130,12 @@ subroutine CheckCompounds
             return
         end if
         do j = 1, nCompounds
+            ! Copy LAPACK solution vector to new stoichiometry
             dStoichSpeciesCompounds(i,j) = NINT(dStoichSpeciesTemp(j))
         end do
     end do
 
-    ! Use compounds instead of elements everwhere
+    ! Use compounds instead of elements everwhere (i.e. write permanent variables)
     deallocate(iElementSystem)
     allocate(iElementSystem(nCompounds))
     do i = 1, nCompounds
@@ -104,6 +156,7 @@ subroutine CheckCompounds
         dElementMass(i + nElementsPT) = dCompoundMass(i)
     end do
 
+    ! Clear temporary arrays
     deallocate(dCompoundStoichSmall,dStoichSpeciesTemp,dStoichSpeciesCompounds,A)
 
 end subroutine CheckCompounds
