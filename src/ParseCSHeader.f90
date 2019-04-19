@@ -187,7 +187,6 @@ subroutine ParseCSHeader
     nGibbsEqSpecies        = 0
 
     ! Line 3: List of system components:
-    j = MIN(nElementsCS,3)
     read (1,*,IOSTAT = INFO) cElementNameCS(1:nElementsCS)
 
     if (INFO /= 0) then
@@ -219,7 +218,6 @@ subroutine ParseCSHeader
     dStoichSublatticeCS      = 0D0
 
     ! Line 4: List of atomic masses of the elements:
-    k = MIN(nElementsCS,3)
     read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)
 
     if (INFO /= 0) then
