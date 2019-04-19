@@ -71,7 +71,7 @@ program compoundnikf
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY // 'NiKF_Smith-compounds.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'NiKF_Smith.dat'
 
     ! Specify values:
     ! dTemperature          = 1773.15D0
@@ -89,8 +89,8 @@ program compoundnikf
     dCompoundStoich(1,19) = 1D0
     dCompoundStoich(2,9)  = 2D0
     dCompoundStoich(2,28) = 1D0
-    dCompoundMass(1)      = 0.5D0
-    dCompoundMass(2)      = 0.5D0
+    dCompoundMass(1)      = 0.1D0
+    dCompoundMass(2)      = 0.9D0
 
     ! Specify output and debug modes:
     iPrintResultsMode     = 2

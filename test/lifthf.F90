@@ -74,12 +74,23 @@ program lifthf
     cThermoFileName       = DATA_DIRECTORY // 'LiF-ThF4.dat'
 
     ! Specify values:
-    dTemperature          = 1773.15D0
+    ! dTemperature          = 1773.15D0
+    dTemperature          = 900
     dPressure             = 1.0D0
     dElementMass          = 0D0
-    dElementMass(2)       = 0.9D0                              ! Li
-    dElementMass(9)       = 1.9D0                              ! F
-    dElementMass(90)      = 0.1D0                              ! Th
+    ! dElementMass(3)       = 0.9D0                              ! Li
+    ! dElementMass(9)       = 1.9D0                              ! F
+    ! dElementMass(90)      = 0.1D0                              ! Th
+
+    nCompounds            = 2
+    cCompoundNames(1)     = 'LiF'
+    cCompoundNames(2)     = 'ThF4'
+    dCompoundStoich(1,9)  = 1D0
+    dCompoundStoich(1,3)  = 1D0
+    dCompoundStoich(2,9)  = 4D0
+    dCompoundStoich(2,90) = 1D0
+    dCompoundMass(1)      = 0.9D0
+    dCompoundMass(2)      = 0.2D0
 
     ! Specify output and debug modes:
     iPrintResultsMode     = 2
