@@ -137,6 +137,10 @@ subroutine ThermoDEBUG
         print *, 'but must be positive.'
     elseif (INFOThermo == 36) then
         print *, 'DEBUG: An error occured in interpreting the parsed data for a SUBL phase.'
+    elseif (INFOThermo == 40) then
+        print *, 'DEBUG: There is an element in a compound that is not in the dat file.'
+    elseif (INFOThermo == 41) then
+        print *, 'DEBUG: Error finding stoichiometry in terms of compounds.'
         ! Check CompThermoData.f90
     elseif ((INFOThermo >= 100).AND.(INFOThermo < 1000)) then
         i = INFOThermo - 100

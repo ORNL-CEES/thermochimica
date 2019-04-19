@@ -107,7 +107,7 @@ subroutine CheckThermoInput
 
     implicit none
 
-    integer::   i
+    integer::   i, j
 
 
     ! Convert termperature to Kelvin:
@@ -162,6 +162,20 @@ subroutine CheckThermoInput
             INFOThermo = 3
             return
         end if
+    end do
+
+    ! Check compound masses and stoichiometries
+    do i = 1,nCompounds
+        if ((dCompoundMass(i) /= dCompoundMass(i)).OR.(dCompoundMass(i) < 0D0)) then
+            INFOThermo = 3
+            return
+        end if
+        do j = 0,nElementsPT
+            if ((dCompoundStoich(i,j) /= dCompoundStoich(i,j)).OR.(dCompoundStoich(i,j) < 0D0)) then
+                INFOThermo = 3
+                return
+            end if
+        end do
     end do
 
     ! Note: the mass conversion of each element is performed in the CheckSystem.f90 subroutine.

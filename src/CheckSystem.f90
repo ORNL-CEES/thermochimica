@@ -202,6 +202,18 @@ subroutine CheckSystem
         return
     end do LOOP_Small
 
+    if (nCompounds > 0) then
+        call CheckCompounds
+        dSum = 0
+        do i = 1, nElementsCS
+            dSum = dSum + dElementMass(iElementSystem(i))
+        end do
+    end if
+
+    if (INFOThermo > 0) then
+        return
+    end if
+
     ! Make sure that the sum of element masses is not zero:
     if (dSum == 0D0) then
         INFOThermo = 5
@@ -362,7 +374,7 @@ subroutine CheckSystem
         ! Check to see if the number of elements has changed:
         j = SIZE(cElementName)
         if (j /= nElements) then
-            ! The numebr of elements has changed.
+            ! The number of elements has changed.
             deallocate(cElementName,dMolesElement, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
@@ -485,8 +497,12 @@ subroutine CheckSystem
     do i = 1, nElementsCS
         if (iElementSystem(i) /= 0) then
             j = j + 1
-            cElementName(j)  = cElementNameCS(i)
-            cDummy           = cElementName(j)
+            if (nCompounds == 0) then
+                cElementName(j)  = cElementNameCS(i)
+                cDummy           = cElementName(j)
+            else
+                cElementName(i)  = cCompoundNames(i)
+            end if
             if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i))
         end if
     end do
