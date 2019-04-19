@@ -131,7 +131,7 @@ subroutine ParseCSHeader
     ! TEMPORARY:
 
     ! Initialize variables:
-    nCountSublatticeCS  = 0
+    nCountSublatticeCS    = 0
     nSpeciesPhaseCS       = 0
     iPhaseSublatticeCS    = 0
     nPairsSROCS           = 0
