@@ -83,7 +83,7 @@ module ModuleThermo
 
     SAVE
 
-    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies
+    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nConstituents
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118

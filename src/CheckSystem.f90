@@ -205,9 +205,11 @@ subroutine CheckSystem
     if (nCompounds > 0) then
         call CheckCompounds
         dSum = 0
-        do i = 1, nElementsCS
+        do i = 1, nConstituents
             dSum = dSum + dElementMass(iElementSystem(i))
         end do
+    else
+        nConstituents = nElementsCS
     end if
 
     if (INFOThermo > 0) then
@@ -225,7 +227,7 @@ subroutine CheckSystem
 
     k = 0
     ! Normalize dElementMass to mole fraction and establish the elements of the system:
-    do j = 1, nElementsCS
+    do j = 1, nConstituents
         dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
@@ -247,14 +249,14 @@ subroutine CheckSystem
     end if
 
     ! Check to see if the system has to be re-adjusted:
-    IF_Elements: if (nElements < nElementsCS) then
+    IF_Elements: if (nElements < nConstituents) then
         ! The system is smaller than what is in the data-file.  Re-compute the system parameters.
         ! Loop through solution phases:
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
-                do k = 1, nElementsCS
+                do k = 1, nConstituents
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
                         cycle LOOP_SpeciesInSolnPhase
@@ -300,7 +302,7 @@ subroutine CheckSystem
 
         ! Loop through pure condensed phases:
         LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
-            do k = 1, nElementsCS
+            do k = 1, nConstituents
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                     ! This species should not be considered
                     cycle LOOP_PureConPhases
@@ -342,7 +344,7 @@ subroutine CheckSystem
 
     ! Re-establish the character vector representing the element names:
     j = 0
-    do i = 1, nElementsCS
+    do i = 1, nConstituents
         if (iElementSystem(i) /= 0) then
             cDummy           = cElementNameCS(i)
             if (cDummy == 'e-') nChargedConstraints = nChargedConstraints + 1
@@ -494,7 +496,7 @@ subroutine CheckSystem
 
     ! Re-establish the character vector representing the element names:
     j = 0
-    do i = 1, nElementsCS
+    do i = 1, nConstituents
         if (iElementSystem(i) /= 0) then
             j = j + 1
             if (nCompounds == 0) then

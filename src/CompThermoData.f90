@@ -154,7 +154,7 @@ subroutine CompThermoData
         dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
 
         m = 0
-        do k = 1, nElementsCs
+        do k = 1, nConstituents
             if (iElementSystem(k) /= 0) then
                 m = m + 1
                 dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
