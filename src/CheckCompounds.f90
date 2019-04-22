@@ -149,7 +149,7 @@ subroutine CheckCompounds
             dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
         end do
     end do
-    nConstituents = nCompounds
+    nElemOrComp = nCompounds
 
     dElementMass = 0D0
     do i = 1, nCompounds
