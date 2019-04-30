@@ -72,7 +72,7 @@ subroutine ResetThermoParser
     if (allocated(cConstituentNameSUBCS)) then
         deallocate(cConstituentNameSUBCS,iPhaseSublatticeCS,nConstituentSublatticeCS, &
             iConstituentSublatticeCS,dStoichSublatticeCS,nSublatticePhaseCS, &
-            iSublatticeElementsCS, STAT = INFO)
+            iSublatticeElementsCS, nSublatticeElementsCS, STAT = INFO)
         i = i + INFO
     end if
 
