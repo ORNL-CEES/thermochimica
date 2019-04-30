@@ -79,7 +79,7 @@ program RestartTestNuc
     ! Save restart data
     call SaveRestartData
     ! Inside loop in case you don't want to re-save
-    LOOP_time: do i = 1,500
+    LOOP_time: do i = 1,1500
       ! Reset
       call ResetThermo
       ! Re-state input variables

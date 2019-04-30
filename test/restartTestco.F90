@@ -39,7 +39,7 @@ program RestartTestCO
   cInputUnitTemperature   = 'K'
   cInputUnitPressure      = 'atm'
   CInputUnitMass          = 'moles'
-  cThermoFileName       = DATA_DIRECTORY // 'C-O.dat'
+  cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
 
   ! Specify output and debug modes:
   iPrintResultsMode     = 2
@@ -59,7 +59,8 @@ program RestartTestCO
 
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
-  LOOP_time: do i = 1,1000
+  LOOP_time: do i = 1,100000
+    call ResetThermo
     dTemperature            = 300D0
     dPressure               = 1D0
     dElementMass            = 1D0
