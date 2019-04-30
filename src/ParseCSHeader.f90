@@ -216,6 +216,8 @@ subroutine ParseCSHeader
     nConstituentSublatticeCS = 0
     iConstituentSublatticeCS = 0
     dStoichSublatticeCS      = 0D0
+    iSublatticeElementsCS    = 0
+    nSublatticeElementsCS    = 0
 
     ! Line 4: List of atomic masses of the elements:
     read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)

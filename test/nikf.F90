@@ -98,6 +98,37 @@ program nikf
     ! Destruct everything:
     if (INFOThermo == 0)        call ResetThermoAll
 
+    ! Specify units:
+    cInputUnitTemperature = 'K'
+    cInputUnitPressure    = 'atm'
+    cInputUnitMass        = 'moles'
+    cThermoFileName       = DATA_DIRECTORY // 'NiKF_Smith.dat'
+
+    ! Specify values:
+    ! dTemperature          = 1773.15D0
+    dTemperature          = 1200D0
+    dPressure             = 1.0D0
+    dElementMass          = 0D0
+    dElementMass(28)      = 0.9D0                              ! Ni
+    dElementMass(9)       = 1.9D0                              ! F
+    dElementMass(19)      = 0.1D0                              ! K
+
+    ! Specify output and debug modes:
+    iPrintResultsMode     = 2
+    lDebugMode            = .FALSE.
+
+    ! Parse the ChemSage data-file:
+    call ParseCSDataFile(cThermoFileName)
+
+    ! Call Thermochimica:
+    if (INFOThermo == 0)        call Thermochimica
+
+    ! Perform post-processing of results:
+    if (iPrintResultsMode > 0)  call PrintResults
+
+    ! Destruct everything:
+    if (INFOThermo == 0)        call ResetThermoAll
+
     ! Call the debugger:
     call ThermoDebug
 

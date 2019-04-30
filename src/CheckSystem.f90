@@ -156,7 +156,7 @@ subroutine CheckSystem
     iElementSystem      = 0
     iTempVec            = 0
     iSpeciesPass        = 0
-    nCountSublattice       = 0
+    nCountSublattice    = 0
     nMaxSublatticeSys   = 0
     nMaxConstituentSys  = 0
     nMaxSpeciesPhase    = 0
