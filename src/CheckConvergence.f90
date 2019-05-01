@@ -320,6 +320,11 @@ subroutine CheckConvergence
 
     end do LOOP_TEST9
 
+    ! Test if the largest relative change in species mole fraction is large
+    if (dMaxSpeciesChange > 2D0) then
+        return
+    end if
+
     ! If all of the above criterions have been satisfied, then the system has converged.
     if (INFOThermo == 0) lConverged = .TRUE.
 

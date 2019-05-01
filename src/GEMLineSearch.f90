@@ -335,6 +335,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         dMolesPhase(i) = dUpdateVar(j)
     end do
 
+    dMaxSpeciesChange = 0D0
     ! Initialize the step length (prevent moles from being negative):
     do l = 1, nSolnPhases
         k = -iAssemblage(nElements - l + 1)     ! Absolute solution phase index.
@@ -376,6 +377,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
+            dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
 
         end do
@@ -547,4 +549,3 @@ end subroutine UpdateSystemVariables
     !---------------------------------------------------------------------------
     !                            END - GEMLineSearch.f90
     !---------------------------------------------------------------------------
-
