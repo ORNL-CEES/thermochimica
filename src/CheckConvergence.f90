@@ -321,7 +321,7 @@ subroutine CheckConvergence
     end do LOOP_TEST9
 
     ! Test if the largest relative change in species mole fraction is large
-    if (dMaxSpeciesChange > 2D0) then
+    if (dMaxSpeciesChange > LOG(2D0)) then
         return
     end if
 
