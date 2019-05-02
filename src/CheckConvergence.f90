@@ -122,6 +122,11 @@ subroutine CheckConvergence
     lCompEverything = .TRUE.
     lPhaseChange    = .FALSE.
 
+    ! Test if the largest relative change in species mole fraction is large
+    ! This is a self-consistency check
+    if (dMaxSpeciesChange > LOG(2D0)) then
+        return
+    end if
 
     ! If the functional norm is less than a specified tolerance and the system hasn't changed,
     ! call it a day:
@@ -319,11 +324,6 @@ subroutine CheckConvergence
         end if
 
     end do LOOP_TEST9
-
-    ! Test if the largest relative change in species mole fraction is large
-    if (dMaxSpeciesChange > LOG(2D0)) then
-        return
-    end if
 
     ! If all of the above criterions have been satisfied, then the system has converged.
     if (INFOThermo == 0) lConverged = .TRUE.
