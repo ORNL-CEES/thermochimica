@@ -202,6 +202,9 @@ subroutine CompThermoData
                 ! the first solution phase in the data-file.
                 dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
             end if
+        else if (iPhaseCS(i) == -1) then
+            ! Explicitly set dummy species chemical potentials
+            dChemicalPotential(j) = 100000
         end if
 
     end do LOOP_nSpeciesCS ! End loop of species (i)
