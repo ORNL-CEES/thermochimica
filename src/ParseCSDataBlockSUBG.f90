@@ -74,10 +74,12 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                    :: i, j, k
+    integer                    :: i, j, k, l
     integer,     dimension(10) :: iTempVec
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
+
+    real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
 
 
     ! Initialize variables:
@@ -147,7 +149,24 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Note that a quadruplet must satisfy the following constraint:
     ! q(i)/Z(i) + q(j)/Z(j) =  q(x)/Z(x) + q(y)/Z(y)
     do j = 1, nPairsSROCS(nCountSublatticeCS,2)
-        read (1,*,IOSTAT = INFO) iPairIDCS(nCountSublatticeCS, j, 1:4), dCoordinationNumberCS(nCountSublatticeCS, j,1:4)
+        read (1,*,IOSTAT = INFO) iPairIDCS(nCountSublatticeCS, j, 1:4), dCoordinationNumberCS(nCountSublatticeCS, j, 1:4)
+    end do
+
+    ! cSpeciesNameOld = cSpeciesName
+    dStoichSpeciesOld = dStoichSpeciesCS
+    ! Loop through all pairs:
+    do j = 1, nPairsSROCS(nCountSublatticeCS,2)
+        ! m = i - nSpeciesPhase(j-1)
+        k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of AA
+        l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of BB
+
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
+                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
+                                                                 + dStoichSpeciesOld(l,1:nElementsCS) &
+                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
+
+        ! Create a name for this AB pair:
+        ! cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
     end do
 
     ! Loop through excess mixing parameters:
