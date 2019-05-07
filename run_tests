@@ -15,6 +15,7 @@ cd bin
 ./TestThermo11
 ./TestThermo12
 ./TestThermo13
+./TestThermo14
 ./TestThermo30
 ./TestThermo31
 ./TestThermo32
