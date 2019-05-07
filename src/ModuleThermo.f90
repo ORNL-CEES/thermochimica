@@ -83,7 +83,7 @@ module ModuleThermo
 
     SAVE
 
-    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies
+    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nElemOrComp
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118
@@ -104,7 +104,7 @@ module ModuleThermo
 
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber
 
-    character(3),  dimension(:),   allocatable::  cElementName
+    character(12), dimension(:),   allocatable::  cElementName
     character(25), dimension(:),   allocatable::  cSpeciesName
     character(8),  dimension(:),   allocatable::  cSolnPhaseType
     character(25), dimension(:),   allocatable::  cSolnPhaseName

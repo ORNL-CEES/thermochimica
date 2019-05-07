@@ -156,7 +156,7 @@ subroutine CheckSystem
     iElementSystem      = 0
     iTempVec            = 0
     iSpeciesPass        = 0
-    nCountSublattice       = 0
+    nCountSublattice    = 0
     nMaxSublatticeSys   = 0
     nMaxConstituentSys  = 0
     nMaxSpeciesPhase    = 0
@@ -202,6 +202,20 @@ subroutine CheckSystem
         return
     end do LOOP_Small
 
+    if (nCompounds > 0) then
+        call CheckCompounds
+        dSum = 0
+        do i = 1, nElemOrComp
+            dSum = dSum + dElementMass(iElementSystem(i))
+        end do
+    else
+        nElemOrComp = nElementsCS
+    end if
+
+    if (INFOThermo > 0) then
+        return
+    end if
+
     ! Make sure that the sum of element masses is not zero:
     if (dSum == 0D0) then
         INFOThermo = 5
@@ -213,7 +227,7 @@ subroutine CheckSystem
 
     k = 0
     ! Normalize dElementMass to mole fraction and establish the elements of the system:
-    do j = 1, nElementsCS
+    do j = 1, nElemOrComp
         dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
@@ -235,14 +249,14 @@ subroutine CheckSystem
     end if
 
     ! Check to see if the system has to be re-adjusted:
-    IF_Elements: if (nElements < nElementsCS) then
+    IF_Elements: if (nElements < nElemOrComp) then
         ! The system is smaller than what is in the data-file.  Re-compute the system parameters.
         ! Loop through solution phases:
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
-                do k = 1, nElementsCS
+                do k = 1, nElemOrComp
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
                         cycle LOOP_SpeciesInSolnPhase
@@ -288,7 +302,7 @@ subroutine CheckSystem
 
         ! Loop through pure condensed phases:
         LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
-            do k = 1, nElementsCS
+            do k = 1, nElemOrComp
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                     ! This species should not be considered
                     cycle LOOP_PureConPhases
@@ -330,7 +344,7 @@ subroutine CheckSystem
 
     ! Re-establish the character vector representing the element names:
     j = 0
-    do i = 1, nElementsCS
+    do i = 1, nElemOrComp
         if (iElementSystem(i) /= 0) then
             cDummy           = cElementNameCS(i)
             if (cDummy == 'e-') nChargedConstraints = nChargedConstraints + 1
@@ -362,7 +376,7 @@ subroutine CheckSystem
         ! Check to see if the number of elements has changed:
         j = SIZE(cElementName)
         if (j /= nElements) then
-            ! The numebr of elements has changed.
+            ! The number of elements has changed.
             deallocate(cElementName,dMolesElement, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
@@ -482,11 +496,15 @@ subroutine CheckSystem
 
     ! Re-establish the character vector representing the element names:
     j = 0
-    do i = 1, nElementsCS
+    do i = 1, nElemOrComp
         if (iElementSystem(i) /= 0) then
             j = j + 1
-            cElementName(j)  = cElementNameCS(i)
-            cDummy           = cElementName(j)
+            if (nCompounds == 0) then
+                cElementName(j)  = cElementNameCS(i)
+                cDummy           = cElementName(j)
+            else
+                cElementName(i)  = cCompoundNames(i)
+            end if
             if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i))
         end if
     end do

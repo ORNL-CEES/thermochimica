@@ -251,7 +251,7 @@ subroutine CheckSystemExcess
                 k = SIZE(iConstituentSublattice, DIM=3)
                 iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 k = SIZE(iSublatticeElements, DIM=3)
-                iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublattice,1:n,1:k)
+                iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublatticeCS,1:n,1:k)
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     nParam          = nParam + 1

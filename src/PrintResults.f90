@@ -83,10 +83,10 @@ subroutine PrintResults
             print '(A16,ES11.3,A6)', 'Pressure    = ', dPressure, ' [atm]'
         end if
         print *
-        print *, ' System Component ', 'Mass [mol]  ', 'Chemical potential [J/mol]'
-        print *, ' ---------------- ', '----------  ', '--------------------------'
+        print *, ' System Component ', ' Mass [mol]  ', 'Chemical potential [J/mol]'
+        print *, ' ---------------- ', ' ----------  ', '--------------------------'
         do i = 1, nElements
-            print '(A5,A9,ES15.4,A1, ES14.6)', cElementName(i), ' ', dMolesElement(i), ' ', &
+            print '(A14,A1,ES15.4,A1, ES14.6)', cElementName(i), ' ', dMolesElement(i), ' ', &
                 dElementPotential(i) * dIdealConstant * dTemperature
         end do
         print *
@@ -416,4 +416,3 @@ end subroutine PrintResultsPureConPhase
     !---------------------------------------------------------------------------
     !                      END - PrintResults.f90
     !---------------------------------------------------------------------------
-

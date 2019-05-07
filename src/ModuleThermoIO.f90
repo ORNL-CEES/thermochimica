@@ -53,9 +53,14 @@ module ModuleThermoIO
     ! INPUT VARIABLES:
     integer                                :: iCounter, iPrintResultsMode
     real(8)                                :: dTemperature, dPressure
-    real(8),       dimension(0:118)        :: dElementMass
+    real(8),       dimension(0:168)        :: dElementMass
     character(15)                          :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(120)                         :: cThermoFileName
+    ! Compound variables:
+    integer                                :: nCompounds=0
+    real(8),       dimension(118)          :: dCompoundMass
+    real(8),       dimension(118,0:118)    :: dCompoundStoich
+    character(12), dimension(118)          :: cCompoundNames
 
     ! OUTPUT VARIABLES:
     integer                                :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut
