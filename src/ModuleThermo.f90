@@ -65,7 +65,7 @@
     !> \param       cSpeciesName   A character vector representing the name of each species in short-form.
     !> \param       cSolnPhaseName      A character vector representing the name of each solution phase.
     !> \param       cSolnPhaseType      A character vector representing the type of each solution phase.
-    !> \param       nChargedPhase       An integer scalar representing the number of charged phases (e.g., the
+    !> \param       nCountSublattice    An integer scalar representing the number of sublattice phases (e.g., the
     !!                                   Compound Energy Formalism, aqueous, etc.).
     !> \param       iPhaseSublattice    An integer vector representing the sublattice # for each soluton phase.
     !> \param       dSiteFraction       A double real array with 3 dimensions representing the site fractions
@@ -85,13 +85,14 @@ module ModuleThermo
 
     integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
-    integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nChargedPhase
+    integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
-    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, iPairID, nPairsSRO
-    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice
+    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO
+    integer,       dimension(:,:), allocatable::  nSublatticeElements
+    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements, iPairID
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput
     real(8),       dimension(iTolNum)::           dTolerance
@@ -99,9 +100,9 @@ module ModuleThermo
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
     real(8),       dimension(:),   allocatable::  dElementPotential, dMolesPhase, dMolesElement, dMolFraction
     real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies
-    real(8),       dimension(:,:), allocatable:: dCoeffGibbsMagnetic, dCoordinationNumber
+    real(8),       dimension(:,:), allocatable:: dCoeffGibbsMagnetic
 
-    real(8),      dimension(:,:,:),allocatable::  dSiteFraction
+    real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber
 
     character(3),  dimension(:),   allocatable::  cElementName
     character(25), dimension(:),   allocatable::  cSpeciesName

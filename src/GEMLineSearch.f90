@@ -335,6 +335,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         dMolesPhase(i) = dUpdateVar(j)
     end do
 
+    dMaxSpeciesChange = 0D0
     ! Initialize the step length (prevent moles from being negative):
     do l = 1, nSolnPhases
         k = -iAssemblage(nElements - l + 1)     ! Absolute solution phase index.
@@ -376,6 +377,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
+            dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
 
         end do
@@ -407,6 +409,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     ! Constrain the number of moles of any solution phase to only change by a factor of 2:
     i = 0
     dStepLength = 1D0
+    dTemp = 0D0
     do j = 1, nSolnPhases
         k     = nElements - j + 1     ! Solution phase index in iAssemblage and dMolesPhase
 
@@ -414,7 +417,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             dTemp = dMolesPhaseLast(k) * (dMaxIncrease - 1D0) / (dMolesPhase(k) - dMolesPhaseLast(k))
         end if
 
-        if (dTemp < 0D0) dTemp = dStepLength
+        if (dTemp <= 0D0) dTemp = dStepLength
         dStepLength = DMIN1(dTemp, dStepLength)
 
         ! TEMPORARY TO AVOID AN INF:
@@ -547,4 +550,3 @@ end subroutine UpdateSystemVariables
     !---------------------------------------------------------------------------
     !                            END - GEMLineSearch.f90
     !---------------------------------------------------------------------------
-

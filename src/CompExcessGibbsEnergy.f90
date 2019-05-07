@@ -137,4 +137,3 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
     return
 
 end subroutine CompExcessGibbsEnergy
-

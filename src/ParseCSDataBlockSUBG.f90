@@ -74,10 +74,12 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                    :: i, j
+    integer                    :: i, j, k, l
     integer,     dimension(10) :: iTempVec
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
+
+    real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
 
 
     ! Initialize variables:
@@ -91,34 +93,54 @@ subroutine ParseCSDataBlockSUBG( i )
     ! This line contains N integers (where N is the number of sublattices)
     ! where each integer represents the number of constituents on the respective
     ! sublattice. I think there are always two sublattices for SUBG phases.
-    read (1,*,IOSTAT = INFO) iTempVec(1:2)
+    read (1,*,IOSTAT = INFO) nSublatticeElementsCS(nCountSublatticeCS,1:2)
+    nSublatticePhaseCS(nCountSublatticeCS) = 2
+
 
     ! Read in names of constituents on first sublattice:
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
-    read (1,*,IOSTAT = INFO) cDummyVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    ! Match elements on 1st sublattice with elemets in dat file order
+    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+        LOOP_Sublattice1Elements: do j = 1, nElementsCS
+            if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
+                iSublatticeElementsCS(nCountSublatticeCS, 1, k) = j
+                exit LOOP_Sublattice1Elements
+            end if
+        end do LOOP_Sublattice1Elements
+    end do
 
     ! Read in names of constituents on second sublattice: (ignore for now):
-    read (1,*,IOSTAT = INFO) cDummyVec(1:iTempVec(2))
+    read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
+    ! Match elements on 2nd sublattice with elemets in dat file order
+    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
+        LOOP_Sublattice2Elements: do j = 1, nElementsCS
+            if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
+                iSublatticeElementsCS(nCountSublatticeCS, 2, k) = j
+                exit LOOP_Sublattice2Elements
+            end if
+        end do LOOP_Sublattice2Elements
+    end do
 
     ! Read in the charge of each constituent on the first sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! I think that this entry represents the constituent IDs on the first sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(2))
+    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! I think that this entry represents the constituent IDs on the second sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(2))
+    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 1, 1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! This entry appears to represent the IDs matching constituents on the second sublattice to species:
-    read (1,*,IOSTAT = INFO) dTempVec(1:iTempVec(1))
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 2, 1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! Parse the co-ordination numbers corresponding to all pairs in the phase.
     ! Note that since these lines correspond to pairs, there will always be the same number of
@@ -126,8 +148,25 @@ subroutine ParseCSDataBlockSUBG( i )
     ! The SUBG model considers quadruplets, which is why there are four sets.
     ! Note that a quadruplet must satisfy the following constraint:
     ! q(i)/Z(i) + q(j)/Z(j) =  q(x)/Z(x) + q(y)/Z(y)
-    do j = 1, nPairsSROCS(nSROPhasesCS,2)
-        read (1,*,IOSTAT = INFO) iPairIDCS(j, 1:4), dCoordinationNumberCS(j,1:4)
+    do j = 1, nPairsSROCS(nCountSublatticeCS,2)
+        read (1,*,IOSTAT = INFO) iPairIDCS(nCountSublatticeCS, j, 1:4), dCoordinationNumberCS(nCountSublatticeCS, j, 1:4)
+    end do
+
+    ! cSpeciesNameOld = cSpeciesName
+    dStoichSpeciesOld = dStoichSpeciesCS
+    ! Loop through all pairs:
+    do j = 1, nPairsSROCS(nCountSublatticeCS,2)
+        ! m = i - nSpeciesPhase(j-1)
+        k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of AA
+        l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of BB
+
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
+                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
+                                                                 + dStoichSpeciesOld(l,1:nElementsCS) &
+                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
+
+        ! Create a name for this AB pair:
+        ! cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
     end do
 
     ! Loop through excess mixing parameters:

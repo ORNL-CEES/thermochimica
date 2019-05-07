@@ -71,7 +71,8 @@ subroutine ResetThermoParser
     ! Deallocate arrays used for sublattice phases:
     if (allocated(cConstituentNameSUBCS)) then
         deallocate(cConstituentNameSUBCS,iPhaseSublatticeCS,nConstituentSublatticeCS, &
-            iConstituentSublatticeCS,dStoichSublatticeCS,nSublatticePhaseCS, STAT = INFO)
+            iConstituentSublatticeCS,dStoichSublatticeCS,nSublatticePhaseCS, &
+            iSublatticeElementsCS, nSublatticeElementsCS, STAT = INFO)
         i = i + INFO
     end if
 

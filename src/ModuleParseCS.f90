@@ -6,6 +6,14 @@
     !> \author  M.H.A. Piro
     !> \date    Apr. 24, 2012
     !
+    ! Revisions:
+    ! ==========
+    !
+    !   Date            Programmer      Description of change
+    !   ----            ----------      ---------------------
+    !   04/24/2012      M.H.A Piro      Original code
+    !   03/25/2019      P. Bajpai       Added SUBQ to supported models
+    !
     !> \param INFO                      A scalar integer that indicates a successful exit or identifies
     !!                                    an error.
     !> \param nElementsCS               Number of elements in the system.
@@ -40,8 +48,8 @@
     !                                    to dummy species.
     !> \param dAtomicMass               Atomic mass of an element.
     !> \param dGibbsCoeffSpeciesTemp    Temporary double array of coefficients for a Gibbs energy equation.
-    !> \param nChargedPhaseCS           An integer scalar representing the number of charged phases (e.g., the
-    !!                                   Compound Energy Formalism, aqueous, etc.).
+    !> \param nCountSublatticeCS        An integer scalar representing the number of phases with sublattices
+    !!                                  (e.g., SUBL, SUBG, SUBQ).
     !> \param nSolnTypeSupport          An integer scalar representing the number of supported solution phase types.
     !> \param cSolnPhaseTypeSupport     A character array representing the solution phase types that are supported.
     !> \param nSublatticePhaseCS        An integer vector representing the number of sublattices per phase.  This
@@ -66,19 +74,21 @@ module ModuleParseCS
 
     SAVE
 
-    integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO, nSROPhasesCS
-    integer                                     :: nParamCS, nChargedPhaseCS
+    integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO
+    integer                                     :: nParamCS, nCountSublatticeCS
     integer,        parameter                   :: nSolnPhasesSysMax = 42, nMaxSublatticeCS = 5
-    integer,        parameter                   :: nSolnTypeSupport = 7
+    integer,        parameter                   :: nSolnTypeSupport = 8
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
-    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iPairIDCS
-    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS
+    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS
+    integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
+    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS, iPairIDCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
-    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dCoordinationNumberCS
+    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS
     real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS
+    real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS
 
     character(3),   dimension(:),   allocatable :: cElementNameCS
     character(8),   dimension(:),   allocatable :: cSolnPhaseTypeCS
@@ -87,9 +97,7 @@ module ModuleParseCS
     character(8),   dimension(:,:,:), allocatable :: cConstituentNameSUBCS
 
     character(8),   dimension(nSolnTypeSupport), parameter :: cSolnPhaseTypeSupport = &
-                                                    ['IDMX    ','QKTO    ','SUBL    ','RKMP    ','RKMPM   ','SUBLM   ','SUBG    ']
-
+                                                    ['IDMX    ','QKTO    ','SUBL    ','RKMP    ','RKMPM   ','SUBLM   ','SUBG    ', &
+                                                    'SUBQ    ']
 
 end module ModuleParseCS
-
-

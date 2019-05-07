@@ -105,6 +105,7 @@ subroutine CompThermoData
     implicit none
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
+    integer                            :: iSublPhaseIndex
     real(8)                            :: dLogT, dLogP, dTemp
     real(8), dimension(6)              :: dGibbsCoeff
     character(25), dimension(nSpecies) :: cSpeciesNameOld
@@ -200,6 +201,9 @@ subroutine CompThermoData
                 ! the first solution phase in the data-file.
                 dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
             end if
+        else if (iPhaseCS(i) == -1) then
+            ! Explicitly set dummy species chemical potentials
+            dChemicalPotential(j) = 100000
         end if
 
     end do LOOP_nSpeciesCS ! End loop of species (i)
@@ -322,7 +326,6 @@ subroutine CompThermoData
     ! If necessary, add dummy species for each ionic phase:
     if (nChargedConstraints > 0) then
         j = 0
-        !do i = nSpecies, nSpecies - nChargedPhase + 1, -1
 
         do i = nSpecies, nSpecies - nChargedConstraints + 1, -1
             j = j + 1
@@ -342,34 +345,16 @@ subroutine CompThermoData
     ! In this case, there are necessarily more pairs than pure species. The following
     ! accounts for SUBG phases.
     do j = 1, nSolnPhasesSys
-        if (cSolnPhaseType(j) == 'SUBG') then
+        if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
+            iSublPhaseIndex = iPhaseSublattice(j)
             cSpeciesNameOld = cSpeciesName
-            ! Loop through all A-B pairs:
-
-            ! Update names of species:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
-                cSpeciesName(i) = TRIM(cSpeciesNameOld(i)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(i)))
-            end do
-
-            do i = nSpeciesPhase(j-1) + 1 + nPairsSRO(1,1), nSpeciesPhase(j)
+            ! Loop through all pairs:
+            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
                 m = i - nSpeciesPhase(j-1)
-                k = iPairID(m,1) + nSpeciesPhase(j-1)   ! Index of AA
-                l = iPairID(m,2) + nSpeciesPhase(j-1)   ! Index of BB
-
-                ! I'm using dLogT and dLogP here to avoid taking up more memory...they don't mean log(T) or log(P) here.
-                dLogT = dCoordinationNumber(m,1)        ! Z_AB^A
-                dLogP = dCoordinationNumber(m,2)        ! Z_BA_B
-
-                dStoichSpecies(i,1:nElements) = dStoichSpecies(k,1:nElements) / dLogT + dStoichSpecies(l,1:nElements) / dLogP
-
+                k = iPairID(iSublPhaseIndex,m,1) + nSpeciesPhase(j-1)   ! Index of AA
+                l = iPairID(iSublPhaseIndex,m,2) + nSpeciesPhase(j-1)   ! Index of BB
                 ! Create a name for this AB pair:
                 cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
-            end do
-
-            ! Loop through all A-A and B-B pairs:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j-1) + nPairsSRO(1,1)
-                m = i - nSpeciesPhase(j-1)         ! Index of AB
-                dStoichSpecies(i,1:nElements) = 2D0 * dStoichSpecies(i,1:nElements) / dCoordinationNumber(m,1)
             end do
         end if
     end do
@@ -385,6 +370,9 @@ subroutine CompThermoData
         ! entries will be created with no stoichiometric values. To avoid dividing by
         ! zero, the following is included:
         !dSpeciesTotalAtoms(i) = DMAX1(dSpeciesTotalAtoms(i),0.1D0)
+        if (dSpeciesTotalAtoms(i) == 0) then
+            dSpeciesTotalAtoms(i) = 0.00001D0
+        end if
 
         ! Convert chemical potentials from [J/mol] to [J/g-at]:
         dTemp                 = 1D0 / dSpeciesTotalAtoms(i)

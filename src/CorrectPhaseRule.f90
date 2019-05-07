@@ -57,7 +57,7 @@ subroutine CorrectPhaseRule(lPhaseChange)
 
 
     ! Only proceed if the Phase Rule has been violated:
-    IF_PhaseRule: if (nSolnPhases + nConPhases > nElements - nChargedPhase) then
+    IF_PhaseRule: if (nSolnPhases + nConPhases > nElements - nChargedConstraints) then
 
         ! Deallocate allocatable arrays if necessary:
         if (allocated(iTempVec)) deallocate(iTempVec)

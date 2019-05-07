@@ -73,7 +73,7 @@ subroutine ParseCSDataBlock
 
     implicit none
 
-    integer               :: i, j, k, iCounterGibbsEqn, nCountSublattice
+    integer               :: i, j, k, iCounterGibbsEqn
     real(8)               :: dDummy
     real(8),dimension(15) :: dTempVec
 
@@ -84,7 +84,6 @@ subroutine ParseCSDataBlock
     nParamCS            = 0
     dTempVec            = 0D0
     nParamPhaseCS       = 0
-    nCountSublattice    = 0
     dGibbsMagneticCS    = 0D0
 
     ! Loop through all solution phases:
@@ -122,6 +121,13 @@ subroutine ParseCSDataBlock
             return
         end if
 
+        ! Count sublattice phases
+        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+             nCountSublatticeCS = nCountSublatticeCS + 1
+             iPhaseSublatticeCS(i) = nCountSublatticeCS
+        end if
+
         ! Check if the solution phase contains magnetic ordering terms, and if so,
         ! read in the terms:
         if ((cSolnPhaseTypeCS(i) == 'RKMPM').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
@@ -137,30 +143,36 @@ subroutine ParseCSDataBlock
             end if
 
         elseif (cSolnPhaseTypeCS(i) == 'SUBG') then
-            nSROPhasesCS = nSROPhasesCS + 1
 
             ! ---> I'm not sure why, but SUBG phases appear to have some strange magnetic terms (?).
             read (1,*,IOSTAT = INFO) dDummy
 
             ! Read in two integers representing the number of species and the number of pairs:
-            read (1,*,IOSTAT = INFO) nPairsSROCS(nSROPhasesCS,1:2)
+            read (1,*,IOSTAT = INFO) nPairsSROCS(nCountSublatticeCS,1:2)
 
             if (INFO /= 0) then
               INFO = 1600 + i;
               return
             end if
 
+        elseif (cSolnPhaseTypeCS(i) == 'SUBQ') then
+            ! Do I need to do this?
+            ! The SUBQ phase data files seems to not have the magnetic term so skipping this part.
+
+            ! Read in two integers representing the number of species and the number of pairs:
+            read (1,*,IOSTAT = INFO) nPairsSROCS(nCountSublatticeCS,1:2)
+
         end if
 
         ! Loop through species in solution phase:
         LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
 
-            ! SUBG phases contain a certain number of species, which are necessarily less
+            ! SUBG and SUBQ phases contain a certain number of species, which are necessarily less
             ! than the number of pair fractions. The # of species indicated in the
             ! header file actually represents the number of pairs. Therefore, there are
             ! fewer species listed than what has been allocated.
-            if (cSolnPhaseTypeCS(i) == 'SUBG') then
-                if (j >= nSpeciesPhaseCS(i-1) + 1 + nPairsSROCS(nSROPhasesCS,1) ) then
+            if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
+                if (j >= nSpeciesPhaseCS(i-1) + 1 + nPairsSROCS(nCountSublatticeCS,1) ) then
                     exit LOOP_SpeciesInSolnPhase
                 end if
             end if
@@ -172,9 +184,15 @@ subroutine ParseCSDataBlock
             ! Store the phase index corresponding to the current species:
             iPhaseCS(j) = i
 
-            ! The following subroutine parses the Gibbs energy equations (entries 3-5):
-            call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
-
+            if (cSolnPhaseTypeCS(i) == 'SUBQ') then
+              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+              ! Read the magnetic terms which are present for every species in SUBQ
+              read (1,*,IOSTAT = INFO) dDummy
+            else
+              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+            endif
 
             ! Entry 6: Definition of temperature and pressure dependence terms (I don't understand the reasoning):
             if (cSolnPhaseTypeCS(i) == 'QKTO') then
@@ -211,16 +229,18 @@ subroutine ParseCSDataBlock
             ! Compound Energy Formalism (sublattice) model:
             case ('SUBL', 'SUBLM')
 
-                ! Count the number of phases with a sublattice:
-                nCountSublattice      = nCountSublattice + 1
-                iPhaseSublatticeCS(i) = nCountSublattice
-
-                call ParseCSDataBlockSUBL(i, nCountSublattice)
+                call ParseCSDataBlockSUBL(i)
 
             ! Quadruplet quasichemical model:
             case ('SUBG')
 
                 ! Parse the data-block section for SUBG phases:
+                call ParseCSDataBlockSUBG(i)
+
+            ! Quadruplet quasichemical model:
+            case ('SUBQ')
+
+                ! Parse the data-block section for SUBQ phases:
                 call ParseCSDataBlockSUBG(i)
 
             case default
@@ -238,12 +258,6 @@ subroutine ParseCSDataBlock
         nParamPhaseCS(i) = nParamCS
 
     end do LOOP_SolnPhases      ! Variable i
-
-    ! Recount the number of charged phases:
-    nChargedPhaseCS = 0
-    do i = 1, nSolnPhasesSysCS
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) nChargedPhaseCS = nChargedPhaseCS + 1
-    end do
 
     allocate(iParamPassCS(nParamCS))
     iParamPassCS = 0

@@ -51,7 +51,7 @@
     ! ====================
     !
     !> \param[in] i                 An integer scalar representing the solution phase index.
-    !> \param[in] nCountSublattice  An integer scalar representing a cummulative count of the number of phases
+    !> \param[in] nCountSublatticeCS  An integer scalar representing a cummulative count of the number of phases
     !                            containing a sublattice.
     !
     ! INFO                      A scalar integer that indicates a successful exit or identifies an error.
@@ -75,13 +75,13 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine ParseCSDataBlockSUBL(i, nCountSublattice)
+subroutine ParseCSDataBlockSUBL(i)
 
     USE ModuleParseCS
 
     implicit none
 
-    integer                   :: i, j, k, l, m, n, p, s, nCountSublattice
+    integer                   :: i, j, k, l, m, n, p, s
     character(8),dimension(3) :: cDummyVec
 
 
@@ -89,42 +89,42 @@ subroutine ParseCSDataBlockSUBL(i, nCountSublattice)
     n = 0
 
     ! Read in the number of sublattices per phase:
-    read (1,*,IOSTAT = INFO) nSublatticePhaseCS(nCountSublattice)
+    read (1,*,IOSTAT = INFO) nSublatticePhaseCS(nCountSublatticeCS)
 
     ! Report an error if the number of sublattices is out of range:
-    if ((nSublatticePhaseCS(nCountSublattice) > nMaxSublatticeCS).OR. &
-        (nSublatticePhaseCS(nCountSublattice) <= 0)) then
+    if ((nSublatticePhaseCS(nCountSublatticeCS) > nMaxSublatticeCS).OR. &
+        (nSublatticePhaseCS(nCountSublatticeCS) <= 0)) then
         INFO = 33
         return
     end if
 
     ! Read in the stoichiometry coefficients for each sublattice:
-    read (1,*,IOSTAT = INFO) dStoichSublatticeCS(nCountSublattice,1:nSublatticePhaseCS(nCountSublattice))
+    read (1,*,IOSTAT = INFO) dStoichSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
 
     ! Read in the number of constituents for each sublattice:
-    read (1,*,IOSTAT = INFO) nConstituentSublatticeCS(nCountSublattice,1:nSublatticePhaseCS(nCountSublattice))
+    read (1,*,IOSTAT = INFO) nConstituentSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
 
     ! Read in the name of each constituent for each sublattice:
-    LOOP_SUBL_CONST_NAME: do s = 1, nSublatticePhaseCS(nCountSublattice)
+    LOOP_SUBL_CONST_NAME: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
 
         ! Number of constituents on last line (per sublattice):
-        k = MOD(nConstituentSublatticeCS(nCountSublattice,s),3)
+        k = MOD(nConstituentSublatticeCS(nCountSublatticeCS,s),3)
 
         ! Number of full lines of constituents (per sublattice):
-        l = (nConstituentSublatticeCS(nCountSublattice,s) - k) / 3
+        l = (nConstituentSublatticeCS(nCountSublatticeCS,s) - k) / 3
 
         ! Loop through full lines of constituent names:
         do m = 1, l
             read (1,*,IOSTAT = INFO) cDummyVec(1:3)
             p = (m-1)*3 + 1
-            cConstituentNameSUBCS(nCountSublattice, s, p:p+2) = cDummyVec(1:3)
+            cConstituentNameSUBCS(nCountSublatticeCS, s, p:p+2) = cDummyVec(1:3)
         end do
 
         ! Read in the last line of constituent names if there is less than three constituents:
         if (k /= 0) then
             read (1,*,IOSTAT = INFO) cDummyVec(1:k)
             p = l*3 + 1
-            cConstituentNameSUBCS(nCountSublattice, s, p:p+k-1) = cDummyVec(1:k)
+            cConstituentNameSUBCS(nCountSublatticeCS, s, p:p+k-1) = cDummyVec(1:k)
         end if
 
     end do LOOP_SUBL_CONST_NAME
@@ -136,7 +136,7 @@ subroutine ParseCSDataBlockSUBL(i, nCountSublattice)
     end if
 
     ! Read in the constituent indices for each component on each sublattice:
-    LOOP_SUBL_CONST_ID: do s = 1, nSublatticePhaseCS(nCountSublattice)
+    LOOP_SUBL_CONST_ID: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
 
         ! Number of components for this phase:
         n = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
@@ -150,13 +150,13 @@ subroutine ParseCSDataBlockSUBL(i, nCountSublattice)
         ! Loop through full lines of consitutent indices:
         do m = 1, l
             p = (m-1)*19 + 1
-            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublattice, s, p:p+18)
+            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, p:p+18)
         end do
 
         ! Read in the last line of the constituent indices if there is less than 19 constituents:
         if (k /= 0) then
             p = (l)*19 + 1
-            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublattice, s, p:p+k-1)
+            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, p:p+k-1)
         end if
 
     end do LOOP_SUBL_CONST_ID

@@ -173,7 +173,7 @@ subroutine GEMNewton(INFO)
     end do
 
     ! Check if the Hessian is properly structured if the system contains any charged phases:
-    if (nChargedPhase > 0) then
+    if (nCountSublattice > 0) then
         ! Loop through elements
         LOOP_SUB: do j = nElements, nElements - nChargedConstraints + 1, -1
             dTemp = 0D0

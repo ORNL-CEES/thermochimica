@@ -89,7 +89,7 @@ subroutine CheckSysOnlyPureConPhases
     end do
 
     ! Check if there are any charged phases in the database:
-    if (nChargedPhase > 0) then
+    if (nCountSublattice > 0) then
         ! Pure condensed phases are necessarily neutrally charged; thus, this must
         ! be removed from the mass balance calculation.
         do j = nElements, nElements - nChargedConstraints + 1, -1

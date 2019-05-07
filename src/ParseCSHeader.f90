@@ -53,7 +53,7 @@
     ! INFO                      A scalar integer that indicates a successful exit or identifies an error.
     ! nElementsPT               Number of elements in the periodic table.
     ! nElements                 Number of elements in the system.
-    ! nChargedPhaseCS           Number of charged phases in the system.
+    ! nCountSublatticeCS        Number of sublattice phases in the system.
     ! nSolnPhasesSys            Number of solution phases in the system.
     ! nSolnPhasesSysMax         Maximum number of solution phases in a system that can be considered.
     ! nSpeciesPhase             Number of species in a solution phase.
@@ -86,10 +86,6 @@ subroutine ParseCSHeader
     integer,dimension(2) :: iDummy
     character(8)         :: cDummy
     character(78)        :: cSystemTitle
-
-
-    ! Initialize varirables:
-    nChargedPhaseCS = 0
 
     ! Line 1: Read title of system:
     read (1,*,IOSTAT = INFO) cDummy, cSystemTitle
@@ -131,21 +127,14 @@ subroutine ParseCSHeader
     allocate(cSolnPhaseNameCS(j),cSolnPhaseTypeCS(j))
     allocate(iPhaseSublatticeCS(j))
     allocate(nPairsSROCS(j,2))
-    !allocate(iPairIDCS(j*2,4))
-!    allocate(dCoordinationNumberCS(j*2,4))
-!    allocate(iPairIDCS(j*2+1,4))
-!    allocate(dCoordinationNumberCS(j*2+1,4))
 
     ! TEMPORARY:
-    allocate(iPairIDCS(12,4))
-    allocate(dCoordinationNumberCS(12,4))
 
     ! Initialize variables:
+    nCountSublatticeCS  = 0
     nSpeciesPhaseCS       = 0
     iPhaseSublatticeCS    = 0
     nPairsSROCS           = 0
-    iPairIDCS             = 0
-    dCoordinationNumberCS = 0D0
 
     ! Go back to Line 2:
     backspace(UNIT = 1)
@@ -199,6 +188,11 @@ subroutine ParseCSHeader
     ! Compute the total number of species in the system:
     nSpeciesCS = nSpeciesCS + nSpeciesPhaseCS(nSolnPhasesSysCS)
 
+    allocate(iPairIDCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,4))
+    allocate(dCoordinationNumberCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,4))
+    iPairIDCS             = 0
+    dCoordinationNumberCS = 0D0
+
     ! Allocate allocatable arrays:
     allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
     allocate(cSpeciesNameCS(nSpeciesCS),nGibbsEqSpecies(nSpeciesCS))
@@ -244,24 +238,26 @@ subroutine ParseCSHeader
     do i = 1, nElementsCS
         cDummy = cElementNameCS(i)
         if (cDummy(1:2) == 'e(') then
-            nChargedPhaseCS   = nChargedPhaseCS + 1
             cElementNameCS(i) = 'e-'
         end if
     end do
 
-    ! Allocate variables specific to ionic phases:
+    ! Allocate variables specific to sublattice phases:
     allocate(nSublatticePhaseCS(nSolnPhasesSysCS))
     allocate(dStoichSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(nConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(cConstituentNameSUBCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
+    allocate(iSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS,nElementsCS))
+    allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0
-    nSROPhasesCS             = 0
     nConstituentSublatticeCS = 0
     iConstituentSublatticeCS = 0
     dStoichSublatticeCS      = 0D0
+    iSublatticeElementsCS    = 0
+    nSublatticeElementsCS    = 0
 
     ! Line 4: List of atomic masses of the elements:
     k = MIN(nElementsCS,3)
