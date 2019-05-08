@@ -61,9 +61,6 @@
 program thermo
 
     USE ModuleThermoIO
-    USE ModuleThermo
-    USE ModuleGEMSolver
-    USE ModuleParseCS
 
     implicit none
 
@@ -79,9 +76,8 @@ program thermo
     dElementMass(6)        = 2D0           ! C
     dElementMass(8)        = 1D0          ! O
 
-    ! Specify output and debug modes:
+    ! Specify output mode:
     iPrintResultsMode     = 2
-    lDebugMode            = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
