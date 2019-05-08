@@ -71,15 +71,13 @@ program thermo
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY // 'Capelli_Cs-I-nomisc.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'C-O.dat'
 
     ! Specify values:
-    dTemperature          = 705D0
-    dPressure             = 1.0D0
-    dElementMass          = 0D0
-    dElementMass(3)       = 1.5D0                                 ! Li
-    dElementMass(9)       = 2D0                                 ! F
-    dElementMass(55)      = 0.5D0                              ! Cs
+    dPressure              = 1D0
+    dTemperature           = 1000D0
+    dElementMass(6)        = 2D0           ! C
+    dElementMass(8)        = 1D0          ! O
 
     ! Specify output and debug modes:
     iPrintResultsMode     = 2
