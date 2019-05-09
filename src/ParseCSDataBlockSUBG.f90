@@ -74,8 +74,8 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                    :: i, j, k, l
-    integer,     dimension(10) :: iTempVec
+    integer                     :: i, j, k, l, m, n
+    integer,     dimension(10)  :: iTempVec
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
 
@@ -142,31 +142,60 @@ subroutine ParseCSDataBlockSUBG( i )
     ! This entry appears to represent the IDs matching constituents on the second sublattice to species:
     read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 2, 1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
+    ! Set up default pair IDs and coordination numbers
+    dCoordinationNumberCS = 6D0
+    do k = 1, nPairsSROCS(nCountSublatticeCS,1)
+        LOOP_sroPairsInner: do j = 1, nPairsSROCS(nCountSublatticeCS,1)
+            if (j == k) then
+                l = k
+            else if (j > k) then
+                cycle LOOP_sroPairsInner
+            else
+                l = nPairsSROCS(nCountSublatticeCS,1) + j - 1
+                do m = 1, k - 1
+                    l = l + m
+                end do
+            end if
+            iPairIDCS(nCountSublatticeCS, l, 1) = j
+            iPairIDCS(nCountSublatticeCS, l, 2) = k
+        end do LOOP_sroPairsInner
+    end do
+
     ! Parse the co-ordination numbers corresponding to all pairs in the phase.
     ! Note that since these lines correspond to pairs, there will always be the same number of
     ! integers and reals on a line, but the number of lines corresponds to the number of pairs.
     ! The SUBG model considers quadruplets, which is why there are four sets.
     ! Note that a quadruplet must satisfy the following constraint:
     ! q(i)/Z(i) + q(j)/Z(j) =  q(x)/Z(x) + q(y)/Z(y)
-    do j = 1, nPairsSROCS(nCountSublatticeCS,2)
-        read (1,*,IOSTAT = INFO) iPairIDCS(nCountSublatticeCS, j, 1:4), dCoordinationNumberCS(nCountSublatticeCS, j, 1:4)
-    end do
+    LOOP_readPairs: do n = 1, nPairsSROCS(nCountSublatticeCS,2)
+        read (1,*,IOSTAT = INFO) j, k, iTempVec(1:2), dTempVec(1:4)
+        if (j == k) then
+            l = k
+        else if (j > k) then
+            cycle LOOP_readPairs
+        else
+            l = nPairsSROCS(nCountSublatticeCS,1) + j - 1
+            do m = 1, k - 1
+                l = l + m
+            end do
+        end if
+        dCoordinationNumberCS(nCountSublatticeCS, l, 1) = dTempVec(1)
+        dCoordinationNumberCS(nCountSublatticeCS, l, 2) = dTempVec(2)
+    end do LOOP_readPairs
 
+    ! Increase pairs counter to include default pairs
+    nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
     ! cSpeciesNameOld = cSpeciesName
     dStoichSpeciesOld = dStoichSpeciesCS
     ! Loop through all pairs:
     do j = 1, nPairsSROCS(nCountSublatticeCS,2)
-        ! m = i - nSpeciesPhase(j-1)
-        k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of AA
-        l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of BB
+        k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of A
+        l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of B
 
         dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
                                                                  + dStoichSpeciesOld(l,1:nElementsCS) &
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
-
-        ! Create a name for this AB pair:
-        ! cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
     end do
 
     ! Loop through excess mixing parameters:
