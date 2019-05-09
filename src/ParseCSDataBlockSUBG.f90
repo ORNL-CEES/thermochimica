@@ -144,14 +144,14 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Set up default pair IDs and coordination numbers
     dCoordinationNumberCS = 6D0
-    do k = 1, nPairsSROCS(nCountSublatticeCS,1)
-        LOOP_sroPairsInner: do j = 1, nPairsSROCS(nCountSublatticeCS,1)
+    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+        LOOP_sroPairsInner: do j = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
             if (j == k) then
                 l = k
             else if (j > k) then
                 cycle LOOP_sroPairsInner
             else
-                l = nPairsSROCS(nCountSublatticeCS,1) + j
+                l = nSublatticeElementsCS(nCountSublatticeCS,1) + j
                 do m = 1, k - 2
                     l = l + m
                 end do
@@ -174,7 +174,7 @@ subroutine ParseCSDataBlockSUBG( i )
         else if (j > k) then
             cycle LOOP_readPairs
         else
-            l = nPairsSROCS(nCountSublatticeCS,1) + j - 1
+            l = nSublatticeElementsCS(nCountSublatticeCS,1) + j - 1
             do m = 1, k - 1
                 l = l + m
             end do
