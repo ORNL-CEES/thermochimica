@@ -151,8 +151,8 @@ subroutine ParseCSDataBlockSUBG( i )
             else if (j > k) then
                 cycle LOOP_sroPairsInner
             else
-                l = nPairsSROCS(nCountSublatticeCS,1) + j - 1
-                do m = 1, k - 1
+                l = nPairsSROCS(nCountSublatticeCS,1) + j
+                do m = 1, k - 2
                     l = l + m
                 end do
             end if
