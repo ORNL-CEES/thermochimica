@@ -114,7 +114,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
-        case ('SUBG')
+        case ('SUBG','SUBQ')
 
             ! Compute the excess terms for a phase represented by the Modified Quasichemical Model:
             call CompExcessGibbsEnergySUBG(iSolnIndex)
