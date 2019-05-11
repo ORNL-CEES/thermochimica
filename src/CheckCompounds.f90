@@ -131,7 +131,7 @@ subroutine CheckCompounds
         end if
         do j = 1, nCompounds
             ! Copy LAPACK solution vector to new stoichiometry
-            dStoichSpeciesCompounds(i,j) = NINT(dStoichSpeciesTemp(j))
+            dStoichSpeciesCompounds(i,j) = dStoichSpeciesTemp(j)
         end do
     end do
 

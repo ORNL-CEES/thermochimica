@@ -377,7 +377,12 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
-            dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
+            if (dMolFraction(i) > 0) then
+                dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
+            else
+                ! if set negative or zero then just make this really big
+                dMaxSpeciesChange = 1e16
+            end if
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
 
         end do
