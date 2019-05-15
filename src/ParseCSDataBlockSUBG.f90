@@ -74,7 +74,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, m, n, x, y, p
+    integer                     :: i, j, k, l, n, x, y, p
     integer,     dimension(10)  :: iTempVec
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
@@ -147,31 +147,26 @@ subroutine ParseCSDataBlockSUBG( i )
     do y = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
         LOOP_sroPairsOuter: do x = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
             if (x == y) then
-                p = (x - 1) * nSublatticeElementsCS(nCountSublatticeCS,1)
+                p = (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
             else if (x > y) then
                 cycle LOOP_sroPairsOuter
             else
-                p = nSublatticeElementsCS(nCountSublatticeCS,2) + x
-                do m = 1, k - 2
-                    p = p + m
-                end do
+                p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                  * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
             end if
             do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
                 LOOP_sroPairsInner: do j = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
                     if (j == k) then
-                        l = k
+                        l = j
                     else if (j > k) then
                         cycle LOOP_sroPairsInner
                     else
-                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + j
-                        do m = 1, k - 2
-                            l = l + m
-                        end do
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + j + ((k-2)*(k-1)/2)
                     end if
-                    iPairIDCS(nCountSublatticeCS, l, 1) = j
-                    iPairIDCS(nCountSublatticeCS, l, 2) = k
-                    iPairIDCS(nCountSublatticeCS, l, 3) = x + nSublatticeElementsCS(nCountSublatticeCS,1)
-                    iPairIDCS(nCountSublatticeCS, l, 4) = y + nSublatticeElementsCS(nCountSublatticeCS,1)
+                    iPairIDCS(nCountSublatticeCS, l + p, 1) = j
+                    iPairIDCS(nCountSublatticeCS, l + p, 2) = k
+                    iPairIDCS(nCountSublatticeCS, l + p, 3) = x + nSublatticeElementsCS(nCountSublatticeCS,1)
+                    iPairIDCS(nCountSublatticeCS, l + p, 4) = y + nSublatticeElementsCS(nCountSublatticeCS,1)
                 end do LOOP_sroPairsInner
             end do
         end do LOOP_sroPairsOuter
@@ -184,19 +179,28 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Note that a quadruplet must satisfy the following constraint:
     ! q(i)/Z(i) + q(j)/Z(j) =  q(x)/Z(x) + q(y)/Z(y)
     LOOP_readPairs: do n = 1, nPairsSROCS(nCountSublatticeCS,2)
-        read (1,*,IOSTAT = INFO) j, k, iTempVec(1:2), dTempVec(1:4)
+        read (1,*,IOSTAT = INFO) j, k, x, y, dTempVec(1:4)
+        x = x - nSublatticeElementsCS(nCountSublatticeCS,1)
+        y = y - nSublatticeElementsCS(nCountSublatticeCS,1)
+        if (x == y) then
+            p = (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+        else if (x > y) then
+            cycle LOOP_readPairs
+        else
+            p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+              * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+        end if
         if (j == k) then
-            l = k
+            l = j
         else if (j > k) then
             cycle LOOP_readPairs
         else
-            l = nSublatticeElementsCS(nCountSublatticeCS,1) + j - 1
-            do m = 1, k - 1
-                l = l + m
-            end do
+            l = nSublatticeElementsCS(nCountSublatticeCS,1) + j + ((k-2)*(k-1)/2)
         end if
-        dCoordinationNumberCS(nCountSublatticeCS, l, 1) = dTempVec(1)
-        dCoordinationNumberCS(nCountSublatticeCS, l, 2) = dTempVec(2)
+        dCoordinationNumberCS(nCountSublatticeCS, l + p, 1) = dTempVec(1)
+        dCoordinationNumberCS(nCountSublatticeCS, l + p, 2) = dTempVec(2)
+        dCoordinationNumberCS(nCountSublatticeCS, l + p, 3) = dTempVec(3)
+        dCoordinationNumberCS(nCountSublatticeCS, l + p, 4) = dTempVec(4)
     end do LOOP_readPairs
 
     ! Increase pairs counter to include default pairs
