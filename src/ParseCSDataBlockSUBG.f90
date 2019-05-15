@@ -74,7 +74,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, m, n
+    integer                     :: i, j, k, l, m, n, x, y, p
     integer,     dimension(10)  :: iTempVec
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
@@ -144,21 +144,37 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Set up default pair IDs and coordination numbers
     dCoordinationNumberCS = 6D0
-    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
-        LOOP_sroPairsInner: do j = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
-            if (j == k) then
-                l = k
-            else if (j > k) then
-                cycle LOOP_sroPairsInner
+    do y = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
+        LOOP_sroPairsOuter: do x = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
+            if (x == y) then
+                p = (x - 1) * nSublatticeElementsCS(nCountSublatticeCS,1)
+            else if (x > y) then
+                cycle LOOP_sroPairsOuter
             else
-                l = nSublatticeElementsCS(nCountSublatticeCS,1) + j
+                p = nSublatticeElementsCS(nCountSublatticeCS,2) + x
                 do m = 1, k - 2
-                    l = l + m
+                    p = p + m
                 end do
             end if
-            iPairIDCS(nCountSublatticeCS, l, 1) = j
-            iPairIDCS(nCountSublatticeCS, l, 2) = k
-        end do LOOP_sroPairsInner
+            do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+                LOOP_sroPairsInner: do j = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+                    if (j == k) then
+                        l = k
+                    else if (j > k) then
+                        cycle LOOP_sroPairsInner
+                    else
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + j
+                        do m = 1, k - 2
+                            l = l + m
+                        end do
+                    end if
+                    iPairIDCS(nCountSublatticeCS, l, 1) = j
+                    iPairIDCS(nCountSublatticeCS, l, 2) = k
+                    iPairIDCS(nCountSublatticeCS, l, 3) = x + nSublatticeElementsCS(nCountSublatticeCS,1)
+                    iPairIDCS(nCountSublatticeCS, l, 4) = y + nSublatticeElementsCS(nCountSublatticeCS,1)
+                end do LOOP_sroPairsInner
+            end do
+        end do LOOP_sroPairsOuter
     end do
 
     ! Parse the co-ordination numbers corresponding to all pairs in the phase.
