@@ -75,7 +75,7 @@ module ModuleParseCS
     SAVE
 
     integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO
-    integer                                     :: nParamCS, nCountSublatticeCS
+    integer                                     :: nParamCS, nCountSublatticeCS, nMaxSpeciesPhaseCS
     integer,        parameter                   :: nSolnPhasesSysMax = 42, nMaxSublatticeCS = 5
     integer,        parameter                   :: nSolnTypeSupport = 8
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
@@ -87,7 +87,7 @@ module ModuleParseCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
     real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS
-    real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS
+    real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS, dZetaSpeciesCS
     real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS
 
     character(3),   dimension(:),   allocatable :: cElementNameCS
