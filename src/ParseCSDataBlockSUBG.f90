@@ -212,7 +212,6 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Increase pairs counter to include default pairs
     nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
-    ! cSpeciesNameOld = cSpeciesName
     dStoichSpeciesOld = dStoichSpeciesCS
     ! Loop through all pairs:
     do j = 1, nPairsSROCS(nCountSublatticeCS,2)
