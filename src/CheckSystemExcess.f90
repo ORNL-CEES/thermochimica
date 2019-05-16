@@ -251,6 +251,7 @@ subroutine CheckSystemExcess
                 dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
                 iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
+                dSublatticeCharge(nCountSublattice,1:n,1:k) = dSublatticeChargeCS(nCountSublatticeCS,1:n,1:k)
                 k = SIZE(iSublatticeElements, DIM=3)
                 iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublatticeCS,1:n,1:k)
                 ! Loop through excess parameters:
