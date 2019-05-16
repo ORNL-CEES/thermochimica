@@ -80,6 +80,8 @@ subroutine ParseCSDataBlockSUBG( i )
     real(8),     dimension(20)  :: dTempVec, dCationCharge, dAnionCharge
     character(8),dimension(20)  :: cDummyVec
 
+    real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
+
     ! Initialize variables:
     dTempVec = 0D0
     iTempVec = 0
@@ -209,16 +211,19 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Increase pairs counter to include default pairs
     nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
-    dStoichQuadsCS(1:nSpeciesCS,1:nElementsCS) = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
+    dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
     ! Loop through all pairs:
     do j = 1, nPairsSROCS(nCountSublatticeCS,2)
         k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of A
         l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of B
 
-        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichQuadsCS(k,1:nElementsCS) &
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
-                                                                 + dStoichQuadsCS(l,1:nElementsCS) &
+                                                                 + dStoichSpeciesOld(l,1:nElementsCS) &
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
+        dStoichQuadsCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS)   = dStoichSpeciesOld(k,1:nElementsCS)
+                                                                 + dStoichSpeciesOld(l,1:nElementsCS) 
+
     end do
 
     ! Loop through excess mixing parameters:
