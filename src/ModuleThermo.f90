@@ -99,7 +99,7 @@ module ModuleThermo
     real(8),       dimension(:),   allocatable::  dStdGibbsEnergy,    dGibbsSolnPhase, dMolesSpecies, dMagGibbsEnergy
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
     real(8),       dimension(:),   allocatable::  dElementPotential, dMolesPhase, dMolesElement, dMolFraction
-    real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies
+    real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies, dStoichQuads
     real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies
 
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber

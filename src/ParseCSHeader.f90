@@ -175,6 +175,7 @@ subroutine ParseCSHeader
 
     ! Allocate allocatable arrays:
     allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
+    allocate(dStoichQuadsCS(nSpeciesCS,nElementsCS))
     allocate(cSpeciesNameCS(nSpeciesCS),nGibbsEqSpecies(nSpeciesCS))
     allocate(dGibbsCoeffSpeciesTemp(nGibbsCoeff,nSpeciesCS*nMaxGibbsEqs))
     allocate(iRegularParamCS(1000,nParamMax*2+1),dRegularParamCS(1000,6))
@@ -184,6 +185,7 @@ subroutine ParseCSHeader
     ! Initialize variables:
     dGibbsCoeffSpeciesTemp = 0D0
     dStoichSpeciesCS       = 0D0
+    dStoichQuadsCS         = 0D0
     nGibbsEqSpecies        = 0
 
     ! Line 3: List of system components:

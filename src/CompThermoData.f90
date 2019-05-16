@@ -157,6 +157,9 @@ subroutine CompThermoData
             if (iElementSystem(k) /= 0) then
                 m = m + 1
                 dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
+                if (nCountSublattice > 0) then
+                    dStoichQuads(j,m) = dStoichQuadsCS(i,k)
+                end if
             end if
         end do
 
