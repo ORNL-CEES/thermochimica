@@ -168,9 +168,11 @@ subroutine ParseCSDataBlockSUBG( i )
                     iPairIDCS(nCountSublatticeCS, l + p, 3) = x + nSublatticeElementsCS(nCountSublatticeCS,1)
                     iPairIDCS(nCountSublatticeCS, l + p, 4) = y + nSublatticeElementsCS(nCountSublatticeCS,1)
                     ! Also need coordination numbers, will assume for now that the default is anion coordinations equal
-                    dAnionCoordTemp = (dSublatticeChargeCS(nCountSublatticeCS,1,x) + dSublatticeChargeCS(nCountSublatticeCS,1,y)) &
-                                    / ((dSublatticeChargeCS(nCountSublatticeCS,2,j)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 1)) &
-                                    + (dSublatticeChargeCS(nCountSublatticeCS,2,k)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 2)))
+                    dAnionCoordTemp = (dSublatticeChargeCS(nCountSublatticeCS,2,x) + dSublatticeChargeCS(nCountSublatticeCS,2,y)) &
+                                    / ((dSublatticeChargeCS(nCountSublatticeCS,1,j) &
+                                    / dCoordinationNumberCS(nCountSublatticeCS, l + p, 1)) &
+                                    + (dSublatticeChargeCS(nCountSublatticeCS,1,k) &
+                                    / dCoordinationNumberCS(nCountSublatticeCS, l + p, 2)))
                     dCoordinationNumberCS(nCountSublatticeCS, l + p, 3) = dAnionCoordTemp
                     dCoordinationNumberCS(nCountSublatticeCS, l + p, 4) = dAnionCoordTemp
                 end do LOOP_sroPairsInner
