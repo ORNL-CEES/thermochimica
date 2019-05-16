@@ -221,8 +221,8 @@ subroutine ParseCSDataBlockSUBG( i )
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
                                                                  + dStoichSpeciesOld(l,1:nElementsCS) &
                                                                  / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
-        dStoichQuadsCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS)   = dStoichSpeciesOld(k,1:nElementsCS)
-                                                                 + dStoichSpeciesOld(l,1:nElementsCS) 
+        dStoichQuadsCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS)   = dStoichSpeciesOld(k,1:nElementsCS) &
+                                                                 + dStoichSpeciesOld(l,1:nElementsCS)
 
     end do
 
