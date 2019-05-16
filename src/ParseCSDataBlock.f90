@@ -146,6 +146,8 @@ subroutine ParseCSDataBlock
 
             ! Read zeta (FNN/SNN ratio)
             ! In SUBG zeta is the same for every FNN pair
+            ! NOTE: This method for keeping track of zeta is not very safe,
+            ! relies on having a predictable FNN pair order in the dat file
             read (1,*,IOSTAT = INFO) dDummy
             do j = 1, nMaxSpeciesPhaseCS
                 dZetaSpeciesCS(nCountSublatticeCS,j) = dDummy
