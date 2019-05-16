@@ -100,7 +100,7 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Read in names of constituents on first sublattice:
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
     read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
-    ! Match elements on 1st sublattice with elemets in dat file order
+    ! Match elements on 1st sublattice with elements in dat file order
     do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
         LOOP_Sublattice1Elements: do j = 1, nElementsCS
             if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
@@ -112,7 +112,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Read in names of constituents on second sublattice: (ignore for now):
     read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
-    ! Match elements on 2nd sublattice with elemets in dat file order
+    ! Match elements on 2nd sublattice with elements in dat file order
     do k = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
         LOOP_Sublattice2Elements: do j = 1, nElementsCS
             if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
