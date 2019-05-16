@@ -77,7 +77,7 @@ subroutine ParseCSDataBlockSUBG( i )
     integer                     :: i, j, k, l, n, x, y, p
     integer,     dimension(10)  :: iTempVec
     real(8)                     :: dAnionCoordTemp
-    real(8),     dimension(20)  :: dTempVec, dCationCharge, dAnionCharge
+    real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
 
     real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
@@ -124,14 +124,14 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Read in the charge of each constituent on the first sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
-    read (1,*,IOSTAT = INFO) dCationCharge(1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,1,1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! I think that this entry represents the constituent IDs on the first sublattice (ignore for now):
     read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
-    read (1,*,IOSTAT = INFO) dAnionCharge(1:nSublatticeElementsCS(nCountSublatticeCS,2))
+    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,2,1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! I think that this entry represents the constituent IDs on the second sublattice (ignore for now):
     read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
@@ -168,9 +168,9 @@ subroutine ParseCSDataBlockSUBG( i )
                     iPairIDCS(nCountSublatticeCS, l + p, 3) = x + nSublatticeElementsCS(nCountSublatticeCS,1)
                     iPairIDCS(nCountSublatticeCS, l + p, 4) = y + nSublatticeElementsCS(nCountSublatticeCS,1)
                     ! Also need coordination numbers, will assume for now that the default is anion coordinations equal
-                    dAnionCoordTemp = (dAnionCharge(x) + dAnionCharge(y)) &
-                                    / ((dCationCharge(j)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 1)) &
-                                    + (dCationCharge(k)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 2)))
+                    dAnionCoordTemp = (dSublatticeChargeCS(nCountSublatticeCS,1,x) + dSublatticeChargeCS(nCountSublatticeCS,1,y)) &
+                                    / ((dSublatticeChargeCS(nCountSublatticeCS,2,j)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 1)) &
+                                    + (dSublatticeChargeCS(nCountSublatticeCS,2,k)/dCoordinationNumberCS(nCountSublatticeCS, l + p, 2)))
                     dCoordinationNumberCS(nCountSublatticeCS, l + p, 3) = dAnionCoordTemp
                     dCoordinationNumberCS(nCountSublatticeCS, l + p, 4) = dAnionCoordTemp
                 end do LOOP_sroPairsInner

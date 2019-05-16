@@ -213,6 +213,7 @@ subroutine ParseCSHeader
     allocate(iSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS,nElementsCS))
     allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(dZetaSpeciesCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
+    allocate(dSublatticeChargeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0
@@ -222,6 +223,7 @@ subroutine ParseCSHeader
     iSublatticeElementsCS    = 0
     nSublatticeElementsCS    = 0
     dZetaSpeciesCS           = 0D0
+    dSublatticeChargeCS      = 0D0
 
     ! Line 4: List of atomic masses of the elements:
     read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)
