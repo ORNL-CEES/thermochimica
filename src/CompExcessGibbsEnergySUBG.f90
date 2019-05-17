@@ -76,7 +76,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iQuad, iBlock
     integer :: iA2X2, iB2X2, iA2Y2, iB2Y2
-    real(8) :: dTemp, dSum, dEntropy, dRef, dPowXij, dPowYi, dRef2
+    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
     real(8) :: dQx, dQy, dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
@@ -297,8 +297,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! AB/XY parametrization
         a = iRegularParam(abxy,2)              ! Index of A
         b = iRegularParam(abxy,3)              ! Index of B
-        x = iRegularParam(abxy,4)              ! Index of X
-        y = iRegularParam(abxy,5)              ! Index of Y
+        x = iRegularParam(abxy,4) - nSublatticeElements(iSublPhaseIndex,1)             ! Index of X
+        y = iRegularParam(abxy,5) - nSublatticeElements(iSublPhaseIndex,1)             ! Index of Y
         p = iRegularParam(abxy,6)              ! Exponent of A2/X2
         q = iRegularParam(abxy,7)              ! Exponent of B2/X2
         r = iRegularParam(abxy,8)              ! Exponent of A2/Y2
@@ -352,9 +352,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (x - 1) + ((y-2)*(y-1)/2)) &
                       * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                       +  nSublatticeElements(iSublPhaseIndex,1) + e + ((f-2)*(f-1)/2)
-                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + &
-                                             ((dGex / 2) * (dCoordinationNumber(iSublPhaseIndex,iBlock,a) &
-                                                         /  dCoordinationNumber(iSublPhaseIndex,iQuad, a)))
+                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 2) &
+                                           * (dCoordinationNumber(iSublPhaseIndex,iBlock,a) &
+                                           /  dCoordinationNumber(iSublPhaseIndex,iQuad, a)))
             end do LOOP_AC1
         end if
         ! If X = Y add g^ex contribution to quads AB/XZ
@@ -366,9 +366,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (e - 1) + ((f-2)*(f-1)/2)) &
                       * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                       +  nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
-                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + &
-                                             ((dGex / 2) * (dCoordinationNumber(iSublPhaseIndex,iBlock,x) &
-                                                         /  dCoordinationNumber(iSublPhaseIndex,iQuad, x)))
+                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 2) &
+                                           * (dCoordinationNumber(iSublPhaseIndex,iBlock,x) &
+                                           /  dCoordinationNumber(iSublPhaseIndex,iQuad, x)))
             end do LOOP_XZ1
         end if
 
@@ -376,16 +376,46 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         do ijkl = 1, nPairsSRO(iSublPhaseIndex,2)
             i = iPairID(iSublPhaseIndex,ijkl,1)
             j = iPairID(iSublPhaseIndex,ijkl,2)
-            k = iPairID(iSublPhaseIndex,ijkl,3)
-            l = iPairID(iSublPhaseIndex,ijkl,4)
+            k = iPairID(iSublPhaseIndex,ijkl,3) - nSublatticeElements(iSublPhaseIndex,1)
+            l = iPairID(iSublPhaseIndex,ijkl,4) - nSublatticeElements(iSublPhaseIndex,1)
             ! Calculate dg^ex/dn_ij/kl
             dDgex = dDgexBase
             if ((i == j) .AND. (k == l)) then
-
+                if ((i == a) .AND. (k == x)) dDgex = dDgex + (dExcessGibbsParam(abxy) * p * (dXA2X2**(p-1)))
+                if ((i == b) .AND. (k == x)) dDgex = dDgex + (dExcessGibbsParam(abxy) * q * (dXB2X2**(q-1)))
+                if ((i == a) .AND. (k == y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * r * (dXA2Y2**(r-1)))
+                if ((i == b) .AND. (k == y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * s * (dXB2Y2**(s-1)))
             end if
 
-            ! dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) +
+            dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) + (dMolFraction(iBlock) * dDgex / 2)
 
+            if ((a == b) .AND. (x /= y)) then
+                LOOP_AC2: do c = 1, nSublatticeElements(iSublPhaseIndex,1)
+                    if (c == a) cycle LOOP_AC2
+                    e = MIN(a,c)
+                    f = MAX(a,c)
+                    iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                          * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                          +  nSublatticeElements(iSublPhaseIndex,1) + e + ((f-2)*(f-1)/2)
+                    dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) + ((dMolFraction(iQuad) * dDgex / 2) &
+                                              * (dCoordinationNumber(iSublPhaseIndex,iBlock,a) &
+                                              /  dCoordinationNumber(iSublPhaseIndex,iQuad, a)))
+                end do LOOP_AC2
+            end if
+            ! If X = Y add g^ex contribution to quads AB/XZ
+            if ((a /= b) .AND. (x == y)) then
+                LOOP_XZ2: do z = 1, nSublatticeElements(iSublPhaseIndex,2)
+                    if (z == x) cycle LOOP_XZ2
+                    e = MIN(x,z)
+                    f = MAX(x,z)
+                    iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (e - 1) + ((f-2)*(f-1)/2)) &
+                          * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                          +  nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
+                    dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) + ((dMolFraction(iQuad) * dDgex / 2) &
+                                              * (dCoordinationNumber(iSublPhaseIndex,iBlock,x) &
+                                              /  dCoordinationNumber(iSublPhaseIndex,iQuad, x)))
+                end do LOOP_XZ2
+            end if
         end do
 
     end do LOOP_Param
