@@ -71,7 +71,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la, iax, ibx, iay, iby,
+    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la, iax, ibx, iay, iby
     integer :: a, b, c, x, y, z, e, f, ijkl, abxy
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iQuad, iBlock
@@ -85,7 +85,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
 
     ! Only proceed if the correct phase type is selected:
-    IF_SUBG: if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ')) return
+    if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ')) return
 
     ! Define temporary variables for sake of convenience:
     iFirst = nSpeciesPhase(iSolnIndex-1) + 1
@@ -320,16 +320,16 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             iBlock = iBlock + nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
         end if
         iA2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                         + a + iFirst - 1
         iB2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                         + b + iFirst - 1
         iA2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                         + a + iFirst - 1
         iB2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                         + b + iFirst - 1
         dXA2X2 = dMolFraction(iA2X2)
         dXB2X2 = dMolFraction(iB2X2)
@@ -381,41 +381,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Calculate dg^ex/dn_ij/kl
             dDgex = dDgexBase
             if ((i == j) .AND. (k == l)) then
-                
+
             end if
 
-            dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) +
+            ! dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) +
 
         end do
-
-        if      ((ii /= jj) .AND. (kk /= ll)) then
-
-
-        else if ((ii /= jj) .AND. (kk == ll)) then
-            ! AB/X2 parameter set
-            ! Contribution to A2/X2
-            dTemp = z * x**(p-1) * y**(q) * (DBLE(p)*(y+z) - DBLE(q)*x)
-            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-            dPartialExcessGibbs(iA2X2) = dPartialExcessGibbs(iA2X2) + dTemp
-            ! Contribution to B2/X2
-            iCurrentQuad = (kk - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-            iCurrentQuad = iCurrentQuad + jj + iFirst - 1
-            dTemp = z * x**(p) * y**(q-1) * (DBLE(q)*(x+z) - DBLE(p)*y)
-            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-            dPartialExcessGibbs(iCurrentQuad) = dPartialExcessGibbs(iCurrentQuad) + dTemp
-            ! Contribution to AB/X2
-            iCurrentQuad = (kk - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-            iCurrentQuad = iCurrentQuad + nSublatticeElements(iSublPhaseIndex,1) + ii + ((jj-2)*(jj-1)/2)
-            iCurrentQuad = iCurrentQuad + iFirst - 1
-            dTemp = x**(p) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
-            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-            dPartialExcessGibbs(iCurrentQuad) = dPartialExcessGibbs(iCurrentQuad) + dTemp
-
-        else if ((ii == jj) .AND. (kk /= ll)) then
-
-        end if
 
     end do LOOP_Param
 
