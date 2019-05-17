@@ -71,314 +71,353 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, p, q, r, ii, jj, kk ,ll, ka, la, iax, ibx, iay, iby
+    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la, iax, ibx, iay, iby,
+    integer :: a, b, c, x, y, z, e, f, ijkl, abxy
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
-    integer :: iFirst, iLast, nA, nX, iWeight
-    real(8) :: dTemp, dSum, dEntropy, dRef, dPowXij, dPowYi
-    real(8) :: dZAAA, dZABA, dZBAB, dQx, dQy, dZa, dZb, dZx, dZy
-    real(8) :: x, y, z
+    integer :: iFirst, iLast, nA, nX, iWeight, iQuad, iBlock
+    integer :: iA2X2, iB2X2, iA2Y2, iB2Y2
+    real(8) :: dTemp, dSum, dEntropy, dRef, dPowXij, dPowYi, dRef2
+    real(8) :: dQx, dQy, dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij
     ! X_ij/kl corresponds to dMolFracion
 
 
     ! Only proceed if the correct phase type is selected:
-    IF_SUBG: if (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ') then
+    IF_SUBG: if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ')) return
 
-        ! Define temporary variables for sake of convenience:
-        iFirst = nSpeciesPhase(iSolnIndex-1) + 1
-        iLast  = nSpeciesPhase(iSolnIndex)
-        iSublPhaseIndex = iPhaseSublattice(iSolnIndex)
+    ! Define temporary variables for sake of convenience:
+    iFirst = nSpeciesPhase(iSolnIndex-1) + 1
+    iLast  = nSpeciesPhase(iSolnIndex)
+    iSublPhaseIndex = iPhaseSublattice(iSolnIndex)
 
-        ! Allocate allocatable arrays:
-        if (allocated(dXi)) deallocate(dXi)
-        if (allocated(dYi)) deallocate(dYi)
-        if (allocated(dNi)) deallocate(dNi)
-        if (allocated(dXij)) deallocate(dXij)
-        j = iLast - iFirst + 1
-        nPhaseElements = nSublatticeElements(iSublPhaseIndex,1) + nSublatticeElements(iSublPhaseIndex,2)
-        allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
-        allocate(dXij(nSublatticeElements(iSublPhaseIndex,1),nSublatticeElements(iSublPhaseIndex,2)))
+    ! Allocate allocatable arrays:
+    if (allocated(dXi)) deallocate(dXi)
+    if (allocated(dYi)) deallocate(dYi)
+    if (allocated(dNi)) deallocate(dNi)
+    if (allocated(dXij)) deallocate(dXij)
+    j = iLast - iFirst + 1
+    nPhaseElements = nSublatticeElements(iSublPhaseIndex,1) + nSublatticeElements(iSublPhaseIndex,2)
+    allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
+    allocate(dXij(nSublatticeElements(iSublPhaseIndex,1),nSublatticeElements(iSublPhaseIndex,2)))
 
-        ! Initialize variables:
-        dXi                               = 0D0
-        dYi                               = 0D0
-        dXij                              = 0D0
-        dChemicalPotential(iFirst:iLast)  = 0D0
-        dPartialExcessGibbs(iFirst:iLast) = 0D0
+    ! Initialize variables:
+    dXi                               = 0D0
+    dYi                               = 0D0
+    dXij                              = 0D0
+    dChemicalPotential(iFirst:iLast)  = 0D0
+    dPartialExcessGibbs(iFirst:iLast) = 0D0
 
-        ! Compute X_i and Y_i
-        ! Do cations first:
-        dSum = 0D0
-        do i = 1, nSublatticeElements(iSublPhaseIndex,1)
-            do k = 1, nPairsSRO(iSublPhaseIndex,2)
-                l = iFirst + k - 1
-                if (i == iPairID(iSublPhaseIndex,k,1))  then
-                    dNi(i) = dNi(i) + (dMolFraction(l) / dCoordinationNumber(iSublPhaseIndex,k,1))
-                    dYi(i) = dYi(i) + (dMolFraction(l) / 2)
-                end if
-                if (i == iPairID(iSublPhaseIndex,k,2))  then
-                    dNi(i) = dNi(i) + (dMolFraction(l) / dCoordinationNumber(iSublPhaseIndex,k,2))
-                    dYi(i) = dYi(i) + (dMolFraction(l) / 2)
-                end if
-            end do
-            dSum = dSum + dNi(i)
-        end do
-        do i = 1, nSublatticeElements(iSublPhaseIndex,1)
-            dXi(i) = dNi(i) / dSum
-        end do
-        ! Do anions now:
-        dSum = 0D0
-        do i = 1, nSublatticeElements(iSublPhaseIndex,2)
-            j = i + nSublatticeElements(iSublPhaseIndex,1)
-            do k = 1, nPairsSRO(iSublPhaseIndex,2)
-                l = iFirst + k - 1
-                if (j == iPairID(iSublPhaseIndex,k,3))  then
-                    dNi(j) = dNi(j) + (dMolFraction(l) / dCoordinationNumber(iSublPhaseIndex,k,3))
-                    dYi(j) = dYi(j) + (dMolFraction(l) / 2)
-                end if
-                if (j == iPairID(iSublPhaseIndex,k,4))  then
-                    dNi(j) = dNi(j) + (dMolFraction(l) / dCoordinationNumber(iSublPhaseIndex,k,4))
-                    dYi(j) = dYi(j) + (dMolFraction(l) / 2)
-                end if
-            end do
-            dSum = dSum + dNi(j)
-        end do
-        do i = 1, nSublatticeElements(iSublPhaseIndex,2)
-            j = i + nSublatticeElements(iSublPhaseIndex,1)
-            dXi(j) = dNi(j) / dSum
-        end do
-
-        ! Compute X_i/j
-        do i = 1, nSublatticeElements(iSublPhaseIndex,1)
-            do j = 1, nSublatticeElements(iSublPhaseIndex,2)
-                do k = 1, nPairsSRO(iSublPhaseIndex,2)
-                    l = iFirst + k - 1
-                    nA = 0
-                    if (i == iPairID(iSublPhaseIndex,k,1))  then
-                        nA = nA + 1
-                    end if
-                    if (i == iPairID(iSublPhaseIndex,k,2))  then
-                        nA = nA + 1
-                    end if
-                    nX = 0
-                    if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,3))  then
-                        nX = nX + 1
-                    end if
-                    if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,4))  then
-                        nX = nX + 1
-                    end if
-                    dXij(i,j) = dXij(i,j) + (dMolFraction(l) * nA * nX / 4)
-                end do
-            end do
-        end do
-
-        ! ---------------------------------------------------------------
-        ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
-        ! ---------------------------------------------------------------
-
+    ! Compute X_i and Y_i
+    ! Do cations first:
+    dSum = 0D0
+    do i = 1, nSublatticeElements(iSublPhaseIndex,1)
         do k = 1, nPairsSRO(iSublPhaseIndex,2)
-            ! Calculate entropic contributionrs to chemical potentials
-            dEntropy = 0D0
-            dRef = 0D0
             l = iFirst + k - 1
-
-            ! Loop over n_i contributions to entropy
-            ! Cations first
-            do i = 1, nSublatticeElements(iSublPhaseIndex,1)
-                if (i == iPairID(iSublPhaseIndex,k,1))  then
-                    dEntropy = dEntropy + (DLOG(dXi(i)) / dCoordinationNumber(iSublPhaseIndex,k,1))
-                end if
-                if (i == iPairID(iSublPhaseIndex,k,2))  then
-                    dEntropy = dEntropy + (DLOG(dXi(i)) / dCoordinationNumber(iSublPhaseIndex,k,2))
-                end if
-            end do
-            ! Now anions
-            do i = 1, nSublatticeElements(iSublPhaseIndex,2)
-                j = i + nSublatticeElements(iSublPhaseIndex,1)
-                if (j == iPairID(iSublPhaseIndex,k,3))  then
-                    dEntropy = dEntropy + (DLOG(dXi(j)) / dCoordinationNumber(iSublPhaseIndex,k,3))
-                end if
-                if (j == iPairID(iSublPhaseIndex,k,4))  then
-                    dEntropy = dEntropy + (DLOG(dXi(j)) / dCoordinationNumber(iSublPhaseIndex,k,4))
-                end if
-            end do
-
-            ! Loop over n_i/j contributions to entropy
-            m = 0
-            do i = 1, nSublatticeElements(iSublPhaseIndex,1)
-                do j = 1, nSublatticeElements(iSublPhaseIndex,2)
-                    m = iConstituentSublattice(iSublPhaseIndex,1,i) + &
-                    ((iConstituentSublattice(iSublPhaseIndex,2,j) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-                    ! m = m + 1
-                    nA = 0
-                    p = 0
-                    if (i == iPairID(iSublPhaseIndex,k,1))  then
-                        nA = nA + 1
-                        p = 1
-                        ! dRef = dRef + (dSublatticeCharge(iSublPhaseIndex,2,j) * dStdGibbsEnergy(m + iFirst - 1) &
-                        ! / (dCoordinationNumber(iSublPhaseIndex,k,1) * dCoordinationNumber(iSublPhaseIndex,k,1)))
-                    end if
-                    if (i == iPairID(iSublPhaseIndex,k,2))  then
-                        nA = nA + 1
-                        p = 2
-                    end if
-                    nX = 0
-                    if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,3))  then
-                        nX = nX + 1
-                    end if
-                    if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,4))  then
-                        nX = nX + 1
-                    end if
-                    dEntropy = dEntropy + (DLOG(dXij(i,j) / (dYi(i) * dYi(j + nSublatticeElements(iSublPhaseIndex,1)))) &
-                                          * (nA * nX / dZetaSpecies(iSublPhaseIndex,m)))
-                    if (p > 0) dRef = dRef + ((nA * nX * dStdGibbsEnergy(m + iFirst - 1)) &
-                                    / ( 2 * dCoordinationNumber(iSublPhaseIndex,k,p)))
-                    ! Fix this reference energy calculation
-                end do
-            end do
-
-            ! pair indices:
-            ii = iPairID(iSublPhaseIndex,k,1)
-            jj = iPairID(iSublPhaseIndex,k,2)
-            kk = iPairID(iSublPhaseIndex,k,3)
-            ll = iPairID(iSublPhaseIndex,k,4)
-            ka = kk - nSublatticeElements(iSublPhaseIndex,1)
-            la = ll - nSublatticeElements(iSublPhaseIndex,1)
-
-            ! Add n_ij/kl contribution
-            iWeight = 1
-            if (ii /= jj) iWeight = iWeight * 2
-            if (kk /= ll) iWeight = iWeight * 2
-
-            ! SUBG and SUBQ differ in entropy calculation by the powers to which X_i/j and Y_i are raised
-            if (cSolnPhaseType(iSolnIndex) == 'SUBG') then
-                dPowXij = 1D0
-                dPowYi  = 1D0
-            else if (cSolnPhaseType(iSolnIndex) == 'SUBQ') then
-                dPowXij = 0.75D0
-                dPowYi  = 0.5D0
-            end if
-            dEntropy = dEntropy + DLOG(dMolFraction(l) / (iWeight * (dXij(ii,ka)**dPowXij) * (dXij(ii,la)**dPowXij) &
-                                                                  * (dXij(jj,ka)**dPowXij) * (dXij(jj,la)**dPowXij) &
-                                            / ((dYi(ii)**dPowYi) * (dYi(jj)**dPowYi) * (dYi(kk)**dPowYi) * (dYi(ll)**dPowYi))))
-
-            ! Gibbs reference energy calculation
-            dQx = dSublatticeCharge(iSublPhaseIndex,2,ka)
-            dQy = dSublatticeCharge(iSublPhaseIndex,2,la)
             dZa = dCoordinationNumber(iSublPhaseIndex,k,1)
             dZb = dCoordinationNumber(iSublPhaseIndex,k,2)
+            if (i == iPairID(iSublPhaseIndex,k,1))  then
+                dNi(i) = dNi(i) + (dMolFraction(l) / dZa)
+                dYi(i) = dYi(i) + (dMolFraction(l) / 2)
+            end if
+            if (i == iPairID(iSublPhaseIndex,k,2))  then
+                dNi(i) = dNi(i) + (dMolFraction(l) / dZb)
+                dYi(i) = dYi(i) + (dMolFraction(l) / 2)
+            end if
+        end do
+        dSum = dSum + dNi(i)
+    end do
+    do i = 1, nSublatticeElements(iSublPhaseIndex,1)
+        dXi(i) = dNi(i) / dSum
+    end do
+    ! Do anions now:
+    dSum = 0D0
+    do i = 1, nSublatticeElements(iSublPhaseIndex,2)
+        j = i + nSublatticeElements(iSublPhaseIndex,1)
+        do k = 1, nPairsSRO(iSublPhaseIndex,2)
+            l = iFirst + k - 1
             dZx = dCoordinationNumber(iSublPhaseIndex,k,3)
             dZy = dCoordinationNumber(iSublPhaseIndex,k,4)
+            if (j == iPairID(iSublPhaseIndex,k,3))  then
+                dNi(j) = dNi(j) + (dMolFraction(l) / dZx)
+                dYi(j) = dYi(j) + (dMolFraction(l) / 2)
+            end if
+            if (j == iPairID(iSublPhaseIndex,k,4))  then
+                dNi(j) = dNi(j) + (dMolFraction(l) / dZy)
+                dYi(j) = dYi(j) + (dMolFraction(l) / 2)
+            end if
+        end do
+        dSum = dSum + dNi(j)
+    end do
+    do i = 1, nSublatticeElements(iSublPhaseIndex,2)
+        j = i + nSublatticeElements(iSublPhaseIndex,1)
+        dXi(j) = dNi(j) / dSum
+    end do
 
-            iax = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
-            ((iConstituentSublattice(iSublPhaseIndex,2,kk) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-            ibx = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
-            ((iConstituentSublattice(iSublPhaseIndex,2,kk) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-            iay = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
-            ((iConstituentSublattice(iSublPhaseIndex,2,ll) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-            iby = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
-            ((iConstituentSublattice(iSublPhaseIndex,2,ll) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+    ! Compute X_i/j
+    do i = 1, nSublatticeElements(iSublPhaseIndex,1)
+        do j = 1, nSublatticeElements(iSublPhaseIndex,2)
+            do k = 1, nPairsSRO(iSublPhaseIndex,2)
+                l = iFirst + k - 1
+                nA = 0
+                if (i == iPairID(iSublPhaseIndex,k,1))  then
+                    nA = nA + 1
+                end if
+                if (i == iPairID(iSublPhaseIndex,k,2))  then
+                    nA = nA + 1
+                end if
+                nX = 0
+                if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,3))  then
+                    nX = nX + 1
+                end if
+                if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,4))  then
+                    nX = nX + 1
+                end if
+                dXij(i,j) = dXij(i,j) + (dMolFraction(l) * nA * nX / 4)
+            end do
+        end do
+    end do
 
-            ! dRef = ((dQx * dStdGibbsEnergy(iax + iFirst - 1) / (dZa * dZx)) &
-            !       + (dQx * dStdGibbsEnergy(ibx + iFirst - 1) / (dZb * dZx)) &
-            !       + (dQy * dStdGibbsEnergy(iay + iFirst - 1) / (dZa * dZy)) &
-            !       + (dQy * dStdGibbsEnergy(iby + iFirst - 1) / (dZb * dZy))) &
-            !       / ((dQx/dZx) + (dQy/dZy))
+    ! ---------------------------------------------------------------
+    ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
+    ! ---------------------------------------------------------------
 
-            ! Calculate chemical potential of quadruplet
-            dChemicalPotential(l) = dRef + dEntropy
+    do k = 1, nPairsSRO(iSublPhaseIndex,2)
+        ! Calculate entropic contributionrs to chemical potentials
+        dEntropy = 0D0
+        dRef = 0D0
+        l = iFirst + k - 1
+
+        ! Coordination numbers for this quadruplet:
+        dZa = dCoordinationNumber(iSublPhaseIndex,k,1)
+        dZb = dCoordinationNumber(iSublPhaseIndex,k,2)
+        dZx = dCoordinationNumber(iSublPhaseIndex,k,3)
+        dZy = dCoordinationNumber(iSublPhaseIndex,k,4)
+
+        ! Loop over n_i contributions to entropy
+        ! Cations first
+        do i = 1, nSublatticeElements(iSublPhaseIndex,1)
+            if (i == iPairID(iSublPhaseIndex,k,1))  then
+                dEntropy = dEntropy + (DLOG(dXi(i)) / dZa)
+            end if
+            if (i == iPairID(iSublPhaseIndex,k,2))  then
+                dEntropy = dEntropy + (DLOG(dXi(i)) / dZb)
+            end if
+        end do
+        ! Now anions
+        do i = 1, nSublatticeElements(iSublPhaseIndex,2)
+            j = i + nSublatticeElements(iSublPhaseIndex,1)
+            if (j == iPairID(iSublPhaseIndex,k,3))  then
+                dEntropy = dEntropy + (DLOG(dXi(j)) / dZx)
+            end if
+            if (j == iPairID(iSublPhaseIndex,k,4))  then
+                dEntropy = dEntropy + (DLOG(dXi(j)) / dZy)
+            end if
         end do
 
-        ! Loop through all pairs:
-        ! LOOP_C: do i = 1, nPairsSRO(iSublPhaseIndex,2)
-        !     j = iFirst + i - 1
-        !     ! AA pairs:
-        !     if (iPairID(iSublPhaseIndex,i,1) == iPairID(iSublPhaseIndex,i,2)) then
-        !         ! Store coordination numbers:
-        !         dZAAA = dCoordinationNumber(iSublPhaseIndex,i,1)
-        !
-        !         ! Compute standard reference Gibbs energy (Eq [15]):
-        !         dChemicalPotential(j) = dStdGibbsEnergy(j) * 2D0 / dZAAA
-        !
-        !         ! Compute ideal mixing component:
-        !         dChemicalPotential(j) = dChemicalPotential(j) + (2D0 / dZAAA) * DLOG(dXi(i)) + DLOG(dMolFraction(j) / dYi(i)**2)
-        !         ! dChemicalPotential(j) = (2D0 / dZAAA) * DLOG(dXi(i)) + DLOG(dMolFraction(j) / dYi(i)**2)
-        !     ! AB pairs:
-        !     else
-        !         k = iPairID(iSublPhaseIndex,i,1)            ! Index of AA
-        !         l = iPairID(iSublPhaseIndex,i,2)            ! Index of BB
-        !
-        !         ! Store coordination numbers:
-        !         dZABA = dCoordinationNumber(iSublPhaseIndex,i,1)
-        !         dZBAB = dCoordinationNumber(iSublPhaseIndex,i,2)
-        !
-        !         ! Compute standard reference Gibbs energy:
-        !         ! NOTE: I did not include $\Delta g_{AB}^{\circ}$ in this equation because I think it makes more sense
-        !         ! to include it in the excess mixing section.
-        !         ! Eq [16]:
-        !         dChemicalPotential(j) = dStdGibbsEnergy(k + iFirst - 1) / dZABA + dStdGibbsEnergy(l + iFirst - 1) / dZBAB
-        !
-        !         ! Compute ideal mixing component:
-        !         dChemicalPotential(j) = dChemicalPotential(j) + DLOG(dMolFraction(j) / (2D0 * dYi(k) * dYi(l))) &
-        !                                                       + DLOG(dXi(k)) / dZABA + DLOG(dXi(l)) / dZBAB
-        !         ! dChemicalPotential(j) = DLOG(dMolFraction(j) / (2D0 * dYi(k) * dYi(l))) &
-        !         !                         + DLOG(dXi(k)) / dZABA + DLOG(dXi(l)) / dZBAB
-        !     end if
-        !
-        ! end do LOOP_C
-
-        ! ---------------------------------------------------------
-        ! COMPUTE PARTIAL MOLAR EXCESS GIBBS ENERGY OF MIXING TERMS
-        ! ---------------------------------------------------------
-
-        ! Loop through excess mixing parameters:
-        LOOP_Param: do m = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
-            ii = iRegularParam(m,2)              ! Index of A
-            jj = iRegularParam(m,3)              ! Index of B
-            kk = iRegularParam(m,4)              ! Index of X
-            ll = iRegularParam(m,5)              ! Index of Y
-            k = 0
-            ! Find which (if any) position AB is stored at:
-            LOOP_FindPair: do l = 1, nPairsSRO(iSublPhaseIndex,2)
-                if (((iPairID(iSublPhaseIndex,l,1) == ii) .AND. (iPairID(iSublPhaseIndex,l,2) == jj)) .AND. &
-                    ((iPairID(iSublPhaseIndex,l,3) == kk) .AND. (iPairID(iSublPhaseIndex,l,4) == ll)))  then
-                    k = l
-                    EXIT LOOP_FindPair
+        ! Loop over n_i/j contributions to entropy
+        m = 0
+        do i = 1, nSublatticeElements(iSublPhaseIndex,1)
+            do j = 1, nSublatticeElements(iSublPhaseIndex,2)
+                m = iConstituentSublattice(iSublPhaseIndex,1,i) + &
+                ((iConstituentSublattice(iSublPhaseIndex,2,j) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+                nA = 0
+                if (i == iPairID(iSublPhaseIndex,k,1))  then
+                    nA = nA + 1
                 end if
-            end do LOOP_FindPair
-            p = iRegularParam(m,6)              ! Exponent of AA
-            q = iRegularParam(m,7)              ! Exponent of BB
-            r = iRegularParam(m,8)              ! Exponent of AB
-            x = dMolFraction(iFirst + ii - 1)    ! x_AA
-            y = dMolFraction(iFirst + jj - 1)    ! x_BB
-            if (k > 0) then
-                z = dMolFraction(iFirst + k - 1)! x_AB
-            else
-                z = 0
-            end if
-            dSum = x + y + z
+                if (i == iPairID(iSublPhaseIndex,k,2))  then
+                    nA = nA + 1
+                end if
+                nX = 0
+                if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,3))  then
+                    nX = nX + 1
+                end if
+                if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,4))  then
+                    nX = nX + 1
+                end if
+                dEntropy = dEntropy + (DLOG(dXij(i,j) / (dYi(i) * dYi(j + nSublatticeElements(iSublPhaseIndex,1)))) &
+                                      * (nA * nX / dZetaSpecies(iSublPhaseIndex,m)))
+            end do
+        end do
 
-            ! Contribution to AA:
+        ! Pair indices:
+        ii = iPairID(iSublPhaseIndex,k,1)
+        jj = iPairID(iSublPhaseIndex,k,2)
+        kk = iPairID(iSublPhaseIndex,k,3)
+        ll = iPairID(iSublPhaseIndex,k,4)
+        ! Anion indices adjusted to start from 1
+        ka = kk - nSublatticeElements(iSublPhaseIndex,1)
+        la = ll - nSublatticeElements(iSublPhaseIndex,1)
+
+        ! Add n_ij/kl contribution
+        iWeight = 1
+        if (ii /= jj) iWeight = iWeight * 2
+        if (kk /= ll) iWeight = iWeight * 2
+
+        ! SUBG and SUBQ differ in entropy calculation by the powers to which X_i/j and Y_i are raised
+        if (cSolnPhaseType(iSolnIndex) == 'SUBG') then
+            dPowXij = 1D0
+            dPowYi  = 1D0
+        else if (cSolnPhaseType(iSolnIndex) == 'SUBQ') then
+            dPowXij = 0.75D0
+            dPowYi  = 0.5D0
+        end if
+        dEntropy = dEntropy + DLOG(dMolFraction(l) / (iWeight * (dXij(ii,ka)**dPowXij) * (dXij(ii,la)**dPowXij) &
+                                                              * (dXij(jj,ka)**dPowXij) * (dXij(jj,la)**dPowXij) &
+                                                              / ((dYi(ii)**dPowYi) * (dYi(jj)**dPowYi) &
+                                                              *  (dYi(kk)**dPowYi) * (dYi(ll)**dPowYi))))
+
+        ! Gibbs reference energy calculation
+        dQx = dSublatticeCharge(iSublPhaseIndex,2,ka)
+        dQy = dSublatticeCharge(iSublPhaseIndex,2,la)
+
+        ! Indices of reference energy equations for A/X, B/X, A/Y, B/Y
+        iax = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
+        ((iConstituentSublattice(iSublPhaseIndex,2,ka) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+        ibx = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
+        ((iConstituentSublattice(iSublPhaseIndex,2,ka) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+        iay = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
+        ((iConstituentSublattice(iSublPhaseIndex,2,la) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+        iby = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
+        ((iConstituentSublattice(iSublPhaseIndex,2,la) - 1) * nSublatticeElements(iSublPhaseIndex,1))
+
+        dRef = ((dQx * dStdGibbsEnergy(iax + iFirst - 1) / (dZa * dZx)) &
+              + (dQx * dStdGibbsEnergy(ibx + iFirst - 1) / (dZb * dZx)) &
+              + (dQy * dStdGibbsEnergy(iay + iFirst - 1) / (dZa * dZy)) &
+              + (dQy * dStdGibbsEnergy(iby + iFirst - 1) / (dZb * dZy))) &
+              / ((dQx/dZx) + (dQy/dZy))
+
+        ! Calculate chemical potential of quadruplet
+        dChemicalPotential(l) = dRef + dEntropy
+    end do
+
+    ! Loop through excess mixing parameters:
+    LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
+        ! AB/XY parametrization
+        a = iRegularParam(abxy,2)              ! Index of A
+        b = iRegularParam(abxy,3)              ! Index of B
+        x = iRegularParam(abxy,4)              ! Index of X
+        y = iRegularParam(abxy,5)              ! Index of Y
+        p = iRegularParam(abxy,6)              ! Exponent of A2/X2
+        q = iRegularParam(abxy,7)              ! Exponent of B2/X2
+        r = iRegularParam(abxy,8)              ! Exponent of A2/Y2
+        s = iRegularParam(abxy,9)              ! Exponent of B2/Y2
+        if (x == y) then
+            iBlock = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                             * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+        else if (x > y) then
+            cycle LOOP_Param
+        else
+            iBlock = (nSublatticeElements(iSublPhaseIndex,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                   * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+        end if
+        if (a == b) then
+            iBlock = iBlock + a
+        else if (a > b) then
+            cycle LOOP_Param
+        else
+            iBlock = iBlock + nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
+        end if
+        iA2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        + a + iFirst - 1
+        iB2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        + b + iFirst - 1
+        iA2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        + a + iFirst - 1
+        iB2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                        + b + iFirst - 1
+        dXA2X2 = dMolFraction(iA2X2)
+        dXB2X2 = dMolFraction(iB2X2)
+        dXA2Y2 = dMolFraction(iA2Y2)
+        dXB2Y2 = dMolFraction(iB2Y2)
+
+        dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXB2X2**q + dXA2Y2**r + dXB2Y2**s)
+
+        dDgexBase = -dExcessGibbsParam(abxy) * (p*dXA2X2**p + q*dXB2X2**q + r*dXA2Y2**r + s*dXB2Y2**s)
+
+        ! First add g^ex contribution to quad corresponding to block AB/XY
+        dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
+
+        ! If A = B add g^ex contribution to quads AC/XY
+        if ((a == b) .AND. (x /= y)) then
+            LOOP_AC1: do c = 1, nSublatticeElements(iSublPhaseIndex,1)
+                if (c == a) cycle LOOP_AC1
+                e = MIN(a,c)
+                f = MAX(a,c)
+                iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                      * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                      +  nSublatticeElements(iSublPhaseIndex,1) + e + ((f-2)*(f-1)/2)
+                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + &
+                                             ((dGex / 2) * (dCoordinationNumber(iSublPhaseIndex,iBlock,a) &
+                                                         /  dCoordinationNumber(iSublPhaseIndex,iQuad, a)))
+            end do LOOP_AC1
+        end if
+        ! If X = Y add g^ex contribution to quads AB/XZ
+        if ((a /= b) .AND. (x == y)) then
+            LOOP_XZ1: do z = 1, nSublatticeElements(iSublPhaseIndex,2)
+                if (z == x) cycle LOOP_XZ1
+                e = MIN(x,z)
+                f = MAX(x,z)
+                iQuad = (nSublatticeElements(iSublPhaseIndex,2) + (e - 1) + ((f-2)*(f-1)/2)) &
+                      * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                      +  nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
+                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + &
+                                             ((dGex / 2) * (dCoordinationNumber(iSublPhaseIndex,iBlock,x) &
+                                                         /  dCoordinationNumber(iSublPhaseIndex,iQuad, x)))
+            end do LOOP_XZ1
+        end if
+
+        ! Now loop over all quads IJ/KL to add dg^ex contributions
+        do ijkl = 1, nPairsSRO(iSublPhaseIndex,2)
+            i = iPairID(iSublPhaseIndex,ijkl,1)
+            j = iPairID(iSublPhaseIndex,ijkl,2)
+            k = iPairID(iSublPhaseIndex,ijkl,3)
+            l = iPairID(iSublPhaseIndex,ijkl,4)
+            ! Calculate dg^ex/dn_ij/kl
+            dDgex = dDgexBase
+            if ((i == j) .AND. (k == l)) then
+                
+            end if
+
+            dPartialExcessGibbs(ijkl) = dPartialExcessGibbs(ijkl) +
+
+        end do
+
+        if      ((ii /= jj) .AND. (kk /= ll)) then
+
+
+        else if ((ii /= jj) .AND. (kk == ll)) then
+            ! AB/X2 parameter set
+            ! Contribution to A2/X2
             dTemp = z * x**(p-1) * y**(q) * (DBLE(p)*(y+z) - DBLE(q)*x)
             dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-            dPartialExcessGibbs(iFirst + ii - 1) = dPartialExcessGibbs(iFirst + ii - 1) + dTemp
-
-            ! Contribution to BB:
+            dPartialExcessGibbs(iA2X2) = dPartialExcessGibbs(iA2X2) + dTemp
+            ! Contribution to B2/X2
+            iCurrentQuad = (kk - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+            iCurrentQuad = iCurrentQuad + jj + iFirst - 1
             dTemp = z * x**(p) * y**(q-1) * (DBLE(q)*(x+z) - DBLE(p)*y)
             dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-            dPartialExcessGibbs(iFirst + jj - 1) = dPartialExcessGibbs(iFirst + jj - 1) + dTemp
+            dPartialExcessGibbs(iCurrentQuad) = dPartialExcessGibbs(iCurrentQuad) + dTemp
+            ! Contribution to AB/X2
+            iCurrentQuad = (kk - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+            iCurrentQuad = iCurrentQuad + nSublatticeElements(iSublPhaseIndex,1) + ii + ((jj-2)*(jj-1)/2)
+            iCurrentQuad = iCurrentQuad + iFirst - 1
+            dTemp = x**(p) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
+            dTemp = dTemp * dExcessGibbsParam(m) / 2D0
+            dPartialExcessGibbs(iCurrentQuad) = dPartialExcessGibbs(iCurrentQuad) + dTemp
 
-            ! Contribution to AB (only if pair exists):
-            if (k > 0) then
-                dTemp = x**(p) * y**(q) * (z*(1D0 - DBLE(p) - DBLE(q)) + x + y)
-                dTemp = dTemp * dExcessGibbsParam(m) / 2D0
-                dPartialExcessGibbs(iFirst + k - 1) = dPartialExcessGibbs(iFirst + k - 1) + dTemp
-            end if
+        else if ((ii == jj) .AND. (kk /= ll)) then
 
-        end do LOOP_Param
+        end if
 
-    end if IF_SUBG
+    end do LOOP_Param
 
     ! Deallocate allocatable arrays:
     deallocate(dXi,dYi,dNi,dXij)
