@@ -336,16 +336,31 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXB2X2 = dMolFraction(iB2X2)
         dXA2Y2 = dMolFraction(iA2Y2)
         dXB2Y2 = dMolFraction(iB2Y2)
+        ! Assuming if A=B or X=Y then first exponent gets used
+        if (a == b) then
+            dXB2X2 = 0
+            dXB2Y2 = 0
+        end if
+        if (x == y) then
+            dXA2Y2 = 0
+            dXB2Y2 = 0
+        end if
 
-        dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXB2X2**q + dXA2Y2**r + dXB2Y2**s)
+        ! dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXB2X2**q + dXA2Y2**r + dXB2Y2**s)
 
         dDgexBase = -dExcessGibbsParam(abxy) * (p*dXA2X2**p + q*dXB2X2**q + r*dXA2Y2**r + s*dXB2Y2**s)
 
         ! First add g^ex contribution to quad corresponding to block AB/XY
-        dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
+        if ((a /= b) .AND. (x /= y)) then
+            dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXB2X2**q + dXA2Y2**r + dXB2Y2**s)
+            dDgexBase = -dExcessGibbsParam(abxy) * (p*dXA2X2**p + q*dXB2X2**q + r*dXA2Y2**r + s*dXB2Y2**s)
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
 
         ! If A = B add g^ex contribution to quads AC/XY
-        if ((a == b) .AND. (x /= y)) then
+        else if ((a == b) .AND. (x /= y)) then
+            dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXA2Y2**r)
+            dDgexBase = -dExcessGibbsParam(abxy) * (p*dXA2X2**p + r*dXA2Y2**r)
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
             LOOP_AC1: do c = 1, nSublatticeElements(iSublPhaseIndex,1)
                 if (c == a) cycle LOOP_AC1
                 e = MIN(a,c)
@@ -358,9 +373,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                                            * (dCoordinationNumber(iSublPhaseIndex,iBlock - iFirst + 1,a) &
                                            /  dCoordinationNumber(iSublPhaseIndex,iQuad - iFirst + 1, a)))
             end do LOOP_AC1
-        end if
+
         ! If X = Y add g^ex contribution to quads AB/XZ
-        if ((a /= b) .AND. (x == y)) then
+        else if ((a /= b) .AND. (x == y)) then
+            dGex = dExcessGibbsParam(abxy) * (dXA2X2**p + dXB2X2**q)
+            dDgexBase = -dExcessGibbsParam(abxy) * (p*dXA2X2**p + q*dXB2X2**q)
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
             LOOP_XZ1: do z = 1, nSublatticeElements(iSublPhaseIndex,2)
                 if (z == x) cycle LOOP_XZ1
                 e = MIN(x,z)
@@ -386,9 +404,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dDgex = dDgexBase
             if ((i == j) .AND. (k == l)) then
                 if ((i == a) .AND. (k == x)) dDgex = dDgex + (dExcessGibbsParam(abxy) * p * (dXA2X2**(p-1)))
-                if ((i == b) .AND. (k == x)) dDgex = dDgex + (dExcessGibbsParam(abxy) * q * (dXB2X2**(q-1)))
-                if ((i == a) .AND. (k == y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * r * (dXA2Y2**(r-1)))
-                if ((i == b) .AND. (k == y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * s * (dXB2Y2**(s-1)))
+                if ((i == b) .AND. (k == x) .AND. (a /= b)) dDgex = dDgex + (dExcessGibbsParam(abxy) * q * (dXB2X2**(q-1)))
+                if ((i == a) .AND. (k == y) .AND. (x /= y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * r * (dXA2Y2**(r-1)))
+                if ((i == b) .AND. (k == y) .AND. (a /= b) .AND. (x /= y)) &
+                                             dDgex = dDgex + (dExcessGibbsParam(abxy) * s * (dXB2Y2**(s-1)))
             end if
 
             dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + (dMolFraction(iBlock) * dDgex / 2)
