@@ -238,7 +238,7 @@ subroutine ParseCSDataBlockSUBG( i )
         if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingSUBG
 
         ! Check if the parameter is binary or ternary:
-        if (iRegularParamCS(nParamCS+1,1) == 3) then
+        if ((iRegularParamCS(nParamCS+1,1) == 3) .OR. (iRegularParamCS(nParamCS+1,1) == 4)) then
 
             ! Count the number of parameters:
             nParamCS = nParamCS + 1
