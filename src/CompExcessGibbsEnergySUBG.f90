@@ -105,6 +105,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     ! Initialize variables:
     dXi                               = 0D0
     dYi                               = 0D0
+    dNi                               = 0D0
     dXij                              = 0D0
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
