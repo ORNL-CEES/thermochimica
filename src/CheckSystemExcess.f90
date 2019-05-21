@@ -53,7 +53,8 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py
+    integer, dimension(4) :: iPairMatch
 
 
     ! Initialize variables:
@@ -236,24 +237,54 @@ subroutine CheckSystemExcess
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
 
-                nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublatticeCS,1:2)
-                k = SIZE(iPairID,DIM = 2)
-                iPairID(nCountSublattice,1:k,1:4) = iPairIDCS(nCountSublatticeCS,1:k,1:4)
-                dCoordinationNumber(nCountSublattice,1:k,1:4) = dCoordinationNumberCS(nCountSublatticeCS,1:k,1:4)
-                dZetaSpecies(nCountSublattice,1:k) = dZetaSpeciesCS(nCountSublatticeCS,1:k)
-
-                j = SIZE(nSublatticeElements,DIM=2)
-                nSublatticeElements(nCountSublattice,1:j) = nSublatticeElementsCS(nCountSublatticeCS,1:j)
-
+                ! nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublatticeCS,1:2)
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                do j = 1, nSublatticePhase(nCountSublattice)
+                    m = 0
+                    do k = 1, nElemOrComp
+                        if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
+                            if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
+                                m = m + 1
+                                iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                            end if
+                        end if
+                    end do
+                    nSublatticeElements(nCountSublattice,j) = m
+                end do
+
+                k = SIZE(iPairID,DIM = 2)
+                do k = 1, nPairsSROCS(nCountSublatticeCS,2)
+                    iPairMatch = 0
+                    pa = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublattice,k,1))
+                    pb = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublattice,k,2))
+                    px = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublattice,k,3) &
+                       - nSublatticeElementsCS(nCountSublatticeCS,1))
+                    py = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublattice,k,4) &
+                       - nSublatticeElementsCS(nCountSublatticeCS,1))
+                    do l = 1, nSublatticeElements(nCountSublattice,1)
+                        if (pa == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(1) = 1
+                        if (pb == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(2) = 1
+                    end do
+                    do l = 1, nSublatticeElements(nCountSublattice,2)
+                        if (px == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(3) = 1
+                        if (py == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(4) = 1
+                    end do
+                    print *, k, SUM(iPairMatch)
+                    if (SUM(iPairMatch) == 4) then
+                        nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
+                        n = nPairsSRO(nCountSublattice,2)
+                        iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
+                        dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCountSublatticeCS,k,1:4)
+                        dZetaSpecies(nCountSublattice,n) = dZetaSpeciesCS(nCountSublatticeCS,k)
+                    end if
+                end do
+
                 j = SIZE(nConstituentSublattice,DIM=2)
                 n = nSublatticePhase(nCountSublattice)
                 dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
                 iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 dSublatticeCharge(nCountSublattice,1:n,1:k) = dSublatticeChargeCS(nCountSublatticeCS,1:n,1:k)
-                k = SIZE(iSublatticeElements, DIM=3)
-                iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublatticeCS,1:n,1:k)
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     nParam          = nParam + 1

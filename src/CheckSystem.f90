@@ -128,7 +128,9 @@ subroutine CheckSystem
     implicit none
 
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp
+    integer                                 :: nPhaseElements
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
+    integer, dimension(:), allocatable      :: iPhaseElements
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
     character(3)                            :: cDummy
@@ -248,6 +250,8 @@ subroutine CheckSystem
         return
     end if
 
+    allocate(iPhaseElements(nElements))
+
     ! Check to see if the system has to be re-adjusted:
     IF_Elements: if (nElements < nElemOrComp) then
         ! The system is smaller than what is in the data-file.  Re-compute the system parameters.
@@ -255,11 +259,15 @@ subroutine CheckSystem
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
+            iPhaseElements = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
                 do k = 1, nElemOrComp
+                    if (k == 3) print *, j, dStoichSpeciesCS(j,k)
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
                         cycle LOOP_SpeciesInSolnPhase
+                    else if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) > 0)) then
+                        ! iPhaseElements(k) = 1
                     end if
                 end do
                 nSpecies = nSpecies + 1
@@ -267,6 +275,8 @@ subroutine CheckSystem
                 iSpeciesPass(j) = m
                 l = j   ! If there is only one species in this phase, this species will be removed later.
             end do LOOP_SpeciesInSolnPhase
+
+            ! nPhaseElements = SUM(iPhaseElements)
 
             ! Store temporary counter for the number of charged phases from the CS data-file:
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
@@ -284,6 +294,7 @@ subroutine CheckSystem
                      (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
                     ! Count the number of charged phases:
                     nCountSublattice = nCountSublattice + 1
+                    ! nPairsSROCS(nCountSublattice,2) = m
                     ! Determine the maximum number of sublattice of any stable phase:
                     nMaxSublatticeSys  = MAX(nMaxSublatticeSys,nSublatticePhaseCS(nCountSublatticeTemp))
                     m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
@@ -527,6 +538,8 @@ subroutine CheckSystem
 
     ! Check the excess terms:
     call CheckSystemExcess
+
+    deallocate(iPhaseElements)
 
     return
 

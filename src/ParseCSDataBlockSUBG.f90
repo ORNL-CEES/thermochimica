@@ -74,9 +74,9 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, n, x, y, p
+    integer                     :: i, j, k, l, n, x, y, p, a, b
     integer,     dimension(10)  :: iTempVec
-    real(8)                     :: dAnionCoordTemp
+    real(8)                     :: dAnionCoordTemp, qa, qb, qx, qy
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cDummyVec
 
@@ -214,15 +214,42 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Increase pairs counter to include default pairs
     nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
     dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
+    dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS) = 0D0
     ! Loop through all pairs:
     do j = 1, nPairsSROCS(nCountSublatticeCS,2)
-        k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of A
-        l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of B
+        a = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublatticeCS, j, 1))
+        b = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublatticeCS, j, 2))
+        x = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublatticeCS, j, 3) &
+          - nSublatticeElementsCS(nCountSublatticeCS,1))
+        y = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublatticeCS, j, 4) &
+          - nSublatticeElementsCS(nCountSublatticeCS,1))
+        qa = dSublatticeChargeCS(nCountSublatticeCS,1,iPairIDCS(nCountSublatticeCS, j, 1))
+        qb = dSublatticeChargeCS(nCountSublatticeCS,1,iPairIDCS(nCountSublatticeCS, j, 2))
+        qx = dSublatticeChargeCS(nCountSublatticeCS,2,iPairIDCS(nCountSublatticeCS, j, 3) &
+           - nSublatticeElementsCS(nCountSublatticeCS,1))
+        qy = dSublatticeChargeCS(nCountSublatticeCS,2,iPairIDCS(nCountSublatticeCS, j, 4) &
+           - nSublatticeElementsCS(nCountSublatticeCS,1))
 
-        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
-                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
-                                                                 + dStoichSpeciesOld(l,1:nElementsCS) &
-                                                                 / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
+        ! k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of A
+        ! l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of B
+
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),a) = dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),a) &
+                                                     + ((qx / qa) / dCoordinationNumberCS(nCountSublatticeCS, j, 1)) &
+                                                     + ((qy / qa) / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),b) = dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),b) &
+                                                     + ((qx / qb) / dCoordinationNumberCS(nCountSublatticeCS, j, 2)) &
+                                                     + ((qy / qb) / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),x) = dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),x) &
+                                                     + ((qa / qx) / dCoordinationNumberCS(nCountSublatticeCS, j, 1)) &
+                                                     + ((qb / qx) / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+        dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),y) = dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),y) &
+                                                     + ((qa / qy) / dCoordinationNumberCS(nCountSublatticeCS, j, 1)) &
+                                                     + ((qb / qy) / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+
+        ! dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
+        !                                                          / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
+        !                                                          + dStoichSpeciesOld(l,1:nElementsCS) &
+        !                                                          / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
         dStoichQuadsCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS)   = dStoichSpeciesOld(k,1:nElementsCS) &
                                                                  + dStoichSpeciesOld(l,1:nElementsCS)
 
