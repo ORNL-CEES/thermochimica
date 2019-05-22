@@ -74,7 +74,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, n, x, y, p, a, b
+    integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2
     integer,     dimension(10)  :: iTempVec
     real(8)                     :: dAnionCoordTemp
     real(8),     dimension(20)  :: dTempVec
@@ -137,10 +137,11 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
-    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 1, 1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 1, 1:nA2X2)
 
     ! This entry appears to represent the IDs matching constituents on the second sublattice to species:
-    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 2, 1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, 2, 1:nA2X2)
 
     ! Set up default pair IDs and coordination numbers
     dCoordinationNumberCS(nCountSublatticeCS,1:nMaxSpeciesPhaseCS,1:4) = 6D0

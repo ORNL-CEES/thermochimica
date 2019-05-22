@@ -106,7 +106,7 @@ subroutine CompThermoData
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
-    integer                            :: iSublPhaseIndex, iFirst, nRemove
+    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2
     integer, dimension(nElemOrComp)    :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
     real(8), dimension(6)              :: dGibbsCoeff
@@ -226,14 +226,26 @@ subroutine CompThermoData
                 dQy = dSublatticeChargeCS(iSublPhaseIndex,2,la)
 
                 ! Indices of reference energy equations for A/X, B/X, A/Y, B/Y
-                iax = iConstituentSublatticeCS(iSublPhaseIndex,1,ii) + &
-                ((iConstituentSublatticeCS(iSublPhaseIndex,2,ka) - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
-                ibx = iConstituentSublatticeCS(iSublPhaseIndex,1,jj) + &
-                ((iConstituentSublatticeCS(iSublPhaseIndex,2,ka) - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
-                iay = iConstituentSublatticeCS(iSublPhaseIndex,1,ii) + &
-                ((iConstituentSublatticeCS(iSublPhaseIndex,2,la) - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
-                iby = iConstituentSublatticeCS(iSublPhaseIndex,1,jj) + &
-                ((iConstituentSublatticeCS(iSublPhaseIndex,2,la) - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+
+                nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
+                do k = 1, nA2X2
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
+                        iax = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == jj) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
+                        ibx = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == la)) then
+                        iay = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == jj) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == la)) then
+                        iby = k
+                    end if
+                end do
 
                 dChemicalPotential(j) = ((dQx * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
                       + (dQx * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
@@ -580,6 +592,7 @@ subroutine CompThermoData
     ! Store the standard molar Gibbs energies:
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
+        print *, cSpeciesName(i), dStdGibbsEnergy(i)
     end do
 
     ! Store an integer vector representing the component index when the phase is ionic.
