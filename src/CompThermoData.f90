@@ -106,7 +106,8 @@ subroutine CompThermoData
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
-    integer                            :: iSublPhaseIndex, iFirst
+    integer                            :: iSublPhaseIndex, iFirst, nRemove
+    integer, dimension(nElemOrComp)    :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
@@ -136,7 +137,8 @@ subroutine CompThermoData
             iSublPhaseIndex = iPhaseSublatticeCS(n)
             iFirst = nSpeciesPhaseCS(n - 1) + 1
             dChemicalPotentialTemp = 0D0
-            do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
+            jj = 0
+            LOOP_SROPairs: do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
                 l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
@@ -175,11 +177,21 @@ subroutine CompThermoData
                     dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(12,l) &
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l)
                 end if
-                
+
                 ! Convert chemical potentials to dimensionless units:
                 dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
 
-            end do
+                do k = 1, nElemOrComp
+                    if ((dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k) > 0).AND.(iElementSystem(k) == 0)) then
+                        cycle LOOP_SROPairs
+                    end if
+                end do
+
+                jj = jj + 1
+                dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+
+            end do LOOP_SROPairs
+
             LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
                 if (iSpeciesPass(i) == 0) cycle LOOP_nSUBGQCS
 
@@ -195,9 +207,6 @@ subroutine CompThermoData
                     if (iElementSystem(k) /= 0) then
                         m = m + 1
                         dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
-                        if (nCountSublattice > 0) then
-                            dStoichQuads(j,m) = dStoichQuadsCS(i,k)
-                        end if
                     end if
                 end do
 
@@ -262,9 +271,6 @@ subroutine CompThermoData
                     if (iElementSystem(k) /= 0) then
                         m = m + 1
                         dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
-                        if (nCountSublattice > 0) then
-                            dStoichQuads(j,m) = dStoichQuadsCS(i,k)
-                        end if
                     end if
                 end do
 
@@ -346,9 +352,6 @@ subroutine CompThermoData
             if (iElementSystem(k) /= 0) then
                 m = m + 1
                 dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
-                if (nCountSublattice > 0) then
-                    dStoichQuads(j,m) = dStoichQuadsCS(i,k)
-                end if
             end if
         end do
 
@@ -430,6 +433,26 @@ subroutine CompThermoData
                         end do
 
                     case ('SUBG','SUBQ')
+
+                        ! Must remove unused elements from iRegularParam
+                        nRemove = 0
+                        iRemove = 0
+                        do k = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                            do l = nSublatticeElementsCS(nCountSublatticeCS,k), 1, -1
+                                if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,k,l)) == 0) then
+                                    nRemove = nRemove + 1
+                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                                end if
+                            end do
+                        end do
+
+                        do k = 1, nRemove
+                            do l = 2, 5
+                                if (iRegularParam(n,l) > iRemove(k)) then
+                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
+                                end if
+                            end do
+                        end do
 
                         ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
                         do k = 1, 4

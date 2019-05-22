@@ -53,8 +53,9 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove
     integer, dimension(4) :: iPairMatch
+    integer, dimension(nElemOrComp) :: iRemove
 
 
     ! Initialize variables:
@@ -285,8 +286,30 @@ subroutine CheckSystemExcess
                         n = nPairsSRO(nCountSublattice,2)
                         iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
                         dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCountSublatticeCS,k,1:4)
-                        dZetaSpecies(nCountSublattice,n) = dZetaSpeciesCS(nCountSublatticeCS,k)
+                        ! dZetaSpecies(nCountSublattice,n) = dZetaSpeciesCS(nCountSublatticeCS,k)
                     end if
+                end do
+
+                ! Must remove unused elements from iPairID
+                nRemove = 0
+                iRemove = 0
+                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                    do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                        if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        end if
+                    end do
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nPairsSRO(nCountSublattice,2)
+                        do l = 1, 4
+                            if (iPairID(nCountSublattice,j,l) > iRemove(k)) then
+                                iPairID(nCountSublattice,j,l) = iPairID(nCountSublattice,j,l) - 1
+                            end if
+                        end do
+                    end do
                 end do
 
                 ! Loop through excess parameters:
