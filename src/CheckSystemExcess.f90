@@ -280,7 +280,6 @@ subroutine CheckSystemExcess
                         if (px == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(3) = 1
                         if (py == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(4) = 1
                     end do
-                    print *, k, SUM(iPairMatch)
                     if (SUM(iPairMatch) == 4) then
                         nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
                         n = nPairsSRO(nCountSublattice,2)
