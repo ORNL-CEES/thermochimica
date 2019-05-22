@@ -54,7 +54,7 @@ subroutine CheckCompounds
 
     implicit none
 
-    integer                                 :: i, j, k, lwork, nElementsTemp
+    integer                                 :: i, j, k, lwork
     integer, dimension(:), allocatable      :: iElementSystemTemp
     real(8)                                 :: dCompoundUnitMass
     real(8), dimension(:), allocatable      :: dStoichSpeciesTemp

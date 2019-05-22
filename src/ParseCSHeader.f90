@@ -81,7 +81,7 @@ subroutine ParseCSHeader
 
     implicit none
 
-    integer              :: i, j, k, iGasPhase
+    integer              :: i, j, iGasPhase
     integer,dimension(7) :: iGequation
     integer,dimension(2) :: iDummy
     character(8)         :: cDummy

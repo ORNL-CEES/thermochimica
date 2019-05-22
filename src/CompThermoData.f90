@@ -111,7 +111,6 @@ subroutine CompThermoData
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
-    character(25), dimension(nSpecies) :: cSpeciesNameOld
 
 
     ! Initialize variables:

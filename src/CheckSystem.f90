@@ -131,7 +131,7 @@ subroutine CheckSystem
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
-    character(3)                            :: cDummy
+    character(12)                            :: cDummy
 
 
     ! Check to see if the allocatable arrays have already been allocated
