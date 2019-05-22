@@ -447,7 +447,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dStoichQuads(nSpecies,nElements))
-            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
+            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     else
@@ -478,7 +478,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dStoichQuads(nSpecies,nElements))
-            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
+            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     end if

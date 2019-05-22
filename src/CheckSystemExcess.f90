@@ -236,8 +236,6 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
-
-                ! nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublatticeCS,1:2)
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
                 do j = 1, nSublatticePhase(nCountSublattice)
                     m = 0
@@ -246,10 +244,23 @@ subroutine CheckSystemExcess
                             if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
                                 m = m + 1
                                 iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                                dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                             end if
                         end if
                     end do
                     nSublatticeElements(nCountSublattice,j) = m
+                end do
+
+                do j = 1, nSublatticePhase(nCountSublattice)
+                    m = 0
+                    LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
+                        if (iConstituentSublatticeCS(nCountSublatticeCS,j,k) == 0) cycle LOOP_iConstitSubl
+                        n = iSublatticeElements(nCountSublattice,j,iConstituentSublatticeCS(nCountSublatticeCS,j,k))
+                        if (iElementSystem(n) > 0) then
+                            m = m + 1
+                            iConstituentSublattice(nCountSublattice,j,m) = iConstituentSublatticeCS(nCountSublatticeCS,j,k)
+                        end if
+                    end do LOOP_iConstitSubl
                 end do
 
                 k = SIZE(iPairID,DIM = 2)
@@ -279,16 +290,25 @@ subroutine CheckSystemExcess
                     end if
                 end do
 
-                j = SIZE(nConstituentSublattice,DIM=2)
-                n = nSublatticePhase(nCountSublattice)
-                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
-                k = SIZE(iConstituentSublattice, DIM=3)
-                iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
-                dSublatticeCharge(nCountSublattice,1:n,1:k) = dSublatticeChargeCS(nCountSublatticeCS,1:n,1:k)
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
-                    nParam          = nParam + 1
-                    iParamPassCS(j) = 1
+                    iPairMatch = 0
+                    pa = iRegularParamCS(j,2)
+                    pb = iRegularParamCS(j,3)
+                    px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    do l = 1, nSublatticeElements(nCountSublattice,1)
+                        if (pa == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(1) = 1
+                        if (pb == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(2) = 1
+                    end do
+                    do l = 1, nSublatticeElements(nCountSublattice,2)
+                        if (px == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(3) = 1
+                        if (py == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(4) = 1
+                    end do
+                    if (SUM(iPairMatch) == 4) then
+                        nParam          = nParam + 1
+                        iParamPassCS(j) = 1
+                    end if
                 end do
 
                 nParamPhase(nCounter) = nParam
