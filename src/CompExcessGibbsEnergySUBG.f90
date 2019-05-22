@@ -289,6 +289,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
               + (dQy * dStdGibbsEnergy(iby + iFirst - 1) / (dZb * dZy))) &
               / ((dQx/dZx) + (dQy/dZy))
 
+        dRef = dStdGibbsEnergy(l)
+
         ! Calculate chemical potential of quadruplet
         dChemicalPotential(l) = dRef + dEntropy
     end do
