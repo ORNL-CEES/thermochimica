@@ -400,7 +400,6 @@ subroutine CompThermoData
             ! Explicitly set dummy species chemical potentials
             dChemicalPotential(j) = 100000
         end if
-
     end do LOOP_nPureConSpeciesCS ! End loop of species (i)
 
     ! Update all the excess properties:
@@ -554,25 +553,6 @@ subroutine CompThermoData
 
     i = nSpeciesPhase(nSolnPhasesSys) + 1
     nDummySpecies = ABS(SUM(iPhase(i:nSpecies)))
-
-    ! If a solution phase is represented by the SUBG model, the phase components
-    ! are represented by nearest neighbor pairs rather than the pure species.
-    ! In this case, there are necessarily more pairs than pure species. The following
-    ! accounts for SUBG phases.
-    do j = 1, nSolnPhasesSys
-        if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
-            iSublPhaseIndex = iPhaseSublattice(j)
-            cSpeciesNameOld = cSpeciesName
-            ! Loop through all pairs:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
-                m = i - nSpeciesPhase(j-1)
-                k = iPairID(iSublPhaseIndex,m,1) + nSpeciesPhase(j-1)   ! Index of AA
-                l = iPairID(iSublPhaseIndex,m,2) + nSpeciesPhase(j-1)   ! Index of BB
-                ! Create a name for this AB pair:
-                cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
-            end do
-        end if
-    end do
 
     ! Compute the total number of atoms per formula mass of each species:
     dSpeciesTotalAtoms = SUM(ABS(dStoichSpecies),DIM=2)

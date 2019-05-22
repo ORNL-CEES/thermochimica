@@ -248,6 +248,10 @@ subroutine ParseCSDataBlockSUBG( i )
             end if
         end do
 
+        ! Create quadruplet names
+        cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cElementNameCS(a)) // '-' // TRIM(cElementNameCS(b)) // '-' &
+                                                // TRIM(cElementNameCS(x)) // '-' // TRIM(cElementNameCS(y))
+
     end do
 
     ! Loop through excess mixing parameters:
