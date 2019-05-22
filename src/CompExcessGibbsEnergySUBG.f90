@@ -71,13 +71,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la, iax, ibx, iay, iby
+    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la
     integer :: a, b, c, x, y, z, e, f, ijkl, abxy, exp, iexp
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
     integer :: iA2X2, iB2X2, iA2Y2, iB2Y2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
-    real(8) :: dQx, dQy, dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
+    real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXexp
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij
@@ -268,26 +268,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                                                               * (dXij(jj,ka)**dPowXij) * (dXij(jj,la)**dPowXij) &
                                                               / ((dYi(ii)**dPowYi) * (dYi(jj)**dPowYi) &
                                                               *  (dYi(kk)**dPowYi) * (dYi(ll)**dPowYi))))
-
-        ! Gibbs reference energy calculation
-        dQx = dSublatticeCharge(iSublPhaseIndex,2,ka)
-        dQy = dSublatticeCharge(iSublPhaseIndex,2,la)
-
-        ! Indices of reference energy equations for A/X, B/X, A/Y, B/Y
-        iax = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
-        ((iConstituentSublattice(iSublPhaseIndex,2,ka) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-        ibx = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
-        ((iConstituentSublattice(iSublPhaseIndex,2,ka) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-        iay = iConstituentSublattice(iSublPhaseIndex,1,ii) + &
-        ((iConstituentSublattice(iSublPhaseIndex,2,la) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-        iby = iConstituentSublattice(iSublPhaseIndex,1,jj) + &
-        ((iConstituentSublattice(iSublPhaseIndex,2,la) - 1) * nSublatticeElements(iSublPhaseIndex,1))
-
-        dRef = ((dQx * dStdGibbsEnergy(iax + iFirst - 1) / (dZa * dZx)) &
-              + (dQx * dStdGibbsEnergy(ibx + iFirst - 1) / (dZb * dZx)) &
-              + (dQy * dStdGibbsEnergy(iay + iFirst - 1) / (dZa * dZy)) &
-              + (dQy * dStdGibbsEnergy(iby + iFirst - 1) / (dZb * dZy))) &
-              / ((dQx/dZx) + (dQy/dZy))
 
         dRef = dStdGibbsEnergy(l)
 
