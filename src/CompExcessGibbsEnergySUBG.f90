@@ -80,7 +80,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXexp
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
-    real(8), allocatable, dimension(:,:) :: dXij
+    real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
 
 
@@ -97,16 +97,19 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     if (allocated(dYi)) deallocate(dYi)
     if (allocated(dNi)) deallocate(dNi)
     if (allocated(dXij)) deallocate(dXij)
+    if (allocated(dNij)) deallocate(dNij)
     j = iLast - iFirst + 1
     nPhaseElements = nSublatticeElements(iSublPhaseIndex,1) + nSublatticeElements(iSublPhaseIndex,2)
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
     allocate(dXij(nSublatticeElements(iSublPhaseIndex,1),nSublatticeElements(iSublPhaseIndex,2)))
+    allocate(dNij(nSublatticeElements(iSublPhaseIndex,1),nSublatticeElements(iSublPhaseIndex,2)))
 
     ! Initialize variables:
     dXi                               = 0D0
     dYi                               = 0D0
     dNi                               = 0D0
     dXij                              = 0D0
+    dNij                              = 0D0
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
 
@@ -156,9 +159,24 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXi(j) = dNi(j) / dSum
     end do
 
+    if (iSublPhaseIndex == 1) then
+        ! print *, dXi
+        ! print *, dMolFraction(iFirst:iFirst + nPairsSRO(iSublPhaseIndex,2) - 1)
+        do i = 1, nElements
+            dSum = 0D0
+            do k = iFirst, iFirst + nPairsSRO(iSublPhaseIndex,2) - 1
+                dSum = dSum + (dStoichSpecies(k,i) * dMolFraction(k))
+            end do
+            ! print *, dSum
+        end do
+    end if
+
     ! Compute X_i/j
+    dSum = 0D0
     do i = 1, nSublatticeElements(iSublPhaseIndex,1)
         do j = 1, nSublatticeElements(iSublPhaseIndex,2)
+            m = iConstituentSublattice(iSublPhaseIndex,1,i) + &
+            ((iConstituentSublattice(iSublPhaseIndex,2,j) - 1) * nSublatticeElements(iSublPhaseIndex,1))
             do k = 1, nPairsSRO(iSublPhaseIndex,2)
                 l = iFirst + k - 1
                 nA = 0
@@ -175,8 +193,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSublatticeElements(iSublPhaseIndex,1)) == iPairID(iSublPhaseIndex,k,4))  then
                     nX = nX + 1
                 end if
-                dXij(i,j) = dXij(i,j) + (dMolFraction(l) * nA * nX / 4)
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSublPhaseIndex,m))
             end do
+            dSum = dSum + dNij(i,j)
+        end do
+    end do
+
+    do i = 1, nSublatticeElements(iSublPhaseIndex,1)
+        do j = 1, nSublatticeElements(iSublPhaseIndex,2)
+            dXij(i,j) = dNij(i,j) / dSum
         end do
     end do
 
@@ -444,7 +469,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do LOOP_Param
 
     ! Deallocate allocatable arrays:
-    deallocate(dXi,dYi,dNi,dXij)
+    deallocate(dXi,dYi,dNi,dXij,dNij)
 
     return
 
