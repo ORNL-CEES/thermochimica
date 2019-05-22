@@ -227,6 +227,10 @@ subroutine CompThermoData
 
                 ! Indices of reference energy equations for A/X, B/X, A/Y, B/Y
 
+                iax = 0
+                ibx = 0
+                iay = 0
+                iby = 0
                 nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
                 do k = 1, nA2X2
                     if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
