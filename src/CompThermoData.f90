@@ -592,7 +592,6 @@ subroutine CompThermoData
     ! Store the standard molar Gibbs energies:
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
-        print *, cSpeciesName(i), dStdGibbsEnergy(i)
     end do
 
     ! Store an integer vector representing the component index when the phase is ionic.
