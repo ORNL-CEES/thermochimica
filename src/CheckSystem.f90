@@ -420,7 +420,7 @@ subroutine CheckSystem
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
                      iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dStoichQuads, dSublatticeCharge, STAT = n)
+                     dSublatticeCharge, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -435,7 +435,6 @@ subroutine CheckSystem
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
-            allocate(dStoichQuads(nSpecies,nElements))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
@@ -466,7 +465,6 @@ subroutine CheckSystem
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
-            allocate(dStoichQuads(nSpecies,nElements))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
@@ -500,7 +498,6 @@ subroutine CheckSystem
         iPairID              = 0
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
-        dStoichQuads         = 0D0
         dSublatticeCharge    = 0D0
     end if
 

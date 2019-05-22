@@ -214,6 +214,8 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Increase pairs counter to include default pairs
     nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
     dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
+    dStoichPairsCS(nCountSublatticeCS,1:nPairsSROCS(nCountSublatticeCS,2),1:nElementsCS) &
+                  = dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS)
     dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS) = 0D0
 
     ! Loop through all pairs to calculate stoichiometry entries for quadruplets:
@@ -245,17 +247,6 @@ subroutine ParseCSDataBlockSUBG( i )
                           + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
             end if
         end do
-
-        ! Old version
-        ! k = iPairIDCS(nCountSublatticeCS, j, 1) + nSpeciesPhaseCS(i-1)   ! Index of A
-        ! l = iPairIDCS(nCountSublatticeCS, j, 2) + nSpeciesPhaseCS(i-1)   ! Index of B
-        !
-        ! dStoichSpeciesCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS) = dStoichSpeciesOld(k,1:nElementsCS) &
-        !                                                          / dCoordinationNumberCS(nCountSublatticeCS, j, 1) &
-        !                                                          + dStoichSpeciesOld(l,1:nElementsCS) &
-        !                                                          / dCoordinationNumberCS(nCountSublatticeCS, j, 2)
-        ! dStoichQuadsCS(j + nSpeciesPhaseCS(i-1),1:nElementsCS)   = dStoichSpeciesOld(k,1:nElementsCS) &
-        !                                                          + dStoichSpeciesOld(l,1:nElementsCS)
 
     end do
 
