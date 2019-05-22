@@ -293,9 +293,13 @@ subroutine CheckSystemExcess
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     iPairMatch = 0
                     pa = iRegularParamCS(j,2)
+                    pa = iSublatticeElementsCS(nCountSublatticeCS,1,pa)
                     pb = iRegularParamCS(j,3)
+                    pb = iSublatticeElementsCS(nCountSublatticeCS,1,pb)
                     px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    px = iSublatticeElementsCS(nCountSublatticeCS,2,px)
                     py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    py = iSublatticeElementsCS(nCountSublatticeCS,2,py)
                     do l = 1, nSublatticeElements(nCountSublattice,1)
                         if (pa == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(1) = 1
                         if (pb == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(2) = 1
