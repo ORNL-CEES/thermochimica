@@ -256,7 +256,7 @@ subroutine CheckSystemExcess
                     m = 0
                     LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
                         if (iConstituentSublatticeCS(nCountSublatticeCS,j,k) == 0) cycle LOOP_iConstitSubl
-                        n = iSublatticeElements(nCountSublattice,j,iConstituentSublatticeCS(nCountSublatticeCS,j,k))
+                        n = iSublatticeElementsCS(nCountSublatticeCS,j,iConstituentSublatticeCS(nCountSublatticeCS,j,k))
                         if (iElementSystem(n) > 0) then
                             m = m + 1
                             iConstituentSublattice(nCountSublattice,j,m) = iConstituentSublatticeCS(nCountSublatticeCS,j,k)
@@ -286,7 +286,6 @@ subroutine CheckSystemExcess
                         n = nPairsSRO(nCountSublattice,2)
                         iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
                         dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCountSublatticeCS,k,1:4)
-                        ! dZetaSpecies(nCountSublattice,n) = dZetaSpeciesCS(nCountSublatticeCS,k)
                     end if
                 end do
 
@@ -307,6 +306,25 @@ subroutine CheckSystemExcess
                         do l = 1, 4
                             if (iPairID(nCountSublattice,j,l) > iRemove(k)) then
                                 iPairID(nCountSublattice,j,l) = iPairID(nCountSublattice,j,l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
+                ! Also remove from iConstituentSublattice
+                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                    nRemove = 0
+                    iRemove = 0
+                    do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                        if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l
+                        end if
+                    end do
+                    do k = 1, nRemove
+                        do l = nSublatticeElements(nCountSublattice,j), 1, -1
+                            if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
+                                iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) -1
                             end if
                         end do
                     end do
