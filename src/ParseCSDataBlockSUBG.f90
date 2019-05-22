@@ -230,24 +230,64 @@ subroutine ParseCSDataBlockSUBG( i )
 
         ! Matching 4 pairs version
         l = j + nSpeciesPhaseCS(i-1)
-        do k = (nSpeciesPhaseCS(i-1) + 1),nSpeciesPhaseCS(i)
-            if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
-                dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
-                          + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
-            end if
-            if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
-                dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
-                          + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
-            end if
-            if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
-                dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
-                          + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
-            end if
-            if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
-                dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
-                          + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
-            end if
-        end do
+        ! do k = (nSpeciesPhaseCS(i-1) + 1),nSpeciesPhaseCS(i)
+        !     if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
+        !         dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
+        !                   + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
+        !         dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
+        !                   + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
+        !         dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
+        !                   + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
+        !         dStoichSpeciesCS(l,1:nElementsCS) = dStoichSpeciesCS(l,1:nElementsCS) &
+        !                   + (dStoichSpeciesOld(k,1:nElementsCS) / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        !     end if
+        ! end do
+        ! do k = (nSpeciesPhaseCS(i-1) + 1),nSpeciesPhaseCS(i)
+        !     if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
+        !         dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        !         dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,a) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
+        !         dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        !         dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,x) > 0D0)) then
+        !         dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        !         dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
+        !     end if
+        !     if ((dStoichSpeciesOld(k,b) > 0D0) .AND. (dStoichSpeciesOld(k,y) > 0D0)) then
+        !         dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        !         dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) &
+        !                   + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
+        !     end if
+        ! end do
+
+        ! Just get the quads directly version
+        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
+
+        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
+        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
+
+        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
+
+        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
+        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
+
 
         ! Create quadruplet names
         cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cElementNameCS(a)) // '-' // TRIM(cElementNameCS(b)) // '-' &
