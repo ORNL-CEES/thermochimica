@@ -240,7 +240,7 @@ subroutine CompThermoData
                             iRegularParam(n,k+1) = iSpeciesPass(m)
                         end do
 
-                    case ('SUBG')
+                    case ('SUBG','SUBQ')
 
                         ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
                         do k = 1, 4
