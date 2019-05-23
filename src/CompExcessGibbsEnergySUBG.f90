@@ -159,18 +159,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXi(j) = dNi(j) / dSum
     end do
 
-    if (iSublPhaseIndex == 1) then
-        ! print *, dXi
-        ! print *, dMolFraction(iFirst:iFirst + nPairsSRO(iSublPhaseIndex,2) - 1)
-        do i = 1, nElements
-            dSum = 0D0
-            do k = iFirst, iFirst + nPairsSRO(iSublPhaseIndex,2) - 1
-                dSum = dSum + (dStoichSpecies(k,i) * dMolFraction(k))
-            end do
-            ! print *, dSum
-        end do
-    end if
-
     ! Compute X_i/j
     dSum = 0D0
     do i = 1, nSublatticeElements(iSublPhaseIndex,1)
