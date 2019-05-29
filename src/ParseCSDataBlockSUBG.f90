@@ -327,18 +327,10 @@ subroutine ParseCSDataBlockSUBG( i )
         l = j + nSpeciesPhaseCS(i-1)
 
         ! Just get the quads directly version
-        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
-        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
-
-        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 1)))
-        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
-
-        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
-        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 3)))
-
-        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 2)))
-        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / (2 * dCoordinationNumberCS(nCountSublatticeCS, j, 4)))
-
+        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
+        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 3))
+        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
 
         ! Create quadruplet names
         cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cElementNameCS(a)) // '-' // TRIM(cElementNameCS(b)) // '-' &
