@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   01/14/2013      M.H.A. Piro         Original code.
@@ -20,7 +20,7 @@
     ! ========
     !
     !> \details The purpose of this subroutine is to call a specific subroutine to compute the partial molar
-    !! excess Gibbs energy of mixing for each constituent in a solution phase based on the model type.  
+    !! excess Gibbs energy of mixing for each constituent in a solution phase based on the model type.
     !
     ! Note: the chemical potential term is computed in this subroutine as opposed to CompChemicalPotential.f90
     ! because the chemical potential of a phase component is model dependent.  See SUBL for an example below.
@@ -37,15 +37,15 @@
     !                            system.
     ! dStdGibbsEnergy           A double real vector represending the standard molar Gibbs energy of every pure
     !                            species in the system.
-    ! dMolFraction              A double real vector representing the mole fraction for every species in the 
+    ! dMolFraction              A double real vector representing the mole fraction for every species in the
     !                            system.
     ! dPartialExcessGibbs       A double real vector representing the partial molar excess Gibbs energy of mixing
     !                            for every species in the system.
-    ! dMolesSpecies             A double real vector representing the number of moles for every species in the 
+    ! dMolesSpecies             A double real vector representing the number of moles for every species in the
     !                            system.
     ! dGibbsSolnPhases          A double real vector represending the molar Gibbs energy for every solution phase
     !                            in the system.
-    ! 
+    !
     !-------------------------------------------------------------------------------------------------------------
 
 
@@ -54,40 +54,40 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
     USE ModuleThermo
     USE ModuleThermoIO, ONLY: INFOThermo
     USE ModuleGEMSolver
-    
+
     implicit none
-    
+
     integer :: i, iSolnIndex, iFirst, iLast
-    
-    
+
+
     ! Temporary variables used for convenience:
-    iFirst = nSpeciesPhase(iSolnIndex - 1) + 1     
+    iFirst = nSpeciesPhase(iSolnIndex - 1) + 1
     iLast  = nSpeciesPhase(iSolnIndex)
- 
-    ! Initialize variables:    
+
+    ! Initialize variables:
     dMagGibbsEnergy(iFirst:iLast) = 0D0
-        
+
     ! Compute excess terms based on solution phase type:
     select case (cSolnPhaseType(iSolnIndex))
-        case ('IDMX') 
+        case ('IDMX')
 
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
                 dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i))
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i) 
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
-    
-        case ('QKTO')    
-                        
+
+        case ('QKTO')
+
             ! Compute the excess terms for a Quasichemical Kohler-TOop (QKTO) model:
             call CompExcessGibbsEnergyQKTO(iSolnIndex)
-        
+
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
                 dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i)) + dPartialExcessGibbs(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i) 
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
-        
+
         case ('RKMP','RKMPM')
 
             ! Compute magnetic terms if this is a magnetic phase:
@@ -99,19 +99,19 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
                 dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i)) + dMagGibbsEnergy(i) &
-                    + dPartialExcessGibbs(i) 
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i) 
+                    + dPartialExcessGibbs(i)
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
         case ('SUBL','SUBLM')
-        
+
             ! Compute the excess terms for a Compound Energy Formalism model:
             call CompExcessGibbsEnergySUBL(iSolnIndex)
-        
+
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
                 dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i) 
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
         case ('SUBG')
@@ -131,10 +131,9 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
             ! the data-file; although this is redundant, it is conservative.
             INFOThermo = 17
             return
-        
+
     end select
-    
+
     return
 
 end subroutine CompExcessGibbsEnergy
-

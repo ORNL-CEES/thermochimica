@@ -11,16 +11,19 @@
     !> \sa      CompFunctionNorm.f90
     !> \todo    Figure out a long term solution for the condition to allow the solution
     !!           to only perform 1 iteration if the functional norm is less than 1E-6.
+    !! \todo    Figure out a more permanent solution to how dMaxGamma shoudl be handled.
+    !!           I think that I need to get away from that and focus on ensuring that the
+    !!           Wolfe conditions have been satisfied.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer      Description of change
     !   ----            ----------      ---------------------
     !   04/25/2012      M.H.A. Piro     Original code
-    !   05/02/2012      M.H.A. Piro     Improved calculation of initial step 
-    !                                    length (constrain changes to the Element 
+    !   05/02/2012      M.H.A. Piro     Improved calculation of initial step
+    !                                    length (constrain changes to the Element
     !                                    potentials).
     !   05/08/2012      M.H.A. Piro     Improved calculation of initial step length
     !                                    (constrain the maximum change to the total
@@ -28,7 +31,7 @@
     !   04/11/2013      M.H.A. Piro     When computing a steplength that constrains
     !                                    the maximum change to the element potential
     !                                    to less than or equal to unity, exclude elements
-    !                                    with zero moles.  In other words, exclude 
+    !                                    with zero moles.  In other words, exclude
     !                                    electrons corresponding to ionic phases
     !                                    that are not currently stable.  This is also
     !                                    done when updating the element potentials.
@@ -36,17 +39,17 @@
     !                                    when the number of moles of a species tends to zero
     !                                    to 1D-50 from 1D-100.
     !   06/08/2013      M.H.A. Piro     In determining an initial steplength, do not constrain
-    !                                    the maximum decrease in the number of moles of a 
+    !                                    the maximum decrease in the number of moles of a
     !                                    solution phase by a certain increment (e.g., 50%) if
     !                                    the number of moles of that phase is below a certain
     !                                    value (e.g., 10**(-9)).  The motivation for doing this
     !                                    is that a solution phase may be driving out of the system
     !                                    but it may be inhibited if this condition is not made.
-    !   06/08/2013      M.H.A. Piro     Exit the Wolfe loop if the functional norm is below a 
+    !   06/08/2013      M.H.A. Piro     Exit the Wolfe loop if the functional norm is below a
     !                                    certain tolerance (e.g., 10**(-6)).
     !   04/02/2014      M.H.A. Piro     I changed one of the conditions to satisfy the line search.
-    !                                    Specifically, if the relative change of the functional 
-    !                                    norm is 0.95 < F_norm < 1.0 to 0.97 < F_norm < 1.0.  
+    !                                    Specifically, if the relative change of the functional
+    !                                    norm is 0.95 < F_norm < 1.0 to 0.97 < F_norm < 1.0.
     !                                    Consider the following scenario: the functional norm
     !                                    is 1 at global iteration 5 and currently we are at iter 6.
     !                                    The f-norm of the first line search loop is 6.1 and then
@@ -57,26 +60,31 @@
     !                                    with respect to the functional norm.  The motivation for this
     !                                    is that an initially poor guess may be far from equilibrium,
     !                                    and laxing this constraint accelerates convergence.  Another
-    !                                    change is the way that dStepLength is initialized when 
-    !                                    dMolesSpecies tends to zero.  Previously, this would compute 
+    !                                    change is the way that dStepLength is initialized when
+    !                                    dMolesSpecies tends to zero.  Previously, this would compute
     !                                    the minimum dStepLength that corresponds to reducing dMolesSpecies
     !                                    by 100.  Now, this is NOT applied when dMolesSpecies is incredibly
     !                                    small (e.g., less than numerical tolerance).
+    !   12/18/2018      M.H.A. Piro     I effectively removed the constraint applied to the maximum
+    !                                    change to the element potentials. I think that this is inefficient
+    !                                    because it's probably best to leave it to ensuring that the
+    !                                    Wolfe conditions have been satisfied. Furthermore, it seems to
+    !                                    be an issue for SUBG phases, which are effectively on a knife edge.
     !
     !
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to perform a line search using 
-    !! the direction vector computed by the Newton/Broyden solver.  The system 
-    !! is updated using an appropriate step length that satisfies the Wolfe 
-    !! conditions.  Specifically, values of dChemicalPotential and dMolesPhase 
+    !> \details The purpose of this subroutine is to perform a line search using
+    !! the direction vector computed by the Newton/Broyden solver.  The system
+    !! is updated using an appropriate step length that satisfies the Wolfe
+    !! conditions.  Specifically, values of dChemicalPotential and dMolesPhase
     !! are updated.  It is possible for the system of equations to be ill-
-    !! behaved and yield inappropriate results.  An initial step-length is 
-    !! computed by normalizing the largest change of the system variables by a 
+    !! behaved and yield inappropriate results.  An initial step-length is
+    !! computed by normalizing the largest change of the system variables by a
     !! pre-defined value.  The maximum change to the element potentials is 1 and
     !! the maximum change to the number of moles of a solution phase is twice of
-    !! the previous value.  For more information, refer to Chapter 6 of the 
+    !! the previous value.  For more information, refer to Chapter 6 of the
     !! above reference.
     !
     !
@@ -86,23 +94,23 @@
     ! nElements             The number of elements in the system.
     ! nConPhases            The number of pure condensed phases in the system.
     ! nSolnPhases           The number of solution phases in the system.
-    ! dUpdateVar            A double real vector that contains updates to the 
-    !                        system variables (element potentials, moles of 
+    ! dUpdateVar            A double real vector that contains updates to the
+    !                        system variables (element potentials, moles of
     !                        solution phases and moles of pure condensed phases).
-    ! dStepLength           Step length applied to the direction vector 
+    ! dStepLength           Step length applied to the direction vector
     !                        (dUpdateVar)
     ! dMolesPhase           A double real vector representing the number of
     !                        moles of phases predicted to be stable.
     ! dLevel                The adjustment applied to the chemical potentials of
     !                        the elements
-    ! iPhaseDampen          Integer vector that counts the number of times that 
+    ! iPhaseDampen          Integer vector that counts the number of times that
     !                        the number of moles
     !                        of a solution phase had to be dampened.
-    ! dChemicalPotential    A double real vector representing the chemical 
+    ! dChemicalPotential    A double real vector representing the chemical
     !                        potential of each species and pure condensed phase.
-    ! dGEMFunctionNorm      A double real scalar representing the norm of the 
+    ! dGEMFunctionNorm      A double real scalar representing the norm of the
     !                        functional vector in the PGESolver.
-    ! dGEMFunctionNormLast  A double real scalar representing the norm of the 
+    ! dGEMFunctionNormLast  A double real scalar representing the norm of the
     !                        functional vector from the previous iteration.
     !
     !---------------------------------------------------------------------------
@@ -114,18 +122,18 @@ subroutine GEMLineSearch
     USE ModuleGEMSolver
 
     implicit none
-    
-    integer                       :: iterWolfe 
+
+    integer                       :: iterWolfe
     real(8)                       :: dStepLength, dTemp, dWolfeFunctionNormLast
     real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
 
-        
+
     ! Initialize variable:
     dWolfeFunctionNormLast  = 1D-12
     dMolesSpeciesLast       = dMolesSpecies
-    dElementPotentialLast   = dElementPotential 
+    dElementPotentialLast   = dElementPotential
     dGEMFunctionNormLast    = dGEMFunctionNorm
     dPartialExcessGibbsLast = dPartialExcessGibbs
     lCompEverything         = .FALSE.
@@ -138,7 +146,7 @@ subroutine GEMLineSearch
 
         ! Compute the fractional change in the functional norm:
         dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
-    
+
         ! If the functional norm is already small, call it a day:
         if (dGEMFunctionNorm < 1D-6) exit LOOP_WOLFE
 
@@ -146,81 +154,81 @@ subroutine GEMLineSearch
         if (MINVAL(dMolesPhase(nElements - nSolnPhases + 1: nElements)) < 1D-9) exit LOOP_WOLFE
 
         ! Check if the system is diverging or has sufficiently progressed, otherwise dampen:
-        if (dGEMFunctionNorm < 0.999D0 * dGEMFunctionNormLast) then 
+        if (dGEMFunctionNorm < 0.999D0 * dGEMFunctionNormLast) then
 
-            ! The system has sufficiently progressed, exit:                
+            ! The system has sufficiently progressed, exit:
             exit LOOP_WOLFE
-            
+
         elseif ((iterWolfe > 1).AND.(dTemp >= 0.999D0).AND.(dTemp <= 1D0)) then
-         
+
             ! Return values to previous line search iteration:
-            
+
             ! Update the system variables:
             dStepLength = 2D0
-            
+
             call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
-            
+
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
-       
+
             ! Compute the functional norm
             call CompFunctionNorm
-            
+
             ! Values are returned to their previous values and exit:
             exit LOOP_WOLFE
-            
+
         !elseif ((iterWolfe > 1).AND.(dTemp >= 0.95D0).AND.(dTemp <= 1D0)) then
         elseif ((iterWolfe > 1).AND.(dTemp >= 0.97D0).AND.(dTemp <= 1D0)) then
-        
-            ! The system has sufficiently progressed, exit:                
+
+            ! The system has sufficiently progressed, exit:
             exit LOOP_WOLFE
-            
+
         elseif ((iterWolfe > 1).AND.((dGEMFunctionNorm >= dWolfeFunctionNormLast))) then
-            
+
             ! Return values to previous line search iteration:
-            
+
             ! Update the system variables:
             dStepLength = 2D0
-            
+
             call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
-            
+
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
-        
+
             ! Compute the functional norm
             call CompFunctionNorm
-            
+
             ! Values are returned to their previous values and exit:
             exit LOOP_WOLFE
-            
+
         else
             ! Dampen the system variables:
-            
+
             ! If the functional norm has only increased by a nominal amount (i.e., 1%), then exit:
             dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
             if ((dTemp > 1D0).AND.(dTemp < 1.05D0)) exit LOOP_WOLFE
-                                                            
+
             dStepLength = 0.5D0
-            
+
             call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
-            
+
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
-            
+
             dWolfeFunctionNormLast = dGEMFunctionNorm
-            
+
             ! Compute the functional norm:
             call CompFunctionNorm
-            
+
             ! Reiterate:
             cycle LOOP_WOLFE
 
         end if
-        
+
     end do LOOP_WOLFE
 
     return
-    
+
 end subroutine GEMLineSearch
 
 
@@ -230,18 +238,18 @@ end subroutine GEMLineSearch
 
 
     !---------------------------------------------------------------------------
-    ! 
+    !
     ! Purpose:
     ! ========
-    ! 
+    !
     ! The purpose of this subroutine is to initialize the line search algorithm.
-    ! Specifically, the initial step length needs to be determined before the 
+    ! Specifically, the initial step length needs to be determined before the
     ! line search loop starts.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer      Description of change
     !   ----            ----------      ---------------------
     !
@@ -252,7 +260,7 @@ end subroutine GEMLineSearch
     !                                    then further dampen the system.
     !   09/29/2012      M.H.A. Piro     Revert the system if the phase assemblage
     !                                    has not changed in 50 iterations and
-    !                                    the maximum change to the system 
+    !                                    the maximum change to the system
     !                                    variables is extremely large.
     !
     !
@@ -260,13 +268,13 @@ end subroutine GEMLineSearch
     ! ====================
     !
     ! dStepLength       A double real scalar representing the step length.
-    ! dMaxIncrease      A double real scalar representing the maximum 
+    ! dMaxIncrease      A double real scalar representing the maximum
     !                    increase in the number of moles of a solution phase.
-    ! dMaxDecrease      A double real scalar representing the maximum 
+    ! dMaxDecrease      A double real scalar representing the maximum
     !                    decrease in the number of moles of a solution phase.
     ! lCompEverything   A logical scalar indicating whether everything should
-    !                    be computed in a particular subroutine (true) or 
-    !                    not (false). 
+    !                    be computed in a particular subroutine (true) or
+    !                    not (false).
     !
     !---------------------------------------------------------------------------
 
@@ -275,22 +283,22 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     USE ModuleThermo
     USE ModuleGEMSolver
-    
+
     implicit none
-    
+
     integer                       :: i, j, k, l, nMisciblePhases
     real(8)                       :: dStepLength, dTemp, dMaxIncrease, dMaxDecrease, dMaxChange, dMaxGamma
     real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
 
-    
+
     ! Initialize variables:
     lCompEverything  = .FALSE.
     dStepLength      = 1D0
     dMolesPhaseLast  = dMolesPhase
     nMisciblePhases  = 0
-    
+
     ! Count the number of stable miscible phases:
     do j = 1, nSolnPhases
         k = -iAssemblage(nElements - j + 1)
@@ -310,16 +318,24 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         dMaxDecrease = 0.85D0
     end if
 
-    dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
-    dMaxGamma = DMIN1(dMaxGamma,5D0)
-    dMaxGamma = DMAX1(dMaxGamma,1D0)
+    ! TEMPORARY: I should figure out a better and more permanent solution. My gut tells me that
+    ! I need to go away from constraining the maximum change to the element potentials and a more
+    ! elegant approach would be leaving it to the Wolfe conditions. For now, do this:
+    if (iterGlobal > 1000) then
+        dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
+        dMaxGamma = DMIN1(dMaxGamma,5D0)
+        dMaxGamma = DMAX1(dMaxGamma,1D0)
+    else
+        dMaxGamma = 100D0
+    end if
 
     ! Update the number of moles of pure condensed phases:
     do i = 1, nConPhases
-        j = nElements + nSolnPhases + i 
+        j = nElements + nSolnPhases + i
         dMolesPhase(i) = dUpdateVar(j)
     end do
 
+    dMaxSpeciesChange = 0D0
     ! Initialize the step length (prevent moles from being negative):
     do l = 1, nSolnPhases
         k = -iAssemblage(nElements - l + 1)     ! Absolute solution phase index.
@@ -329,17 +345,17 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             do j = 1, nElements
                 dTemp = dTemp + dUpdateVar(j) * dStoichSpecies(i,j)
             end do
-            
+
             dTemp = dTemp / DFLOAT(iParticlesPerMole(i))
-            
-            ! NOTE: The variable dMolFraction is used temporarily to represent 
+
+            ! NOTE: The variable dMolFraction is used temporarily to represent
             ! the fractional update to dMolesSpecies, but it does not replace
             ! dMolesSpecies in the event that further dampening is required.
             dMolFraction(i) = (1D0 + dUpdateVar(nElements + l) + dTemp - &
                 dChemicalPotential(i))
 
             if (dMolFraction(i) /= 1D0) dTemp = 1D0 / (1D0 - dMolFraction(i))
-            
+
             if ((dMolFraction(i) < 0D0).AND.(dTemp < dStepLength)) then
                 if (dMolesSpecies(i) < 1D-50) then
                     ! This species is very small and the system is trying to make it negative.
@@ -361,18 +377,24 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
+            if (dMolFraction(i) > 0) then
+                dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
+            else
+                ! if set negative or zero then just make this really big
+                dMaxSpeciesChange = 1e16
+            end if
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
-            
+
         end do
     end do
 
-    ! Initialize the steplength (constrain the element potentials to only 
-    ! change by 1 unit):
+    ! Initialize the steplength (constrain the element potentials to only
+    ! change by dMaxGamma):
     do i = 1, nElements
         dTemp = DABS(dElementPotential(i) - dUpdateVar(i))
-        
+
         if (dUpdateVar(i) == 0D0) cycle
-        
+
         if (dTemp > 1D0) then
 
             dTemp = dMaxGamma / dTemp
@@ -392,6 +414,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     ! Constrain the number of moles of any solution phase to only change by a factor of 2:
     i = 0
     dStepLength = 1D0
+    dTemp = 0D0
     do j = 1, nSolnPhases
         k     = nElements - j + 1     ! Solution phase index in iAssemblage and dMolesPhase
 
@@ -399,8 +422,8 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             dTemp = dMolesPhaseLast(k) * (dMaxIncrease - 1D0) / (dMolesPhase(k) - dMolesPhaseLast(k))
         end if
 
-        if (dTemp < 0D0) dTemp = dStepLength
-        dStepLength = DMIN1(dTemp, dStepLength)        
+        if (dTemp <= 0D0) dTemp = dStepLength
+        dStepLength = DMIN1(dTemp, dStepLength)
 
         ! TEMPORARY TO AVOID AN INF:
         dMolesPhaseLast(k) = DMAX1(dMolesPhaseLast(k),1D-10)
@@ -408,16 +431,14 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         ! Do not allow the number of moles of a solution phase to be reduced by less than half if it is
         ! not being pushed to zero:
         dTemp = DABS(dMolesPhase(k) / dMolesPhaseLast(k))
-        
+
         ! Count the number of times the number of moles of a solution phase is trying to increase
         ! by a large margin:
         if (dTemp > dMaxIncrease) i = i + 1
 
 
-! THIS FOLLOWING SECTION NEEDS TO BE BETTER FIGURED OUT.  WHY WOULD IT DAMPEN IF A SOLUTOIN PHASE IS 
+! THIS FOLLOWING SECTION NEEDS TO BE BETTER FIGURED OUT.  WHY WOULD IT DAMPEN IF A SOLUTOIN PHASE IS
 ! BECOMING NEGATIVE WITH DTEMP > 0.011 OR DTEMP < 0.009??
-
-
 
 
         if (dTemp < 1D0) then
@@ -426,11 +447,11 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             !if ((dTemp > 0.011D0).OR.(dTemp < 0.009D0)) then
 
                 ! TEMPORARY:
-                if (dMolesPhase(k) < 1D-9) Cycle 
+                if (dMolesPhase(k) < 1D-9) Cycle
 
                 ! Count the number of solution phases that have molar quantities that are tending to zero:
-                if (dTemp <= dMaxDecrease) i = i + 1    
-                   
+                if (dTemp <= dMaxDecrease) i = i + 1
+
                 ! Determine a step length that would result in halving this solution phase:
                 dTemp = DABS(dMaxDecrease * dMolesPhaseLast(k) / (dMolesPhaseLast(k) - dMolesPhase(k)))
                 dStepLength = DMIN1(dTemp,dStepLength)
@@ -440,17 +461,17 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     ! Check if there is at least one solution phase that is tending to zero:
     if (i > 0) then
-        ! An issue with the Gibbs Energy Minimization method is that one is effectively attempting to 
-        ! minimize two objective functions simultaneously: 1) the integral Gibbs energy of the system, 
-        ! and 2) the residual vector of the mass balance equations.  A common problem is that there 
+        ! An issue with the Gibbs Energy Minimization method is that one is effectively attempting to
+        ! minimize two objective functions simultaneously: 1) the integral Gibbs energy of the system,
+        ! and 2) the residual vector of the mass balance equations.  A common problem is that there
         ! may be a phase change that results in significant changes in both the mass balance residuals
         ! and the Gibbs energy function, making the functional norm a poor indicator of convergence.
         ! Generally, if a single solution phase should be forced out of the system, then the number of
-        ! moles of that phase alone will change significantly.  If the number of moles of more than 
+        ! moles of that phase alone will change significantly.  If the number of moles of more than
         ! one solution phase changes, then the system may need to be further dampened.
 
         dTemp = 0.05D0
-        
+
         ! Count the number of solution phases (i.e., j) that are changing by at least 5%:
         call CheckStagnation(dTemp,dMaxChange,j)
 
@@ -467,7 +488,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     ! Compute the chemical potentials of solution species:
     call CompChemicalPotential(lCompEverything)
-    
+
     ! Compute the functional norm:
     call CompFunctionNorm
 
@@ -480,10 +501,10 @@ end subroutine InitGEMLineSearch
 
 
     !---------------------------------------------------------------------------
-    ! 
+    !
     ! Purpose:
     ! ========
-    ! 
+    !
     ! The purpose of this subroutine is to update the system variables using
     ! a specified steplength.
     !
@@ -513,12 +534,12 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
         ! Compute the total number of moles of each solution phase:
         dMolesPhase(nElements-j+1) = dTemp
     end do
-    
+
     ! Dampen the number of moles of pure condensed phases:
     do i = 1, nConPhases
         dMolesPhase(i) = dStepLength * dMolesPhase(i) + (1D0 - dStepLength) * dMolesPhaseLast(i)
     end do
-    
+
     ! Dampen the element potentials:
     LOOP_Gamma: do i = 1, nElements
         if (dElementPotential(i) == 0D0) then
@@ -534,4 +555,3 @@ end subroutine UpdateSystemVariables
     !---------------------------------------------------------------------------
     !                            END - GEMLineSearch.f90
     !---------------------------------------------------------------------------
-

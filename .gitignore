@@ -4,4 +4,5 @@ obj/
 # ignore doc subdirectories except the pre-compiled manual
 doc/html/
 doc/latex/
+doc/test/
 test/doc/

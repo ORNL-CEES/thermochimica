@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer       Description of change
     !    ----          ----------       ---------------------
     !    10/21/2011    M.H.A. Piro      Original code.
@@ -19,15 +19,15 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to print an error message corresponding to a particular value 
-    !! of INFOThermo if a problem is encountered.  This subroutine is intended to only be used for debugging 
+    !> \details The purpose of this subroutine is to print an error message corresponding to a particular value
+    !! of INFOThermo if a problem is encountered.  This subroutine is intended to only be used for debugging
     !! purposes.
     !!
     !-------------------------------------------------------------------------------------------------------------
 
 
 subroutine ThermoDEBUG
-    
+
     USE ModuleThermoIO
     USE ModuleParseCS, ONLY: nSolnTypeSupport, cSolnPhaseTypeSupport
 
@@ -35,8 +35,8 @@ subroutine ThermoDEBUG
 
     integer::   i, j
     print *
-            
-    if (INFOThermo == 0) then        
+
+    if (INFOThermo == 0) then
         print *, 'DEBUG: Successful exit.'
     elseif (INFOThermo == 1) then
         print *, 'DEBUG: Temperature is out of range or a NAN.'
@@ -69,7 +69,7 @@ subroutine ThermoDEBUG
     elseif (INFOThermo == 12) then
         print *, 'DEBUG: The GEMSolver subroutine failed to converge.'
     elseif (INFOThermo == 13) then
-        print *, 'DEBUG: The GEMSolver subroutine detected a NAN.'      
+        print *, 'DEBUG: The GEMSolver subroutine detected a NAN.'
     elseif (INFOThermo == 14) then
         print *, 'DEBUG: The GEMSolver determined that there are no solution phases, but the system'
         print *, 'cannot be represented by only pure condensed phases. '
@@ -82,7 +82,7 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: The LAPACK driver routines were not able to invert the Jacobian matrix in the GEMSolver.'
         ! Check the GEMNewton.f90 subroutine.
     elseif (INFOThermo == 17) then
-        print *, 'DEBUG: The data-file contains a solution phase type that is not currently supported by Thermochimica.' 
+        print *, 'DEBUG: The data-file contains a solution phase type that is not currently supported by Thermochimica.'
         print *
         print *, 'The following solution phase types are currently supported:'
         do i = 1, nSolnTypeSupport
@@ -98,24 +98,24 @@ subroutine ThermoDEBUG
         ! Check the CheckSystem subroutine.
     elseif (INFOThermo == 20) then
         print *, 'DEBUG: Failed to deallocate allocatable array used in the LevelingSolver subroutine.'
-        ! Check the LevelingSolver subroutine.        
+        ! Check the LevelingSolver subroutine.
     elseif (INFOThermo == 21) then
         print *, 'DEBUG: Failed to deallocate allocatable array used in the InitGEM subroutine.'
-        ! Check the InitGEM subroutine.                
+        ! Check the InitGEM subroutine.
     elseif (INFOThermo == 22) then
         print *, 'DEBUG: Failed to deallocate allocatable array used in the CompMolSolnPhase subroutine.'
-        ! Check the CompMolSolnPhase subroutine.      
+        ! Check the CompMolSolnPhase subroutine.
     elseif (INFOThermo == 23) then
         print *, 'DEBUG: Failed to deallocate allocatable array used in the GEMBroyden subroutine.'
-        ! Check the GEMBroyden subroutine.              
+        ! Check the GEMBroyden subroutine.
     elseif (INFOThermo == 24) then
         print *, 'DEBUG: A NAN was detected in the CompStoichSolnPhase.f90 subroutine.'
     elseif (INFOThermo == 25) then
         print *, 'DEBUG: A NAN was detected in the CompMolFraction.f90 subroutine.'
     elseif (INFOThermo == 26) then
-        print *, 'DEBUG: Failed to deallocate allocatable variables used in the CompMolAllSolnPhases subroutine.' 
+        print *, 'DEBUG: Failed to deallocate allocatable variables used in the CompMolAllSolnPhases subroutine.'
     elseif (INFOThermo == 27) then
-        print *, 'DEBUG: The CheckQKTOSolnPhase subroutine failed to converge.'     
+        print *, 'DEBUG: The CheckQKTOSolnPhase subroutine failed to converge.'
     elseif (INFOThermo == 28) then
         print *, 'DEBUG: LAPACK returned an error in the SubMinNewton subroutine.'
     elseif (INFOThermo == 29) then
@@ -137,6 +137,10 @@ subroutine ThermoDEBUG
         print *, 'but must be positive.'
     elseif (INFOThermo == 36) then
         print *, 'DEBUG: An error occured in interpreting the parsed data for a SUBL phase.'
+    elseif (INFOThermo == 40) then
+        print *, 'DEBUG: There is an element in a compound that is not in the dat file.'
+    elseif (INFOThermo == 41) then
+        print *, 'DEBUG: Error finding stoichiometry in terms of compounds.'
         ! Check CompThermoData.f90
     elseif ((INFOThermo >= 100).AND.(INFOThermo < 1000)) then
         i = INFOThermo - 100
@@ -152,7 +156,7 @@ subroutine ThermoDEBUG
     end if
 
     print *
-    
+
     return
 
-end subroutine ThermoDEBUG 
+end subroutine ThermoDEBUG

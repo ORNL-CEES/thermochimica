@@ -10,7 +10,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   05/08/2012      M.H.A. Piro         Original code
@@ -32,32 +32,32 @@
     ! dSolnPhaseMolesOut    A double real vector representing the number of moles of particular solution phases
     !                        requested as output.  If this phase is not present at equilibrium, it is assigned
     !                        a value of zero.
-    ! dPureConPhaseMolesOut A double real vector representing the number of moles of particular pure condensed 
-    !                        phases requested as output.  If this phase is not present at equilibrium, it is 
+    ! dPureConPhaseMolesOut A double real vector representing the number of moles of particular pure condensed
+    !                        phases requested as output.  If this phase is not present at equilibrium, it is
     !                        assigned a value of zero.
-    ! dSpeciesMoleFractionOut A double real vector representing the mole fraction of particular soluton species 
-    !                        requested as output.  If this species is not present at equilibrium, it is 
+    ! dSpeciesMoleFractionOut A double real vector representing the mole fraction of particular soluton species
+    !                        requested as output.  If this species is not present at equilibrium, it is
     !                        assigned a value of zero.
     ! IsSolnPhaseInSys      A character string indicating whether a particular solution phase is in the system
     !                        ('yes') or not ('no').
-    ! IsPureConPhaseInSys   A character string indicating whether a particular pure condensed phase is in the 
+    ! IsPureConPhaseInSys   A character string indicating whether a particular pure condensed phase is in the
     !                        system ('yes') or not ('no').
     !
     !-------------------------------------------------------------------------------------------------------------
 
 
 subroutine ThermoOutput
-    
+
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
 
     implicit none
-    
-    integer::   i, j, k, GetSolnPhaseIndex
+
+    integer::   i, j, k, GetSolnPhaseIndex, clength
     logical::   IsSolnPhaseInSys, IsPureConPhaseInSys
-    
-    
+
+
     ! Initialize variables:
     dSolnPhaseMolesOut      = 0D0
     dPureConPhaseMolesOut   = 0D0
@@ -71,42 +71,44 @@ subroutine ThermoOutput
         ! ----------------
 
         LOOP_SolnPhasesOut: do i = 1, nSolnPhasesOut
-            
+
             ! Check if this solution phase is in the system:
             if (IsSolnPhaseInSys(cSolnPhaseNameOut(i)) .EQV. .TRUE. ) then
                 ! The solution phase requested is in the system. Check if it is stable at equilibrium:
-                LOOP_nSolnPhases: do j = 1, nSolnPhases 
+                LOOP_nSolnPhases: do j = 1, nSolnPhases
                     k = -iAssemblage(nElements - j + 1)         ! Absolute solution phase index in system.
                     if (cSolnPhaseNameOut(i) == cSolnPhaseName(k)) then
-                        ! This solution phase is expected to be stable at equilibrium.  
+                        ! This solution phase is expected to be stable at equilibrium.
                         ! Store the number of moles of this phase:
                         dSolnPhaseMolesOut(i) = dMolesPhase(nElements - j + 1)
                         exit LOOP_nSolnPhases
                     end if
                 end do LOOP_nSolnPhases
             else
-                ! The solution phase requested as output is not in the system.  Placeholder if an error should be 
-                ! reported at a later time.  
-            end if          
+                ! The solution phase requested as output is not in the system.  Placeholder if an error should be
+                ! reported at a later time.
+            end if
         end do LOOP_SolnPhasesOut
-  
-  
+
+
         ! -----------------
         ! SOLUTION SPECIES:
         ! -----------------
-        
+
         LOOP_SpeciesOut: do i = 1, nSpeciesOut
             ! First, make sure that the solution phase that this species belongs to is in the system:
             if (IsSolnPhaseInSys(cSpeciesPhaseOut(i)) .EQV. .TRUE. ) then
                 ! Get the solution phase index:
                 k = GetSolnPhaseIndex(cSpeciesPhaseOut(i))
-                
+
                 if (k == 0) cycle LOOP_SpeciesOut
-                
-                cSpeciesNameOut(i) = ' ' // cSpeciesNameOut(i)
-                
+
+                clength=LEN(cSpeciesNameOut(i))
+                clength=clength-1
+                cSpeciesNameOut(i) = ' ' // cSpeciesNameOut(i)(1:clength)
+
                 ! Loop through all species in this solution phase:
-                LOOP_SpeciesInSoln: do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)                    
+                LOOP_SpeciesInSoln: do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
                     if (cSpeciesNameOut(i) == cSpeciesName(j)) then
                         dSpeciesMoleFractionOut(i) = dMolFraction(j)
                         exit LOOP_SpeciesInSoln
@@ -117,14 +119,14 @@ subroutine ThermoOutput
                 ! This is a placeholder for later.
             end if
         end do LOOP_SpeciesOut
-        
-        
+
+
         ! ----------------------
         ! PURE CONDENSED PHASES:
         ! ----------------------
-        
+
         LOOP_PureConPhasesOut: do i = 1, nPureConPhaseOut
-            
+
             ! Check if this pure condensed phase is in the system:
             if (IsPureConPhaseInSys(cPureConPhaseNameOut(i)) .EQV. .TRUE.) then
                 ! The pure condensed phase requested as output is in the system.
@@ -138,18 +140,18 @@ subroutine ThermoOutput
                         exit LOOP_nConPhases
                     end if
                 end do LOOP_nConPhases
-            else 
-                ! The pure condensed phase requested as output is not in the system.  Placeholder if an error 
-                ! should be reported at a later time.  
+            else
+                ! The pure condensed phase requested as output is not in the system.  Placeholder if an error
+                ! should be reported at a later time.
             end if
         end do LOOP_PureConPhasesOut
 
     else
         ! Provide null values if an error has been detected.
     end if
-    
+
     return
-            
+
 end subroutine ThermoOutput
 
 
@@ -157,7 +159,7 @@ end subroutine ThermoOutput
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   05/08/2012      M.H.A. Piro         Original code
@@ -174,9 +176,9 @@ end subroutine ThermoOutput
 
 
 function IsSolnPhaseInSys(cSolnPhaseNameOut)
-    
+
     USE ModuleThermo
-    
+
     implicit none
 
     integer::                 i
@@ -191,9 +193,9 @@ function IsSolnPhaseInSys(cSolnPhaseNameOut)
     do i = 1, nSolnPhasesSys
         if (cSolnPhaseName(i) == cSolnPhaseNameOut) then
             IsSolnPhaseInSys = .TRUE.
-            exit 
+            exit
         end if
-    end do   
+    end do
 
 end function IsSolnPhaseInSys
 
@@ -203,7 +205,7 @@ end function IsSolnPhaseInSys
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   05/08/2012      M.H.A. Piro         Original code
@@ -219,9 +221,9 @@ end function IsSolnPhaseInSys
 
 
 function GetSolnPhaseIndex(cSolnPhaseNameOut)
-    
+
     USE ModuleThermo
-    
+
     implicit none
 
     integer::                 i, GetSolnPhaseIndex
@@ -235,9 +237,9 @@ function GetSolnPhaseIndex(cSolnPhaseNameOut)
     do i = 1, nSolnPhasesSys
         if (cSolnPhaseName(i) == cSolnPhaseNameOut) then
             GetSolnPhaseIndex = i
-            exit 
+            exit
         end if
-    end do   
+    end do
 
 end function GetSolnPhaseIndex
 
@@ -246,7 +248,7 @@ end function GetSolnPhaseIndex
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !   Date            Programmer          Description of change
     !   ----            ----------          ---------------------
     !   05/08/2012      M.H.A. Piro         Original code
@@ -255,20 +257,20 @@ end function GetSolnPhaseIndex
     ! Purpose
     ! =======
     !
-    ! The purpose of this function is to determine whether a particular pure condensed phase is in the system.  
-    ! Note that this is not to be confused with a pure condensed phase that is expected to be stable at 
+    ! The purpose of this function is to determine whether a particular pure condensed phase is in the system.
+    ! Note that this is not to be confused with a pure condensed phase that is expected to be stable at
     ! equilibrium.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 
 function IsPureConPhaseInSys(cPureConPhaseNameOut)
-    
+
     USE ModuleThermo
-    
+
     implicit none
- 
-    integer::                 i 
+
+    integer::                 i
     character(*),intent(in):: cPureConPhaseNameOut
     character(26)::           cTemp
     logical::                 IsPureConPhaseInSys
@@ -276,7 +278,7 @@ function IsPureConPhaseInSys(cPureConPhaseNameOut)
 
     ! Initialize variables:
     IsPureConPhaseInSys = .FALSE.
-    
+
     cTemp = ' ' // cPureConPhaseNameOut
 
     ! Check to see if this phase is even in the system:
@@ -284,8 +286,8 @@ function IsPureConPhaseInSys(cPureConPhaseNameOut)
 
         if (cSpeciesName(i) == cTemp) then
             IsPureConPhaseInSys = .TRUE.
-            exit 
+            exit
         end if
-    end do   
+    end do
 
 end function IsPureConPhaseInSys

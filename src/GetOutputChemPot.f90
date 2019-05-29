@@ -9,7 +9,7 @@
 !
 ! Revisions:
 ! ==========
-! 
+!
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   09/16/2015      M.H.A. Piro         Original code
@@ -31,12 +31,12 @@
 !!                                       element.
 !> \param[out]    dElementChemPot       A double real scalar representing the
 !!                                       chemical potential of this element.
-!> \param[out]    INFO                  An integer scalar indicating a successful 
+!> \param[out]    INFO                  An integer scalar indicating a successful
 !!                                       exit (== 0) or an error (/= 0).
 !
 !-------------------------------------------------------------------------------
 
-    
+
 subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
 
     USE ModuleThermo
@@ -47,8 +47,9 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     integer,      intent(out)   :: INFO
     integer                     :: i, j
     real(8),      intent(out)   :: dElementChemPot
-    character(3), intent(inout) :: cElementNameRequest
-
+    character(3), intent(in)    :: cElementNameRequest
+    character(3)                :: cTemp
+    cTemp = cElementNameRequest
 
     ! Initialize variables:
     INFO            = 0
@@ -58,13 +59,17 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     if (INFOThermo == 0) then
 
         ! Remove trailing blanks:
-        cElementNameRequest = TRIM(cElementNameRequest)
+        ! cElementNameRequest = TRIM(cElementNameRequest)
+        cTemp = TRIM(cTemp)
+        ! write(*,*) "element name ", cTemp
 
         ! Loop through elements to find the one corresponding to the element
         ! being requested:
         j = 0
         LOOP_A: do i = 1, nElements
-            if (cElementNameRequest == cElementName(i)) then
+            ! if (cElementNameRequest == cElementName(i)) then
+            if (cTemp == cElementName(i)) then
+                ! write(*,*) "match ", cElementName(i)
                 j = i
                 exit LOOP_A
             end if
@@ -72,7 +77,7 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
 
         ! Check to make sure that the element was found:
         if (j /= 0) then
-            ! The element was found in the list.  Store the chemical potential 
+            ! The element was found in the list.  Store the chemical potential
             ! of this element and convert back to units of J/g-at:
             dElementChemPot = dElementPotential(j) * dIdealConstant * dTemperature
         else
@@ -86,5 +91,5 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     end if
 
     return
-      
+
 end subroutine GetOutputChemPot

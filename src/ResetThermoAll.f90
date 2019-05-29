@@ -11,7 +11,7 @@
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer         Description of change
     !    ----          ----------         ---------------------
     !    02/17/2012    M.H.A. Piro        Original code
@@ -20,7 +20,7 @@
     ! Purpose:
     ! ========
     !
-    !> \details The purpose of this subroutine is to fully destruct all allocatable variables associated with 
+    !> \details The purpose of this subroutine is to fully destruct all allocatable variables associated with
     !! Thermochimica.  This includes variables used internally by Thermochimica and by the parser that parses
     !! data-files as input.
     !
@@ -31,10 +31,10 @@ subroutine ResetThermoAll
 
     ! Reset thermochimica:
     call ResetThermo
-    
+
     ! Reset the parser used by thermochimica:
     call ResetThermoParser
-    
+
     return
-    
+
 end subroutine ResetThermoAll

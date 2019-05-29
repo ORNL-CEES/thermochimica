@@ -14,6 +14,7 @@
 !   Date            Programmer          Description of change
 !   ----            ----------          ---------------------
 !   06/10/2016      M.H.A. Piro         Original code
+!   11/10/2016      S.Simunovic         Fixed /= on SUBL test
 !
 !
 ! Purpose:
@@ -50,7 +51,7 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
+subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -61,9 +62,12 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     integer                      :: i, j, k
     integer                      :: iSublatticeOut, iConstituentOut
     real(8),       intent(out)   :: dSiteFractionOut
-    character(25), intent(inout) :: cSolnOut
-    ! character(25)                :: cTemp
+    character(*),  intent(in)    :: cSolnOut
+    integer                      :: lcSolnOut
+    character(15)                :: cTemp
 
+    cTemp = cSolnOut(1:min(15,lcSolnOut))
+!    cTemp = cSolnOut(1:min(15,len(cSolnOut)))
 
     ! Initialize variables:
     INFO             = 0
@@ -73,7 +77,8 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
     if (INFOThermo == 0) then
 
         ! Remove trailing blanks:
-        cSolnOut    = TRIM(cSolnOut)
+        ! cSolnOut    = TRIM(cSolnOut)
+        ! cTemp    = TRIM(cTemp)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -83,13 +88,15 @@ subroutine GetOutputSiteFraction(cSolnOut, iSublatticeOut, iConstituentOut, dSit
             ! Get the absolute solution phase index:
             k = -iAssemblage(nElements - i + 1)
 
-            if (cSolnOut == cSolnPhaseName(k)) then
+            ! write(*,*) 'c ', cTemp, len(cTemp), ' = ', cSolnPhaseName(k)
+            ! if (cSolnOut == cSolnPhaseName(k)) then
+            if (cTemp == cSolnPhaseName(k)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = k
 
                 ! Verify that this solution phase has the correct
-	  	! phase type:
-                if ((cSolnPhaseType(j) /= 'SUBLM').OR.(cSolnPhaseType(j) /= 'SUBL')) then
+                ! phase type:
+                if ((cSolnPhaseType(j) == 'SUBLM').OR.(cSolnPhaseType(j) == 'SUBL')) then
                     ! Do nothing.
                 else
                     j = 0

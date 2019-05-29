@@ -93,7 +93,7 @@ subroutine ResetThermo
         ! Deallocate arrays used for sublattices:
         deallocate(iConstituentPass, iPhaseSublattice, dStoichSublattice, dSiteFraction, &
             cConstituentNameSUB, iConstituentSublattice, iPhaseElectronID,nSublatticePhase,&
-            nConstituentSublattice,  STAT = INFO)
+            nConstituentSublattice, iSublatticeElements, nSublatticeElements,  STAT = INFO)
         i = i + INFO
     end if
 
@@ -108,6 +108,11 @@ subroutine ResetThermo
         i = i + INFO
         deallocate(iPairID,dCoordinationNumber)
     end if
+
+   if (allocated(nPairsSRO)) then
+         deallocate(nPairsSRO, STAT = INFO)
+      i = i + INFO
+   end if
 
 
 !    if (allocated(lSpeciesStable)) then

@@ -4,13 +4,13 @@
     !
     ! DISCLAIMER
     ! ==========
-    ! 
-    ! All of the programming herein is original unless otherwise specified. 
+    !
+    ! All of the programming herein is original unless otherwise specified.
     !
     !
     ! Revisions:
     ! ==========
-    ! 
+    !
     !    Date          Programmer        Description of change
     !    ----          ----------        ---------------------
     !    10/05/2011    M.H.A. Piro       Original code
@@ -19,8 +19,8 @@
     ! Purpose:
     ! ========
     !
-    ! The purpose of this program is to provide an example Application Programming Interface (API) for 
-    ! Thermochimica to simulate the interaction with another code.  The module "ModuleThermoIO" is intended to 
+    ! The purpose of this program is to provide an example Application Programming Interface (API) for
+    ! Thermochimica to simulate the interaction with another code.  The module "ModuleThermoIO" is intended to
     ! be used by another code that calls Thermochimica for input/output operations.
     !
     !   Subroutine                  Brief Description
@@ -47,9 +47,9 @@
     !   dTemperature                A double real scalar representing temperature.
     !   dPressure                   A double real scalar representing hydrostatic pressure.
     !   dElementMass                A double real vector (0:118) representing the mass of each chemical element.
-    !                                Coefficients corespond to the atomic number on the periodic table (e.g., 
+    !                                Coefficients corespond to the atomic number on the periodic table (e.g.,
     !                                dElementMass(92) corresponds to uranium).
-    !   iPrintResultsMode           An integer scalar indicating the print level.  
+    !   iPrintResultsMode           An integer scalar indicating the print level.
     !                                0 = do not print output to screen.
     !                                1 = print simple details to screen on exit.
     !                                2 = print advanced details to screen on exit.
@@ -61,8 +61,6 @@
 program thermo
 
     USE ModuleThermoIO
-    USE ModuleThermo
-    USE ModuleGEMSolver
 
     implicit none
 
@@ -70,20 +68,16 @@ program thermo
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = '../data/LiFUBe_Benes_crop2.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'C-O.dat'
 
     ! Specify values:
-    dTemperature          = 1000D0
-    dPressure             = 1D0
-    dElementMass          = 0D0
-    dElementMass(3)       = 1D0                                 ! Li
-    dElementMass(4)       = 2D0                                 ! Be
-    dElementMass(92)      = 3D0                                 ! U 
-    dElementMass(9)       = dElementMass(3) + 2D0* dElementMass(4) + 4D0* dElementMass(92)                     ! F
+    dPressure              = 1D0
+    dTemperature           = 1000D0
+    dElementMass(6)        = 2D0           ! C
+    dElementMass(8)        = 1D0          ! O
 
-    ! Specify output and debug modes:
+    ! Specify output mode:
     iPrintResultsMode     = 2
-    lDebugMode            = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -98,6 +92,6 @@ program thermo
     if (INFOThermo == 0)        call ResetThermoAll
 
     ! Call the debugger:
-    call ThermoDebug    
-    
+    call ThermoDebug
+
 end program thermo

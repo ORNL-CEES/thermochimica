@@ -14,7 +14,6 @@
     !    Date          Programmer        Description of change
     !    ----          ----------        ---------------------
     !    10/05/2011    M.H.A. Piro       Original code
-    !    11/10/2016    S.Simunovic       Changed input model, new test
     !
     !
     ! Purpose:
@@ -59,11 +58,12 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program thermo
+program lifthf
 
     USE ModuleThermoIO
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModuleParseCS
 
     implicit none
 
@@ -71,60 +71,44 @@ program thermo
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = '../data/CEF4.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'LiF-ThF4.dat'
 
     ! Specify values:
-    dTemperature            = 1023D0
-    dPressure               = 3D0
-    dElementMass            = 0D0
-    dElementMass(8)     = 8.4030D+03
-    dElementMass(92)    = 3.6820D+03
-    dElementMass(54)    = 1.3150D+02
-    dElementMass(42)    = 1.0080D+02
-    dElementMass(40)    = 9.8930D+01
-    dElementMass(44)    = 8.9420D+01
-    dElementMass(60)    = 8.0156D+01
-    dElementMass(46)    = 6.7630D+01
-    dElementMass(94)    = 6.5847D+01
-    dElementMass(56)    = 5.7420D+01
-    dElementMass(55)    = 5.7380D+01
-    dElementMass(58)    = 5.4720D+01
-    dElementMass(64)    = 3.0632D+01
-    dElementMass(57)    = 2.5200D+01
-    dElementMass(59)    = 2.1986D+01
-    dElementMass(43)    = 1.8530D+01
-    dElementMass(52)    = 1.2290D+01
-    dElementMass(39)    = 1.1550D+01
-    dElementMass(36)    = 1.0110D+01
-    dElementMass(37)    = 9.3000D+00
-    dElementMass(45)    = 7.5310D+00
-    dElementMass(48)    = 7.3460D+00
-    dElementMass(53)    = 5.3120D+00
-    dElementMass(2)     = 3.4670D+00
-    ! dElementMass(8)         = 0.6D0
-    ! dElementMass(90)        = 0.4D0
+    ! dTemperature          = 1773.15D0
+    dTemperature          = 900
+    dPressure             = 1.0D0
+    dElementMass          = 0D0
+    ! dElementMass(3)       = 0.9D0                              ! Li
+    ! dElementMass(9)       = 1.9D0                              ! F
+    ! dElementMass(90)      = 0.1D0                              ! Th
+
+    nCompounds            = 2
+    cCompoundNames(1)     = 'LiF'
+    cCompoundNames(2)     = 'ThF4'
+    dCompoundStoich(1,9)  = 1D0
+    dCompoundStoich(1,3)  = 1D0
+    dCompoundStoich(2,9)  = 4D0
+    dCompoundStoich(2,90) = 1D0
+    dCompoundMass(1)      = 0.9D0
+    dCompoundMass(2)      = 0.2D0
 
     ! Specify output and debug modes:
-    iPrintResultsMode = 2
-    lDebugMode        = .FALSE.
-    !lDebugMode        = .TRUE.
+    iPrintResultsMode     = 2
+    lDebugMode            = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0) call Thermochimica
+    if (INFOThermo == 0)        call Thermochimica
 
     ! Perform post-processing of results:
-    if (iPrintResultsMode > 0) call PrintResults
+    if (iPrintResultsMode > 0)  call PrintResults
 
     ! Destruct everything:
-    if (INFOThermo == 0) call ResetThermoAll
+    if (INFOThermo == 0)        call ResetThermoAll
 
     ! Call the debugger:
     call ThermoDebug
 
-    
-
-    
-end program thermo
+end program lifthf
