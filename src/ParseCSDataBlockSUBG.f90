@@ -74,15 +74,16 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2
+    integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2, nChar
     integer                     :: ia2x2, ib2x2, ia2y2, iabx2, iaby2, ia2xy, ib2xy
     integer,     dimension(10)  :: iTempVec
+    integer,     dimension(13)  :: iNumPos
     real(8)                     :: dAnionCoordTemp, dF, qa, qb, qx, qy
     real(8)                     :: dZAa2xy, dZXa2xy, dZYa2xy, dZBb2xy, dZXb2xy, dZYb2xy
     real(8)                     :: dZAabx2, dZBabx2, dZXabx2, dZAaby2, dZBaby2, dZYaby2
     real(8)                     :: dZAa2x2, dZBb2x2, dZXa2x2, dZXb2x2, dZAa2y2, dZYa2y2
     real(8),     dimension(20)  :: dTempVec
-    character(8),dimension(20)  :: cDummyVec
+    character(8),dimension(20)  :: cDummyVec, cConstituentNames1, cConstituentNames2
     logical, dimension(:), allocatable :: lPairSet
 
     real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
@@ -104,11 +105,26 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Read in names of constituents on first sublattice:
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
-    read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    read (1,*,IOSTAT = INFO) cConstituentNames1(1:nSublatticeElementsCS(nCountSublatticeCS,1))
     ! Match elements on 1st sublattice with elements in dat file order
     do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+        ! Find numbers or +/- in name if they are there
+        iNumPos = 3
+        if (INDEX(cConstituentNames1(k),'1') > 0) iNumPos(1)  = INDEX(cConstituentNames1(k),'1')
+        if (INDEX(cConstituentNames1(k),'2') > 0) iNumPos(2)  = INDEX(cConstituentNames1(k),'2')
+        if (INDEX(cConstituentNames1(k),'3') > 0) iNumPos(3)  = INDEX(cConstituentNames1(k),'3')
+        if (INDEX(cConstituentNames1(k),'4') > 0) iNumPos(4)  = INDEX(cConstituentNames1(k),'4')
+        if (INDEX(cConstituentNames1(k),'5') > 0) iNumPos(5)  = INDEX(cConstituentNames1(k),'5')
+        if (INDEX(cConstituentNames1(k),'6') > 0) iNumPos(6)  = INDEX(cConstituentNames1(k),'6')
+        if (INDEX(cConstituentNames1(k),'7') > 0) iNumPos(7)  = INDEX(cConstituentNames1(k),'7')
+        if (INDEX(cConstituentNames1(k),'8') > 0) iNumPos(8)  = INDEX(cConstituentNames1(k),'8')
+        if (INDEX(cConstituentNames1(k),'9') > 0) iNumPos(9)  = INDEX(cConstituentNames1(k),'9')
+        if (INDEX(cConstituentNames1(k),'0') > 0) iNumPos(10) = INDEX(cConstituentNames1(k),'0')
+        if (INDEX(cConstituentNames1(k),'+') > 0) iNumPos(11) = INDEX(cConstituentNames1(k),'+')
+        if (INDEX(cConstituentNames1(k),'-') > 0) iNumPos(12) = INDEX(cConstituentNames1(k),'-')
+        nChar = MINVAL(iNumPos) - 1
         LOOP_Sublattice1Elements: do j = 1, nElementsCS
-            if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
+            if (cConstituentNames1(k)(1:nChar) == cElementNameCS(j)(1:2)) then
                 iSublatticeElementsCS(nCountSublatticeCS, 1, k) = j
                 exit LOOP_Sublattice1Elements
             end if
@@ -116,11 +132,26 @@ subroutine ParseCSDataBlockSUBG( i )
     end do
 
     ! Read in names of constituents on second sublattice: (ignore for now):
-    read (1,*,IOSTAT = INFO) cDummyVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
+    read (1,*,IOSTAT = INFO) cConstituentNames2(1:nSublatticeElementsCS(nCountSublatticeCS,2))
     ! Match elements on 2nd sublattice with elements in dat file order
     do k = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
+        ! Find numbers or +/- in name if they are there
+        iNumPos = 3
+        if (INDEX(cConstituentNames2(k),'1') > 0) iNumPos(1)  = INDEX(cConstituentNames2(k),'1')
+        if (INDEX(cConstituentNames2(k),'2') > 0) iNumPos(2)  = INDEX(cConstituentNames2(k),'2')
+        if (INDEX(cConstituentNames2(k),'3') > 0) iNumPos(3)  = INDEX(cConstituentNames2(k),'3')
+        if (INDEX(cConstituentNames2(k),'4') > 0) iNumPos(4)  = INDEX(cConstituentNames2(k),'4')
+        if (INDEX(cConstituentNames2(k),'5') > 0) iNumPos(5)  = INDEX(cConstituentNames2(k),'5')
+        if (INDEX(cConstituentNames2(k),'6') > 0) iNumPos(6)  = INDEX(cConstituentNames2(k),'6')
+        if (INDEX(cConstituentNames2(k),'7') > 0) iNumPos(7)  = INDEX(cConstituentNames2(k),'7')
+        if (INDEX(cConstituentNames2(k),'8') > 0) iNumPos(8)  = INDEX(cConstituentNames2(k),'8')
+        if (INDEX(cConstituentNames2(k),'9') > 0) iNumPos(9)  = INDEX(cConstituentNames2(k),'9')
+        if (INDEX(cConstituentNames2(k),'0') > 0) iNumPos(10) = INDEX(cConstituentNames2(k),'0')
+        if (INDEX(cConstituentNames2(k),'+') > 0) iNumPos(11) = INDEX(cConstituentNames2(k),'+')
+        if (INDEX(cConstituentNames2(k),'-') > 0) iNumPos(12) = INDEX(cConstituentNames2(k),'-')
+        nChar = MINVAL(iNumPos) - 1
         LOOP_Sublattice2Elements: do j = 1, nElementsCS
-            if (cDummyVec(k)(1:2) == cElementNameCS(j)(1:2)) then
+            if (cConstituentNames2(k)(1:nChar) == cElementNameCS(j)(1:2)) then
                 iSublatticeElementsCS(nCountSublatticeCS, 2, k) = j
                 exit LOOP_Sublattice2Elements
             end if
@@ -333,8 +364,12 @@ subroutine ParseCSDataBlockSUBG( i )
         dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
 
         ! Create quadruplet names
-        cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cElementNameCS(a)) // '-' // TRIM(cElementNameCS(b)) // '-' &
-                                                // TRIM(cElementNameCS(x)) // '-' // TRIM(cElementNameCS(y))
+        cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cConstituentNames1(iPairIDCS(nCountSublatticeCS, j, 1))) // '-' &
+                                                // TRIM(cConstituentNames1(iPairIDCS(nCountSublatticeCS, j, 2))) // '-' &
+                                                // TRIM(cConstituentNames2(iPairIDCS(nCountSublatticeCS, j, 3) &
+                                                - nSublatticeElementsCS(nCountSublatticeCS,1)))                  // '-' &
+                                                // TRIM(cConstituentNames2(iPairIDCS(nCountSublatticeCS, j, 4) &
+                                                - nSublatticeElementsCS(nCountSublatticeCS,1)))
 
     end do
 
