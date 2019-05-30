@@ -54,7 +54,7 @@ subroutine CheckCompounds
 
     implicit none
 
-    integer                                 :: i, j, k, lwork
+    integer                                 :: i, j, k, l, lwork
     integer, dimension(:), allocatable      :: iElementSystemTemp
     real(8)                                 :: dCompoundUnitMass
     real(8), dimension(:), allocatable      :: dStoichSpeciesTemp
@@ -135,6 +135,23 @@ subroutine CheckCompounds
         end do
     end do
 
+    ! If there are sublattice phases, will need to adjust iSublatticeElementsCS
+    if (nCountSublatticeCS > 0) then
+        do i = 1, SIZE(iSublatticeElementsCS, DIM = 1)
+            LOOP_sublattice2: do j = 1, SIZE(iSublatticeElementsCS, DIM = 2)
+                LOOP_sublattice3: do k = 1, SIZE(iSublatticeElementsCS, DIM = 3)
+                    if (iSublatticeElementsCS(i,j,k) == 0) cycle LOOP_sublattice2
+                    do l = 1, nCompounds
+                        if (dCompoundStoichSmall(l,iSublatticeElementsCS(i,j,k)) > 0) then
+                            iSublatticeElementsCS(i,j,k) = l
+                            cycle LOOP_sublattice3
+                        end if
+                    end do
+                end do LOOP_sublattice3
+            end do LOOP_sublattice2
+        end do
+    end if
+
     ! Use compounds instead of elements everwhere (i.e. write permanent variables)
     deallocate(iElementSystem)
     allocate(iElementSystem(nCompounds))
@@ -146,7 +163,11 @@ subroutine CheckCompounds
     allocate(dStoichSpeciesCS(nSpeciesCS,nCompounds))
     do i = 1, nSpeciesCS
         do j = 1, nCompounds
-            dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
+            if (ABS(dStoichSpeciesCompounds(i,j)) > 1D-8) then
+                dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
+            else
+                dStoichSpeciesCS(i,j) = 0D0
+            end if
         end do
     end do
     nElemOrComp = nCompounds
