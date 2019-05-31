@@ -77,7 +77,7 @@ subroutine ParseCSDataBlockSUBG( i )
     integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2, nChar
     integer                     :: ia2x2, ib2x2, ia2y2, iabx2, iaby2, ia2xy, ib2xy
     integer,     dimension(10)  :: iTempVec
-    integer,     dimension(13)  :: iNumPos
+    integer,     dimension(15)  :: iNumPos
     real(8)                     :: dAnionCoordTemp, dF, qa, qb, qx, qy
     real(8)                     :: dZAa2xy, dZXa2xy, dZYa2xy, dZBb2xy, dZXb2xy, dZYb2xy
     real(8)                     :: dZAabx2, dZBabx2, dZXabx2, dZAaby2, dZBaby2, dZYaby2
@@ -122,6 +122,8 @@ subroutine ParseCSDataBlockSUBG( i )
         if (INDEX(cConstituentNames1(k),'0') > 0) iNumPos(10) = INDEX(cConstituentNames1(k),'0')
         if (INDEX(cConstituentNames1(k),'+') > 0) iNumPos(11) = INDEX(cConstituentNames1(k),'+')
         if (INDEX(cConstituentNames1(k),'-') > 0) iNumPos(12) = INDEX(cConstituentNames1(k),'-')
+        if (INDEX(cConstituentNames1(k),'[') > 0) iNumPos(13) = INDEX(cConstituentNames1(k),'[')
+        if (INDEX(cConstituentNames1(k),']') > 0) iNumPos(14) = INDEX(cConstituentNames1(k),']')
         nChar = MINVAL(iNumPos) - 1
         LOOP_Sublattice1Elements: do j = 1, nElementsCS
             if (cConstituentNames1(k)(1:nChar) == cElementNameCS(j)(1:2)) then
@@ -149,6 +151,8 @@ subroutine ParseCSDataBlockSUBG( i )
         if (INDEX(cConstituentNames2(k),'0') > 0) iNumPos(10) = INDEX(cConstituentNames2(k),'0')
         if (INDEX(cConstituentNames2(k),'+') > 0) iNumPos(11) = INDEX(cConstituentNames2(k),'+')
         if (INDEX(cConstituentNames2(k),'-') > 0) iNumPos(12) = INDEX(cConstituentNames2(k),'-')
+        if (INDEX(cConstituentNames1(k),'[') > 0) iNumPos(13) = INDEX(cConstituentNames1(k),'[')
+        if (INDEX(cConstituentNames1(k),']') > 0) iNumPos(14) = INDEX(cConstituentNames1(k),']')
         nChar = MINVAL(iNumPos) - 1
         LOOP_Sublattice2Elements: do j = 1, nElementsCS
             if (cConstituentNames2(k)(1:nChar) == cElementNameCS(j)(1:2)) then
