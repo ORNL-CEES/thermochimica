@@ -53,7 +53,7 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2
     integer, dimension(4) :: iPairMatch
     integer, dimension(nElemOrComp) :: iRemove
 
@@ -252,17 +252,18 @@ subroutine CheckSystemExcess
                     nSublatticeElements(nCountSublattice,j) = m
                 end do
 
-                do j = 1, nSublatticePhase(nCountSublattice)
-                    m = 0
-                    LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
-                        if (iConstituentSublatticeCS(nCountSublatticeCS,j,k) == 0) cycle LOOP_iConstitSubl
-                        n = iSublatticeElementsCS(nCountSublatticeCS,j,iConstituentSublatticeCS(nCountSublatticeCS,j,k))
-                        if (iElementSystem(n) > 0) then
-                            m = m + 1
-                            iConstituentSublattice(nCountSublattice,j,m) = iConstituentSublatticeCS(nCountSublatticeCS,j,k)
-                        end if
-                    end do LOOP_iConstitSubl
-                end do
+                m = 0
+                LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
+                    if (iConstituentSublatticeCS(nCountSublatticeCS,1,k) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentSublatticeCS(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
+                    n1 = iSublatticeElementsCS(nCountSublatticeCS,1,iConstituentSublatticeCS(nCountSublatticeCS,1,k))
+                    n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
+                    if ((iElementSystem(1) > 0) .AND. (iElementSystem(2) > 0)) then
+                        m = m + 1
+                        iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
+                        iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    end if
+                end do LOOP_iConstitSubl
 
                 k = SIZE(iPairID,DIM = 2)
                 do k = 1, nPairsSROCS(nCountSublatticeCS,2)
