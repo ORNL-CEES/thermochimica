@@ -249,13 +249,14 @@ subroutine CheckSystem
     end if
 
     ! Check to see if the system has to be re-adjusted:
-    IF_Elements: if (nElements < nElemOrComp) then
+    IF_Elements: if (nElements < nElementsCS) then
         ! The system is smaller than what is in the data-file.  Re-compute the system parameters.
         ! Loop through solution phases:
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                if (SUM(dStoichSpeciesCS(j,1:nElemOrComp)) == 0) cycle LOOP_SpeciesInSolnPhase
                 do k = 1, nElemOrComp
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
@@ -302,6 +303,7 @@ subroutine CheckSystem
 
         ! Loop through pure condensed phases:
         LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
+            if (SUM(dStoichSpeciesCS(j,1:nElemOrComp)) == 0) cycle LOOP_PureConPhases
             do k = 1, nElemOrComp
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                     ! This species should not be considered

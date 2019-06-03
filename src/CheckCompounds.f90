@@ -160,7 +160,7 @@ subroutine CheckCompounds
     end do
 
     deallocate(dStoichSpeciesCS)
-    allocate(dStoichSpeciesCS(nSpeciesCS,nCompounds))
+    allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
     do i = 1, nSpeciesCS
         do j = 1, nCompounds
             if (ABS(dStoichSpeciesCompounds(i,j)) > 1D-8) then
