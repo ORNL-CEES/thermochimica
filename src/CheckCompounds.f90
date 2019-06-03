@@ -154,7 +154,7 @@ subroutine CheckCompounds
 
     ! Use compounds instead of elements everwhere (i.e. write permanent variables)
     deallocate(iElementSystem)
-    allocate(iElementSystem(nCompounds))
+    allocate(iElementSystem(nElementsCS))
     do i = 1, nCompounds
         iElementSystem(i) = iElementSystemTemp(i)
     end do
