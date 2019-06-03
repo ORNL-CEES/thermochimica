@@ -238,7 +238,7 @@ subroutine CompThermoData
                 ibx = 0
                 iay = 0
                 iby = 0
-                nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
+                nA2X2 = nSublatticeElementsCS(iSublPhaseIndex,1) * nSublatticeElementsCS(iSublPhaseIndex,2)
                 do k = 1, nA2X2
                     if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
                     .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
@@ -470,13 +470,14 @@ subroutine CompThermoData
                     case ('SUBG','SUBQ')
 
                         ! Must remove unused elements from iRegularParam
+                        iSublPhaseIndex = iPhaseSublatticeCS(i)
                         nRemove = 0
                         iRemove = 0
-                        do k = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
-                            do l = nSublatticeElementsCS(nCountSublatticeCS,k), 1, -1
-                                if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,k,l)) == 0) then
+                        do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
+                            do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
+                                if (iElementSystem(iSublatticeElementsCS(iSublPhaseIndex,k,l)) == 0) then
                                     nRemove = nRemove + 1
-                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
                                 end if
                             end do
                         end do
