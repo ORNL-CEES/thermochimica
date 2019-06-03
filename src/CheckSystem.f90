@@ -276,7 +276,7 @@ subroutine CheckSystem
 
             ! Count the number of solution phases in the system:
             iTempVec(nSolnPhasesSys+1) = nSpecies
-            if (iTempVec(nSolnPhasesSys+1) > iTempVec(nSolnPhasesSys) + 1) then
+            if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 1) then
                 nSolnPhasesSys = nSolnPhasesSys + 1
                 nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
                 ! Check if this is a charged phase:
