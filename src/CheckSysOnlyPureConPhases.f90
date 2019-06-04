@@ -120,11 +120,11 @@ subroutine CheckSysOnlyPureConPhases
 
     end do
 
-    ! Check Convergence:
-    call CheckConvergence
-
     ! Compute functional norm:
     call CompFunctionNorm
+
+    ! Check Convergence:
+    call CheckConvergence
 
     return
 
