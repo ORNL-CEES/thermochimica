@@ -55,7 +55,7 @@ subroutine CheckSystemExcess
 
     integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2
     integer, dimension(4) :: iPairMatch
-    integer, dimension(nElemOrComp) :: iRemove
+    integer, dimension(nElementsCS) :: iRemove
 
 
     ! Initialize variables:
@@ -240,7 +240,7 @@ subroutine CheckSystemExcess
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
                 do j = 1, nSublatticePhase(nCountSublattice)
                     m = 0
-                    do k = 1, nElemOrComp
+                    do k = 1, nElementsCS
                         if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
                             if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
                                 m = m + 1

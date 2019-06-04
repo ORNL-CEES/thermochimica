@@ -108,7 +108,7 @@ subroutine CompThermoData
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2
     integer                            :: iaaxx, ibbxx, iaayy, ibbyy
-    integer, dimension(nElemOrComp)    :: iRemove
+    integer, dimension(nElementsCS)    :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
     real(8)                            :: dZaxa, dZbxb, dZaya, dZbyb
     real(8), dimension(6)              :: dGibbsCoeff
