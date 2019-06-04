@@ -78,7 +78,7 @@ subroutine ParseCSDataBlockSUBG( i )
     integer                     :: ia2x2, ib2x2, ia2y2, iabx2, iaby2, ia2xy, ib2xy
     integer,     dimension(10)  :: iTempVec
     integer,     dimension(15)  :: iNumPos
-    real(8)                     :: dAnionCoordTemp, dF, qa, qb, qx, qy
+    real(8)                     :: dF, qa, qb, qx, qy
     real(8)                     :: dZAa2xy, dZXa2xy, dZYa2xy, dZBb2xy, dZXb2xy, dZYb2xy
     real(8)                     :: dZAabx2, dZBabx2, dZXabx2, dZAaby2, dZBaby2, dZYaby2
     real(8)                     :: dZAa2x2, dZBb2x2, dZXa2x2, dZXb2x2, dZAa2y2, dZYa2y2
