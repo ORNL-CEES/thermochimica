@@ -79,7 +79,11 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
     iSolnPhaseLast  = -iAssemblage(k)           ! Absolute index of the solution phase that is to be removed.
     iAssemblage(k)  = iAssemblage(j)
     iAssemblage(j)  = 0
-    nSolnPhases     = nSolnPhases - 1
+    ! nSolnPhases     = nSolnPhases - 1
+    nSolnPhases = 0
+    do i =1, SIZE(iAssemblage)
+        if (iAssemblage(i) < 0) nSolnPhases = nSolnPhases + 1
+    end do
 
     if (nSolnPhases == 0) then
 
