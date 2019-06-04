@@ -265,12 +265,15 @@ subroutine CheckSystemExcess
                     end if
                 end do LOOP_iConstitSubl
 
+                ! Save quadruplet data corresponding to the quadruplets remaining in the system
                 k = SIZE(iPairID,DIM = 2)
                 do k = 1, nPairsSROCS(nCountSublatticeCS,2)
+                    ! Find indices of constituents in quadruplet
                     pa = iPairIDCS(nCountSublattice,k,1)
                     pb = iPairIDCS(nCountSublattice,k,2)
                     px = iPairIDCS(nCountSublattice,k,3) - nSublatticeElementsCS(nCountSublatticeCS,1)
                     py = iPairIDCS(nCountSublattice,k,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    ! Find index of quadruplet
                     if (px == py) then
                         p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
                                      * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
@@ -284,6 +287,7 @@ subroutine CheckSystemExcess
                         l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
                     end if
                     iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    ! Make sure this quadruplet is still part of the system, if so save data
                     if (iSpeciesPass(iIndex) > 0) then
                         nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
                         n = nPairsSRO(nCountSublattice,2)
@@ -339,7 +343,7 @@ subroutine CheckSystemExcess
                     end do
                 end do
 
-                ! Loop through excess parameters:
+                ! Loop through excess parameters (same checks as for quadruplets):
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     pa = iRegularParamCS(j,2)
                     pb = iRegularParamCS(j,3)

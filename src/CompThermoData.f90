@@ -106,7 +106,7 @@ subroutine CompThermoData
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
-    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2
+    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iaaxx, ibbxx, iaayy, ibbyy
     integer, dimension(nElementsCS)    :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
@@ -191,12 +191,13 @@ subroutine CompThermoData
 
                 ! Check if pair should be saved - only worry about zeta here, LOOP_nSUBGQCS will take care
                 ! of only using the necessary reference energy terms.
-                ! SUBG/Q internal consituent indices are in iConstituentSublatticeCS
-                ! iSublatticeElementsCS converts these to global element indices
-                ! The rule to check is are elements A (ii) and X (kk) both in the system:
-                ii = iSublatticeElementsCS(iSublPhaseIndex,1,iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1))
-                kk = iSublatticeElementsCS(iSublPhaseIndex,2,iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1))
-                if ((ii > 0) .AND. (kk > 0)) then
+                ! This is the same check as in CheckSystemExcess but A = B = ii and X = Y = kk are assured
+                ii = iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1)
+                kk = iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1)
+                iIndex = ii + ((kk - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)) &
+                            + iFirst - 1
+                if (iSpeciesPass(iIndex) > 0) then
                     jj = jj + 1
                     dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
                 end if
