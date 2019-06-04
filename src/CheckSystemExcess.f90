@@ -258,6 +258,7 @@ subroutine CheckSystemExcess
                     if (iConstituentSublatticeCS(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
                     n1 = iSublatticeElementsCS(nCountSublatticeCS,1,iConstituentSublatticeCS(nCountSublatticeCS,1,k))
                     n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
+                    if ((n1 <= 0) .OR. (n2 <= 0)) cycle LOOP_iConstitSubl
                     if ((iElementSystem(n1) > 0) .AND. (iElementSystem(n2) > 0)) then
                         m = m + 1
                         iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
@@ -295,7 +296,10 @@ subroutine CheckSystemExcess
                 iRemove = 0
                 do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
                     do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
-                        if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
                         end if
@@ -317,7 +321,10 @@ subroutine CheckSystemExcess
                     nRemove = 0
                     iRemove = 0
                     do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
-                        if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l
                         end if
@@ -325,7 +332,7 @@ subroutine CheckSystemExcess
                     do k = 1, nRemove
                         do l = nSublatticeElements(nCountSublattice,j), 1, -1
                             if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
-                                iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) -1
+                                iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) - 1
                             end if
                         end do
                     end do

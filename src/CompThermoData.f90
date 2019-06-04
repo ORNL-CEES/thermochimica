@@ -189,8 +189,17 @@ subroutine CompThermoData
                     end if
                 end do
 
-                jj = jj + 1
-                dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                ! Check if pair should be saved - only worry about zeta here, LOOP_nSUBGQCS will take care
+                ! of only using the necessary reference energy terms.
+                ! SUBG/Q internal consituent indices are in iConstituentSublatticeCS
+                ! iSublatticeElementsCS converts these to global element indices
+                ! The rule to check is are elements A (ii) and X (kk) both in the system:
+                ii = iSublatticeElementsCS(iSublPhaseIndex,1,iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1))
+                kk = iSublatticeElementsCS(iSublPhaseIndex,2,iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1))
+                if ((ii > 0) .AND. (kk > 0)) then
+                    jj = jj + 1
+                    dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                end if
 
                 ! I'm like pretty sure that these are g_A2/X2 and not g_A/X,
                 ! but only because it doesn't work the other way.
@@ -475,7 +484,10 @@ subroutine CompThermoData
                         iRemove = 0
                         do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
                             do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
-                                if (iElementSystem(iSublatticeElementsCS(iSublPhaseIndex,k,l)) == 0) then
+                                if (iSublatticeElementsCS(iSublPhaseIndex,k,l) <= 0) then
+                                    nRemove = nRemove + 1
+                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+                                elseif (iElementSystem(iSublatticeElementsCS(iSublPhaseIndex,k,l)) == 0) then
                                     nRemove = nRemove + 1
                                     iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
                                 end if
