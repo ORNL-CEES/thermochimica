@@ -53,8 +53,7 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2
-    integer, dimension(4) :: iPairMatch
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2, p, iIndex
     integer, dimension(nElementsCS) :: iRemove
 
 
@@ -268,22 +267,24 @@ subroutine CheckSystemExcess
 
                 k = SIZE(iPairID,DIM = 2)
                 do k = 1, nPairsSROCS(nCountSublatticeCS,2)
-                    iPairMatch = 0
-                    pa = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublattice,k,1))
-                    pb = iSublatticeElementsCS(nCountSublatticeCS,1,iPairIDCS(nCountSublattice,k,2))
-                    px = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublattice,k,3) &
-                       - nSublatticeElementsCS(nCountSublatticeCS,1))
-                    py = iSublatticeElementsCS(nCountSublatticeCS,2,iPairIDCS(nCountSublattice,k,4) &
-                       - nSublatticeElementsCS(nCountSublatticeCS,1))
-                    do l = 1, nSublatticeElements(nCountSublattice,1)
-                        if (pa == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(1) = 1
-                        if (pb == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(2) = 1
-                    end do
-                    do l = 1, nSublatticeElements(nCountSublattice,2)
-                        if (px == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(3) = 1
-                        if (py == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(4) = 1
-                    end do
-                    if (SUM(iPairMatch) == 4) then
+                    pa = iPairIDCS(nCountSublattice,k,1)
+                    pb = iPairIDCS(nCountSublattice,k,2)
+                    px = iPairIDCS(nCountSublattice,k,3) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    py = iPairIDCS(nCountSublattice,k,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    if (px == py) then
+                        p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                     * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    else
+                        p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    end if
+                    if (pa == pb) then
+                        l = pa
+                    else
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    end if
+                    iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    if (iSpeciesPass(iIndex) > 0) then
                         nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
                         n = nPairsSRO(nCountSublattice,2)
                         iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
@@ -340,24 +341,24 @@ subroutine CheckSystemExcess
 
                 ! Loop through excess parameters:
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
-                    iPairMatch = 0
                     pa = iRegularParamCS(j,2)
-                    pa = iSublatticeElementsCS(nCountSublatticeCS,1,pa)
                     pb = iRegularParamCS(j,3)
-                    pb = iSublatticeElementsCS(nCountSublatticeCS,1,pb)
                     px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
-                    px = iSublatticeElementsCS(nCountSublatticeCS,2,px)
                     py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
-                    py = iSublatticeElementsCS(nCountSublatticeCS,2,py)
-                    do l = 1, nSublatticeElements(nCountSublattice,1)
-                        if (pa == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(1) = 1
-                        if (pb == iSublatticeElements(nCountSublattice,1,l)) iPairMatch(2) = 1
-                    end do
-                    do l = 1, nSublatticeElements(nCountSublattice,2)
-                        if (px == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(3) = 1
-                        if (py == iSublatticeElements(nCountSublattice,2,l)) iPairMatch(4) = 1
-                    end do
-                    if (SUM(iPairMatch) == 4) then
+                    if (px == py) then
+                        p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                     * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    else
+                        p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    end if
+                    if (pa == pb) then
+                        l = pa
+                    else
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    end if
+                    iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    if (iSpeciesPass(iIndex) > 0) then
                         nParam          = nParam + 1
                         iParamPassCS(j) = 1
                     end if
