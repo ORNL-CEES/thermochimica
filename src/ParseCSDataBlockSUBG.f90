@@ -265,8 +265,8 @@ subroutine ParseCSDataBlockSUBG( i )
         ! Constituent charges
         qa = dSublatticeChargeCS(nCountSublatticeCS,1,a)
         qb = dSublatticeChargeCS(nCountSublatticeCS,1,b)
-        qx = dSublatticeChargeCS(nCountSublatticeCS,1,x)
-        qy = dSublatticeChargeCS(nCountSublatticeCS,1,y)
+        qx = dSublatticeChargeCS(nCountSublatticeCS,2,x)
+        qy = dSublatticeChargeCS(nCountSublatticeCS,2,y)
 
         if (a == b) then
             ia2x2 = a + (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
