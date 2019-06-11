@@ -73,7 +73,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i))
+                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-15))
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
@@ -84,7 +84,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i)) + dPartialExcessGibbs(i)
+                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-15)) + dPartialExcessGibbs(i)
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
@@ -98,7 +98,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
             ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
             do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(dMolFraction(i)) + dMagGibbsEnergy(i) &
+                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-15)) + dMagGibbsEnergy(i) &
                     + dPartialExcessGibbs(i)
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
