@@ -328,7 +328,7 @@ subroutine CheckSystemExcess
                     do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
                         if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
                             nRemove = nRemove + 1
-                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                            iRemove(nRemove) = l
                         elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l
