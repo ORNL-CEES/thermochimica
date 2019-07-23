@@ -107,7 +107,7 @@ subroutine ParseCSDataBlockSUBG( i )
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
     read (1,*,IOSTAT = INFO) cConstituentNames1(1:nSublatticeElementsCS(nCountSublatticeCS,1))
     ! Match elements on 1st sublattice with elements in dat file order
-    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
+    LOOP_Sub1Names: do k = 1, nSublatticeElementsCS(nCountSublatticeCS,1)
         ! Find numbers or +/- in name if they are there
         iNumPos = 3
         if (INDEX(cConstituentNames1(k),'1') > 0) iNumPos(1)  = INDEX(cConstituentNames1(k),'1')
@@ -125,18 +125,23 @@ subroutine ParseCSDataBlockSUBG( i )
         if (INDEX(cConstituentNames1(k),'[') > 0) iNumPos(13) = INDEX(cConstituentNames1(k),'[')
         if (INDEX(cConstituentNames1(k),']') > 0) iNumPos(14) = INDEX(cConstituentNames1(k),']')
         nChar = MINVAL(iNumPos) - 1
-        LOOP_Sublattice1Elements: do j = 1, nElementsCS
+        ! Check for vacancy
+        if (cConstituentNames1(k)(1:nChar) == 'Va') then
+            iSublatticeElementsCS(nCountSublatticeCS, 1, k) = -1
+            cycle LOOP_Sub1Names
+        end if
+        do j = 1, nElementsCS
             if (cConstituentNames1(k)(1:nChar) == cElementNameCS(j)(1:2)) then
                 iSublatticeElementsCS(nCountSublatticeCS, 1, k) = j
-                exit LOOP_Sublattice1Elements
+                cycle LOOP_Sub1Names
             end if
-        end do LOOP_Sublattice1Elements
-    end do
+        end do
+    end do LOOP_Sub1Names
 
     ! Read in names of constituents on second sublattice: (ignore for now):
     read (1,*,IOSTAT = INFO) cConstituentNames2(1:nSublatticeElementsCS(nCountSublatticeCS,2))
     ! Match elements on 2nd sublattice with elements in dat file order
-    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
+    LOOP_Sub2Names: do k = 1, nSublatticeElementsCS(nCountSublatticeCS,2)
         ! Find numbers or +/- in name if they are there
         iNumPos = 3
         if (INDEX(cConstituentNames2(k),'1') > 0) iNumPos(1)  = INDEX(cConstituentNames2(k),'1')
@@ -151,16 +156,21 @@ subroutine ParseCSDataBlockSUBG( i )
         if (INDEX(cConstituentNames2(k),'0') > 0) iNumPos(10) = INDEX(cConstituentNames2(k),'0')
         if (INDEX(cConstituentNames2(k),'+') > 0) iNumPos(11) = INDEX(cConstituentNames2(k),'+')
         if (INDEX(cConstituentNames2(k),'-') > 0) iNumPos(12) = INDEX(cConstituentNames2(k),'-')
-        if (INDEX(cConstituentNames1(k),'[') > 0) iNumPos(13) = INDEX(cConstituentNames1(k),'[')
-        if (INDEX(cConstituentNames1(k),']') > 0) iNumPos(14) = INDEX(cConstituentNames1(k),']')
+        if (INDEX(cConstituentNames2(k),'[') > 0) iNumPos(13) = INDEX(cConstituentNames2(k),'[')
+        if (INDEX(cConstituentNames2(k),']') > 0) iNumPos(14) = INDEX(cConstituentNames2(k),']')
         nChar = MINVAL(iNumPos) - 1
-        LOOP_Sublattice2Elements: do j = 1, nElementsCS
+        ! Check for vacancy
+        if (cConstituentNames2(k)(1:nChar) == 'Va') then
+            iSublatticeElementsCS(nCountSublatticeCS, 2, k) = -1
+            cycle LOOP_Sub2Names
+        end if
+        do j = 1, nElementsCS
             if (cConstituentNames2(k)(1:nChar) == cElementNameCS(j)(1:2)) then
                 iSublatticeElementsCS(nCountSublatticeCS, 2, k) = j
-                exit LOOP_Sublattice2Elements
+                cycle LOOP_Sub2Names
             end if
-        end do LOOP_Sublattice2Elements
-    end do
+        end do
+    end do LOOP_Sub2Names
 
     ! Read in the charge of each constituent on the first sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
@@ -362,10 +372,10 @@ subroutine ParseCSDataBlockSUBG( i )
         l = j + nSpeciesPhaseCS(i-1)
 
         ! Just get the quads directly version
-        dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
-        dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
-        dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 3))
-        dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
+        if (a > 0) dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
+        if (b > 0) dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+        if (x > 0) dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 3))
+        if (y > 0) dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
 
         ! Create quadruplet names
         cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cConstituentNames1(iPairIDCS(nCountSublatticeCS, j, 1))) // '-' &

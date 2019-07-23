@@ -246,6 +246,11 @@ subroutine CheckSystemExcess
                                 iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
                                 dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                             end if
+                        ! Check for vacancies
+                        else if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) == -1)) then
+                            m = m + 1
+                            iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                            dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                         end if
                     end do
                     nSublatticeElements(nCountSublattice,j) = m
@@ -257,12 +262,16 @@ subroutine CheckSystemExcess
                     if (iConstituentSublatticeCS(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
                     n1 = iSublatticeElementsCS(nCountSublatticeCS,1,iConstituentSublatticeCS(nCountSublatticeCS,1,k))
                     n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
-                    if ((n1 <= 0) .OR. (n2 <= 0)) cycle LOOP_iConstitSubl
-                    if ((iElementSystem(n1) > 0) .AND. (iElementSystem(n2) > 0)) then
-                        m = m + 1
-                        iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
-                        iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    if ((n1 == 0) .OR. (n2 == 0)) then
+                        cycle LOOP_iConstitSubl
+                    else if (n1 > 0) then
+                        if (iElementSystem(n1) <= 0) cycle LOOP_iConstitSubl
+                    else if (n2 > 0) then
+                        if (iElementSystem(n2) <= 0) cycle LOOP_iConstitSubl
                     end if
+                    m = m + 1
+                    iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
+                    iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
                 end do LOOP_iConstitSubl
 
                 ! Save quadruplet data corresponding to the quadruplets remaining in the system
