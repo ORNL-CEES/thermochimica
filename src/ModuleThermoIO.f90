@@ -54,6 +54,7 @@ module ModuleThermoIO
     integer                                :: iCounter, iPrintResultsMode
     real(8)                                :: dTemperature, dPressure
     real(8),       dimension(0:168)        :: dElementMass
+    logical,       dimension(0:168)        :: lPreset = .FALSE.
     character(15)                          :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(120)                         :: cThermoFileName
     logical                                :: lRestartAvailable = .FALSE., lRestartLoaded = .FALSE., lRestartRequested = .FALSE.
