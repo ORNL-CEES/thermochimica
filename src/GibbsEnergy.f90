@@ -62,12 +62,11 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
         end do
         do i = 1, nConPhasesIn
             iPhaseIndex = iAssemblageIn(i)
-            do j = 1, nElements
-                dGibbsEnergySysOut = dGibbsEnergySysOut + dElementPotential(j) * dStoichSpecies(iPhaseIndex,j) * dMolesPhaseIn(i)
-            end do
+            dGibbsEnergySysOut = dGibbsEnergySysOut + dStdGibbsEnergy(iPhaseIndex) * dMolesPhaseIn(i)
         end do
         dGibbsEnergySysOut = dGibbsEnergySysOut * dIdealConstant * dTemperature
         print '(A26,ES12.5,A4)', ' Gibbs energy of input  = ', dGibbsEnergySysOut, ' [J]'
+        print '(A26,ES12.5,A4)', ' Gibbs energy diff      = ', dGibbsEnergySysOut - dGibbsEnergySys, ' [J]'
 
     end if IF_PASS
 
