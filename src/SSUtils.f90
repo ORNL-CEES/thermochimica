@@ -640,3 +640,27 @@ subroutine GetMolesPhase(mMolesPhase)
   return
 
 end subroutine GetMolesPhase
+
+subroutine GibbsEnergyOfRestartData(mGibbsEnergyOut)
+    USE ModuleRestart
+    USE ModuleThermo, ONLY: nElements
+    implicit none
+
+    real(8), intent(out) :: mGibbsEnergyOut
+    integer              :: nSolnPhasesRestart, nConPhasesRestart, i
+
+    nSolnPhasesRestart = 0
+    nConPhasesRestart = 0
+    do i = 1, nElements
+        if (iAssemblage_Old(i) > 0) then
+            nConPhasesRestart = nConPhasesRestart + 1
+        else if (iAssemblage_Old(i) < 0) then
+            nSolnPhasesRestart = nSolnPhasesRestart + 1
+        end if
+    end do
+
+    call GibbsEnergy(nConPhasesRestart, nSolnPhasesRestart, iAssemblage_Old, dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
+
+    return
+
+end subroutine GibbsEnergyOfRestartData

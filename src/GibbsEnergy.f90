@@ -67,7 +67,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
             end do
         end do
         dGibbsEnergySysOut = dGibbsEnergySysOut * dIdealConstant * dTemperature
-        print '(A26,ES12.5,A4)', ' Integral Gibbs energy = ', dGibbsEnergySysOut, ' [J]'
+        print '(A26,ES12.5,A4)', ' Gibbs energy of input  = ', dGibbsEnergySysOut, ' [J]'
 
     end if IF_PASS
 

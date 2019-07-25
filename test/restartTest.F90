@@ -30,11 +30,11 @@ program RestartTest
 
   implicit none
   integer :: i, j
-  real    :: start, finish
+  real(8)    :: start, finish, gibbs
 
   ! Initialize variables:
   dPressure             = 2D0
-  dTemperature          = 900D0
+  dTemperature          = 1900D0
   dElementMass(74)      = 20D0        ! W
   dElementMass(79)      = 2D0         ! Au
   dElementMass(18)      = 7D0         ! Ar
@@ -64,14 +64,14 @@ program RestartTest
 
     ! Re-state input variables
     dPressure              = 2D0
-    dTemperature           = 900D0
+    dTemperature           = 650D0
     dElementMass(74)       = 20D0        ! W
     dElementMass(79)       = 2D0         ! Au
     dElementMass(18)       = 7D0         ! Ar
     dElementMass(8)        = 5D0         ! O
     dElementMass(10)       = 1D0         ! Ne
     ! Load restart data
-    lRestartRequested = .TRUE.
+    lRestartRequested = .FALSE.
 
     ! Call Thermochimica a bunch more for timing
     call cpu_time(start)
@@ -83,6 +83,8 @@ program RestartTest
 
     ! Print second run output
     if (iPrintResultsMode > 0)  call PrintResults
+
+    call GibbsEnergyOfRestartData(gibbs)
 
   end do LOOP_restart
   ! Reset Thermochimica:
