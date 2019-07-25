@@ -3,7 +3,7 @@
     !
     !> \file        ModuleThermo.f90
     !> \brief       Fortran module for internal use of Thermochimica
-    !> \details     The purpose of this module is to provide the means to share information amoungst the
+    !> \details     The purpose of this module is to provide the means to share information amongst the
     !!              various subroutines used by Thermochimica
     !> \author      M.H.A. Piro
     !
