@@ -38,7 +38,7 @@ subroutine LoadRestartData
   implicit none
 
   integer                              :: i, j
-  integer,     dimension(0:118)        :: iElementsUsed
+  integer,     dimension(0:168)        :: iElementsUsed
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lRestartAvailable) then
