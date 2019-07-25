@@ -573,14 +573,14 @@ subroutine restartDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
               mChemicalPotential,mMolFraction,mElementsUsed,mRestartAvailable)
   USE ModuleRestart
   USE ModuleThermoIO
-  USE ModuleThermo, ONLY: nElements, nSpecies, nElementsPT
+  USE ModuleThermo, ONLY: nElements, nSpecies, nElementsPT, nMaxCompounds
   implicit none
 
   integer, intent(out)                           :: mRestartAvailable
   integer, intent(out), dimension(nElements)     :: mAssemblage
   real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
   real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
-  integer, intent(out), dimension(0:nElementsPT) :: mElementsUsed
+  integer, intent(out), dimension(0:nElementsPT + nMaxCompounds) :: mElementsUsed
 
 
   if (lRestartAvailable) then
@@ -604,19 +604,18 @@ subroutine restartDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
   USE ModuleRestart
   USE ModuleThermoIO
-  USE ModuleThermo, ONLY: nElementsPT
+  USE ModuleThermo, ONLY: nElementsPT, nMaxCompounds
   implicit none
 
   integer, intent(in)                            :: mElements, mSpecies
   integer, intent(in), dimension(mElements)      :: mAssemblage
   real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
   real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
-  integer, intent(in), dimension(0:nElementsPT)  :: mElementsUsed
+  integer, intent(in), dimension(0:nElementsPT + nMaxCompounds)  :: mElementsUsed
 
   allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
   dMolFraction_Old(mSpecies))
   allocate(iAssemblage_Old(mElements))
-  allocate(iElementsUsed_Old(0:nElementsPT))
 
   iAssemblage_Old = mAssemblage
   dMolesPhase_Old = mMolesPhase
