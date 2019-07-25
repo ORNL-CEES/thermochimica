@@ -34,7 +34,7 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn, dMolesSpeciesIn, dGibbsEnergySysOut)
+subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn, dMolFractionIn, dGibbsEnergySysOut)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -44,7 +44,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
 
     integer, intent(in)  :: nConPhasesIn, nSolnPhasesIn
     integer, intent(in)  :: iAssemblageIn(nElements)
-    real(8), intent(in)  :: dMolesPhaseIn(nElements), dMolesSpeciesIn(nSpecies)
+    real(8), intent(in)  :: dMolesPhaseIn(nElements), dMolFractionIn(nSpecies)
     real(8), intent(out) :: dGibbsEnergySysOut
     integer              :: i, j, k, iPhaseIndex
 
@@ -57,7 +57,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
             k = nElements - i + 1
             iPhaseIndex = -iAssemblageIn(k)
             do j = nSpeciesPhase(iPhaseIndex - 1) + 1, nSpeciesPhase(iPhaseIndex)
-                dGibbsEnergySysOut = dGibbsEnergySysOut + dChemicalPotential(j) * dMolesSpeciesIn(j)
+                dGibbsEnergySysOut = dGibbsEnergySysOut + dChemicalPotential(j) * dMolesPhaseIn(k) * dMolFractionIn(j)
             end do
         end do
         do i = 1, nConPhasesIn
