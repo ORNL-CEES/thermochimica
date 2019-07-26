@@ -30,10 +30,10 @@ program RestartTestNuc
 
   implicit none
   integer :: i, j
-  real    :: start, finish
+  real(8)    :: start, finish, gibbs
 
   ! Initialize variables:
-  dTemperature            = 1173.15D0
+  dTemperature            = 2173.15D0
   dPressure               = 1D0
   dElementMass(94)        = 0D0
   dElementMass(93)        = 0D0
@@ -79,13 +79,12 @@ program RestartTestNuc
     ! Save restart data
     call SaveRestartData
     ! Inside loop in case you don't want to re-save
-    LOOP_time: do i = 1,1500
+    LOOP_time: do i = 1,1
       ! Reset
       call ResetThermo
       ! Re-state input variables
-      dTemperature            = 1173.15D0
-      dPressure               = 1.0D0
-      dElementMass            = 0D0
+      dTemperature            = 673.15D0
+      dPressure               = 1D0
       dElementMass(94)        = 0D0
       dElementMass(93)        = 0D0
       dElementMass(92)        = 0.56849D-2
@@ -106,9 +105,9 @@ program RestartTestNuc
       dElementMass(40)        = 0.11667d-6
       dElementMass(39)        = 0D0
       dElementMass(38)        = 0.86762d-7
-      !dElementMass(38)        = 0.86762d-6
+      dElementMass(37)        = 0D0
       dElementMass(8)         = 1.14467207D-2
-      !dElementMass(1)         = 1D-2
+      dElementMass(1)         = 0D0
       cInputUnitTemperature   = 'K'
       cInputUnitPressure      = 'atm'
       cInputUnitMass          = 'moles'
@@ -125,6 +124,8 @@ program RestartTestNuc
 
   ! Print second run output
   if (iPrintResultsMode > 0)  call PrintResults
+
+  call GibbsEnergyOfRestartData(gibbs)
   ! Reset Thermochimica:
   call ResetThermoAll
 

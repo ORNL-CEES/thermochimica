@@ -48,8 +48,36 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
     real(8), intent(out) :: dGibbsEnergySysOut
     integer              :: i, j, k, iPhaseIndex
 
-    dGibbsEnergySysOut = 0D0
+    ! Temporary variables to store things that must be overwritten
+    integer  :: nConPhasesTemp, nSolnPhasesTemp
+    integer  :: iAssemblageTemp(nElements)
+    real(8)  :: dMolesPhaseTemp(nElements), dMolFractionTemp(nSpecies), dMolesSpeciesTemp(nSpecies)
 
+    nConPhasesTemp = nConPhases
+    nSolnPhasesTemp = nSolnPhases
+    iAssemblageTemp = iAssemblage
+    dMolesPhaseTemp = dMolesPhase
+    dMolFractionTemp = dMolFraction
+    dMolesSpeciesTemp = dMolesSpecies
+
+    nConPhases = nConPhasesIn
+    nSolnPhases = nSolnPhasesIn
+    iAssemblage = iAssemblageIn
+    dMolesPhase = dMolesPhaseIn
+    dMolFraction = dMolFractionIn
+
+    dMolesSpecies = 0D0
+    do i =1, nSolnPhasesIn
+        k = nElements - i + 1
+        iPhaseIndex = -iAssemblageIn(k)
+        do j = nSpeciesPhase(iPhaseIndex - 1) + 1, nSpeciesPhase(iPhaseIndex)
+            dMolesSpecies(j) = dMolesPhaseIn(k) * dMolFractionIn(j)
+        end do
+    end do
+
+    call CompChemicalPotential(.TRUE.)
+
+    dGibbsEnergySysOut = 0D0
     ! Only proceed for a successful calculation:
     IF_PASS: if (INFOThermo == 0) then
 
@@ -69,6 +97,14 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
         print '(A26,ES12.5,A4)', ' Gibbs energy diff      = ', dGibbsEnergySysOut - dGibbsEnergySys, ' [J]'
 
     end if IF_PASS
+
+    ! Return original values to variables
+    nConPhases = nConPhasesTemp
+    nSolnPhases = nSolnPhasesTemp
+    iAssemblage = iAssemblageTemp
+    dMolesPhase = dMolesPhaseTemp
+    dMolFraction = dMolFractionTemp
+    dMolesSpecies = dMolesSpeciesTemp
 
     return
 

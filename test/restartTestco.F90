@@ -30,10 +30,10 @@ program RestartTestCO
 
   implicit none
   integer :: i
-  real    :: start, finish
+  real(8)    :: start, finish, gibbs
 
   ! Initialize variables:
-  dTemperature            = 300D0
+  dTemperature            = 3000D0
   dPressure               = 1D0
   dElementMass            = 1D0
   cInputUnitTemperature   = 'K'
@@ -57,9 +57,11 @@ program RestartTestCO
   ! Save restart data
   call SaveRestartData
 
+  call GibbsEnergyOfRestartData(gibbs)
+
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
-  LOOP_time: do i = 1,100000
+  LOOP_time: do i = 1,1
     call ResetThermo
     dTemperature            = 300D0
     dPressure               = 1D0
@@ -72,6 +74,8 @@ program RestartTestCO
 
   ! Print second run output
   if (iPrintResultsMode > 0)  call PrintResults
+
+  call GibbsEnergyOfRestartData(gibbs)
 
   ! Reset Thermochimica:
   call ResetThermo
