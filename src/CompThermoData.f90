@@ -134,7 +134,6 @@ subroutine CompThermoData
 
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
-        if (SUM(iSpeciesPass(nSpeciesPhaseCS(n-1)+1:nSpeciesPhaseCS(n))) == 0) cycle LOOP_nPhasesCS
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
             iSublPhaseIndex = iPhaseSublatticeCS(n)
             iFirst = nSpeciesPhaseCS(n - 1) + 1
