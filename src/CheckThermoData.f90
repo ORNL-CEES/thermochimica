@@ -64,9 +64,14 @@ subroutine CheckThermoData
 
     implicit none
 
-    integer                               :: i
+    integer                               :: i, j, INFO, nNonDummy
+    real(8)                               :: rnorm
     integer,dimension(nSpecies,nElements) :: iAtomFractionSpecies
     integer,dimension(nElements)          :: iTempVec
+    integer,dimension(nSpecies - nDummySpecies)          :: indx
+    real(8),dimension(nSpecies - nDummySpecies)           :: dMolesElementTemp, x
+    real(8), dimension(nElements,nSpecies - nDummySpecies):: dStoichSpeciesTemp
+    real(8), dimension(nSpecies - nDummySpecies)  :: work
 
 
     ! A pure chemical species will have a value of 1 for iAtomFractionSpecies:
@@ -81,6 +86,23 @@ subroutine CheckThermoData
         if (cElementName(i) == 'e-') cycle
         if (iTempVec(i) == 0) INFOThermo = 9
     end do
+
+
+    ! Check if the input masses can be represented in terms of the available species
+    nNonDummy = nSpecies - nDummySpecies
+    dMolesElementTemp(1:nElements) = dMolesElement
+    do i = 1, nNonDummy
+        do j = 1, nElements
+            dStoichSpeciesTemp(j,i) = dStoichSpecies(i,j)
+        end do
+    end do
+
+    call nnls(dStoichSpeciesTemp, nElements, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
+
+    if (rnorm > 1D-12) then
+        INFOThermo = 99
+    end if
+
 
     return
 
