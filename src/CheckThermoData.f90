@@ -68,10 +68,10 @@ subroutine CheckThermoData
     real(8)                               :: rnorm
     integer,dimension(nSpecies,nElements) :: iAtomFractionSpecies
     integer,dimension(nElements)          :: iTempVec
-    integer,dimension(nSpecies - nDummySpecies)          :: indx
+    integer,dimension(nSpecies - nDummySpecies)           :: indx
     real(8),dimension(nSpecies - nDummySpecies)           :: dMolesElementTemp, x
-    real(8), dimension(nElements,nSpecies - nDummySpecies):: dStoichSpeciesTemp
-    real(8), dimension(nSpecies - nDummySpecies)  :: work
+    real(8),dimension(nElements,nSpecies - nDummySpecies) :: dStoichSpeciesTemp
+    real(8),dimension(nSpecies - nDummySpecies)           :: work
 
 
     ! A pure chemical species will have a value of 1 for iAtomFractionSpecies:
@@ -102,7 +102,6 @@ subroutine CheckThermoData
     if (rnorm > 1D-12) then
         INFOThermo = 99
     end if
-
 
     return
 
