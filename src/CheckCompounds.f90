@@ -54,9 +54,9 @@ subroutine CheckCompounds
 
     implicit none
 
-    integer                                 :: i, j, k, lwork, nElementsTemp
+    integer                                 :: i, j, k, l, lwork, iElem
     integer, dimension(:), allocatable      :: iElementSystemTemp
-    real(8)                                 :: dCompoundUnitMass
+    real(8)                                 :: dCompoundUnitMass, dSum
     real(8), dimension(:), allocatable      :: dStoichSpeciesTemp
     real(8), dimension(:), allocatable      :: work
     real(8), dimension(:,:), allocatable    :: dCompoundStoichSmall, dStoichSpeciesCompounds, A
@@ -135,20 +135,62 @@ subroutine CheckCompounds
         end do
     end do
 
+    ! If there are sublattice phases, will need to adjust iSublatticeElementsCS
+    if (nCountSublatticeCS > 0) then
+        do i = 1, nSolnPhasesSysCS
+            do j = 1, nMaxSublatticeCS
+                LOOP_adjustSublElem: do k =1, nElementsCS
+                    iElem = iSublatticeElementsCS(i,j,k)
+                    if (iElem == 0) cycle LOOP_adjustSublElem
+                    do l =1, nCompounds
+                        if (dCompoundStoichSmall(l,iElem) > 0) then
+                            iSublatticeElementsCS(i,j,k) = l
+                            cycle LOOP_adjustSublElem
+                        end if
+                    end do
+                    iSublatticeElementsCS(i,j,k) = -1
+                end do LOOP_adjustSublElem
+            end do
+        end do
+    end if
+
     ! Use compounds instead of elements everwhere (i.e. write permanent variables)
     deallocate(iElementSystem)
-    allocate(iElementSystem(nCompounds))
+    allocate(iElementSystem(nElementsCS))
+    iElementSystem = 0
     do i = 1, nCompounds
         iElementSystem(i) = iElementSystemTemp(i)
     end do
 
-    deallocate(dStoichSpeciesCS)
-    allocate(dStoichSpeciesCS(nSpeciesCS,nCompounds))
-    do i = 1, nSpeciesCS
-        do j = 1, nCompounds
-            dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
+    ! Make sure that the sums of compound stoichiometries makes sense
+    LOOP_checkCompoundStoich: do i = 1, nSpeciesCS
+        do j = 1, nElementsCS
+            dSum = 0D0
+            do k = 1, nCompounds
+                dSum = dSum + (dCompoundStoichSmall(k,j) * dStoichSpeciesCompounds(i,k))
+            end do
+            if (ABS(dSum - dStoichSpeciesCS(i,j)) > 1D-8) then
+                dStoichSpeciesCompounds(i,1:nCompounds) = 0D0
+                cycle LOOP_checkCompoundStoich
+            end if
         end do
-    end do
+    end do LOOP_checkCompoundStoich
+
+    ! Save new stoichiometry matrix in terms of compounds
+    deallocate(dStoichSpeciesCS)
+    allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
+    LOOP_compoundStoich: do i = 1, nSpeciesCS
+        do j = 1, nCompounds
+            if (dStoichSpeciesCompounds(i,j) > 1D-8) then
+                dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
+            elseif (dStoichSpeciesCompounds(i,j) < -1D-8) then
+                dStoichSpeciesCS(i,1:nCompounds) = 0D0
+                cycle LOOP_compoundStoich
+            else
+                dStoichSpeciesCS(i,j) = 0D0
+            end if
+        end do
+    end do LOOP_compoundStoich
     nElemOrComp = nCompounds
 
     dElementMass = 0D0

@@ -131,7 +131,7 @@ subroutine CheckSystem
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
-    character(3)                            :: cDummy
+    character(12)                            :: cDummy
 
 
     ! Check to see if the allocatable arrays have already been allocated
@@ -249,13 +249,14 @@ subroutine CheckSystem
     end if
 
     ! Check to see if the system has to be re-adjusted:
-    IF_Elements: if (nElements < nElemOrComp) then
+    IF_Elements: if (nElements < nElementsCS) then
         ! The system is smaller than what is in the data-file.  Re-compute the system parameters.
         ! Loop through solution phases:
         LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
             ! Loop through species in solution phases:
             m = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                if (SUM(dStoichSpeciesCS(j,1:nElemOrComp)) == 0) cycle LOOP_SpeciesInSolnPhase
                 do k = 1, nElemOrComp
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
@@ -276,7 +277,7 @@ subroutine CheckSystem
 
             ! Count the number of solution phases in the system:
             iTempVec(nSolnPhasesSys+1) = nSpecies
-            if (iTempVec(nSolnPhasesSys+1) > iTempVec(nSolnPhasesSys) + 1) then
+            if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 1) then
                 nSolnPhasesSys = nSolnPhasesSys + 1
                 nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
                 ! Check if this is a charged phase:
@@ -302,6 +303,7 @@ subroutine CheckSystem
 
         ! Loop through pure condensed phases:
         LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
+            if (SUM(dStoichSpeciesCS(j,1:nElemOrComp)) == 0) cycle LOOP_PureConPhases
             do k = 1, nElemOrComp
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                     ! This species should not be considered
@@ -419,7 +421,8 @@ subroutine CheckSystem
 
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
-                     iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, STAT = n)
+                     iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
+                     dSublatticeCharge, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -433,6 +436,8 @@ subroutine CheckSystem
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
+            allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
+            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     else
@@ -461,6 +466,8 @@ subroutine CheckSystem
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
+            allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
+            allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     end if
@@ -492,6 +499,8 @@ subroutine CheckSystem
         nPairsSRO            = 0
         iPairID              = 0
         dCoordinationNumber  = 0D0
+        dZetaSpecies         = 0D0
+        dSublatticeCharge    = 0D0
     end if
 
     ! Re-establish the character vector representing the element names:

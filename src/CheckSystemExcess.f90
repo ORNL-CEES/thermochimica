@@ -53,7 +53,8 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2, p, iIndex
+    integer, dimension(nElementsCS) :: iRemove
 
 
     ! Initialize variables:
@@ -235,27 +236,145 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
-
-                nPairsSRO(nCountSublattice,1:2) = nPairsSROCS(nCountSublatticeCS,1:2)
-                k = SIZE(iPairID,DIM = 2)
-                iPairID(nCountSublattice,1:k,1:4) = iPairIDCS(nCountSublatticeCS,1:k,1:4)
-                dCoordinationNumber(nCountSublattice,1:k,1:4) = dCoordinationNumberCS(nCountSublatticeCS,1:k,1:4)
-
-                j = SIZE(nSublatticeElements,DIM=2)
-                nSublatticeElements(nCountSublattice,1:j) = nSublatticeElementsCS(nCountSublatticeCS,1:j)
-
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
-                j = SIZE(nConstituentSublattice,DIM=2)
-                n = nSublatticePhase(nCountSublattice)
-                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
-                k = SIZE(iConstituentSublattice, DIM=3)
-                iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
-                k = SIZE(iSublatticeElements, DIM=3)
-                iSublatticeElements(nCountSublattice,1:n,1:k) = iSublatticeElementsCS(nCountSublatticeCS,1:n,1:k)
-                ! Loop through excess parameters:
+                do j = 1, nSublatticePhase(nCountSublattice)
+                    m = 0
+                    do k = 1, nElementsCS
+                        if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
+                            if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
+                                m = m + 1
+                                iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                                dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                            end if
+                        ! Check for vacancies
+                        else if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) == -1)) then
+                            m = m + 1
+                            iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                            dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                        end if
+                    end do
+                    nSublatticeElements(nCountSublattice,j) = m
+                end do
+
+                m = 0
+                LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
+                    if (iConstituentSublatticeCS(nCountSublatticeCS,1,k) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentSublatticeCS(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
+                    n1 = iSublatticeElementsCS(nCountSublatticeCS,1,iConstituentSublatticeCS(nCountSublatticeCS,1,k))
+                    n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
+                    if ((n1 == 0) .OR. (n2 == 0)) then
+                        cycle LOOP_iConstitSubl
+                    else if (n1 > 0) then
+                        if (iElementSystem(n1) <= 0) cycle LOOP_iConstitSubl
+                    else if (n2 > 0) then
+                        if (iElementSystem(n2) <= 0) cycle LOOP_iConstitSubl
+                    end if
+                    m = m + 1
+                    iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
+                    iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                end do LOOP_iConstitSubl
+
+                ! Save quadruplet data corresponding to the quadruplets remaining in the system
+                k = SIZE(iPairID,DIM = 2)
+                do k = 1, nPairsSROCS(nCountSublatticeCS,2)
+                    ! Find indices of constituents in quadruplet
+                    pa = iPairIDCS(nCountSublattice,k,1)
+                    pb = iPairIDCS(nCountSublattice,k,2)
+                    px = iPairIDCS(nCountSublattice,k,3) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    py = iPairIDCS(nCountSublattice,k,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    ! Find index of quadruplet
+                    if (px == py) then
+                        p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                     * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    else
+                        p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    end if
+                    if (pa == pb) then
+                        l = pa
+                    else
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    end if
+                    iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    ! Make sure this quadruplet is still part of the system, if so save data
+                    if (iSpeciesPass(iIndex) > 0) then
+                        nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
+                        n = nPairsSRO(nCountSublattice,2)
+                        iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
+                        dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCountSublatticeCS,k,1:4)
+                    end if
+                end do
+
+                ! Must remove unused elements from iPairID
+                nRemove = 0
+                iRemove = 0
+                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                    do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        end if
+                    end do
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nPairsSRO(nCountSublattice,2)
+                        do l = 1, 4
+                            if (iPairID(nCountSublattice,j,l) > iRemove(k)) then
+                                iPairID(nCountSublattice,j,l) = iPairID(nCountSublattice,j,l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
+                ! Also remove from iConstituentSublattice
+                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                    nRemove = 0
+                    iRemove = 0
+                    do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l
+                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l
+                        end if
+                    end do
+                    do k = 1, nRemove
+                        do l = nSublatticeElements(nCountSublattice,j), 1, -1
+                            if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
+                                iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
+                ! Loop through excess parameters (same checks as for quadruplets):
                 do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
-                    nParam          = nParam + 1
-                    iParamPassCS(j) = 1
+                    pa = iRegularParamCS(j,2)
+                    pb = iRegularParamCS(j,3)
+                    px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    if (px == py) then
+                        p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                     * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    else
+                        p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    end if
+                    if (pa == pb) then
+                        l = pa
+                    else
+                        l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    end if
+                    iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    if (iSpeciesPass(iIndex) > 0) then
+                        nParam          = nParam + 1
+                        iParamPassCS(j) = 1
+                    end if
                 end do
 
                 nParamPhase(nCounter) = nParam

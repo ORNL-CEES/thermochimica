@@ -144,8 +144,14 @@ subroutine ParseCSDataBlock
 
         elseif (cSolnPhaseTypeCS(i) == 'SUBG') then
 
-            ! ---> I'm not sure why, but SUBG phases appear to have some strange magnetic terms (?).
+            ! Read zeta (FNN/SNN ratio)
+            ! In SUBG zeta is the same for every FNN pair
+            ! NOTE: This method for keeping track of zeta is not very safe,
+            ! relies on having a predictable FNN pair order in the dat file
             read (1,*,IOSTAT = INFO) dDummy
+            do j = 1, nMaxSpeciesPhaseCS
+                dZetaSpeciesCS(nCountSublatticeCS,j) = dDummy
+            end do
 
             ! Read in two integers representing the number of species and the number of pairs:
             read (1,*,IOSTAT = INFO) nPairsSROCS(nCountSublatticeCS,1:2)
@@ -187,8 +193,9 @@ subroutine ParseCSDataBlock
             if (cSolnPhaseTypeCS(i) == 'SUBQ') then
               ! The following subroutine parses the Gibbs energy equations (entries 3-5):
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
-              ! Read the magnetic terms which are present for every species in SUBQ
-              read (1,*,IOSTAT = INFO) dDummy
+              ! Read zeta (FNN/SNN ratio)
+              ! In SUBQ zeta can differ for each FNN pair
+              read (1,*,IOSTAT = INFO) dZetaSpeciesCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1))
             else
               ! The following subroutine parses the Gibbs energy equations (entries 3-5):
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)

@@ -242,9 +242,9 @@ subroutine PrintResultsSolnPhase
         ! First species:
         c = iTempSpecies(1) + iFirst - 1
         if (dmolFraction(iFirst) >= 1D-1) then
-            print '(A20,F7.5,A3,A25)', '{ ', dmolFraction(c), ' ', cSpeciesName(c)
+            print '(A20,F7.5,A3,A35)', '{ ', dmolFraction(c), ' ', cSpeciesName(c)
         else
-            print '(A20,ES10.4,A25)', '{ ', dmolFraction(c), cSpeciesName(c)
+            print '(A20,ES10.4,A35)', '{ ', dmolFraction(c), cSpeciesName(c)
         end if
 
         k    = LEN_TRIM(cSpeciesName(iFirst)) - 1
@@ -254,9 +254,9 @@ subroutine PrintResultsSolnPhase
         do i = iFirst + 1, iFirst + nCutOff - 2
             c = iTempSpecies(i-iFirst+1) + iFirst - 1
             if (dmolFraction(c) >= 1D-1) then
-                print '(A20,F7.5,A3,A25)', '+ ', dmolFraction(c), ' ', cSpeciesName(c)
+                print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cSpeciesName(c)
             else
-                print '(A20,ES10.4,A25)', '+ ', dmolFraction(c), cSpeciesName(c)
+                print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cSpeciesName(c)
             end if
             k        = LEN_TRIM(cSpeciesName(c)) - 1
             nMax = MAX(k, nMax)
@@ -270,9 +270,9 @@ subroutine PrintResultsSolnPhase
         cDummyB(nMax+2:nMax+3) = '}'
 
         if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A25)', '+ ', dmolFraction(c), ' ', cDummyB
+            print '(A20,F7.5,A3,A40)', '+ ', dmolFraction(c), ' ', cDummyB
         else
-            print '(A20,ES10.4,A25)', '+ ', dmolFraction(c), cDummyB
+            print '(A20,ES10.4,A40)', '+ ', dmolFraction(c), cDummyB
         end if
         print *
 

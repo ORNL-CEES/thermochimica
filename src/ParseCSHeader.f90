@@ -81,7 +81,7 @@ subroutine ParseCSHeader
 
     implicit none
 
-    integer              :: i, j, k, iGasPhase, nMaxSpeciesPhaseCS
+    integer              :: i, j, iGasPhase
     integer,dimension(7) :: iGequation
     integer,dimension(2) :: iDummy
     character(8)         :: cDummy
@@ -210,6 +210,9 @@ subroutine ParseCSHeader
     allocate(iConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS,nElementsCS))
     allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
+    allocate(dZetaSpeciesCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
+    allocate(dSublatticeChargeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
+    allocate(dStoichPairsCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,nElementsCS))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0
@@ -218,6 +221,9 @@ subroutine ParseCSHeader
     dStoichSublatticeCS      = 0D0
     iSublatticeElementsCS    = 0
     nSublatticeElementsCS    = 0
+    dZetaSpeciesCS           = 0D0
+    dSublatticeChargeCS      = 0D0
+    dStoichPairsCS         = 0D0
 
     ! Line 4: List of atomic masses of the elements:
     read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)

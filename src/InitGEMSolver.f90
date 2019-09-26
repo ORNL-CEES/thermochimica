@@ -323,7 +323,7 @@ subroutine InitGemCheckSolnPhase
 
     implicit none
 
-    integer::   i, j, k, l
+    integer::   i, j, k, l, nConTemp
     real(8)::   dTemp
     logical::   lPhasePass
 
@@ -358,7 +358,8 @@ subroutine InitGemCheckSolnPhase
                 call ShuffleAssemblage(-i,j)
 
                 ! Loop through pure condensed phases to see which one can be swapped:
-                LOOP_ConPhases: do j = 1, nConPhases
+                nConTemp = nConPhases
+                LOOP_ConPhases: do j = 1, nConTemp
                     dTemp                   = dMolesPhase(j)
                     k                       = iAssemblage(j)
                     iAssemblage(j)          = iAssemblage(nConPhases)
@@ -378,9 +379,10 @@ subroutine InitGemCheckSolnPhase
                     else
                         ! This phase assemblage is not appropriate for testing.  Return to the previous assemblage.
                         dMolesPhase(j) = dTemp
-                        iAssemblage(j) = k
                         nConPhases     = nConPhases  + 1
                         nSolnPhases    = nSolnPhases - 1
+                        iAssemblage(nConPhases) = iAssemblage(j)
+                        iAssemblage(j) = k
                     end if
 
                 end do LOOP_ConPhases
@@ -400,4 +402,3 @@ end subroutine InitGemCheckSolnPhase
     !---------------------------------------------------------------------------
     !                       END - InitGEMSolver.f90
     !---------------------------------------------------------------------------
-

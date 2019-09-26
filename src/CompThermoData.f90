@@ -105,10 +105,14 @@ subroutine CompThermoData
     implicit none
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter
-    integer                            :: iSublPhaseIndex
-    real(8)                            :: dLogT, dLogP, dTemp
+    integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
+    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
+    integer                            :: iaaxx, ibbxx, iaayy, ibbyy
+    integer, dimension(nElementsCS)    :: iRemove
+    real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
+    real(8)                            :: dZaxa, dZbxb, dZaya, dZbyb
     real(8), dimension(6)              :: dGibbsCoeff
-    character(25), dimension(nSpecies) :: cSpeciesNameOld
+    real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
 
 
     ! Initialize variables:
@@ -129,7 +133,243 @@ subroutine CompThermoData
     dLogP            = DLOG(dPressure)                 ! ln(P)
 
     ! Loop through all species in the system:
-    LOOP_nSpeciesCS: do i = 1, nSpeciesCS
+    LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
+        if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
+            iSublPhaseIndex = iPhaseSublatticeCS(n)
+            iFirst = nSpeciesPhaseCS(n - 1) + 1
+            dChemicalPotentialTemp = 0D0
+            jj = 0
+            LOOP_SROPairs: do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
+                l = 0
+                ! Loop through the Gibbs energy equations to figure out which one to use:
+                do k = 1, nGibbsEqSpecies(i)
+                    iCounterGibbsEqn = iCounterGibbsEqn + 1
+                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                        l = k
+                    end if
+                end do
+
+                if (l == 0) l = nGibbsEqSpecies(i)
+
+                l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
+
+                do k = 2, 7
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
+                end do
+
+                ! Compute additional standard molar Gibbs energy terms:
+                if (dGibbsCoeffSpeciesTemp(9,l) .EQ. 99) then
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(8,l) * dLogT
+                else
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(8,l) &
+                        *dTemperature**dGibbsCoeffSpeciesTemp(9,l)
+                end if
+
+                if (dGibbsCoeffSpeciesTemp(11,l) .EQ. 99) then
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(10,l) * dLogT
+                else
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(10,l) &
+                        * dTemperature**dGibbsCoeffSpeciesTemp(11,l)
+                end if
+
+                if (dGibbsCoeffSpeciesTemp(13,l) .EQ. 99) then
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(12,l) * dLogT
+                else
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(12,l) &
+                        * dTemperature**dGibbsCoeffSpeciesTemp(13,l)
+                end if
+
+                ! Convert chemical potentials to dimensionless units:
+                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
+
+                do k = 1, nElemOrComp
+                    if ((dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k) > 0).AND.(iElementSystem(k) == 0)) then
+                        cycle LOOP_SROPairs
+                    end if
+                end do
+
+                ! Check if pair should be saved - only worry about zeta here, LOOP_nSUBGQCS will take care
+                ! of only using the necessary reference energy terms.
+                ! This is the same check as in CheckSystemExcess but A = B = ii and X = Y = kk are assured
+                ii = iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1)
+                kk = iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1)
+                iIndex = ii + ((kk - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)) &
+                            + iFirst - 1
+                if (iSpeciesPass(iIndex) > 0) then
+                    jj = jj + 1
+                    dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                end if
+
+                ! I'm like pretty sure that these are g_A2/X2 and not g_A/X,
+                ! but only because it doesn't work the other way.
+                ! Also the seem to be multiplied by the relevant coordination already.
+                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) !* 4 / dZetaSpecies(iSublPhaseIndex,jj)
+
+            end do LOOP_SROPairs
+
+            LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
+                if (iSpeciesPass(i) == 0) cycle LOOP_nSUBGQCS
+
+                j = j + 1   ! New species index
+
+                cSpeciesName(j)            = cSpeciesNameCS(i)
+                iPhase(j)                  = iPhaseCS(i)
+                iParticlesPerMole(j)       = iParticlesPerMoleCS(i)
+                dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
+
+                m = 0
+                do k = 1, nElemOrComp
+                    if (iElementSystem(k) /= 0) then
+                        m = m + 1
+                        dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
+                    end if
+                end do
+
+                dZa = dCoordinationNumberCS(iSublPhaseIndex,i - iFirst + 1,1)
+                dZb = dCoordinationNumberCS(iSublPhaseIndex,i - iFirst + 1,2)
+                dZx = dCoordinationNumberCS(iSublPhaseIndex,i - iFirst + 1,3)
+                dZy = dCoordinationNumberCS(iSublPhaseIndex,i - iFirst + 1,4)
+
+                ii = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,1)
+                jj = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,2)
+                kk = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,3)
+                ll = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,4)
+                ! Anion indices adjusted to start from 1
+                ka = kk - nSublatticeElementsCS(iSublPhaseIndex,1)
+                la = ll - nSublatticeElementsCS(iSublPhaseIndex,1)
+
+                dQx = dSublatticeChargeCS(iSublPhaseIndex,2,ka)
+                dQy = dSublatticeChargeCS(iSublPhaseIndex,2,la)
+
+                ! Indices of reference energy equations for A/X, B/X, A/Y, B/Y
+                iax = 0
+                ibx = 0
+                iay = 0
+                iby = 0
+                nA2X2 = nSublatticeElementsCS(iSublPhaseIndex,1) * nSublatticeElementsCS(iSublPhaseIndex,2)
+                do k = 1, nA2X2
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
+                        iax = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == jj) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
+                        ibx = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == la)) then
+                        iay = k
+                    end if
+                    if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == jj) &
+                    .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == la)) then
+                        iby = k
+                    end if
+                end do
+
+                iaaxx = ii + (ka - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                ibbxx = jj + (ka - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                iaayy = ii + (la - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                ibbyy = jj + (la - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+                dZaxa = dCoordinationNumberCS(iSublPhaseIndex,iaaxx,1)
+                dZbxb = dCoordinationNumberCS(iSublPhaseIndex,ibbxx,2)
+                dZaya = dCoordinationNumberCS(iSublPhaseIndex,iaayy,1)
+                dZbyb = dCoordinationNumberCS(iSublPhaseIndex,ibbyy,2)
+
+                dChemicalPotential(j) = ((dQx * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
+                      + (dQx * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
+                      + (dQy * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy)) &
+                      + (dQy * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
+                      / ((dQx/dZx) + (dQy/dZy))
+                ! dChemicalPotential(j) = ((dQx * dZaxa * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
+                !       + (dQx * dZbxb * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
+                !       + (dQy * dZaya * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy)) &
+                !       + (dQy * dZbyb * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
+                !       / (2 * ((dQx/dZx) + (dQy/dZy)))
+            end do LOOP_nSUBGQCS
+        else
+            LOOP_nSpeciesCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
+                l = 0
+                ! Loop through the Gibbs energy equations to figure out which one to use:
+                do k = 1, nGibbsEqSpecies(i)
+                    iCounterGibbsEqn = iCounterGibbsEqn + 1
+                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                        l = k
+                    end if
+                end do
+
+                ! This species will not be considered part of the system.
+                if (iSpeciesPass(i) == 0) cycle LOOP_nSpeciesCS
+
+                if (l == 0) l = nGibbsEqSpecies(i)
+
+                l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
+                j = j + 1   ! New species index
+
+                cSpeciesName(j)            = cSpeciesNameCS(i)
+                iPhase(j)                  = iPhaseCS(i)
+                iParticlesPerMole(j)       = iParticlesPerMoleCS(i)
+                dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
+
+                m = 0
+                do k = 1, nElemOrComp
+                    if (iElementSystem(k) /= 0) then
+                        m = m + 1
+                        dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
+                    end if
+                end do
+
+                do k = 2, 7
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
+                end do
+
+                ! Compute additional standard molar Gibbs energy terms:
+                if (dGibbsCoeffSpeciesTemp(9,l) .EQ. 99) then
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l) * dLogT
+                else
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l) &
+                        *dTemperature**dGibbsCoeffSpeciesTemp(9,l)
+                end if
+
+                if (dGibbsCoeffSpeciesTemp(11,l) .EQ. 99) then
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l) * dLogT
+                else
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l) &
+                        * dTemperature**dGibbsCoeffSpeciesTemp(11,l)
+                end if
+
+                if (dGibbsCoeffSpeciesTemp(13,l) .EQ. 99) then
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l) * dLogT
+                else
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l) &
+                        * dTemperature**dGibbsCoeffSpeciesTemp(13,l)
+                end if
+
+                ! Compute the magnetic terms (if applicable):
+                if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
+                    call CompGibbsMagnetic(i,j)
+                end if
+
+                ! Convert chemical potentials to dimensionless units:
+                dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
+
+                ! Add pressure dependence term to the chemical potential term:
+                if (iPhaseCS(i) == 1) then
+                    if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                        ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
+                        ! the first solution phase in the data-file.
+                        dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
+                    end if
+                else if (iPhaseCS(i) == -1) then
+                    ! Explicitly set dummy species chemical potentials
+                    dChemicalPotential(j) = 100000
+                end if
+
+            end do LOOP_nSpeciesCS ! End loop of species (i)
+        end if
+    end do LOOP_nPhasesCS
+
+    LOOP_nPureConSpeciesCS: do i = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
         l = 0
         ! Loop through the Gibbs energy equations to figure out which one to use:
         do k = 1, nGibbsEqSpecies(i)
@@ -140,7 +380,7 @@ subroutine CompThermoData
         end do
 
         ! This species will not be considered part of the system.
-        if (iSpeciesPass(i) == 0) cycle LOOP_nSpeciesCS
+        if (iSpeciesPass(i) == 0) cycle LOOP_nPureConSpeciesCS
 
         if (l == 0) l = nGibbsEqSpecies(i)
 
@@ -205,14 +445,14 @@ subroutine CompThermoData
             ! Explicitly set dummy species chemical potentials
             dChemicalPotential(j) = 100000
         end if
-
-    end do LOOP_nSpeciesCS ! End loop of species (i)
+    end do LOOP_nPureConSpeciesCS ! End loop of species (i)
 
     ! Update all the excess properties:
     n = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) nCounter = nCounter + 1
+        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' )) nCounter = nCounter + 1
 
         LOOP_Param: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
 
@@ -237,7 +477,31 @@ subroutine CompThermoData
                             iRegularParam(n,k+1) = iSpeciesPass(m)
                         end do
 
-                    case ('SUBG')
+                    case ('SUBG','SUBQ')
+
+                        ! Must remove unused elements from iRegularParam
+                        iSublPhaseIndex = iPhaseSublatticeCS(i)
+                        nRemove = 0
+                        iRemove = 0
+                        do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
+                            do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
+                                if (iSublatticeElementsCS(iSublPhaseIndex,k,l) <= 0) then
+                                    nRemove = nRemove + 1
+                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+                                elseif (iElementSystem(iSublatticeElementsCS(iSublPhaseIndex,k,l)) == 0) then
+                                    nRemove = nRemove + 1
+                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+                                end if
+                            end do
+                        end do
+
+                        do k = 1, nRemove
+                            do l = 2, 5
+                                if (iRegularParam(n,l) > iRemove(k)) then
+                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
+                                end if
+                            end do
+                        end do
 
                         ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
                         do k = 1, 4
@@ -339,25 +603,6 @@ subroutine CompThermoData
 
     i = nSpeciesPhase(nSolnPhasesSys) + 1
     nDummySpecies = ABS(SUM(iPhase(i:nSpecies)))
-
-    ! If a solution phase is represented by the SUBG model, the phase components
-    ! are represented by nearest neighbor pairs rather than the pure species.
-    ! In this case, there are necessarily more pairs than pure species. The following
-    ! accounts for SUBG phases.
-    do j = 1, nSolnPhasesSys
-        if (cSolnPhaseType(j) == 'SUBG' .OR. cSolnPhaseType(j) == 'SUBQ') then
-            iSublPhaseIndex = iPhaseSublattice(j)
-            cSpeciesNameOld = cSpeciesName
-            ! Loop through all pairs:
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
-                m = i - nSpeciesPhase(j-1)
-                k = iPairID(iSublPhaseIndex,m,1) + nSpeciesPhase(j-1)   ! Index of AA
-                l = iPairID(iSublPhaseIndex,m,2) + nSpeciesPhase(j-1)   ! Index of BB
-                ! Create a name for this AB pair:
-                cSpeciesName(i) = TRIM(cSpeciesNameOld(k)) // '-' // ADJUSTL(TRIM(cSpeciesNameOld(l)))
-            end do
-        end if
-    end do
 
     ! Compute the total number of atoms per formula mass of each species:
     dSpeciesTotalAtoms = SUM(ABS(dStoichSpecies),DIM=2)

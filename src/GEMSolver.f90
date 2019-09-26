@@ -106,7 +106,10 @@ subroutine GEMSolver
         call CheckSysOnlyPureConPhases
 
         ! Report an error if this failed:
-        if (lConverged .EQV. .FALSE.) INFOThermo = 14
+        if (lConverged .EQV. .FALSE.) then
+            INFOThermo = 14
+            return
+        end if
 
     end if
 
