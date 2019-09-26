@@ -84,7 +84,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     real(8),dimension(15) :: dTempVec
     real(8),parameter     :: dGibbsDummy = 1D6
     character(5)          :: cDummy
-    character(25)         :: cSpeciesNameDummy
+    character(30)         :: cSpeciesNameDummy
 
 
     ! Initialize variables:
@@ -94,7 +94,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
 
     ! Entry 3: Read name of constituent species:
     read (1,100,IOSTAT = INFO) cSpeciesNameCS(j)
-    100 FORMAT (A25)
+    100 FORMAT (A30)
 
     ! Check to see if there is more than one particle per constituent formula mass.
     k = SCAN(cSpeciesNameCS(j), ':', back = .TRUE.)
@@ -110,29 +110,13 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
         end if
     end if
 
+    ! Check for a dummy species (a description of a "dummy species" is given in the header).
+    l = SCAN(cSpeciesNameCS(j),'#', back = .TRUE.)
+
     ! The phase index of a dummy species is set to -1:
-    if (i == 0) then
-        ! First, make sure that this is a dummy species.
-
-        ! Go back one line:
-        backspace(UNIT = 1)
-
-        read (1,*, IOSTAT = INFO) cSpeciesNameCS(j), cDummy
-
-        if (cDummy == '#') then
-            iPhaseCS(j) = -1
-        else
-          ! If we don't find a # it's not a dummy so back up and reset
-            backspace(UNIT = 1)
-            read (1,*, IOSTAT = INFO) cSpeciesNameDummy
-            if (cSpeciesNameDummy /= cSpeciesNameCS(j)) then
-              ! If we ran off the end of the line we'll need to back up twice
-                backspace(UNIT = 1)
-                backspace(UNIT = 1)
-                read (1,*, IOSTAT = INFO) cSpeciesNameDummy
-                if (cSpeciesNameDummy /= cSpeciesNameCS(j)) INFO = 1
-            end if
-        end if
+    if ((i == 0).AND.(l > 0)) then
+        ! If it contains '#', assume a dummy
+        iPhaseCS(j) = -1
     end if
 
     if (INFO /= 0) then
