@@ -94,7 +94,7 @@ module ModuleParseCS
     character(3),   dimension(:),   allocatable :: cElementNameCS
     character(8),   dimension(:),   allocatable :: cSolnPhaseTypeCS
     character(25),  dimension(:),   allocatable :: cSolnPhaseNameCS
-    character(25),  dimension(:),   allocatable :: cSpeciesNameCS
+    character(30),  dimension(:),   allocatable :: cSpeciesNameCS
     character(8),   dimension(:,:,:), allocatable :: cConstituentNameSUBCS
 
     character(8),   dimension(nSolnTypeSupport), parameter :: cSolnPhaseTypeSupport = &

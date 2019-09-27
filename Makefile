@@ -20,7 +20,6 @@
 ## ===================
 ## COMPILER VARIABLES:
 ## ===================
-
 AR          = ar
 FC          = gfortran
 FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
@@ -43,9 +42,7 @@ LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
 ## ====================
 ## DIRECTORY VARIABLES:
 ## ====================
-
 MKDIR_P     = mkdir -p
-
 DOC_DIR     = doc
 TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
@@ -55,22 +52,18 @@ TST_DIR     = test
 DTST_DIR    = $(TST_DIR)/daily
 WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
-
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
 
 ## ========
 ## MODULES:
 ## ========
-
 MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleRestart.o
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
-
 
 ## =================
 ## SHARED LIBRARIES:
 ## =================
-
 TC_LIB      = libthermochimica.a
 SHARED_SRC  = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.f90)))
 SHARED_OBJ  = $(SHARED_SRC:.f90=.o)
@@ -80,22 +73,18 @@ SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 ## ============
 ## OLD EXECUTABLES:
 ## ============
-
 EXEC_SRC    = $(notdir $(wildcard $(TST_DIR)/*.F90))
 EXEC_OBJ    = $(EXEC_SRC:.F90=.o)
 EXEC_LNK    = $(addprefix $(OBJ_DIR)/,$(EXEC_OBJ))
-
 EXE_OBJ     = $(basename $(EXEC_SRC))
 EXE_BIN     = $(addprefix $(BIN_DIR)/,$(EXE_OBJ))
 
 ## ============
 ## DAILY TESTS:
 ## ============
-
 DTEST_SRC   = $(notdir $(wildcard $(DTST_DIR)/*.F90))
 DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
 DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
-
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 
@@ -103,18 +92,15 @@ DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 ## =============
 ## WEEKLY TESTS:
 ## =============
-
 WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.F90))
 WTEST_OBJ   = $(WTEST_SRC:.F90=.o)
 WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ))
-
 WTST_OBJ    = $(basename $(WTEST_SRC))
 WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 ## =======
 ## COMPILE
 ## =======
-
 all:  directories $(MODS_LNK) $(SHARED_LNK) $(SHARED_LIB) $(EXEC_LNK) $(EXE_BIN)
 
 directories: ${OBJ_DIR} ${BIN_DIR}
@@ -142,11 +128,9 @@ $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
 
 .PHONY: clean veryclean test doc cleandoc directories
 
-
 ## =====
 ## CLEAN
 ## =====
-
 clean:
 	rm -f $(OBJ_DIR)/*
 	rm -f $(BIN_DIR)/*
@@ -172,7 +156,6 @@ install: $(SHARED_LIB)
 ## =============
 ## DOCUMENTATION
 ## =============
-
 doc: dochtml doclatex
 
 dochtml:
@@ -187,11 +170,9 @@ doctest:
 cleandoc:
 	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR); rm -r -f $(DOC_DIR)/$(TST_DIR)
 
-
 ## ===========
 ## DAILY TESTS
 ## ===========
-
 dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
 
 $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
@@ -200,7 +181,6 @@ $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 ## ============
 ## WEEKLY TESTS
 ## ============
-
 weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN)
 
 $(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
@@ -209,5 +189,4 @@ $(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
 ## ===========
 ## BOTH TESTS:
 ## ===========
-
 test: dailytest weeklytest
