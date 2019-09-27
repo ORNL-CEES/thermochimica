@@ -3,7 +3,7 @@
     !
     !> \file        ModuleThermo.f90
     !> \brief       Fortran module for internal use of Thermochimica
-    !> \details     The purpose of this module is to provide the means to share information amoungst the
+    !> \details     The purpose of this module is to provide the means to share information amongst the
     !!              various subroutines used by Thermochimica
     !> \author      M.H.A. Piro
     !
@@ -86,7 +86,7 @@ module ModuleThermo
     integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nElemOrComp
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
-    integer,       parameter::                    iTolNum = 15, nElementsPT = 118
+    integer,       parameter::                    iTolNum = 15, nElementsPT = 118, nMaxCompounds = 50
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID

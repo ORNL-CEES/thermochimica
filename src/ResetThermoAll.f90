@@ -35,6 +35,9 @@ subroutine ResetThermoAll
     ! Reset the parser used by thermochimica:
     call ResetThermoParser
 
+    ! Reset restart data:
+    call ResetRestart
+
     return
 
 end subroutine ResetThermoAll

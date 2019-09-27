@@ -111,29 +111,32 @@ subroutine CheckCompounds
     end do
 
     ! Convert stoichiometry of all species to compounds
-    do i = 1, nSpeciesCS
-        do j = 1, nElementsCS
-            ! Make vector to pass stoichiometry to LAPACK
-            dStoichSpeciesTemp(j) = dStoichSpeciesCS(i,j)
-        end do
-        do j = 1, nCompounds
-            do k = 1, nElementsCS
-                ! Make matrix for LAPACK
-                A(k,j) = dCompoundStoichSmall(j,k)
+    ! Do not re-calculate this stoichiometry matrix if this is a restarted calculation
+    if (.NOT. lCompoundStoichCalculated) then
+        do i = 1, nSpeciesCS
+            do j = 1, nElementsCS
+                ! Make vector to pass stoichiometry to LAPACK
+                dStoichSpeciesTemp(j) = dStoichSpeciesCS(i,j)
+            end do
+            do j = 1, nCompounds
+                do k = 1, nElementsCS
+                    ! Make matrix for LAPACK
+                    A(k,j) = dCompoundStoichSmall(j,k)
+                end do
+            end do
+            ! Linear solve on rectangular (overdetermined) system
+            call DGELS( 'N', nElementsCS, nCompounds, 1, A, nElementsCS, &
+                             dStoichSpeciesTemp, nElementsCS, work, lwork, INFO )
+            if (INFO > 0) then
+                INFOThermo = 41
+                return
+            end if
+            do j = 1, nCompounds
+                ! Copy LAPACK solution vector to new stoichiometry
+                dStoichSpeciesCompounds(i,j) = dStoichSpeciesTemp(j)
             end do
         end do
-        ! Linear solve on rectangular (overdetermined) system
-        call DGELS( 'N', nElementsCS, nCompounds, 1, A, nElementsCS, &
-                         dStoichSpeciesTemp, nElementsCS, work, lwork, INFO )
-        if (INFO > 0) then
-            INFOThermo = 41
-            return
-        end if
-        do j = 1, nCompounds
-            ! Copy LAPACK solution vector to new stoichiometry
-            dStoichSpeciesCompounds(i,j) = dStoichSpeciesTemp(j)
-        end do
-    end do
+    end if
 
     ! If there are sublattice phases, will need to adjust iSublatticeElementsCS
     if (nCountSublatticeCS > 0) then
@@ -163,34 +166,38 @@ subroutine CheckCompounds
     end do
 
     ! Make sure that the sums of compound stoichiometries makes sense
-    LOOP_checkCompoundStoich: do i = 1, nSpeciesCS
-        do j = 1, nElementsCS
-            dSum = 0D0
-            do k = 1, nCompounds
-                dSum = dSum + (dCompoundStoichSmall(k,j) * dStoichSpeciesCompounds(i,k))
+    ! Do not re-calculate this stoichiometry matrix if this is a restarted calculation
+    if (.NOT. lCompoundStoichCalculated) then
+        LOOP_checkCompoundStoich: do i = 1, nSpeciesCS
+            do j = 1, nElementsCS
+                dSum = 0D0
+                do k = 1, nCompounds
+                    dSum = dSum + (dCompoundStoichSmall(k,j) * dStoichSpeciesCompounds(i,k))
+                end do
+                if (ABS(dSum - dStoichSpeciesCS(i,j)) > 1D-8) then
+                    dStoichSpeciesCompounds(i,1:nCompounds) = 0D0
+                    cycle LOOP_checkCompoundStoich
+                end if
             end do
-            if (ABS(dSum - dStoichSpeciesCS(i,j)) > 1D-8) then
-                dStoichSpeciesCompounds(i,1:nCompounds) = 0D0
-                cycle LOOP_checkCompoundStoich
-            end if
-        end do
-    end do LOOP_checkCompoundStoich
+        end do LOOP_checkCompoundStoich
 
-    ! Save new stoichiometry matrix in terms of compounds
-    deallocate(dStoichSpeciesCS)
-    allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
-    LOOP_compoundStoich: do i = 1, nSpeciesCS
-        do j = 1, nCompounds
-            if (dStoichSpeciesCompounds(i,j) > 1D-8) then
-                dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
-            elseif (dStoichSpeciesCompounds(i,j) < -1D-8) then
-                dStoichSpeciesCS(i,1:nCompounds) = 0D0
-                cycle LOOP_compoundStoich
-            else
-                dStoichSpeciesCS(i,j) = 0D0
-            end if
-        end do
-    end do LOOP_compoundStoich
+        ! Save new stoichiometry matrix in terms of compounds
+        deallocate(dStoichSpeciesCS)
+        allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
+        LOOP_compoundStoich: do i = 1, nSpeciesCS
+            do j = 1, nCompounds
+                if (dStoichSpeciesCompounds(i,j) > 1D-8) then
+                    dStoichSpeciesCS(i,j) = dStoichSpeciesCompounds(i,j)
+                elseif (dStoichSpeciesCompounds(i,j) < -1D-8) then
+                    dStoichSpeciesCS(i,1:nCompounds) = 0D0
+                    cycle LOOP_compoundStoich
+                else
+                    dStoichSpeciesCS(i,j) = 0D0
+                end if
+            end do
+        end do LOOP_compoundStoich
+        lCompoundStoichCalculated = .TRUE.
+    end if
     nElemOrComp = nCompounds
 
     dElementMass = 0D0
@@ -199,6 +206,6 @@ subroutine CheckCompounds
     end do
 
     ! Clear temporary arrays
-    deallocate(dCompoundStoichSmall,dStoichSpeciesTemp,dStoichSpeciesCompounds,A)
+    deallocate(dCompoundStoichSmall,dStoichSpeciesTemp,dStoichSpeciesCompounds,A,work,iElementSystemTemp)
 
 end subroutine CheckCompounds

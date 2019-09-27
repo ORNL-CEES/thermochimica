@@ -51,22 +51,26 @@ module ModuleThermoIO
     SAVE
 
     ! INPUT VARIABLES:
-    integer                                :: iCounter, iPrintResultsMode
-    real(8)                                :: dTemperature, dPressure
-    real(8),       dimension(0:168)        :: dElementMass
-    character(15)                          :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
-    character(120)                         :: cThermoFileName
+    integer                                  :: iCounter, iPrintResultsMode
+    real(8)                                  :: dTemperature, dPressure
+    real(8),       dimension(0:168)          :: dElementMass
+    logical,       dimension(0:118)          :: lPreset = .FALSE.
+    character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+    character(120)                           :: cThermoFileName
+    logical                                  :: lRestartAvailable = .FALSE., lRestartLoaded = .FALSE., lRestartRequested = .FALSE.
+
     ! Compound variables:
-    integer                                :: nCompounds=0
-    real(8),       dimension(118)          :: dCompoundMass
-    real(8),       dimension(118,0:118)    :: dCompoundStoich
-    character(12), dimension(118)          :: cCompoundNames
+    integer                                  :: nCompounds = 0
+    real(8),       dimension(118)            :: dCompoundMass
+    real(8),       dimension(118,0:118)      :: dCompoundStoich
+    character(12), dimension(118)            :: cCompoundNames
+    logical                                  :: lCompoundStoichCalculated = .FALSE.
 
     ! OUTPUT VARIABLES:
-    integer                                :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut
-    real(8)                                :: dGibbsEnergySys
-    real(8),dimension(:),allocatable       :: dSolnPhaseMolesOut, dPureConPhaseMolesOut, dSpeciesMoleFractionOut
-    character(25),dimension(:),allocatable :: cSolnPhaseNameOut, cPureConPhaseNameOut, cSpeciesNameOut, cSpeciesPhaseOut
-    logical, dimension(:),allocatable      :: lSpeciesStable
+    integer                                  :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut
+    real(8)                                  :: dGibbsEnergySys
+    real(8), dimension(:), allocatable       :: dSolnPhaseMolesOut, dPureConPhaseMolesOut, dSpeciesMoleFractionOut
+    character(25), dimension(:), allocatable :: cSolnPhaseNameOut, cPureConPhaseNameOut, cSpeciesNameOut, cSpeciesPhaseOut
+    logical, dimension(:), allocatable       :: lSpeciesStable
 
 end module ModuleThermoIO

@@ -43,7 +43,7 @@
     !                            for every species in the system.
     ! dMolesSpecies             A double real vector representing the number of moles for every species in the
     !                            system.
-    ! dGibbsSolnPhases          A double real vector represending the molar Gibbs energy for every solution phase
+    ! dGibbsSolnPhase          A double real vector represending the molar Gibbs energy for every solution phase
     !                            in the system.
     !
     !-------------------------------------------------------------------------------------------------------------

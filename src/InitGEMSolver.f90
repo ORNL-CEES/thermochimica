@@ -57,8 +57,9 @@
 subroutine InitGEMSolver
 
     USE ModuleThermo
-    USE ModuleThermoIO, ONLY: INFOThermo
+    USE ModuleThermoIO, ONLY: INFOThermo, lRestartLoaded
     USE ModuleGEMSolver
+    USE ModuleRestart
 
     implicit none
 
@@ -122,13 +123,28 @@ subroutine InitGEMSolver
 
         ! Allocate memory:
         l = MAX(1,nSolnPhasesSys)
-        allocate(dMolFraction(nSpecies),dMolesSpecies(nSpecies))
+        allocate(dMolesSpecies(nSpecies))
         allocate(dPartialExcessGibbs(nSpecies),dPartialExcessGibbsLast(nSpecies))
         allocate(dUpdateVar(nElements*2))
         allocate(iterHistory(nElements,iterGlobalMax))
         allocate(dSumMolFractionSoln(l))
         allocate(dDrivingForceSoln(l))
         allocate(dEffStoichSolnPhase(l,nElements))
+        ! This is due to restart
+        if (allocated(dMolFraction)) then
+            ! Check to see if the number of species has changed:
+            i = SIZE(dMolFraction)
+            if (i /= nSpecies) then
+                deallocate(dMolFraction, STAT = l)
+                if (l /= 0) then
+                    INFOThermo = 21
+                    return
+                end if
+                allocate(dMolFraction(nSpecies))
+            end if
+        else
+            allocate(dMolFraction(nSpecies))
+        end if
     end if
 
     if (allocated(dMolesPhaseLast)) deallocate(dMolesPhaseLast)
@@ -150,6 +166,10 @@ subroutine InitGEMSolver
     iSolnSwap               = 0
     iPureConSwap            = 0
     iSolnPhaseLast          = 0
+    ! From LevelingSolver, iAssemblageLast would always be positive
+    ! because only pure condensed phases are considered.
+    ! However, when restarting there may be any type of phase included,
+    ! and therefore some indices may be negative.
     iAssemblageLast         = iAssemblage
     iAssemblage             = 0
     dMolesPhaseLast         = dMolesPhase
@@ -164,63 +184,78 @@ subroutine InitGEMSolver
     lConverged              = .FALSE.
     lRevertSystem           = .FALSE.
 
-    ! Calculate the total number of moles for each solution phase:
-    do i = 1, nElements
-        j           = iPhase(iAssemblageLast(i))
-        dTempVec(j) = dTempVec(j) + dMolesPhaseLast(i)
-    end do
-
-    ! Count the number of pure condensed phases and solution phases are assumed to be part of the phase
-    ! assemblage and establish iAssemblage based on the results of Leveling and PostLeveling:
-    LOOP_AddPhase: do i = 1, nElements
-
-        if ((iPhase(iAssemblageLast(i)) == 0).AND.(nConPhases + nSolnPhases < nElements)) then
-            nConPhases              = nConPhases + 1
-            iAssemblage(nConPhases) = iAssemblageLast(i)
-            dMolesPhase(nConPhases) = dMolesPhaseLast(i)
-        elseif ((iPhase(iAssemblageLast(i)) > 0).AND.(nConPhases + nSolnPhases < nElements)) then
-            do j = 1,nSolnPhases
-                k = nElements - j + 1
-                ! Ensure that this solution phase is not already stored:
-                if (iAssemblage(k) == -iPhase(iAssemblageLast(i))) cycle LOOP_AddPhase
-            end do
-
-            nSolnPhases = nSolnPhases + 1
-
-            j = nElements - nSolnPhases + 1
-            k = iPhase(iAssemblageLast(i))
-
-            iAssemblage(j) = -k
-            dMolesPhase(j) = DMAX1(dTempVec(k),dTolerance(9))
-            lSolnPhases(k) = .TRUE.
+    ! Regrettably, branching here depending on whether restart data has been loaded
+    IF_RestartLoaded: if (lRestartLoaded) then
+      iAssemblage = iAssemblageLast
+      dMolFraction = dMolFraction_Old
+      do i = 1, nElements
+        dMolesPhase = dMolesPhaseLast
+        if (iAssemblageLast(i) < 0) then
+          nSolnPhases = nSolnPhases + 1
+          lSolnPhases(-iAssemblageLast(i)) = .TRUE.
+        elseif (iAssemblageLast(i) > 0) then
+          nConPhases  = nConPhases + 1
         end if
-    end do LOOP_AddPhase
+      end do
+    ! If there is no restart data use old methods:
+    else
+      ! Calculate the total number of moles for each solution phase:
+      do i = 1, nElements
+          j           = iPhase(iAssemblageLast(i))
+          dTempVec(j) = dTempVec(j) + dMolesPhaseLast(i)
+      end do
 
-    ! Initialize mole fractions of all solution phase constituents:
-    LOOP_CompX: do k = 1, nSolnPhasesSys
+      ! Count the number of pure condensed phases and solution phases are assumed to be part of the phase
+      ! assemblage and establish iAssemblage based on the results of Leveling and PostLeveling:
+      LOOP_AddPhase: do i = 1, nElements
+          if ((iPhase(iAssemblageLast(i)) == 0).AND.(nConPhases + nSolnPhases < nElements)) then
+              nConPhases              = nConPhases + 1
+              iAssemblage(nConPhases) = iAssemblageLast(i)
+              dMolesPhase(nConPhases) = dMolesPhaseLast(i)
+          elseif ((iPhase(iAssemblageLast(i)) > 0).AND.(nConPhases + nSolnPhases < nElements)) then
+              do j = 1,nSolnPhases
+                  k = nElements - j + 1
+                  ! Ensure that this solution phase is not already stored:
+                  if (iAssemblage(k) == -iPhase(iAssemblageLast(i))) cycle LOOP_AddPhase
+              end do
 
-        ! Reinitialize temporary variable:
-        dSum = 0D0
+              nSolnPhases = nSolnPhases + 1
 
-        ! The default case assumes an ideal solution phase.
-            do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                dTemp = 0D0
-                do j = 1, nElements
-                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
-                end do
-                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
-                dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
-                dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
-                dSum            = dSum + dMolFraction(i)
-            end do
+              j = nElements - nSolnPhases + 1
+              k = iPhase(iAssemblageLast(i))
 
-            ! Normalize the mole fractions so that their sum equals unity:
-            dSum = 1D0 / dSum
-            do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                dMolFraction(i) = dMolFraction(i) * dSum
-            end do
+              iAssemblage(j) = -k
+              dMolesPhase(j) = DMAX1(dTempVec(k),dTolerance(9))
+              lSolnPhases(k) = .TRUE.
+          end if
+      end do LOOP_AddPhase
 
-    end do LOOP_CompX
+      ! Initialize mole fractions of all solution phase constituents:
+      LOOP_CompX: do k = 1, nSolnPhasesSys
+
+          ! Reinitialize temporary variable:
+          dSum = 0D0
+
+          ! The default case assumes an ideal solution phase.
+              do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                  dTemp = 0D0
+                  do j = 1, nElements
+                      dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
+                  end do
+                  dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+                  dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
+                  dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
+                  dSum            = dSum + dMolFraction(i)
+              end do
+
+              ! Normalize the mole fractions so that their sum equals unity:
+              dSum = 1D0 / dSum
+              do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                  dMolFraction(i) = dMolFraction(i) * dSum
+              end do
+
+      end do LOOP_CompX
+    end if IF_RestartLoaded
 
     ! If there aren't any solution phases currently predicted to be stable, check if any should be added:
     if (nSolnPhases == 0) call InitGemCheckSolnPhase
@@ -323,7 +358,7 @@ subroutine InitGemCheckSolnPhase
 
     implicit none
 
-    integer::   i, j, k, l, nConTemp
+    integer::   i, j, k, l
     real(8)::   dTemp
     logical::   lPhasePass
 
@@ -358,8 +393,7 @@ subroutine InitGemCheckSolnPhase
                 call ShuffleAssemblage(-i,j)
 
                 ! Loop through pure condensed phases to see which one can be swapped:
-                nConTemp = nConPhases
-                LOOP_ConPhases: do j = 1, nConTemp
+                LOOP_ConPhases: do j = 1, nConPhases
                     dTemp                   = dMolesPhase(j)
                     k                       = iAssemblage(j)
                     iAssemblage(j)          = iAssemblage(nConPhases)
@@ -379,10 +413,9 @@ subroutine InitGemCheckSolnPhase
                     else
                         ! This phase assemblage is not appropriate for testing.  Return to the previous assemblage.
                         dMolesPhase(j) = dTemp
+                        iAssemblage(j) = k
                         nConPhases     = nConPhases  + 1
                         nSolnPhases    = nSolnPhases - 1
-                        iAssemblage(nConPhases) = iAssemblage(j)
-                        iAssemblage(j) = k
                     end if
 
                 end do LOOP_ConPhases

@@ -4,14 +4,14 @@ subroutine SetThermoFileName(cFileName)
 
   implicit none
 
-  character(*), intent(in)::  cFileName
+  character(120), intent(in)::  cFileName
   character(120) :: cFileNameLen
 
   cFileNameLen = cFileName(1:120)
   cThermoFileName       = trim(cFileNameLen)
 
   return
-                    
+
 end subroutine SetThermoFileName
 
 subroutine SetThermoFileNameFortran(cFileName)
@@ -42,7 +42,7 @@ subroutine SetUnitTemperature(cUnitTemperature)
   cInputUnitTemperature       = trim(cUnitTemperatureLen)
 
   return
-                    
+
 end subroutine SetUnitTemperature
 
 subroutine SetUnitPressure(cUnitPressure)
@@ -58,7 +58,7 @@ subroutine SetUnitPressure(cUnitPressure)
   cInputUnitPressure       = trim(cUnitPressureLen)
 
   return
-                    
+
 end subroutine SetUnitPressure
 
 subroutine SetUnitMass(cUnitMass)
@@ -74,7 +74,7 @@ subroutine SetUnitMass(cUnitMass)
   cInputUnitMass       = trim(cUnitMassLen)
 
   return
-                    
+
 end subroutine SetUnitMass
 
 
@@ -160,23 +160,48 @@ subroutine SetPrintResultsMode(Pinfo)
 
 end subroutine SetPrintResultsMode
 
+subroutine PresetElementMass(iAtom, dMass)
 
-subroutine SetElementMass(iatom, dMass)
-
-  USE ModuleThermoIO, ONLY: dElementMass
+  USE ModuleThermoIO, ONLY: dElementMass, lPreset
 
   implicit none
 
-  integer, intent(in)::  iatom
+  integer, intent(in)::  iAtom
   real(8), intent(in)::  dMass
 
-  if( iatom == 0 )then
-     dElementMass = dMass
-  else if( iatom < 0 .or. iatom > 118 )then
-     write(*,*) 'Error in SetElementMass ', iatom, dMass
-     stop
+  if( iAtom == 0 )then
+      dElementMass = dMass
+  else if( iAtom < 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in PresetElementMass ', iAtom, dMass
+      stop
   else
-     dElementMass(iatom)      = dMass
+      dElementMass(iAtom)      = dMass
+      lPreset(iAtom)           = .TRUE.
+  end if
+
+  return
+
+end subroutine PresetElementMass
+
+subroutine SetElementMass(iAtom, dMass)
+
+  USE ModuleThermoIO, ONLY: dElementMass, lPreset
+
+  implicit none
+
+  integer, intent(in)::  iAtom
+  real(8), intent(in)::  dMass
+  integer :: i
+
+  if( iAtom == 0 ) then
+      do i = 0, 118
+          if (.NOT. lPreset(i)) dElementMass(i) = dMass
+      end do
+  else if( iAtom < 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in SetElementMass ', iAtom, dMass
+      stop
+  else
+      if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
   end if
 
   return
@@ -211,7 +236,7 @@ end subroutine ResetINFOThermo
 
 subroutine SolPhaseParse(iElem, dMolSum)
 
-! quick hack for bison, ZrH, H in 
+! quick hack for bison, ZrH, H in
 ! needs checking of input, intents, etc
 
     USE ModuleThermoIO
@@ -229,9 +254,9 @@ subroutine SolPhaseParse(iElem, dMolSum)
 
     ! Allocate arrays to sort solution phases:
     if (allocated(dTempVec)) deallocate(dTempVec)
-    
+
     allocate(dTempVec(nSolnPhases))
- 
+
     do i = 1, nSolnPhases
        j = nElements - i + 1
        dTempVec(i) = dMolesPhase(j)
@@ -239,11 +264,11 @@ subroutine SolPhaseParse(iElem, dMolSum)
 
     dMolSum = 0D0
     do j = 1, nSolnPhases
-       
+
        ! Absolute solution phase index:
        k = -iAssemblage(nElements - j + 1)
-       
-       dMolTemp=dTempVec(j) * dEffStoichSolnPhase(k,iElem)       
+
+       dMolTemp=dTempVec(j) * dEffStoichSolnPhase(k,iElem)
        dMolSum = dMolSum + dMolTemp
 !       write(*,"(A,A,e13.6)", ADVANCE="NO") ' -- ', trim(cSolnPhaseName(k)), dMolTemp
     end do
@@ -294,7 +319,7 @@ subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iM
   real(8)              :: dATotalMass, dBTotalMass
 
   ! ppm is 0.000001 MU/MU
-  ! assume total density is eaqual to density of solvent
+  ! assume total density is equal to density of solvent
   dBTotalMass = dBDens * dVol
   dATotalMass = dBTotalMass * 0.000001 * dAppm
 
@@ -345,7 +370,7 @@ subroutine tokenize(str, delim, word, lword, n)
   integer           :: n
 
   integer :: pos1, pos2, i
- 
+
   n = 0
   pos1 = 1
   pos2 = 0
@@ -363,13 +388,13 @@ subroutine tokenize(str, delim, word, lword, n)
      word(n) = str(pos1:pos1+pos2-2)
      pos1 = pos2+pos1
   END DO
- 
+
 !  write(*,"(3A)") ' tokenize ', str,';'
   DO i = 1, n
 !     WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
   END DO
 !  write(*,*)
- 
+
 END subroutine tokenize
 
 subroutine chomp(str, len)
@@ -435,7 +460,7 @@ subroutine chopnull(str)
 
   implicit none
 
-  ! 
+  !
   character (len=*) ::  str
   integer           ::  iloc
 
@@ -512,3 +537,130 @@ subroutine getElementPotential(i, value, ierr)
   return
 
 end subroutine getElementPotential
+
+subroutine SetRestartRequested(iRequested)
+
+  USE ModuleThermoIO, ONLY: lRestartRequested
+
+  implicit none
+
+  ! passing bool/logical was sketchy so just going with an int here
+  integer, intent(in)::  iRequested
+  if (iRequested == 0) then
+    lRestartRequested = .FALSE.
+  else
+    lRestartRequested = .TRUE.
+  end if
+
+  return
+
+end subroutine SetRestartRequested
+
+subroutine getRestartDataSizes(mElements,mSpecies)
+  USE ModuleThermo, ONLY: nElements, nSpecies
+  implicit none
+
+  integer, intent(out)                           :: mElements, mSpecies
+
+  mElements = nElements
+  mSpecies = nSpecies
+
+  return
+
+end subroutine getRestartDataSizes
+
+subroutine restartDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
+              mChemicalPotential,mMolFraction,mElementsUsed,mRestartAvailable)
+  USE ModuleRestart
+  USE ModuleThermoIO
+  USE ModuleThermo, ONLY: nElements, nSpecies, nElementsPT, nMaxCompounds
+  implicit none
+
+  integer, intent(out)                           :: mRestartAvailable
+  integer, intent(out), dimension(nElements)     :: mAssemblage
+  real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
+  real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
+  integer, intent(out), dimension(0:nElementsPT + nMaxCompounds) :: mElementsUsed
+
+
+  if (lRestartAvailable) then
+    mAssemblage = iAssemblage_Old
+    mMolesPhase = dMolesPhase_Old
+    mElementPotential = dElementPotential_Old
+    mChemicalPotential = dChemicalPotential_Old
+    mMolFraction =  dMolFraction_Old
+    mElementsUsed = iElementsUsed_Old
+    mRestartAvailable = 1
+  else
+    mRestartAvailable = 0
+  end if
+
+
+  return
+
+end subroutine restartDataTcToMoose
+
+subroutine restartDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
+              mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
+  USE ModuleRestart
+  USE ModuleThermoIO
+  USE ModuleThermo, ONLY: nElementsPT, nMaxCompounds
+  implicit none
+
+  integer, intent(in)                            :: mElements, mSpecies
+  integer, intent(in), dimension(mElements)      :: mAssemblage
+  real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
+  real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
+  integer, intent(in), dimension(0:nElementsPT + nMaxCompounds)  :: mElementsUsed
+
+  allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
+  dMolFraction_Old(mSpecies))
+  allocate(iAssemblage_Old(mElements))
+
+  iAssemblage_Old = mAssemblage
+  dMolesPhase_Old = mMolesPhase
+  dElementPotential_Old = mElementPotential
+  dChemicalPotential_Old = mChemicalPotential
+  dMolFraction_Old = mMolFraction
+  iElementsUsed_Old = mElementsUsed
+  lRestartAvailable = .TRUE.
+
+  return
+
+end subroutine restartDataTcFromMoose
+
+subroutine GetMolesPhase(mMolesPhase)
+  USE ModuleThermo, ONLY: nElements, dMolesPhase
+  implicit none
+
+  real(8), intent(out), dimension(nElements)     :: mMolesPhase
+
+  mMolesPhase = dMolesPhase
+
+  return
+
+end subroutine GetMolesPhase
+
+subroutine GibbsEnergyOfRestartData(mGibbsEnergyOut)
+    USE ModuleRestart
+    USE ModuleThermo, ONLY: nElements
+    implicit none
+
+    real(8), intent(out) :: mGibbsEnergyOut
+    integer              :: nSolnPhasesRestart, nConPhasesRestart, i
+
+    nSolnPhasesRestart = 0
+    nConPhasesRestart = 0
+    do i = 1, nElements
+        if (iAssemblage_Old(i) > 0) then
+            nConPhasesRestart = nConPhasesRestart + 1
+        else if (iAssemblage_Old(i) < 0) then
+            nSolnPhasesRestart = nSolnPhasesRestart + 1
+        end if
+    end do
+
+    call GibbsEnergy(nConPhasesRestart, nSolnPhasesRestart, iAssemblage_Old, dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
+
+    return
+
+end subroutine GibbsEnergyOfRestartData
