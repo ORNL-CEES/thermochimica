@@ -538,25 +538,25 @@ subroutine getElementPotential(i, value, ierr)
 
 end subroutine getElementPotential
 
-subroutine SetRestartRequested(iRequested)
+subroutine SetReinitRequested(iRequested)
 
-  USE ModuleThermoIO, ONLY: lRestartRequested
+  USE ModuleThermoIO, ONLY: lReinitRequested
 
   implicit none
 
   ! passing bool/logical was sketchy so just going with an int here
   integer, intent(in)::  iRequested
   if (iRequested == 0) then
-    lRestartRequested = .FALSE.
+    lReinitRequested = .FALSE.
   else
-    lRestartRequested = .TRUE.
+    lReinitRequested = .TRUE.
   end if
 
   return
 
-end subroutine SetRestartRequested
+end subroutine SetReinitRequested
 
-subroutine getRestartDataSizes(mElements,mSpecies)
+subroutine getReinitDataSizes(mElements,mSpecies)
   USE ModuleThermo, ONLY: nElements, nSpecies
   implicit none
 
@@ -567,42 +567,42 @@ subroutine getRestartDataSizes(mElements,mSpecies)
 
   return
 
-end subroutine getRestartDataSizes
+end subroutine getReinitDataSizes
 
-subroutine restartDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
-              mChemicalPotential,mMolFraction,mElementsUsed,mRestartAvailable)
-  USE ModuleRestart
+subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
+              mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
+  USE ModuleReinit
   USE ModuleThermoIO
   USE ModuleThermo, ONLY: nElements, nSpecies, nElementsPT, nMaxCompounds
   implicit none
 
-  integer, intent(out)                           :: mRestartAvailable
+  integer, intent(out)                           :: mReinitAvailable
   integer, intent(out), dimension(nElements)     :: mAssemblage
   real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
   real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
   integer, intent(out), dimension(0:nElementsPT + nMaxCompounds) :: mElementsUsed
 
 
-  if (lRestartAvailable) then
+  if (lReinitAvailable) then
     mAssemblage = iAssemblage_Old
     mMolesPhase = dMolesPhase_Old
     mElementPotential = dElementPotential_Old
     mChemicalPotential = dChemicalPotential_Old
     mMolFraction =  dMolFraction_Old
     mElementsUsed = iElementsUsed_Old
-    mRestartAvailable = 1
+    mReinitAvailable = 1
   else
-    mRestartAvailable = 0
+    mReinitAvailable = 0
   end if
 
 
   return
 
-end subroutine restartDataTcToMoose
+end subroutine reinitDataTcToMoose
 
-subroutine restartDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
+subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
-  USE ModuleRestart
+  USE ModuleReinit
   USE ModuleThermoIO
   USE ModuleThermo, ONLY: nElementsPT, nMaxCompounds
   implicit none
@@ -623,11 +623,11 @@ subroutine restartDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
   dChemicalPotential_Old = mChemicalPotential
   dMolFraction_Old = mMolFraction
   iElementsUsed_Old = mElementsUsed
-  lRestartAvailable = .TRUE.
+  lReinitAvailable = .TRUE.
 
   return
 
-end subroutine restartDataTcFromMoose
+end subroutine reinitDataTcFromMoose
 
 subroutine GetMolesPhase(mMolesPhase)
   USE ModuleThermo, ONLY: nElements, dMolesPhase
@@ -641,26 +641,26 @@ subroutine GetMolesPhase(mMolesPhase)
 
 end subroutine GetMolesPhase
 
-subroutine GibbsEnergyOfRestartData(mGibbsEnergyOut)
-    USE ModuleRestart
+subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
+    USE ModuleReinit
     USE ModuleThermo, ONLY: nElements
     implicit none
 
     real(8), intent(out) :: mGibbsEnergyOut
-    integer              :: nSolnPhasesRestart, nConPhasesRestart, i
+    integer              :: nSolnPhasesReinit, nConPhasesReinit, i
 
-    nSolnPhasesRestart = 0
-    nConPhasesRestart = 0
+    nSolnPhasesReinit = 0
+    nConPhasesReinit = 0
     do i = 1, nElements
         if (iAssemblage_Old(i) > 0) then
-            nConPhasesRestart = nConPhasesRestart + 1
+            nConPhasesReinit = nConPhasesReinit + 1
         else if (iAssemblage_Old(i) < 0) then
-            nSolnPhasesRestart = nSolnPhasesRestart + 1
+            nSolnPhasesReinit = nSolnPhasesReinit + 1
         end if
     end do
 
-    call GibbsEnergy(nConPhasesRestart, nSolnPhasesRestart, iAssemblage_Old, dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
+    call GibbsEnergy(nConPhasesReinit, nSolnPhasesReinit, iAssemblage_Old, dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
 
     return
 
-end subroutine GibbsEnergyOfRestartData
+end subroutine GibbsEnergyOfReinitData

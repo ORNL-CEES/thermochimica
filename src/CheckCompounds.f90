@@ -111,7 +111,7 @@ subroutine CheckCompounds
     end do
 
     ! Convert stoichiometry of all species to compounds
-    ! Do not re-calculate this stoichiometry matrix if this is a restarted calculation
+    ! Do not re-calculate this stoichiometry matrix if this is a reinited calculation
     if (.NOT. lCompoundStoichCalculated) then
         do i = 1, nSpeciesCS
             do j = 1, nElementsCS
@@ -166,7 +166,7 @@ subroutine CheckCompounds
     end do
 
     ! Make sure that the sums of compound stoichiometries makes sense
-    ! Do not re-calculate this stoichiometry matrix if this is a restarted calculation
+    ! Do not re-calculate this stoichiometry matrix if this is a reinited calculation
     if (.NOT. lCompoundStoichCalculated) then
         LOOP_checkCompoundStoich: do i = 1, nSpeciesCS
             do j = 1, nElementsCS

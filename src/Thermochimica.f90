@@ -443,11 +443,11 @@ subroutine Thermochimica
     if (INFOThermo == 0) call CheckThermoData
 
     ! Check is load is requested and data available:
-    if ((INFOThermo == 0) .AND. lRestartRequested .AND. lRestartAvailable) call LoadRestartData
+    if ((INFOThermo == 0) .AND. lReinitRequested .AND. lReinitAvailable) call LoadReinitData
 
     ! Estimate the equilibrium phase assemblage and other important properties
     ! using the Leveling algorithm:
-    if ((INFOThermo == 0) .AND. (.NOT. lRestartLoaded)) call LevelingSolver
+    if ((INFOThermo == 0) .AND. (.NOT. lReinitLoaded)) call LevelingSolver
 
     ! Improve estimates from the Leveling subroutine using the Post-Leveling
     ! algorithm:

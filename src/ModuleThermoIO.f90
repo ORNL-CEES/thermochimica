@@ -57,7 +57,7 @@ module ModuleThermoIO
     logical,       dimension(0:118)          :: lPreset = .FALSE.
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(120)                           :: cThermoFileName
-    logical                                  :: lRestartAvailable = .FALSE., lRestartLoaded = .FALSE., lRestartRequested = .FALSE.
+    logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
 
     ! Compound variables:
     integer                                  :: nCompounds = 0

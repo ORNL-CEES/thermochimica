@@ -57,9 +57,9 @@
 subroutine InitGEMSolver
 
     USE ModuleThermo
-    USE ModuleThermoIO, ONLY: INFOThermo, lRestartLoaded
+    USE ModuleThermoIO, ONLY: INFOThermo, lReinitLoaded
     USE ModuleGEMSolver
-    USE ModuleRestart
+    USE ModuleReinit
 
     implicit none
 
@@ -130,7 +130,7 @@ subroutine InitGEMSolver
         allocate(dSumMolFractionSoln(l))
         allocate(dDrivingForceSoln(l))
         allocate(dEffStoichSolnPhase(l,nElements))
-        ! This is due to restart
+        ! This is due to reinit
         if (allocated(dMolFraction)) then
             ! Check to see if the number of species has changed:
             i = SIZE(dMolFraction)
@@ -168,7 +168,7 @@ subroutine InitGEMSolver
     iSolnPhaseLast          = 0
     ! From LevelingSolver, iAssemblageLast would always be positive
     ! because only pure condensed phases are considered.
-    ! However, when restarting there may be any type of phase included,
+    ! However, when reiniting there may be any type of phase included,
     ! and therefore some indices may be negative.
     iAssemblageLast         = iAssemblage
     iAssemblage             = 0
@@ -184,8 +184,8 @@ subroutine InitGEMSolver
     lConverged              = .FALSE.
     lRevertSystem           = .FALSE.
 
-    ! Regrettably, branching here depending on whether restart data has been loaded
-    IF_RestartLoaded: if (lRestartLoaded) then
+    ! Regrettably, branching here depending on whether reinit data has been loaded
+    IF_ReinitLoaded: if (lReinitLoaded) then
       iAssemblage = iAssemblageLast
       dMolFraction = dMolFraction_Old
       do i = 1, nElements
@@ -197,7 +197,7 @@ subroutine InitGEMSolver
           nConPhases  = nConPhases + 1
         end if
       end do
-    ! If there is no restart data use old methods:
+    ! If there is no reinit data use old methods:
     else
       ! Calculate the total number of moles for each solution phase:
       do i = 1, nElements
@@ -255,7 +255,7 @@ subroutine InitGEMSolver
               end do
 
       end do LOOP_CompX
-    end if IF_RestartLoaded
+    end if IF_ReinitLoaded
 
     ! If there aren't any solution phases currently predicted to be stable, check if any should be added:
     if (nSolnPhases == 0) call InitGemCheckSolnPhase
