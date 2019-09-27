@@ -1,11 +1,11 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ResetRestart.f90
-    !> \brief   Deallocate allocatable variables used by the ModuleRestart.f90
+    !> \file    ResetReinit.f90
+    !> \brief   Deallocate allocatable variables used by the ModuleReinit.f90
     !> \author  M. Poschmann
     !> \date    Nov. 30, 2018
-    !> \sa      ModuleRestart.f90
+    !> \sa      ModuleReinit.f90
     !> \sa      ResetThermo.f90
     !> \sa      ResetAll.f90
     !
@@ -19,7 +19,7 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this subroutine is to attempt to gracefully exit Thermochimica.  Allocatable
-    !! arrays related to restarting are deallocated and memory is stored for output to external packages.
+    !! arrays related to reiniting are deallocated and memory is stored for output to external packages.
     !
     ! Pertinent variables:
     ! ====================
@@ -30,9 +30,9 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine ResetRestart
+subroutine ResetReinit
 
-    USE ModuleRestart
+    USE ModuleReinit
     USE ModuleThermoIO, ONLY: INFOThermo
 
     implicit none
@@ -61,4 +61,4 @@ subroutine ResetRestart
 
     return
 
-end subroutine ResetRestart
+end subroutine ResetReinit

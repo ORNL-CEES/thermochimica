@@ -18,11 +18,11 @@
     ! Purpose:
     ! ========
     !
-    ! Test implementation of restart data usage.
+    ! Test implementation of reinit data usage.
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program zrhrestart
+program zrhreinit
 
   USE ModuleThermoIO
   USE ModuleThermo
@@ -58,9 +58,9 @@ program zrhrestart
 
   call ThermoDebug
 
-  LOOP_restart: do j = 1,1
-    ! Save restart data
-    call SaveRestartData
+  LOOP_reinit: do j = 1,1
+    ! Save reinit data
+    call SaveReinitData
 
     call ResetThermo
 
@@ -72,8 +72,8 @@ program zrhrestart
     dElementMass(40)      = 0.9D0                              ! Zr
     iPrintResultsMode       = 2
     lDebugMode              = .FALSE.
-    ! Load restart data
-    lRestartRequested = .TRUE.
+    ! Load reinit data
+    lReinitRequested = .TRUE.
 
     ! Call Thermochimica a bunch more for timing
     call cpu_time(start)
@@ -86,7 +86,7 @@ program zrhrestart
     ! Print second run output
     if (iPrintResultsMode > 0)  call PrintResults
 
-  end do LOOP_restart
+  end do LOOP_reinit
 
   ! Call the debugger:
   call ThermoDebug
@@ -95,4 +95,4 @@ program zrhrestart
   call ResetThermoAll
 
 
-end program zrhrestart
+end program zrhreinit

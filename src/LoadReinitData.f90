@@ -1,10 +1,10 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    LoadRestartData.f90
-    !> \brief   Load data for restarting calculation from previous results.
+    !> \file    LoadReinitData.f90
+    !> \brief   Load data for reiniting calculation from previous results.
     !> \author  M. Poschmann
-    !> \sa      SaveRestartData.f90
+    !> \sa      SaveReinitData.f90
     !
     !
     ! References:
@@ -20,19 +20,19 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this subroutine is to save all pertinent data such that a new call to Thermochimica
-    !! may be restarted from that data.
+    !! may be reinited from that data.
     !
     ! Pertinent variables:
     ! ====================
-    !> \param   lRestart        A logical indicating whether restart data is available.
+    !> \param   lReinit        A logical indicating whether reinit data is available.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine LoadRestartData
+subroutine LoadReinitData
 
   USE ModuleThermo
-  USE ModuleRestart
+  USE ModuleReinit
   USE ModuleThermoIO
 
   implicit none
@@ -41,8 +41,8 @@ subroutine LoadRestartData
   integer,     dimension(0:168)        :: iElementsUsed
 
   ! Initialize storage variables if not allocated already
-  if (.NOT. lRestartAvailable) then
-    print *, 'Restart requested but data not available'
+  if (.NOT. lReinitAvailable) then
+    print *, 'Reinit requested but data not available'
     return
   endif
 
@@ -68,6 +68,6 @@ subroutine LoadRestartData
   dMolesPhase         = dMolesPhase_Old
   dMolFraction        = dMolFraction_Old
 
-  lRestartLoaded = .TRUE.
+  lReinitLoaded = .TRUE.
 
-end subroutine LoadRestartData
+end subroutine LoadReinitData

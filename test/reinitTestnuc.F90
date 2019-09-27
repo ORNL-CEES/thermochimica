@@ -18,11 +18,11 @@
     ! Purpose:
     ! ========
     !
-    ! Test implementation of restart data usage.
+    ! Test implementation of reinit data usage.
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program RestartTestNuc
+program ReinitTestNuc
 
   USE ModuleThermoIO
   USE ModuleThermo
@@ -75,9 +75,9 @@ program RestartTestNuc
   if (iPrintResultsMode > 0)  call PrintResults
   call cpu_time(start)
   ! Call Thermochimica a bunch more for timing
-  LOOP_restart: do j = 1,1
-    ! Save restart data
-    call SaveRestartData
+  LOOP_reinit: do j = 1,1
+    ! Save reinit data
+    call SaveReinitData
     ! Inside loop in case you don't want to re-save
     LOOP_time: do i = 1,1
       ! Reset
@@ -113,23 +113,23 @@ program RestartTestNuc
       cInputUnitMass          = 'moles'
       iPrintResultsMode       = 2
       lDebugMode              = .FALSE.
-      ! Load restart data
-      lRestartRequested = .TRUE.
+      ! Load reinit data
+      lReinitRequested = .TRUE.
       call Thermochimica
     end do LOOP_time
 
-  end do LOOP_restart
+  end do LOOP_reinit
   call cpu_time(finish)
   print '("Time = ",f6.3," seconds.")',finish-start
 
   ! Print second run output
   if (iPrintResultsMode > 0)  call PrintResults
 
-  call GibbsEnergyOfRestartData(gibbs)
+  call GibbsEnergyOfReinitData(gibbs)
   ! Reset Thermochimica:
   call ResetThermoAll
 
   ! Call the debugger:
   call ThermoDebug
 
-end program RestartTestNuc
+end program ReinitTestNuc

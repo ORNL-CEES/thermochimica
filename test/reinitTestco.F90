@@ -18,11 +18,11 @@
     ! Purpose:
     ! ========
     !
-    ! Test implementation of restart data usage.
+    ! Test implementation of reinit data usage.
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program RestartTestCO
+program ReinitTestCO
 
   USE ModuleThermoIO
   USE ModuleThermo
@@ -54,10 +54,10 @@ program RestartTestCO
   ! Print first run output
   if (iPrintResultsMode > 0)  call PrintResults
 
-  ! Save restart data
-  call SaveRestartData
+  ! Save reinit data
+  call SaveReinitData
 
-  call GibbsEnergyOfRestartData(gibbs)
+  call GibbsEnergyOfReinitData(gibbs)
 
   ! Call Thermochimica a bunch more for timing
   call cpu_time(start)
@@ -66,7 +66,7 @@ program RestartTestCO
     dTemperature            = 300D0
     dPressure               = 1D0
     dElementMass            = 1D0
-    lRestartRequested       = .TRUE.
+    lReinitRequested       = .TRUE.
     call Thermochimica
   end do LOOP_time
   call cpu_time(finish)
@@ -75,7 +75,7 @@ program RestartTestCO
   ! Print second run output
   if (iPrintResultsMode > 0)  call PrintResults
 
-  call GibbsEnergyOfRestartData(gibbs)
+  call GibbsEnergyOfReinitData(gibbs)
 
   ! Reset Thermochimica:
   call ResetThermo
@@ -83,4 +83,4 @@ program RestartTestCO
   ! Call the debugger:
   call ThermoDebug
 
-end program RestartTestCO
+end program ReinitTestCO

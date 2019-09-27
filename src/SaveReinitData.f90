@@ -1,10 +1,10 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    SaveRestartData.f90
-    !> \brief   Save data for restarting calculation from previous results.
+    !> \file    SaveReinitData.f90
+    !> \brief   Save data for reiniting calculation from previous results.
     !> \author  M. Poschmann
-    !> \sa      LoadRestartData.f90
+    !> \sa      LoadReinitData.f90
     !
     !
     ! References:
@@ -20,25 +20,25 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this subroutine is to save all pertinent data such that a new call to Thermochimica
-    !! may be restarted from that data.
+    !! may be reinited from that data.
     !
     ! Pertinent variables:
     ! ====================
-    !> \param   lRestart        A logical indicating whether restart data is available.
+    !> \param   lReinit        A logical indicating whether reinit data is available.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine SaveRestartData
+subroutine SaveReinitData
 
   USE ModuleThermo
-  USE ModuleRestart
+  USE ModuleReinit
   USE ModuleThermoIO
 
   implicit none
 
   ! Initialize storage variables if not allocated already
-  if (.NOT. lRestartAvailable) then
+  if (.NOT. lReinitAvailable) then
     allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
     dMolFraction_Old(nSpecies))
     allocate(iAssemblage_Old(nElements))
@@ -54,8 +54,8 @@ subroutine SaveRestartData
   ! Save which elements were included
   iElementsUsed_Old       = min(ceiling(dElementMass),1)
 
-  ! Set restart data flag to true
-  lRestartAvailable = .TRUE.
+  ! Set reinit data flag to true
+  lReinitAvailable = .TRUE.
   return
 
-end subroutine SaveRestartData
+end subroutine SaveReinitData

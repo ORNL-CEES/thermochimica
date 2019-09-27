@@ -57,7 +57,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program compoundRestart
+program compoundReinit
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -102,7 +102,7 @@ program compoundRestart
 
     if (INFOThermo > 0) call EXIT(1)
 
-    call SaveRestartData
+    call SaveReinitData
 
     call cpu_time(start)
     LOOP_time: do i = 1,20000
@@ -120,7 +120,7 @@ program compoundRestart
       dCompoundMass(1)      = 0.1D0
       dCompoundMass(2)      = 0.9D0
 
-      lRestartRequested = .FALSE.
+      lReinitRequested = .FALSE.
 
       ! Call Thermochimica:
       if (INFOThermo == 0)        call Thermochimica
@@ -137,4 +137,4 @@ program compoundRestart
     ! Call the debugger:
     call ThermoDebug
 
-end program compoundRestart
+end program compoundReinit
