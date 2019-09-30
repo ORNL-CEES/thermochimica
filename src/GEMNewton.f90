@@ -188,7 +188,14 @@ subroutine GEMNewton(INFO)
     end if
 
     ! Call the linear equation solver:
-    call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
+    if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
+        call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
+    else
+        do i = 1, nElements
+            B(i) = dElementPotential(i)
+        end do
+        B(nElements + 1) = dMolesPhase(1)
+    end if
 
     ! Check for a NAN:
     LOOP_CheckNan: do i = 1, nVar
