@@ -243,7 +243,12 @@ subroutine CheckSystemExcess
                         if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
                             if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
                                 m = m + 1
-                                iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                                ! Convert element indices from CS element list to reduced element list
+                                do l = 1, nElements
+                                    if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,j,k))) then
+                                        iSublatticeElements(nCountSublattice,j,m) = l
+                                    end if
+                                end do
                                 dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                             end if
                         ! Check for vacancies
