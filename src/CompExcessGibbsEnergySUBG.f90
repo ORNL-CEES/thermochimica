@@ -337,15 +337,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXB2X2 = dMolFraction(iB2X2)
         dXA2Y2 = dMolFraction(iA2Y2)
         dXB2Y2 = dMolFraction(iB2Y2)
-        ! Assuming if A=B or X=Y then first exponent gets used
-        if (a == b) then
-            dXB2X2 = 0
-            dXB2Y2 = 0
-        end if
-        if (x == y) then
-            dXA2Y2 = 0
-            dXB2Y2 = 0
-        end if
 
         dGex = 0D0
         dDgexBase = 0D0
@@ -418,11 +409,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dDgex = dDgexBase
             if ((i == j) .AND. (k == l)) then
                 ! Should probably fix this so only active exponent gets used, but 0s won't hurt for now
-                if ((i == a) .AND. (k == x)) dDgex = dDgex + (dExcessGibbsParam(abxy) * p * (dXA2X2**(p-1)))
+                if ((i == a) .AND. (k == x))                dDgex = dDgex + (dExcessGibbsParam(abxy) * p * (dXA2X2**(p-1)))
                 if ((i == b) .AND. (k == x) .AND. (a /= b)) dDgex = dDgex + (dExcessGibbsParam(abxy) * q * (dXB2X2**(q-1)))
                 if ((i == a) .AND. (k == y) .AND. (x /= y)) dDgex = dDgex + (dExcessGibbsParam(abxy) * r * (dXA2Y2**(r-1)))
                 if ((i == b) .AND. (k == y) .AND. (a /= b) .AND. (x /= y)) &
-                                             dDgex = dDgex + (dExcessGibbsParam(abxy) * s * (dXB2Y2**(s-1)))
+                                                            dDgex = dDgex + (dExcessGibbsParam(abxy) * s * (dXB2Y2**(s-1)))
             end if
 
             dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + (dMolFraction(iBlock) * dDgex / 2)
