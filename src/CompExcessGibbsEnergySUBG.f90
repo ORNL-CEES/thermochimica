@@ -72,13 +72,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la
-    integer :: a, b, c, x, y, z, e, f, ijkl, abxy, exp, iexp
+    integer :: a, b, c, x, y, z, e, f, ijkl, abxy
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
     integer :: iA2X2, iB2X2, iA2Y2, iB2Y2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXexp
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
