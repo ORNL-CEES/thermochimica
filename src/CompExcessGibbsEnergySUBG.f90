@@ -295,6 +295,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     ! Loop through excess mixing parameters:
     LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
+        if (iRegularParam(abxy,10) > 0) cycle LOOP_Param
         ! AB/XY parametrization
         a = iRegularParam(abxy,2)              ! Index of A
         b = iRegularParam(abxy,3)              ! Index of B
@@ -307,6 +308,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         if (x == y) then
             iBlock = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
                              * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
+            r = 0
+            s = 0
         else if (x > y) then
             cycle LOOP_Param
         else
@@ -315,6 +318,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
         if (a == b) then
             iBlock = iBlock + a
+            q = 0
+            s = 0
         else if (a > b) then
             cycle LOOP_Param
         else
@@ -338,26 +343,20 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXA2Y2 = dMolFraction(iA2Y2)
         dXB2Y2 = dMolFraction(iB2Y2)
 
-        dGex = 0D0
-        dDgexBase = 0D0
-        if ((p == 0) .AND. (q == 0) .AND. (r == 0) .AND. (s == 0)) then
-            dGex = dExcessGibbsParam(abxy)
-        else
-            dGex = dExcessGibbsParam(abxy)
-            if (p > 0) then
-                dGex = dGex * dXA2X2**p
-            end if
-            if (q > 0) then
-                dGex = dGex * dXB2X2**q
-            end if
-            if (r > 0) then
-                dGex = dGex * dXA2Y2**r
-            end if
-            if (s > 0) then
-                dGex = dGex * dXB2Y2**s
-            end if
-            dDgexBase = -dGex * (p + q + r + s)
+        dGex = dExcessGibbsParam(abxy)
+        if (p > 0) then
+            dGex = dGex * dXA2X2**p
         end if
+        if (q > 0) then
+            dGex = dGex * dXB2X2**q
+        end if
+        if (r > 0) then
+            dGex = dGex * dXA2Y2**r
+        end if
+        if (s > 0) then
+            dGex = dGex * dXB2Y2**s
+        end if
+        dDgexBase = -dGex * (p + q + r + s)
 
         ! First add g^ex contribution to quad corresponding to block AB/XY
         if ((a /= b) .AND. (x /= y)) then
