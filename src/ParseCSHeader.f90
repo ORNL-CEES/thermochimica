@@ -177,7 +177,7 @@ subroutine ParseCSHeader
     allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
     allocate(cSpeciesNameCS(nSpeciesCS),nGibbsEqSpecies(nSpeciesCS))
     allocate(dGibbsCoeffSpeciesTemp(nGibbsCoeff,nSpeciesCS*nMaxGibbsEqs))
-    allocate(iRegularParamCS(1000,nParamMax*2+1),dRegularParamCS(1000,6))
+    allocate(iRegularParamCS(1000,nParamMax*2+3),dRegularParamCS(1000,6))
     allocate(iPhaseCS(nSpeciesCS),iParticlesPerMoleCS(nSpeciesCS))
     allocate(dGibbsMagneticCS(nSpeciesCS,4))
 

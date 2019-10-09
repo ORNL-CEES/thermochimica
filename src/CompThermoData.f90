@@ -461,7 +461,7 @@ subroutine CompThermoData
                 n = n + 1
 
                 ! Convert the excess Gibbs energy parameters to dimensionless units:
-                iRegularParam(n,1:nParamMax*2+1) = iRegularParamCS(j,1:nParamMax*2+1)
+                iRegularParam(n,1:nParamMax*2+3) = iRegularParamCS(j,1:nParamMax*2+3)
 
                 select case (cSolnPhaseTypeCS(i))
                     case ('QKTO', 'RKMP', 'RKMPM')
@@ -505,7 +505,7 @@ subroutine CompThermoData
 
                         ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
                         do k = 1, 4
-                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k+2) * dGibbsCoeff(k)
+                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
                         end do
                         dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 

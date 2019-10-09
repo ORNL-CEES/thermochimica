@@ -401,11 +401,11 @@ subroutine CheckSystemExcess
                 INFOThermo = 19
                 return
             end if
-            allocate(iRegularParam(nParam,nParamMax*2+1),dExcessGibbsParam(nParam))
+            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam))
         end if
     else
         ! Allocate memory for excess parameters:
-        allocate(iRegularParam(nParam,nParamMax*2+1),dExcessGibbsParam(nParam))
+        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam))
     end if
 
     ! Determine whether a solution phase is miscibile.  This flag will be used by the main solver.

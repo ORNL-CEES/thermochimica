@@ -337,12 +337,8 @@ subroutine ParseCSDataBlockSUBG( i )
             read (1,*,IOSTAT = INFO) dTempVec(1:6)
             read (1,*,IOSTAT = INFO) dTempVec(1:6)
 
-            ! Read in the first line of the excess gibbs energy of mixing terms.
-            read (1,*,IOSTAT = INFO) dTempVec(1:6)
-            dRegularParamCS(nParamCS,1:6) = dTempVec(1:6)
-
-            ! I HAVE NO IDEA IF THIS LINE IS NEEDED OR NOT. DON'T DO ANYTHING WITH IT FOR NOW.
-            read (1,*,IOSTAT = INFO) dTempVec(1:2)
+            ! Read in the excess gibbs energy of mixing terms.
+            read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS,10:11), dRegularParamCS(nParamCS,1:6)
 
         else
             !! This parameter is not recognized; record an error.
