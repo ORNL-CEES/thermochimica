@@ -348,6 +348,11 @@ subroutine CompThermoData
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
                 end if
 
+                ! Compute the magnetic terms (if applicable):
+                if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
+                    call CompGibbsMagnetic(i,j)
+                end if
+
                 ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
                 ! case of repeated temperature ranges. The rule appears to be to use the greater (less
                 ! negative) energy.
@@ -396,11 +401,6 @@ subroutine CompThermoData
 
                     dChemPot2 = dChemicalPotential(j)
                     dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
-                end if
-
-                ! Compute the magnetic terms (if applicable):
-                if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                    call CompGibbsMagnetic(i,j)
                 end if
 
                 ! Convert chemical potentials to dimensionless units:
@@ -479,6 +479,11 @@ subroutine CompThermoData
                 * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
         end if
 
+        ! Compute the magnetic terms (if applicable):
+        if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
+            call CompGibbsMagnetic(i,j)
+        end if
+
         ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
         ! case of repeated temperature ranges. The rule appears to be to use the greater (less
         ! negative) energy.
@@ -519,14 +524,15 @@ subroutine CompThermoData
                     * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
             end if
 
+            ! Compute the magnetic terms (if applicable):
+            if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
+                call CompGibbsMagnetic(i,j)
+            end if
+
             dChemPot2 = dChemicalPotential(j)
             dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
         end if
 
-        ! Compute the magnetic terms (if applicable):
-        if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-            call CompGibbsMagnetic(i,j)
-        end if
 
         ! Convert chemical potentials to dimensionless units:
         dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
