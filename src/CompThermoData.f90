@@ -348,6 +348,56 @@ subroutine CompThermoData
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
                 end if
 
+                ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
+                ! case of repeated temperature ranges. The rule appears to be to use the greater (less
+                ! negative) energy.
+                if (nGibbsEqSpecies(i) > 1) then
+                    dChemPot1 = dChemicalPotential(j)
+                    if (l1 > 0) then
+                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
+                            l2 = l2 + 1
+                        end if
+                    else if (l1 == 0) then
+                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
+                            l2 = l2 - 1
+                        end if
+                    end if
+
+                    dChemicalPotential(j) = dStdEnergyTemp
+                    do k = 2, 7
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
+                    end do
+                    ! Compute additional standard molar Gibbs energy terms:
+                    if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+                    else
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
+                            *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+                    end if
+
+                    if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+                    else
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
+                            * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+                    end if
+
+                    if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+                    else
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
+                            * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+                    end if
+
+                    ! Compute the magnetic terms (if applicable):
+                    if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
+                        call CompGibbsMagnetic(i,j)
+                    end if
+
+                    dChemPot2 = dChemicalPotential(j)
+                    dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
+                end if
+
                 ! Compute the magnetic terms (if applicable):
                 if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
                     call CompGibbsMagnetic(i,j)
@@ -363,112 +413,6 @@ subroutine CompThermoData
                         ! the first solution phase in the data-file.
                         dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
                     end if
-                end if
-
-                if (nGibbsEqSpecies(i) > 1) then
-                    dChemPot1 = dChemicalPotential(j)
-                    if (l1 > 0) then
-                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
-                            dChemicalPotential(j) = dStdEnergyTemp
-                            l2 = l2 + 1
-                            do k = 2, 7
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-                            end do
-                            ! Compute additional standard molar Gibbs energy terms:
-                            if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                                    *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                            end if
-
-                            if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                                    * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-                            end if
-
-                            if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                                    * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-                            end if
-
-                            ! Compute the magnetic terms (if applicable):
-                            if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                                call CompGibbsMagnetic(i,j)
-                            end if
-
-                            ! Convert chemical potentials to dimensionless units:
-                            dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-                            ! Add pressure dependence term to the chemical potential term:
-                            if (iPhaseCS(i) == 1) then
-                                if (cSolnPhaseNameCS(1) == 'gas_ideal') then
-                                    ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
-                                    ! the first solution phase in the data-file.
-                                    dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
-                                end if
-                            end if
-                            dChemPot2 = dChemicalPotential(j)
-                        else
-                            dChemPot2 = dChemPot1
-                        end if
-                    else if (l1 == 0) then
-                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
-                            dChemicalPotential(j) = dStdEnergyTemp
-                            l2 = l2 - 1
-                            do k = 2, 7
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-                            end do
-                            ! Compute additional standard molar Gibbs energy terms:
-                            if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                                    *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                            end if
-
-                            if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                                    * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-                            end if
-
-                            if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-                            else
-                                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                                    * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-                            end if
-
-                            ! Compute the magnetic terms (if applicable):
-                            if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                                call CompGibbsMagnetic(i,j)
-                            end if
-
-                            ! Convert chemical potentials to dimensionless units:
-                            dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-                            ! Add pressure dependence term to the chemical potential term:
-                            if (iPhaseCS(i) == 1) then
-                                if (cSolnPhaseNameCS(1) == 'gas_ideal') then
-                                    ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
-                                    ! the first solution phase in the data-file.
-                                    dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
-                                end if
-                            end if
-                            dChemPot2 = dChemicalPotential(j)
-                        else
-                            dChemPot2 = dChemPot1
-                        end if
-                    else
-                        dChemPot2 = dChemPot1
-                    end if
-                    dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
                 end if
 
             end do LOOP_nSpeciesCS ! End loop of species (i)
@@ -535,6 +479,50 @@ subroutine CompThermoData
                 * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
         end if
 
+        ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
+        ! case of repeated temperature ranges. The rule appears to be to use the greater (less
+        ! negative) energy.
+        if (nGibbsEqSpecies(i) > 1) then
+            dChemPot1 = dChemicalPotential(j)
+            if ((l1 > 0) .AND. (l1 < nGibbsEqSpecies(i))) then
+                if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
+                    l2 = l2 + 1
+                end if
+            else if (l1 == 0) then
+                if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
+                    l2 = l2 - 1
+                end if
+            end if
+            dChemicalPotential(j) = dStdEnergyTemp
+            do k = 2, 7
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
+            end do
+            ! Compute additional standard molar Gibbs energy terms:
+            if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+            else
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
+                    *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+            end if
+
+            if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+            else
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
+                    * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+            end if
+
+            if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+            else
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
+                    * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+            end if
+
+            dChemPot2 = dChemicalPotential(j)
+            dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
+        end if
+
         ! Compute the magnetic terms (if applicable):
         if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
             call CompGibbsMagnetic(i,j)
@@ -542,96 +530,6 @@ subroutine CompThermoData
 
         ! Convert chemical potentials to dimensionless units:
         dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-        if (nGibbsEqSpecies(i) > 1) then
-            dChemPot1 = dChemicalPotential(j)
-            if ((l1 > 0) .AND. (l1 < nGibbsEqSpecies(i))) then
-                if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
-                    dChemicalPotential(j) = dStdEnergyTemp
-                    l2 = l2 + 1
-                    do k = 2, 7
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-                    end do
-                    ! Compute additional standard molar Gibbs energy terms:
-                    if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-                    end if
-
-                    ! Compute the magnetic terms (if applicable):
-                    if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                        call CompGibbsMagnetic(i,j)
-                    end if
-
-                    ! Convert chemical potentials to dimensionless units:
-                    dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-                    dChemPot2 = dChemicalPotential(j)
-                else
-                    dChemPot2 = dChemPot1
-                end if
-            else if (l1 == 0) then
-                if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
-                    dChemicalPotential(j) = dStdEnergyTemp
-                    l2 = l2 - 1
-                    do k = 2, 7
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-                    end do
-                    ! Compute additional standard molar Gibbs energy terms:
-                    if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-                    end if
-
-                    ! Compute the magnetic terms (if applicable):
-                    if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                        call CompGibbsMagnetic(i,j)
-                    end if
-
-                    ! Convert chemical potentials to dimensionless units:
-                    dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-                    dChemPot2 = dChemicalPotential(j)
-                else
-                    dChemPot2 = dChemPot1
-                end if
-            else
-                dChemPot2 = dChemPot1
-            end if
-            dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
-        end if
 
         if (iPhaseCS(i) == -1) then
             ! Explicitly set dummy species chemical potentials
