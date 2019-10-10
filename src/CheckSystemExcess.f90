@@ -53,7 +53,7 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, nRemove, n1, n2, p, iIndex
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, n1, n2, p, iIndex
     integer, dimension(nElementsCS) :: iRemove
     logical:: lRemoved
 
@@ -368,12 +368,25 @@ subroutine CheckSystemExcess
                     px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
                     py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
                     pe = iRegularParamCS(j,10)
+                    pf = iRegularParamCS(j,11)
 
                     ! If this is a ternary and the 3rd element got removed, then skip parameter
                     lRemoved = .TRUE.
                     if (pe > 0) then
                         do l = 1, nElements
                             if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
+                                lRemoved = .FALSE.
+                            end if
+                        end do
+                        if (lRemoved) cycle LOOP_excess
+                    end if
+                    ! If this is a ternary and the 3rd element got removed, then skip parameter
+                    ! Making a guess at how to handle this for the other entry
+                    lRemoved = .TRUE.
+                    if (pf > 0) then
+                        pf = pf - nSublatticeElementsCS(nCountSublatticeCS,1)
+                        do l = 1, nElements
+                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,2,pf))) then
                                 lRemoved = .FALSE.
                             end if
                         end do
