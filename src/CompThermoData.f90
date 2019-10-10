@@ -462,6 +462,7 @@ subroutine CompThermoData
 
                 ! Convert the excess Gibbs energy parameters to dimensionless units:
                 iRegularParam(n,1:nParamMax*2+3) = iRegularParamCS(j,1:nParamMax*2+3)
+                cRegularParam(n) = cRegularParamCS(j)
 
                 select case (cSolnPhaseTypeCS(i))
                     case ('QKTO', 'RKMP', 'RKMPM')

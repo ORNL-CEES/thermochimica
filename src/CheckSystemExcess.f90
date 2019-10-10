@@ -250,12 +250,14 @@ subroutine CheckSystemExcess
                                     end if
                                 end do
                                 dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                                iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                             end if
                         ! Check for vacancies
                         else if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) == -1)) then
                             m = m + 1
                             iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
                             dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                            iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                         end if
                     end do
                     nSublatticeElements(nCountSublattice,j) = m
@@ -396,16 +398,16 @@ subroutine CheckSystemExcess
     if (allocated(dExcessGibbsParam)) then
         i = SIZE(dExcessGibbsParam)
         if (i /= nParam) then
-            deallocate(iRegularParam,dExcessGibbsParam, STAT = n)
+            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
-            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam))
+            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
         end if
     else
         ! Allocate memory for excess parameters:
-        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam))
+        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
     end if
 
     ! Determine whether a solution phase is miscibile.  This flag will be used by the main solver.

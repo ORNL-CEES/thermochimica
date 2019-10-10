@@ -83,7 +83,7 @@ module ModuleParseCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
     integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS
     integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
-    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS, iPairIDCS
+    integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS, iPairIDCS, iChemicalGroupCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
     real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS
@@ -96,6 +96,7 @@ module ModuleParseCS
     character(25),  dimension(:),   allocatable :: cSolnPhaseNameCS
     character(30),  dimension(:),   allocatable :: cSpeciesNameCS
     character(8),   dimension(:,:,:), allocatable :: cConstituentNameSUBCS
+    character,      dimension(:),   allocatable :: cRegularParamCS
 
     character(8),   dimension(nSolnTypeSupport), parameter :: cSolnPhaseTypeSupport = &
                                                     ['IDMX    ','QKTO    ','SUBL    ','RKMP    ','RKMPM   ','SUBLM   ','SUBG    ', &

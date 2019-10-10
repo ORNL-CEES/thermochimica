@@ -422,7 +422,7 @@ subroutine CheckSystem
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
                      iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dSublatticeCharge, STAT = n)
+                     dSublatticeCharge,iChemicalGroup, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -438,6 +438,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     else
@@ -468,6 +469,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     end if
@@ -501,6 +503,7 @@ subroutine CheckSystem
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
         dSublatticeCharge    = 0D0
+        iChemicalGroup    = 0
     end if
 
     ! Re-establish the character vector representing the element names:

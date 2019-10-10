@@ -173,14 +173,14 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,1,1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! I think that this entry represents the constituent IDs on the first sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCountSublatticeCS,1,1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,2,1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! I think that this entry represents the constituent IDs on the second sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCountSublatticeCS,2,1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
     nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
@@ -331,7 +331,12 @@ subroutine ParseCSDataBlockSUBG( i )
             nParamCS = nParamCS + 1
 
             ! Mixing terms:
-            read (1,*,IOSTAT = INFO) cDummyVec(1), iRegularParamCS(nParamCS,2:9)
+            read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
+            if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
+                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R'))) then
+                INFO = 1600 + i
+                return
+            end if
 
             ! According to Patrice Chartrand, he has no idea what these two lines mean. Ignore.
             read (1,*,IOSTAT = INFO) dTempVec(1:6)

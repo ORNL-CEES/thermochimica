@@ -177,7 +177,7 @@ subroutine ParseCSHeader
     allocate(dStoichSpeciesCS(nSpeciesCS,nElementsCS))
     allocate(cSpeciesNameCS(nSpeciesCS),nGibbsEqSpecies(nSpeciesCS))
     allocate(dGibbsCoeffSpeciesTemp(nGibbsCoeff,nSpeciesCS*nMaxGibbsEqs))
-    allocate(iRegularParamCS(1000,nParamMax*2+3),dRegularParamCS(1000,6))
+    allocate(iRegularParamCS(1000,nParamMax*2+3),dRegularParamCS(1000,6),cRegularParamCS(1000))
     allocate(iPhaseCS(nSpeciesCS),iParticlesPerMoleCS(nSpeciesCS))
     allocate(dGibbsMagneticCS(nSpeciesCS,4))
 
@@ -212,6 +212,7 @@ subroutine ParseCSHeader
     allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(dZetaSpeciesCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
     allocate(dSublatticeChargeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
+    allocate(iChemicalGroupCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(dStoichPairsCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,nElementsCS))
 
     ! Initialize variables:
@@ -223,7 +224,8 @@ subroutine ParseCSHeader
     nSublatticeElementsCS    = 0
     dZetaSpeciesCS           = 0D0
     dSublatticeChargeCS      = 0D0
-    dStoichPairsCS         = 0D0
+    iChemicalGroupCS         = 0
+    dStoichPairsCS           = 0D0
 
     ! Line 4: List of atomic masses of the elements:
     read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)
