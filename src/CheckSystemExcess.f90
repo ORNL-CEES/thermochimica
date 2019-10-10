@@ -53,8 +53,9 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2, p, iIndex
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, nRemove, n1, n2, p, iIndex
     integer, dimension(nElementsCS) :: iRemove
+    logical:: lRemoved
 
 
     ! Initialize variables:
@@ -360,11 +361,25 @@ subroutine CheckSystemExcess
                 end do
 
                 ! Loop through excess parameters (same checks as for quadruplets):
-                do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
+                ! Except for ternary terms, must also check the additional species
+                LOOP_excess: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     pa = iRegularParamCS(j,2)
                     pb = iRegularParamCS(j,3)
                     px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
                     py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    pe = iRegularParamCS(j,10)
+
+                    ! If this is a ternary and the 3rd element got removed, then skip parameter
+                    lRemoved = .TRUE.
+                    if (pe > 0) then
+                        do l = 1, nElements
+                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
+                                lRemoved = .FALSE.
+                            end if
+                        end do
+                        if (lRemoved) cycle LOOP_excess
+                    end if
+
                     if (px == py) then
                         p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
                                      * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
@@ -382,7 +397,7 @@ subroutine CheckSystemExcess
                         nParam          = nParam + 1
                         iParamPassCS(j) = 1
                     end if
-                end do
+                end do LOOP_excess
 
                 nParamPhase(nCounter) = nParam
 
