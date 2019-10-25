@@ -52,7 +52,7 @@ subroutine ResetThermo
         ! Deallocate integer arrays from ModuleThermo:
         deallocate (dStoichSpecies,dSpeciesTotalAtoms,iPhase,nSpeciesPhase,iAssemblage,nParamPhase, &
             iRegularParam,iElementSystem,iSpeciesPass,iParticlesPerMole, dMagGibbsEnergy, &
-            dCoeffGibbsMagnetic, STAT = INFO)
+            dCoeffGibbsMagnetic, cRegularParam, STAT = INFO)
         i = i + INFO
     end if
 
@@ -94,7 +94,7 @@ subroutine ResetThermo
         deallocate(iConstituentPass, iPhaseSublattice, dStoichSublattice, dSiteFraction, &
             cConstituentNameSUB, iConstituentSublattice, iPhaseElectronID,nSublatticePhase,&
             nConstituentSublattice, iSublatticeElements, nSublatticeElements, dZetaSpecies, &
-            dSublatticeCharge,  STAT = INFO)
+            dSublatticeCharge, iChemicalGroup,  STAT = INFO)
         i = i + INFO
     end if
 
