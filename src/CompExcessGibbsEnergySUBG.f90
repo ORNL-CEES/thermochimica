@@ -346,7 +346,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXB2Y2 = dMolFraction(iB2Y2)
 
         dXtot = dXA2X2 + dXB2X2 + dMolFraction(iBlock)
-        dYtot = dYi(a) + dYi(b)
 
         ! Calculate energy for this term
         ! G-type binary terms
@@ -355,6 +354,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dDgexBase = -dGex * (p + q + r + s) / dXtot
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
+            dYtot = dYi(a) + dYi(b)
             dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q * dYi(xx)**r * dYi(yy)**s / (dYtot**(p + q + r + s))
             dDgexBase = -dGex * (p + q + r + s) / dYtot
         ! G-type ternary terms
