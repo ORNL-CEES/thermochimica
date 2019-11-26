@@ -587,6 +587,11 @@ subroutine CompThermoData
                                     iRegularParam(n,l) = iRegularParam(n,l) - 1
                                 end if
                             end do
+                            do l = 10, 11
+                                if (iRegularParam(n,l) > iRemove(k)) then
+                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
+                                end if
+                            end do
                         end do
 
                         ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
