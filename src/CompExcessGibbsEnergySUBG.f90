@@ -78,7 +78,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: iA2X2, iB2X2, iA2Y2, iB2Y2, iADX2, iD2X2
     integer :: iGroupA, iGroupB, iGroupD
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
-    real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase
+    real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXADX2, dXD2X2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
@@ -302,8 +302,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         b = iRegularParam(abxy,3)              ! Index of B
         xx = iRegularParam(abxy,4)             ! Index of X, unadjusted
         yy = iRegularParam(abxy,5)             ! Index of Y, unadjusted
-        x = xx - nSublatticeElements(iSublPhaseIndex,1)             ! Index of X
-        y = yy - nSublatticeElements(iSublPhaseIndex,1)             ! Index of Y
+        x = xx - nSublatticeElements(iSublPhaseIndex,1)   ! Index of X
+        y = yy - nSublatticeElements(iSublPhaseIndex,1)   ! Index of Y
         p = iRegularParam(abxy,6)              ! Exponent of A2/X2
         q = iRegularParam(abxy,7)              ! Exponent of B2/X2
         r = iRegularParam(abxy,8)              ! Exponent of A2/Y2
@@ -345,16 +345,18 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         dXA2Y2 = dMolFraction(iA2Y2)
         dXB2Y2 = dMolFraction(iB2Y2)
 
+        dXtot = dXA2X2 + dXB2X2 + dMolFraction(iBlock)
+        dYtot = dYi(a) + dYi(b)
 
         ! Calculate energy for this term
         ! G-type binary terms
         if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-            dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dXB2X2**q * dXA2Y2**r * dXB2Y2**s
-            dDgexBase = -dGex * (p + q + r + s)
+            dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dXB2X2**q * dXA2Y2**r * dXB2Y2**s / (dXtot**(p + q + r + s))
+            dDgexBase = -dGex * (p + q + r + s) / dXtot
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
-            dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q * dYi(xx)**r * dYi(yy)**s
-            dDgexBase = -dGex * (p + q + r + s)
+            dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q * dYi(xx)**r * dYi(yy)**s / (dYtot**(p + q + r + s))
+            dDgexBase = -dGex * (p + q + r + s) / dYtot
         ! G-type ternary terms
         else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
             iGroupA = iChemicalGroup(iSublPhaseIndex,1,a)
@@ -451,31 +453,32 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
 
         ! Now loop over all quads IJ/KL to add dg^ex contributions
-        do ijkl = 1, nPairsSRO(iSublPhaseIndex,2)
+        LOOP_ijkl: do ijkl = 1, nPairsSRO(iSublPhaseIndex,2)
+            iQuad2 = ijkl + iFirst - 1
             i = iPairID(iSublPhaseIndex,ijkl,1)
             j = iPairID(iSublPhaseIndex,ijkl,2)
             k = iPairID(iSublPhaseIndex,ijkl,3) - nSublatticeElements(iSublPhaseIndex,1)
             l = iPairID(iSublPhaseIndex,ijkl,4) - nSublatticeElements(iSublPhaseIndex,1)
-            iQuad2 = ijkl + iFirst - 1
             ! Calculate d(g^ex_ab/xy)/d(n_ij/kl)
-            dDgex = dDgexBase
             ! G-type binary terms
             if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-                if ((i == j) .AND. (k == l)) then
-                    if ((i == a) .AND. (k == x)) dDgex = dDgex + dGex * p / dXA2X2
-                    if ((i == b) .AND. (k == x)) dDgex = dDgex + dGex * q / dXB2X2
-                    if ((i == a) .AND. (k == y)) dDgex = dDgex + dGex * r / dXA2Y2
-                    if ((i == b) .AND. (k == y)) dDgex = dDgex + dGex * s / dXB2Y2
-                end if
+                if ((iQuad2 /= iA2X2) .AND. (iQuad2 /= iB2X2) .AND. (iQuad2 /= iBlock)) cycle LOOP_ijkl
+                dDgex = dDgexBase
+                if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
+                if (iQuad2 == iB2X2) dDgex = dDgex + dGex * q / dXB2X2
+                if (iQuad2 == iA2Y2) dDgex = dDgex + dGex * r / dXA2Y2
+                if (iQuad2 == iB2Y2) dDgex = dDgex + dGex * s / dXB2Y2
             ! Q-type binary terms
             else if (cRegularParam(abxy) == 'Q') then
-                if (i == a) dDgex = dDgex + dGex * p / (2 * dYi(a))
-                if (j == a) dDgex = dDgex + dGex * p / (2 * dYi(a))
-                if (i == b) dDgex = dDgex + dGex * q / (2 * dYi(b))
-                if (j == b) dDgex = dDgex + dGex * q / (2 * dYi(b))
+                dDgex = 0D0
+                if (i == a) dDgex = dDgex + dDgexBase / 2 + dGex * p / (2 * dYi(a))
+                if (j == a) dDgex = dDgex + dDgexBase / 2 + dGex * p / (2 * dYi(a))
+                if (i == b) dDgex = dDgex + dDgexBase / 2 + dGex * q / (2 * dYi(b))
+                if (j == b) dDgex = dDgex + dDgexBase / 2 + dGex * q / (2 * dYi(b))
             ! G-type ternary terms
             else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
                 ! Symmetric case
+                dDgex = dDgexBase
                 if ((iGroupA == iGroupB) .OR. ((iGroupA /= iGroupB) .AND. (iGroupA /= iGroupD) .AND. (iGroupB /= iGroupD))) then
                     ! Assume this is an AB/XX quadruplet
                     if (i == d) dDgex = dDgex + dGex * r / (2 * dYi(d))
@@ -511,6 +514,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
 
+            ! print *, cSpeciesName(iQuad2), dPartialExcessGibbs(iQuad2), dDgex
             dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + (dMolFraction(iBlock) * dDgex / 2)
 
             ! If A = B add dg^ex contribution to quads AC/XY
@@ -543,7 +547,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                                               /  dCoordinationNumber(iSublPhaseIndex,iQuad  - iFirst + 1,3)))
                 end do LOOP_XZ2
             end if
-        end do
+        end do LOOP_ijkl
 
     end do LOOP_Param
 
