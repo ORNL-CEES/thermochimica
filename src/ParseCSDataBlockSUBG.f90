@@ -77,9 +77,9 @@ subroutine ParseCSDataBlockSUBG( i )
     integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2, nChar
     integer,     dimension(10)  :: iTempVec
     integer,     dimension(15)  :: iNumPos
-    real(8)                     :: qa, qb, qx, qy
+    real(8)                     :: qa, qb, qx, qy, za, zb
     real(8),     dimension(20)  :: dTempVec
-    character(8),dimension(20)  :: cDummyVec, cConstituentNames1, cConstituentNames2
+    character(8),dimension(20)  :: cConstituentNames1, cConstituentNames2
     logical, dimension(:), allocatable :: lPairSet
 
     real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
@@ -275,10 +275,13 @@ subroutine ParseCSDataBlockSUBG( i )
         qx = dSublatticeChargeCS(nCountSublatticeCS,2,x)
         qy = dSublatticeChargeCS(nCountSublatticeCS,2,y)
 
-        dCoordinationNumberCS(nCountSublatticeCS, k, 1) = 6
-        dCoordinationNumberCS(nCountSublatticeCS, k, 2) = 6
-        dCoordinationNumberCS(nCountSublatticeCS, k, 3) = 6 * (qx + qy) / (qa + qb)
-        dCoordinationNumberCS(nCountSublatticeCS, k, 4) = 6 * (qx + qy) / (qa + qb)
+        za = dCoordinationNumberCS(nCountSublatticeCS, a, 1)
+        zb = dCoordinationNumberCS(nCountSublatticeCS, b, 1)
+
+        dCoordinationNumberCS(nCountSublatticeCS, k, 1) = za
+        dCoordinationNumberCS(nCountSublatticeCS, k, 2) = zb
+        dCoordinationNumberCS(nCountSublatticeCS, k, 3) = (qx + qy) / ((qa / za) + (qb / zb))
+        dCoordinationNumberCS(nCountSublatticeCS, k, 4) = (qx + qy) / ((qa / za) + (qb / zb))
 
     end do LOOP_allSROPairs
 
