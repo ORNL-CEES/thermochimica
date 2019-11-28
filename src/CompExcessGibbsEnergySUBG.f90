@@ -328,92 +328,95 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             iBlock = iBlock + nSublatticeElements(iSublPhaseIndex,1) + a + ((b-2)*(b-1)/2)
         end if
         iBlock = iBlock + iFirst - 1
-        iA2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                        + a + iFirst - 1
-        iB2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                        + b + iFirst - 1
-        iA2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                        + a + iFirst - 1
-        dXA2X2 = dMolFraction(iA2X2)
-        dXB2X2 = dMolFraction(iB2X2)
-        dXA2Y2 = dMolFraction(iA2Y2)
 
         ! Calculate energy for this term
-        ! G-type binary terms
-        if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-            if ((a /= b) .AND. (x == y)) then
-                i2 = iB2X2
-                dX2 = dXB2X2
-            else if ((a == b) .AND. (x /= y)) then
-                i2 = iA2Y2
-                dX2 = dXA2Y2
-            else
-                INFOThermo = 42
+        ! G-type terms
+        if (cRegularParam(abxy) == 'G') then
+            iA2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                            + a + iFirst - 1
+            iB2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                            + b + iFirst - 1
+            iA2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                            + a + iFirst - 1
+            dXA2X2 = dMolFraction(iA2X2)
+            dXB2X2 = dMolFraction(iB2X2)
+            dXA2Y2 = dMolFraction(iA2Y2)
+            ! G-type binary terms
+            if ((d == 0) .AND. (w == 0)) then
+                if ((a /= b) .AND. (x == y)) then
+                    i2 = iB2X2
+                    dX2 = dXB2X2
+                else if ((a == b) .AND. (x /= y)) then
+                    i2 = iA2Y2
+                    dX2 = dXA2Y2
+                else
+                    INFOThermo = 42
+                end if
+                dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
+                dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
+                dDgexBase = -dGex * (p + q) / dXtot
+            ! G-type ternary terms
+            else if (d > 0) then
+                iGroupA = iChemicalGroup(iSublPhaseIndex,1,a)
+                iGroupB = iChemicalGroup(iSublPhaseIndex,1,b)
+                iGroupD = iChemicalGroup(iSublPhaseIndex,1,d)
+                ! Symmetric case
+                if ((iGroupA == iGroupB) .OR. ((iGroupA /= iGroupB) .AND. (iGroupA /= iGroupD) .AND. (iGroupB /= iGroupD))) then
+                    ! Assume this is an AB/XX quadruplet
+                    dGex = dExcessGibbsParam(abxy) * (dXA2X2 / (dXA2X2 + dXB2X2 + dMolFraction(iBlock)))**p &
+                                                   * (dXB2X2 / (dXA2X2 + dXB2X2 + dMolFraction(iBlock)))**q &
+                                                   * dYi(d)**r
+                    dDgexBase = -dGex * r
+                ! Asymmetric case
+                else
+                    if (iGroupA == iGroupD) then
+                        iD2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                        + d + iFirst - 1
+                        if (a < d) then
+                            iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                              + nSublatticeElements(iSublPhaseIndex,1) + a + ((d-2)*(d-1)/2)
+                        else if (a > d) then
+                            iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                              + nSublatticeElements(iSublPhaseIndex,1) + d + ((a-2)*(a-1)/2)
+                        end if
+                        dXD2X2 = dMolFraction(iD2X2)
+                        dXADX2 = dMolFraction(iADX2)
+                        dGex = dExcessGibbsParam(abxy) * (dXA2X2 + dXD2X2 + dXADX2)**p * dXB2X2**q &
+                               * (dYi(d) / (dYi(a) + dYi(d)))**r
+                        dDgexBase = -dGex * (p + q)
+                    else if (iGroupB == iGroupD) then
+                        ! Use same variable names but switch A to B in equations
+                        iD2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                        + d + iFirst - 1
+                        if (a < d) then
+                            iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                              + nSublatticeElements(iSublPhaseIndex,1) + b + ((d-2)*(d-1)/2)
+                        else if (a > d) then
+                            iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
+                                            * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
+                                              + nSublatticeElements(iSublPhaseIndex,1) + d + ((b-2)*(b-1)/2)
+                        end if
+                        dXD2X2 = dMolFraction(iD2X2)
+                        dXADX2 = dMolFraction(iADX2)
+                        dGex = dExcessGibbsParam(abxy) * dXA2X2**p * (dXB2X2 + dXD2X2 + dXADX2)**q &
+                               * (dYi(d) / (dYi(b) + dYi(d)))**r
+                        dDgexBase = -dGex * (p + q)
+                    end if
+                end if
             end if
-            dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
-            dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
-            dDgexBase = -dGex * (p + q) / dXtot
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
             dYtot = dYi(a) + dYi(b)
             dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q * dYi(xx)**r * dYi(yy)**s / (dYtot**(p + q + r + s))
             dDgexBase = -dGex * (p + q + r + s) / dYtot
-        ! G-type ternary terms
-        else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
-            iGroupA = iChemicalGroup(iSublPhaseIndex,1,a)
-            iGroupB = iChemicalGroup(iSublPhaseIndex,1,b)
-            iGroupD = iChemicalGroup(iSublPhaseIndex,1,d)
-            ! Symmetric case
-            if ((iGroupA == iGroupB) .OR. ((iGroupA /= iGroupB) .AND. (iGroupA /= iGroupD) .AND. (iGroupB /= iGroupD))) then
-                ! Assume this is an AB/XX quadruplet
-                dGex = dExcessGibbsParam(abxy) * (dXA2X2 / (dXA2X2 + dXB2X2 + dMolFraction(iBlock)))**p &
-                                               * (dXB2X2 / (dXA2X2 + dXB2X2 + dMolFraction(iBlock)))**q &
-                                               * dYi(d)**r
-                dDgexBase = -dGex * r
-            ! Asymmetric case
-            else
-                if (iGroupA == iGroupD) then
-                    iD2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                    + d + iFirst - 1
-                    if (a < d) then
-                        iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                          + nSublatticeElements(iSublPhaseIndex,1) + a + ((d-2)*(d-1)/2)
-                    else if (a > d) then
-                        iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                          + nSublatticeElements(iSublPhaseIndex,1) + d + ((a-2)*(a-1)/2)
-                    end if
-                    dXD2X2 = dMolFraction(iD2X2)
-                    dXADX2 = dMolFraction(iADX2)
-                    dGex = dExcessGibbsParam(abxy) * (dXA2X2 + dXD2X2 + dXADX2)**p * dXB2X2**q &
-                           * (dYi(d) / (dYi(a) + dYi(d)))**r
-                    dDgexBase = -dGex * (p + q)
-                else if (iGroupB == iGroupD) then
-                    ! Use same variable names but switch A to B in equations
-                    iD2X2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                    * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                    + d + iFirst - 1
-                    if (a < d) then
-                        iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                          + nSublatticeElements(iSublPhaseIndex,1) + b + ((d-2)*(d-1)/2)
-                    else if (a > d) then
-                        iADX2 = (x - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                                          + nSublatticeElements(iSublPhaseIndex,1) + d + ((b-2)*(b-1)/2)
-                    end if
-                    dXD2X2 = dMolFraction(iD2X2)
-                    dXADX2 = dMolFraction(iADX2)
-                    dGex = dExcessGibbsParam(abxy) * dXA2X2**p * (dXB2X2 + dXD2X2 + dXADX2)**q &
-                           * (dYi(d) / (dYi(b) + dYi(d)))**r
-                    dDgexBase = -dGex * (p + q)
-                end if
-            end if
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
             dGex = dExcessGibbsParam(abxy)
