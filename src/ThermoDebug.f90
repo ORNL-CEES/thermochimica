@@ -141,6 +141,8 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: There is an element in a compound that is not in the dat file.'
     elseif (INFOThermo == 41) then
         print *, 'DEBUG: Error finding stoichiometry in terms of compounds.'
+    elseif (INFOThermo == 42) then
+        print *, 'DEBUG: Excess mixing term in SUBG/SUBQ phase not supported.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

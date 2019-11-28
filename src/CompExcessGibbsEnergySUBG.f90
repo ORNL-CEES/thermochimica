@@ -75,11 +75,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSublPhaseIndex, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iB2Y2, iADX2, iD2X2
+    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2
     integer :: iGroupA, iGroupB, iGroupD
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXADX2, dXD2X2
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
@@ -304,10 +304,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         yy = iRegularParam(abxy,5)             ! Index of Y, unadjusted
         x = xx - nSublatticeElements(iSublPhaseIndex,1)   ! Index of X
         y = yy - nSublatticeElements(iSublPhaseIndex,1)   ! Index of Y
-        p = iRegularParam(abxy,6)              ! Exponent of A2/X2
-        q = iRegularParam(abxy,7)              ! Exponent of B2/X2
-        r = iRegularParam(abxy,8)              ! Exponent of A2/Y2
-        s = iRegularParam(abxy,9)              ! Exponent of B2/Y2
+        p = iRegularParam(abxy,6)              ! Exponent 1
+        q = iRegularParam(abxy,7)              ! Exponent 2
+        r = iRegularParam(abxy,8)              ! Exponent 3
+        s = iRegularParam(abxy,9)              ! Exponent 4
         d = iRegularParam(abxy,10)             ! Index of ternary constituent on 1st sublattice
         w = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice
 
@@ -337,21 +337,25 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         iA2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
                         * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
                         + a + iFirst - 1
-        iB2Y2 = (y - 1) * (nSublatticeElements(iSublPhaseIndex,1) &
-                        * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2) &
-                        + b + iFirst - 1
         dXA2X2 = dMolFraction(iA2X2)
         dXB2X2 = dMolFraction(iB2X2)
         dXA2Y2 = dMolFraction(iA2Y2)
-        dXB2Y2 = dMolFraction(iB2Y2)
-
-        dXtot = dXA2X2 + dXB2X2 + dMolFraction(iBlock)
 
         ! Calculate energy for this term
         ! G-type binary terms
         if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-            dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dXB2X2**q * dXA2Y2**r * dXB2Y2**s / (dXtot**(p + q + r + s))
-            dDgexBase = -dGex * (p + q + r + s) / dXtot
+            if ((a /= b) .AND. (x == y)) then
+                i2 = iB2X2
+                dX2 = dXB2X2
+            else if ((a == b) .AND. (x /= y)) then
+                i2 = iA2Y2
+                dX2 = dXA2Y2
+            else
+                INFOThermo = 42
+            end if
+            dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
+            dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
+            dDgexBase = -dGex * (p + q) / dXtot
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
             dYtot = dYi(a) + dYi(b)
@@ -414,6 +418,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         else if (cRegularParam(abxy) == 'R') then
             dGex = dExcessGibbsParam(abxy)
             dDgexBase = 0D0
+        else
+            INFOThermo = 42
         end if
 
 
@@ -462,12 +468,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Calculate d(g^ex_ab/xy)/d(n_ij/kl)
             ! G-type binary terms
             if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-                if ((iQuad2 /= iA2X2) .AND. (iQuad2 /= iB2X2) .AND. (iQuad2 /= iBlock)) cycle LOOP_ijkl
+                if ((iQuad2 /= iA2X2) .AND. (iQuad2 /= i2) .AND. (iQuad2 /= iBlock)) cycle LOOP_ijkl
                 dDgex = dDgexBase
                 if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
-                if (iQuad2 == iB2X2) dDgex = dDgex + dGex * q / dXB2X2
-                if (iQuad2 == iA2Y2) dDgex = dDgex + dGex * r / dXA2Y2
-                if (iQuad2 == iB2Y2) dDgex = dDgex + dGex * s / dXB2Y2
+                if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
             ! Q-type binary terms
             else if (cRegularParam(abxy) == 'Q') then
                 dDgex = 0D0
