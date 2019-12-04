@@ -350,48 +350,51 @@ subroutine CompThermoData
 
                 ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
                 ! case of repeated temperature ranges. The rule appears to be to use the greater (less
-                ! negative) energy.
-                if (nGibbsEqSpecies(i) > 1) then
-                    dChemPot1 = dChemicalPotential(j)
-                    if (l1 > 0) then
-                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
-                            l2 = l2 + 1
-                        end if
-                    else if (l1 == 0) then
-                        if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
-                            l2 = l2 - 1
-                        end if
-                    end if
+                ! negative) energy for pure condensed phases, but just the first expression listed for
+                ! solution phases. Why? Because. Thus, for now we might as well skip this block. I am
+                ! therefore commenting it out.
 
-                    dChemicalPotential(j) = dStdEnergyTemp
-                    do k = 2, 7
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-                    end do
-                    ! Compute additional standard molar Gibbs energy terms:
-                    if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-                    end if
-
-                    if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                            * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-                    end if
-
-                    dChemPot2 = dChemicalPotential(j)
-                    dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
-                end if
+                ! if (nGibbsEqSpecies(i) > 1) then
+                !     dChemPot1 = dChemicalPotential(j)
+                !     if (l1 > 0) then
+                !         if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
+                !             l2 = l2 + 1
+                !         end if
+                !     else if (l1 == 0) then
+                !         if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2-1)) then
+                !             l2 = l2 - 1
+                !         end if
+                !     end if
+                !
+                !     dChemicalPotential(j) = dStdEnergyTemp
+                !     do k = 2, 7
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
+                !     end do
+                !     ! Compute additional standard molar Gibbs energy terms:
+                !     if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+                !     else
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
+                !             *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+                !     end if
+                !
+                !     if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+                !     else
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
+                !             * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+                !     end if
+                !
+                !     if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+                !     else
+                !         dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
+                !             * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+                !     end if
+                !
+                !     dChemPot2 = dChemicalPotential(j)
+                !     dChemicalPotential(j) = dChemPot1 !MIN(dChemPot1,dChemPot2)
+                ! end if
 
                 ! Compute the magnetic terms (if applicable):
                 if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
@@ -476,7 +479,7 @@ subroutine CompThermoData
 
         ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
         ! case of repeated temperature ranges. The rule appears to be to use the greater (less
-        ! negative) energy.
+        ! negative) energy for pure condensed phases only!
         if (nGibbsEqSpecies(i) > 1) then
             dChemPot1 = dChemicalPotential(j)
             if ((l1 > 0) .AND. (l1 < nGibbsEqSpecies(i))) then
