@@ -319,8 +319,9 @@ subroutine ParseCSDataBlockSUBG( i )
     end do
 
     ! Loop through excess mixing parameters:
+    j = 0
     LOOP_ExcessMixingSUBG: do
-
+        j = j + 1
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
@@ -337,7 +338,7 @@ subroutine ParseCSDataBlockSUBG( i )
             read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
             if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
                 .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R'))) then
-                INFO = 1600 + i
+                INFO = 10000 + 1000*j + i
                 return
             end if
 
@@ -350,7 +351,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
         else
             !! This parameter is not recognized; record an error.
-            INFO = 1600 + i
+            INFO = 10000 + 1000*j + i
             return
         end if
 

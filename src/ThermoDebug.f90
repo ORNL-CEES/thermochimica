@@ -155,6 +155,12 @@ subroutine ThermoDEBUG
         j = (INFOThermo - 1000) - i * 100
         print '(A32,I2,A20,I2,A44)', ' DEBUG: Error in reading "entry ', i, '" of solution phase ', j, &
             ' of the data-block section of the data-file.'
+    elseif ((INFOThermo >= 10000).AND.(INFOThermo < 1000000)) then
+        i = (INFOThermo - 10000) / 1000
+        i = INT(i)
+        j = (INFOThermo - 10000) - i * 1000
+        print '(A44,I2,A19,I2,A44)', ' DEBUG: Error in reading excess mixing term ', i, ' of solution phase ', j, &
+            ' of the data-block section of the data-file.'
     else
         print *, 'DEBUG: An unknown error has occured. Error code ', INFOThermo
     end if
