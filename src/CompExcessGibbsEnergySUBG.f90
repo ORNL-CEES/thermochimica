@@ -415,8 +415,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
             dYtot = dYi(a) + dYi(b)
-            dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q * dYi(xx)**r * dYi(yy)**s / (dYtot**(p + q + r + s))
-            dDgexBase = -dGex * (p + q + r + s) / dYtot
+            dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q / (dYtot**(p + q))
+            dDgexBase = -dGex * (p + q) / dYtot
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
             dGex = dExcessGibbsParam(abxy)
