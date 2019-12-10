@@ -1,6 +1,5 @@
 SET(UNIT_TEST_NAMES
       daily
-      weekly
 )
 
 FOREACH(test ${UNIT_TEST_NAMES})
