@@ -5,7 +5,7 @@ SET(Fortran_FLAGS
     -fno-automatic
     -fbounds-check
     -ffpe-trap=zero
-    -D"DATA_DIRECTORY='$ENV{THERMOCHIMICA_DATA}/'"
+    -D"DATA_DIRECTORY='${${PACKAGE_NAME}_SOURCE_DIR}/data/'"
 )
 
 FOREACH(flag ${Fortran_FLAGS})
