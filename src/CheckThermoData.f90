@@ -90,6 +90,7 @@ subroutine CheckThermoData
 
     ! Check if the input masses can be represented in terms of the available species
     nNonDummy = nSpecies - nDummySpecies
+    dMolesElementTemp = 0D0
     dMolesElementTemp(1:nElements) = dMolesElement
     do i = 1, nNonDummy
         do j = 1, nElements

@@ -47,6 +47,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
     real(8), intent(in)  :: dMolesPhaseIn(nElements), dMolFractionIn(nSpecies)
     real(8), intent(out) :: dGibbsEnergySysOut
     integer              :: i, j, k, iPhaseIndex
+    real(8)              :: dGibbsPhase, dMolFractionPhase
 
     ! Temporary variables to store things that must be overwritten
     integer  :: nConPhasesTemp, nSolnPhasesTemp
@@ -84,9 +85,13 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
         do i = 1, nSolnPhasesIn
             k = nElements - i + 1
             iPhaseIndex = -iAssemblageIn(k)
+            dGibbsPhase = 0D0
+            dMolFractionPhase = 0D0
             do j = nSpeciesPhase(iPhaseIndex - 1) + 1, nSpeciesPhase(iPhaseIndex)
-                dGibbsEnergySysOut = dGibbsEnergySysOut + dChemicalPotential(j) * dMolesPhaseIn(k) * dMolFractionIn(j)
+                dGibbsPhase = dGibbsPhase + dChemicalPotential(j) * dMolesPhaseIn(k) * dMolFractionIn(j)
+                dMolFractionPhase = dMolFractionPhase + dMolFractionIn(j)
             end do
+            dGibbsEnergySysOut = dGibbsEnergySysOut + dGibbsPhase / dMolFractionPhase
         end do
         do i = 1, nConPhasesIn
             iPhaseIndex = iAssemblageIn(i)

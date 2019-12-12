@@ -122,7 +122,7 @@ subroutine GetNewAssemblage(iter)
     iAssemblageLast = iAssemblage
 
     ! Loop through all "phases" in the current phase assemblage to determine which one should be
-    ! subsituted for the new "phase":
+    ! substituted for the new "phase":
     LOOP_NewAssemblage: do k = 1, nElements
 
         ! The "phase" with the most negative dChemicalPotential replaces one of the phases from the previous
@@ -153,7 +153,7 @@ subroutine GetNewAssemblage(iter)
         ! Call the linear equation solver to compute molar quantities of the phase assemblage:
         call DGESV( nElements, 1, A, nElements, IPIV, dMolesPhase, nElements, INFO )
 
-        ! Cycle if the number of moles of any "phase" is non-negative or non-real:
+        ! Cycle if the number of moles of any "phase" is negative or non-real:
         if ((INFO /= 0).OR.(MINVAL(dMolesPhase) < dTolerance(3))) cycle LOOP_NewAssemblage
 
         ! 2) SECOND CHECK: Verify that this phase assemblage has not been previously considered.
@@ -344,4 +344,3 @@ end subroutine ShuffleDummySpecies
     !---------------------------------------------------------------------------
     !                       END - GetNewAssemblage.f90
     !---------------------------------------------------------------------------
-

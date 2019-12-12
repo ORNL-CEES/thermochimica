@@ -287,7 +287,7 @@ subroutine PrintResultsSolnPhase
             ! Loop through sublattices:
             LOOP_Sub: do s = 1, nSublatticePhase(iChargedPhaseID)
 
-                print '(A18,I1,A30,F6.4)', 'Sublattice ', s, '; stoichiometric coefficient: ', &
+                print '(A18,I1,A30,F6.3)', 'Sublattice ', s, '; stoichiometric coefficient: ', &
                     dStoichSublattice(iChargedPhaseID,s)
 
                 cDummy  = '{ '

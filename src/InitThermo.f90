@@ -90,7 +90,7 @@ subroutine InitThermo
     ! Note that this tolerance criterion is consistent with the second.
     dTolerance(4)  = DLOG(1D0 - dTolerance(2))
 
-    ! Tolerance for resisudal of chemical potentials:
+    ! Tolerance for residual of chemical potentials:
     dTolerance(5)  = DABS(DLOG(1D0 - dTolerance(2)))
 
     ! Tolerance for minimum number of moles of an element of the system:

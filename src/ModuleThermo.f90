@@ -93,6 +93,7 @@ module ModuleThermo
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO
     integer,       dimension(:,:), allocatable::  nSublatticeElements
     integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements, iPairID
+    integer,       dimension(:,:,:),allocatable:: iChemicalGroup
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput
     real(8),       dimension(iTolNum)::           dTolerance
@@ -109,5 +110,6 @@ module ModuleThermo
     character(8),  dimension(:),   allocatable::  cSolnPhaseType
     character(25), dimension(:),   allocatable::  cSolnPhaseName
     character(8),  dimension(:,:,:),allocatable:: cConstituentNameSUB
+    character,     dimension(:),   allocatable::  cRegularParam
 
 end module ModuleThermo

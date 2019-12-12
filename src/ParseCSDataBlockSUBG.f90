@@ -75,15 +75,11 @@ subroutine ParseCSDataBlockSUBG( i )
     implicit none
 
     integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2, nChar
-    integer                     :: ia2x2, ib2x2, ia2y2, iabx2, iaby2, ia2xy, ib2xy
     integer,     dimension(10)  :: iTempVec
     integer,     dimension(15)  :: iNumPos
-    real(8)                     :: dF, qa, qb, qx, qy
-    real(8)                     :: dZAa2xy, dZXa2xy, dZYa2xy, dZBb2xy, dZXb2xy, dZYb2xy
-    real(8)                     :: dZAabx2, dZBabx2, dZXabx2, dZAaby2, dZBaby2, dZYaby2
-    real(8)                     :: dZAa2x2, dZBb2x2, dZXa2x2, dZXb2x2, dZAa2y2, dZYa2y2
+    real(8)                     :: qa, qb, qx, qy, za, zb
     real(8),     dimension(20)  :: dTempVec
-    character(8),dimension(20)  :: cDummyVec, cConstituentNames1, cConstituentNames2
+    character(8),dimension(20)  :: cConstituentNames1, cConstituentNames2
     logical, dimension(:), allocatable :: lPairSet
 
     real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
@@ -177,14 +173,14 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,1,1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! I think that this entry represents the constituent IDs on the first sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,1))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCountSublatticeCS,1,1:nSublatticeElementsCS(nCountSublatticeCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
     ! This seems unnecessary so I'm going to ignore it for now:
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,2,1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! I think that this entry represents the constituent IDs on the second sublattice (ignore for now):
-    read (1,*,IOSTAT = INFO) dTempVec(1:nSublatticeElementsCS(nCountSublatticeCS,2))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCountSublatticeCS,2,1:nSublatticeElementsCS(nCountSublatticeCS,2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
     nA2X2 = nSublatticeElementsCS(nCountSublatticeCS,1) * nSublatticeElementsCS(nCountSublatticeCS,2)
@@ -261,6 +257,7 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Increase pairs counter to include default pairs
     nPairsSROCS(nCountSublatticeCS,2) = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
 
+    ! This loop sets default coordination numbers for quadruplets not explicitly listed in data file
     LOOP_allSROPairs: do k = 1, nPairsSROCS(nCountSublatticeCS,2)
 
         ! If coordinations already set, skip rest
@@ -278,79 +275,13 @@ subroutine ParseCSDataBlockSUBG( i )
         qx = dSublatticeChargeCS(nCountSublatticeCS,2,x)
         qy = dSublatticeChargeCS(nCountSublatticeCS,2,y)
 
-        if (a == b) then
-            ia2x2 = a + (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                    * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-            ia2y2 = a + (y - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                    * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+        za = dCoordinationNumberCS(nCountSublatticeCS, a, 1)
+        zb = dCoordinationNumberCS(nCountSublatticeCS, b, 1)
 
-            dZAa2x2 = dCoordinationNumberCS(nCountSublatticeCS, ia2x2, 1)
-            dZXa2x2 = dCoordinationNumberCS(nCountSublatticeCS, ia2x2, 3)
-            dZAa2y2 = dCoordinationNumberCS(nCountSublatticeCS, ia2y2, 1)
-            dZYa2y2 = dCoordinationNumberCS(nCountSublatticeCS, ia2y2, 4)
-
-            dCoordinationNumberCS(nCountSublatticeCS, k, 1) = ((dZAa2x2 * qx) + (dZAa2y2 * qy)) / (qx + qy)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 2) = ((dZAa2x2 * qx) + (dZAa2y2 * qy)) / (qx + qy)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 3) = ((dZXa2x2 * qx) + (dZYa2y2 * qx)) / (qx + qy)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 4) = ((dZXa2x2 * qy) + (dZYa2y2 * qy)) / (qx + qy)
-
-            cycle LOOP_allSROPairs
-        end if
-
-        if (x == y) then
-            ia2x2 = a + (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                    * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-            ib2x2 = b + (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                    * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-
-            dZAa2x2 = dCoordinationNumberCS(nCountSublatticeCS, ia2x2, 1)
-            dZXa2x2 = dCoordinationNumberCS(nCountSublatticeCS, ia2x2, 3)
-            dZBb2x2 = dCoordinationNumberCS(nCountSublatticeCS, ib2x2, 1)
-            dZXb2x2 = dCoordinationNumberCS(nCountSublatticeCS, ib2x2, 4)
-
-            dCoordinationNumberCS(nCountSublatticeCS, k, 1) = ((dZAa2x2 * qa) + (dZBb2x2 * qa)) / (qa + qb)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 2) = ((dZAa2x2 * qb) + (dZBb2x2 * qb)) / (qa + qb)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 3) = ((dZXa2x2 * qa) + (dZXb2x2 * qb)) / (qa + qb)
-            dCoordinationNumberCS(nCountSublatticeCS, k, 4) = ((dZXa2x2 * qa) + (dZXb2x2 * qb)) / (qa + qb)
-
-            cycle LOOP_allSROPairs
-        end if
-
-        ! Find triplet indices
-        l = nSublatticeElementsCS(nCountSublatticeCS,1) + a + ((b-2)*(b-1)/2)
-        p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-              * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-
-        ia2xy = a + p
-        ib2xy = b + p
-        iabx2 = l + (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-        iaby2 = l + (y - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
-
-        dZAa2xy = dCoordinationNumberCS(nCountSublatticeCS, ia2xy, 1)
-        dZXa2xy = dCoordinationNumberCS(nCountSublatticeCS, ia2xy, 3)
-        dZYa2xy = dCoordinationNumberCS(nCountSublatticeCS, ia2xy, 4)
-
-        dZBb2xy = dCoordinationNumberCS(nCountSublatticeCS, ib2xy, 2)
-        dZXb2xy = dCoordinationNumberCS(nCountSublatticeCS, ib2xy, 3)
-        dZYb2xy = dCoordinationNumberCS(nCountSublatticeCS, ib2xy, 4)
-
-        dZAabx2 = dCoordinationNumberCS(nCountSublatticeCS, iabx2, 1)
-        dZBabx2 = dCoordinationNumberCS(nCountSublatticeCS, iabx2, 2)
-        dZXabx2 = dCoordinationNumberCS(nCountSublatticeCS, iabx2, 3)
-
-        dZAaby2 = dCoordinationNumberCS(nCountSublatticeCS, iaby2, 1)
-        dZBaby2 = dCoordinationNumberCS(nCountSublatticeCS, iaby2, 2)
-        dZYaby2 = dCoordinationNumberCS(nCountSublatticeCS, iaby2, 4)
-
-        dF = (1D0/8D0) * ((qa / dZAa2xy) + (qb / dZBb2xy) + (qx / dZXabx2) + (qy / dZYaby2))
-
-        ! Set coordinations
-        dCoordinationNumberCS(nCountSublatticeCS, k, 1) = 1 / (((dZXabx2 / (qx * dZAabx2)) + (dZYaby2 / (qy * dZAaby2))) * dF)
-        dCoordinationNumberCS(nCountSublatticeCS, k, 2) = 1 / (((dZXabx2 / (qx * dZBabx2)) + (dZYaby2 / (qy * dZBaby2))) * dF)
-        dCoordinationNumberCS(nCountSublatticeCS, k, 3) = 1 / (((dZAa2xy / (qa * dZXa2xy)) + (dZBb2xy / (qb * dZXb2xy))) * dF)
-        dCoordinationNumberCS(nCountSublatticeCS, k, 4) = 1 / (((dZAa2xy / (qa * dZYa2xy)) + (dZBb2xy / (qb * dZYb2xy))) * dF)
+        dCoordinationNumberCS(nCountSublatticeCS, k, 1) = za
+        dCoordinationNumberCS(nCountSublatticeCS, k, 2) = zb
+        dCoordinationNumberCS(nCountSublatticeCS, k, 3) = (qx + qy) / ((qa / za) + (qb / zb))
+        dCoordinationNumberCS(nCountSublatticeCS, k, 4) = (qx + qy) / ((qa / za) + (qb / zb))
 
     end do LOOP_allSROPairs
 
@@ -388,8 +319,9 @@ subroutine ParseCSDataBlockSUBG( i )
     end do
 
     ! Loop through excess mixing parameters:
+    j = 0
     LOOP_ExcessMixingSUBG: do
-
+        j = j + 1
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
@@ -403,22 +335,23 @@ subroutine ParseCSDataBlockSUBG( i )
             nParamCS = nParamCS + 1
 
             ! Mixing terms:
-            read (1,*,IOSTAT = INFO) cDummyVec(1), iRegularParamCS(nParamCS,2:9)
+            read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
+            if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
+                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R'))) then
+                INFO = 10000 + 1000*j + i
+                return
+            end if
 
             ! According to Patrice Chartrand, he has no idea what these two lines mean. Ignore.
             read (1,*,IOSTAT = INFO) dTempVec(1:6)
             read (1,*,IOSTAT = INFO) dTempVec(1:6)
 
-            ! Read in the first line of the excess gibbs energy of mixing terms.
-            read (1,*,IOSTAT = INFO) dTempVec(1:6)
-            dRegularParamCS(nParamCS,1:6) = dTempVec(1:6)
-
-            ! I HAVE NO IDEA IF THIS LINE IS NEEDED OR NOT. DON'T DO ANYTHING WITH IT FOR NOW.
-            read (1,*,IOSTAT = INFO) dTempVec(1:2)
+            ! Read in the excess gibbs energy of mixing terms.
+            read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS,10:11), dRegularParamCS(nParamCS,1:6)
 
         else
             !! This parameter is not recognized; record an error.
-            INFO = 1600 + i
+            INFO = 10000 + 1000*j + i
             return
         end if
 

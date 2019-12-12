@@ -141,6 +141,8 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: There is an element in a compound that is not in the dat file.'
     elseif (INFOThermo == 41) then
         print *, 'DEBUG: Error finding stoichiometry in terms of compounds.'
+    elseif (INFOThermo == 42) then
+        print *, 'DEBUG: Excess mixing term in SUBG/SUBQ phase not supported.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90
@@ -152,6 +154,12 @@ subroutine ThermoDEBUG
         i = INT(i)
         j = (INFOThermo - 1000) - i * 100
         print '(A32,I2,A20,I2,A44)', ' DEBUG: Error in reading "entry ', i, '" of solution phase ', j, &
+            ' of the data-block section of the data-file.'
+    elseif ((INFOThermo >= 10000).AND.(INFOThermo < 1000000)) then
+        i = (INFOThermo - 10000) / 1000
+        i = INT(i)
+        j = (INFOThermo - 10000) - i * 1000
+        print '(A44,I2,A19,I2,A44)', ' DEBUG: Error in reading excess mixing term ', i, ' of solution phase ', j, &
             ' of the data-block section of the data-file.'
     else
         print *, 'DEBUG: An unknown error has occured. Error code ', INFOThermo

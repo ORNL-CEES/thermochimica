@@ -53,8 +53,9 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, nRemove, n1, n2, p, iIndex
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, n1, n2, p, iIndex
     integer, dimension(nElementsCS) :: iRemove
+    logical:: lRemoved
 
 
     ! Initialize variables:
@@ -243,14 +244,21 @@ subroutine CheckSystemExcess
                         if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
                             if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
                                 m = m + 1
-                                iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
+                                ! Convert element indices from CS element list to reduced element list
+                                do l = 1, nElements
+                                    if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,j,k))) then
+                                        iSublatticeElements(nCountSublattice,j,m) = l
+                                    end if
+                                end do
                                 dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                                iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                             end if
                         ! Check for vacancies
                         else if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) == -1)) then
                             m = m + 1
                             iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
                             dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
+                            iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                         end if
                     end do
                     nSublatticeElements(nCountSublattice,j) = m
@@ -353,11 +361,38 @@ subroutine CheckSystemExcess
                 end do
 
                 ! Loop through excess parameters (same checks as for quadruplets):
-                do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
+                ! Except for ternary terms, must also check the additional species
+                LOOP_excess: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     pa = iRegularParamCS(j,2)
                     pb = iRegularParamCS(j,3)
                     px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
                     py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    pe = iRegularParamCS(j,10)
+                    pf = iRegularParamCS(j,11)
+
+                    ! If this is a ternary and the 3rd element got removed, then skip parameter
+                    lRemoved = .TRUE.
+                    if (pe > 0) then
+                        do l = 1, nElements
+                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
+                                lRemoved = .FALSE.
+                            end if
+                        end do
+                        if (lRemoved) cycle LOOP_excess
+                    end if
+                    ! If this is a ternary and the 3rd element got removed, then skip parameter
+                    ! Making a guess at how to handle this for the other entry
+                    lRemoved = .TRUE.
+                    if (pf > 0) then
+                        pf = pf - nSublatticeElementsCS(nCountSublatticeCS,1)
+                        do l = 1, nElements
+                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,2,pf))) then
+                                lRemoved = .FALSE.
+                            end if
+                        end do
+                        if (lRemoved) cycle LOOP_excess
+                    end if
+
                     if (px == py) then
                         p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
                                      * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
@@ -375,7 +410,7 @@ subroutine CheckSystemExcess
                         nParam          = nParam + 1
                         iParamPassCS(j) = 1
                     end if
-                end do
+                end do LOOP_excess
 
                 nParamPhase(nCounter) = nParam
 
@@ -391,16 +426,16 @@ subroutine CheckSystemExcess
     if (allocated(dExcessGibbsParam)) then
         i = SIZE(dExcessGibbsParam)
         if (i /= nParam) then
-            deallocate(iRegularParam,dExcessGibbsParam, STAT = n)
+            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
-            allocate(iRegularParam(nParam,nParamMax*2+1),dExcessGibbsParam(nParam))
+            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
         end if
     else
         ! Allocate memory for excess parameters:
-        allocate(iRegularParam(nParam,nParamMax*2+1),dExcessGibbsParam(nParam))
+        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
     end if
 
     ! Determine whether a solution phase is miscibile.  This flag will be used by the main solver.

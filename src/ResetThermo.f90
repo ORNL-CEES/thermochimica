@@ -50,16 +50,28 @@ subroutine ResetThermo
 
     if (allocated(dStoichSpecies)) then
         ! Deallocate integer arrays from ModuleThermo:
-        deallocate (dStoichSpecies,dSpeciesTotalAtoms,iPhase,nSpeciesPhase,iAssemblage,nParamPhase, &
+        deallocate (dStoichSpecies,dSpeciesTotalAtoms,iPhase,nSpeciesPhase,nParamPhase, &
             iRegularParam,iElementSystem,iSpeciesPass,iParticlesPerMole, dMagGibbsEnergy, &
-            dCoeffGibbsMagnetic, STAT = INFO)
+            dCoeffGibbsMagnetic, cRegularParam, STAT = INFO)
+        i = i + INFO
+    end if
+
+    if (allocated(iAssemblage)) then
+        ! Deallocate real arrays from ModuleThermo:
+        deallocate (iAssemblage,STAT = INFO)
         i = i + INFO
     end if
 
     if (allocated(dChemicalPotential)) then
         ! Deallocate real arrays from ModuleThermo:
-        deallocate (dChemicalPotential,dExcessGibbsParam,dMolesSpecies,dElementPotential,dMolesPhase,&
-            dMolesPhaseLast,dMolesElement,dAtomFractionSpecies,dStdGibbsEnergy,STAT = INFO)
+        deallocate (dChemicalPotential,dExcessGibbsParam,dMolesElement,dAtomFractionSpecies, &
+        dStdGibbsEnergy,STAT = INFO)
+        i = i + INFO
+    end if
+
+    if (allocated(dMolesSpecies)) then
+        ! Deallocate real arrays from ModuleThermo:
+        deallocate (dMolesSpecies,dElementPotential,dMolesPhase,dMolesPhaseLast,STAT = INFO)
         i = i + INFO
     end if
 
@@ -89,12 +101,18 @@ subroutine ResetThermo
         i = i + INFO
     end if
 
+    if (allocated(lSolnPhases)) then
+        ! Deallocate real arrays from ModulePGESolver:
+        deallocate (lSolnPhases,dGibbsSolnPhase,lMiscibility, STAT = INFO)
+        i = i + INFO
+    end if
+
     if (allocated(nConstituentSublattice)) then
         ! Deallocate arrays used for sublattices:
         deallocate(iConstituentPass, iPhaseSublattice, dStoichSublattice, dSiteFraction, &
             cConstituentNameSUB, iConstituentSublattice, iPhaseElectronID,nSublatticePhase,&
             nConstituentSublattice, iSublatticeElements, nSublatticeElements, dZetaSpecies, &
-            dSublatticeCharge,  STAT = INFO)
+            dSublatticeCharge, iChemicalGroup,  STAT = INFO)
         i = i + INFO
     end if
 

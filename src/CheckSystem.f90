@@ -232,6 +232,7 @@ subroutine CheckSystem
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
             iElementSystem(j) = 0
+            dElementMass(iElementSystem(j)) = 0
             if (cElementNameCS(j) == 'e-') then
                 nElements         = nElements + 1
                 iElementSystem(j) = -1
@@ -241,6 +242,15 @@ subroutine CheckSystem
             nElements = nElements + 1
         end if
     end do
+
+    LOOP_checkElements: do i = 1, nElementsPT
+        if (dElementMass(i) > 0) then
+            do j = 1, nElementsCS
+                if (iElementSystem(j) == i) cycle LOOP_checkElements
+            end do
+            print *, "WARNING: Element ", cElementNamePT(i+1), " not in database and therefore omitted from calculation"
+        end if
+    end do LOOP_checkElements
 
     ! The system requires a minimum of two elements in order to be considered:
     if (nElements < 2 + k) then
@@ -422,7 +432,7 @@ subroutine CheckSystem
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
                      iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dSublatticeCharge, STAT = n)
+                     dSublatticeCharge,iChemicalGroup, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -438,6 +448,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     else
@@ -468,6 +479,7 @@ subroutine CheckSystem
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
         end if
 
     end if
@@ -501,6 +513,7 @@ subroutine CheckSystem
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
         dSublatticeCharge    = 0D0
+        iChemicalGroup    = 0
     end if
 
     ! Re-establish the character vector representing the element names:

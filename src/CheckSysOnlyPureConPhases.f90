@@ -70,6 +70,7 @@ subroutine CheckSysOnlyPureConPhases
     integer, dimension(nElements)           :: IPIV
     real(8), dimension(nElements,nElements) :: A, AA
     real(8), dimension(nElements)           :: B, BB
+    real(8)                                 :: dTemp
 
 
     ! Initialize variables:
@@ -79,6 +80,21 @@ subroutine CheckSysOnlyPureConPhases
     AA   = 0D0
     B    = 0D0
     BB   = 0D0
+
+    ! If this comes straight from levelling, phases may have 0 moles
+    ! These should be removed
+    if (iterGlobal == 0) then
+        do i = 1, nConPhases
+            if (dMolesPhase(i) < dTolerance(7)) then
+                iAssemblage(i) = iAssemblage(nConPhases)
+                iAssemblage(nConPhases)   = 0
+                dTemp                     = dMolesPhase(i)
+                dMolesPhase(i) = dMolesPhase(nConPhases)
+                dMolesPhase(nConPhases)   = 0D0
+                nConPhases                = nConPhases - 1
+            end if
+        end do
+    end if
 
     ! Construct the stoichiometry matrix and the constraint vector:
     do j = 1, nElements
@@ -97,28 +113,31 @@ subroutine CheckSysOnlyPureConPhases
         end do
     end if
 
-    ! Store the stoichiometry matrix:
-    AA = A
+    if (nConPhases > 1) then
+        ! Store the stoichiometry matrix:
+        AA = A
 
-    ! Call the linear equation solver to solve the number of moles of each phase:
-    call DGESV( nElements, 1, A, nElements, IPIV, B, nElements, INFO )
+        ! Call the linear equation solver to solve the number of moles of each phase:
+        call DGESV( nElements, 1, A, nElements, IPIV, B, nElements, INFO )
 
-    ! Compute the residual vector:
-    BB = dMolesElement - MATMUL(AA,B)
+        ! Compute the residual vector:
+        BB = dMolesElement - MATMUL(AA,B)
 
-    ! Perform an additional calculation to refine the number of moles of each phase
-    ! (this reduces numerical errors):
-    call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
+        ! Perform an additional calculation to refine the number of moles of each phase
+        ! (this reduces numerical errors):
+        call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
 
-    ! Update the number of moles of the pure condensed phases:
-    dMolesPhase = BB + B
+        ! Update the number of moles of the pure condensed phases:
+        dMolesPhase = BB + B
 
-    ! Compute the mole fractions of all solution phase constituents:
-    do i = 1, nSolnPhasesSys
+        ! Compute the mole fractions of all solution phase constituents:
+        do i = 1, nSolnPhasesSys
 
-        call CompMolFraction(i)
+            call CompMolFraction(i)
 
-    end do
+        end do
+
+    end if
 
     ! Compute functional norm:
     call CompFunctionNorm
