@@ -197,6 +197,7 @@ subroutine CompThermoData
                                         * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)) &
                             + iFirst - 1
                 if (iSpeciesPass(iIndex) > 0) then
+                    nPairsSRO(iSublPhaseIndex,1) = nPairsSRO(iSublPhaseIndex,1) + 1
                     jj = jj + 1
                     dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
                     cPairName(iSublPhaseIndex,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
