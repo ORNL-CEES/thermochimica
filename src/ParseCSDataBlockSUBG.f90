@@ -98,7 +98,6 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) nSublatticeElementsCS(nCountSublatticeCS,1:2)
     nSublatticePhaseCS(nCountSublatticeCS) = 2
 
-
     ! Read in names of constituents on first sublattice:
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
     read (1,*,IOSTAT = INFO) cConstituentNames1(1:nSublatticeElementsCS(nCountSublatticeCS,1))
@@ -285,6 +284,10 @@ subroutine ParseCSDataBlockSUBG( i )
 
     end do LOOP_allSROPairs
 
+    ! Copy previously-read end member info into appropriate variables before it gets overwritten by
+    ! quadruplet data calculated below.
+    cPairNameCS(nCountSublatticeCS,1:nPairsSROCS(nCountSublatticeCS,1)) = &
+                cSpeciesNameCS((nSpeciesPhaseCS(i-1)+1):(nSpeciesPhaseCS(i-1)+nPairsSROCS(nCountSublatticeCS,1)))
     dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
     dStoichPairsCS(nCountSublatticeCS,1:nPairsSROCS(nCountSublatticeCS,2),1:nElementsCS) &
                   = dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS)

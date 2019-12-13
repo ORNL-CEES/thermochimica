@@ -214,6 +214,7 @@ subroutine ParseCSHeader
     allocate(dSublatticeChargeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iChemicalGroupCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(dStoichPairsCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,nElementsCS))
+    allocate(cPairNameCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0

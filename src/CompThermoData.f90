@@ -199,6 +199,14 @@ subroutine CompThermoData
                 if (iSpeciesPass(iIndex) > 0) then
                     jj = jj + 1
                     dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                    cPairName(iSublPhaseIndex,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
+                    m = 0
+                    do k = 1, nElemOrComp
+                        if (iElementSystem(k) /= 0) then
+                            m = m + 1
+                            dStoichPairs(iSublPhaseIndex,jj,m) = dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k)
+                        end if
+                    end do
                 end if
 
                 ! I'm like pretty sure that these are g_A2/X2 and not g_A/X,
