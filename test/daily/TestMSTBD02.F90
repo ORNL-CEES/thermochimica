@@ -27,7 +27,7 @@ program mstdb
     dElementMass(3)       = 1D0
 
     ! Specify output and debug modes:
-    iPrintResultsMode     = 2
+    iPrintResultsMode     = 0
     lDebugMode            = .FALSE.
 
     ! Parse the ChemSage data-file:
@@ -35,6 +35,8 @@ program mstdb
 
     ! Call Thermochimica:
     if (INFOThermo == 0)        call Thermochimica
+
+    if (iPrintResultsMode > 0)  call PrintResults
 
     ! Check results:
     if (INFOThermo == 0) then
