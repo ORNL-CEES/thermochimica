@@ -231,8 +231,8 @@ subroutine CheckSystem
         dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
-            iElementSystem(j) = 0
             dElementMass(iElementSystem(j)) = 0
+            iElementSystem(j) = 0
             if (cElementNameCS(j) == 'e-') then
                 nElements         = nElements + 1
                 iElementSystem(j) = -1
