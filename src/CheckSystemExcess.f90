@@ -352,7 +352,7 @@ subroutine CheckSystemExcess
                         end if
                     end do
                     do k = 1, nRemove
-                        do l = nSublatticeElements(nCountSublattice,j), 1, -1
+                        do l = nSublatticeElementsCS(nCountSublattice,j), 1, -1
                             if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
                                 iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) - 1
                             end if
