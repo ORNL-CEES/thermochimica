@@ -381,10 +381,9 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             ! so I've added the outer if to skip these
             if (dMolesSpecies(i) > 1D-100) then
                 if (dMolFraction(i) > 0) then
-                    dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
+                    dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i)))*dStepLength)
                 else
-                    ! if set negative or zero then just make this really big
-                    dMaxSpeciesChange = 1D16
+                    ! if set negative or zero do nothing, I guess
                 end if
             end if
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
