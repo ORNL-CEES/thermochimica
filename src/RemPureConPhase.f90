@@ -99,13 +99,7 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         end if
     end do
 
-    if (lPhasePass .EQV. .FALSE.) then
-        ! The phase in question cannot be removed.  Add it back to the assemblage:
-        nConPhases                = nConPhasesLast
-        iAssemblage(1:nConPhases) = iTempVec(1:nConPhases)
-        dMolesPhase(1:nConPhases) = dTempVec(1:nConPhases)
-        lSwapLater                = .TRUE.
-    else
+    if (lPhasePass) then
         ! The new phase assemblage is acceptable.
         iterLastCon               = iterGlobal
         iterLast                  = iterGlobal
@@ -113,7 +107,12 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
         ! Compute the number of moles of all phases:
         call CompMolAllSolnPhases
-
+    else
+        ! The phase in question cannot be removed.  Add it back to the assemblage:
+        nConPhases                = nConPhasesLast
+        iAssemblage(1:nConPhases) = iTempVec(1:nConPhases)
+        dMolesPhase(1:nConPhases) = dTempVec(1:nConPhases)
+        lSwapLater                = .TRUE.
     end if
 
     return

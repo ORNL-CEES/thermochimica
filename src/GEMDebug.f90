@@ -118,7 +118,7 @@ subroutine GEMDebug(iDebug)
         ! Optional: cycle through metastable phases:
         do i = 1, nSolnPhasesSys
 
-            if (lSolnPhases(i) .EQV. .FALSE.) print *, i, cSolnPhaseName(i), dDrivingForceSoln(i), lSolnPhases(i)
+            if (.NOT.(lSolnPhases(i))) print *, i, cSolnPhaseName(i), dDrivingForceSoln(i), lSolnPhases(i)
 
         end do
         print *

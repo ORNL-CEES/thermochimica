@@ -114,7 +114,7 @@ subroutine CheckSolnPhaseRem
             call RemSolnPhase(i,lPhasePass)
 
             ! Exit if the phase assemblage has passed:
-            if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
+            if (lPhasePass) exit LOOP_SolnRem
 
             ! It may be possible that a pure condensed phase needs to be added to the system.  Try swapping
             ! these two phases.
@@ -131,7 +131,7 @@ subroutine CheckSolnPhaseRem
                 call RemSolnAddPureConPhase(iMaxDrivingForce,j,lPhasePass)
 
                 ! If the new phase assemblage has passed, then exit:
-                if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
+                if (lPhasePass) exit LOOP_SolnRem
 
             end if
 
@@ -147,16 +147,16 @@ subroutine CheckSolnPhaseRem
 
                 ! Compute the mole fractions and the sum of mole fractions for solution phases that are currently
                 ! not estimated to be stable at equilibrium:
-                if (lSolnPhases(k) .EQV. .FALSE.) call CompMolFraction(k)
+                if (.NOT.(lSolnPhases(k))) call CompMolFraction(k)
 
                 ! Consider swapping these two phases if the driving force of phase k is less than tolerance:
-                if ((lSolnPhases(k) .EQV. .FALSE.).AND.(dDrivingForceSoln(k) < dTolerance(4))) then
+                if (.NOT.(lSolnPhases(k)).AND.(dDrivingForceSoln(k) < dTolerance(4))) then
 
                     ! Try swapping these two solution phases.
                     call SwapSolnPhaseSpecific(k,i,lPhasePass)
 
                     ! Swapping these two solution phases was successful.
-                    if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
+                    if (lPhasePass) exit LOOP_SolnRem
 
                 end if
 
@@ -179,18 +179,17 @@ subroutine CheckSolnPhaseRem
 
                 ! The phase corresponding to iSolnPhaseLast is not currently predicted to be stable.  Try
                 ! swapping that phase with the phase that is trying to be removed from the system.
-                if (lSwapLater .EQV. .FALSE.) then
+                if (lSwapLater) then
+                    lSwapLater = .FALSE.
 
+                else
                     k = iSolnPhaseLast
 
                     ! Swap the two phases:
                     call SwapSolnPhaseSpecific(k, i, lPhasePass)
 
                     ! Exit if the new phase assemblage has passed:
-                    if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
-
-                else
-                    lSwapLater = .FALSE.
+                    if (lPhasePass) exit LOOP_SolnRem
                 end if
 
             end if
@@ -218,7 +217,7 @@ subroutine CheckSolnPhaseRem
                     call RemPureConPhase(j,lSwapLater,lPhasePass)
 
                     ! If the new phase assemblage can be removed, exit:
-                    if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
+                    if (lPhasePass) exit LOOP_SolnRem
 
                 end do
 

@@ -372,7 +372,7 @@ subroutine InitGemCheckSolnPhase
         call CheckMiscibilityGap(i,lPhasePass)
 
         ! If this phase should be added, then add it:
-        IF_AddPhase: if (lPhasePass .EQV. .TRUE.) then
+        IF_AddPhase: if (lPhasePass) then
 
             ! First, check if the solution phase should be added directly or if it should swap another phase:
             IF_PhaseRule: if (nConPhases + nSolnPhases < nElements) then
@@ -407,7 +407,7 @@ subroutine InitGemCheckSolnPhase
                     ! Check to make sure that the phase can be added:
                     call CheckPhaseChange(lPhasePass,l)
 
-                    if (lPhasePass .EQV. .TRUE.) then
+                    if (lPhasePass) then
                         ! This phase assemblage is appropriate for testing.
                         exit LOOP_ConPhases
                     else

@@ -70,7 +70,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
     iTempVec(1:nElements) = iAssemblage(1:nElements)
 
     ! Check if this phase contains a miscibility gap:
-    if (lMiscibility(-iPhaseChange) .EQV. .TRUE.) then
+    if (lMiscibility(-iPhaseChange)) then
 
         ! Loop through phases currently predicted to be stable and see if it coresponds to iPhaseChange:
         LOOP_A: do i = 1, nSolnPhases
@@ -85,7 +85,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         end do LOOP_A
 
         ! If phase -iPhaseChange
-        if (lSwapLater .EQV. .FALSE.) call CompMolFraction(-iPhaseChange)
+        if (.NOT.(lSwapLater)) call CompMolFraction(-iPhaseChange)
 
         ! Reinitialize variables:
         lSwapLater = .FALSE.
@@ -98,7 +98,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
 
     ! If the current phase has a miscibility gap, check the index numbers:
     k = -iPhaseChange
-    if (lMiscibility(k) .EQV. .TRUE.) call CheckAddMisciblePhaseIndex(k)
+    if (lMiscibility(k)) call CheckAddMisciblePhaseIndex(k)
     iPhaseChange = -k
 
     ! Compute the stoichiometry of this phase:
@@ -121,7 +121,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         ! Check whether this particular phase assemblage has been previously considered:
         call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
-        if (lSwapLater .EQV. .TRUE.) cycle LOOP_ConPhase
+        if (lSwapLater) cycle LOOP_ConPhase
 
         ! Store the info for the pure condensed phase to be removed to temporary variables:
         dTemp          = dMolesPhase(i)
@@ -160,7 +160,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
 
         lRevertSystem = .FALSE.
 
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             ! This phase assemblage can be considered.
             iterLast     = iterGlobal
             iterSwap     = iterGlobal

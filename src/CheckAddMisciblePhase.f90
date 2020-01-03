@@ -62,7 +62,7 @@ subroutine CheckAddMisciblePhaseIndex(iPhaseAddAbs)
             if (j == iPhaseAddAbs) cycle LOOP_A
 
             ! Check if this phase is NOT stable and corresponds to iPhaseAddAbs:
-            if ((cSolnPhaseName(j) == cSolnPhaseName(iPhaseAddAbs)).AND.(lSolnPhases(j) .EQV. .FALSE.)) then
+            if ((cSolnPhaseName(j) == cSolnPhaseName(iPhaseAddAbs)).AND. .NOT.(lSolnPhases(j))) then
                 iPhaseOtherAbs = j
                 exit LOOP_A
             end if

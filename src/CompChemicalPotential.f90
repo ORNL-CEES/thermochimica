@@ -80,13 +80,13 @@ subroutine CompChemicalPotential(lCompEverything)
     end do
 
     ! Check if the chemical potentials for everything should be computed:
-    if (lCompEverything .EQV. .TRUE.) then
+    if (lCompEverything) then
 
         ! Compute the chemical potentials for every solution phase in the system:
         LOOP_SolnPhasesSys: do j = 1, nSolnPhasesSys
 
             ! Skip this phase if it is already part of the system:
-            if (lSolnPhases(j) .EQV. .TRUE.) cycle LOOP_SolnPhasesSys
+            if (lSolnPhases(j)) cycle LOOP_SolnPhasesSys
 
             ! Compute the mole fractions of solution phase constituents:
             call CompMolFraction(j)

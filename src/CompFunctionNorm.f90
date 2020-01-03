@@ -118,7 +118,7 @@ subroutine CompFunctionNorm
     ! Finally, the functional norm:
     dGEMFunctionNorm = dGEMFunctionNorm**(0.5)
 
-    if (lDebugMode .EQV. .TRUE.) print *, 'dGEMFunctionNorm = ', dGEMFunctionNorm
+    if (lDebugMode) print *, 'dGEMFunctionNorm = ', dGEMFunctionNorm
 
     return
 

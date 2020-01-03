@@ -192,7 +192,7 @@ subroutine CheckPhaseAssemblage
 
     ! If a previously called subroutine requires that the system be reverted, but the system has never changed
     ! (i.e., the system cannot be reverted), then try removing a pure condensed phase from the system.
-    if ((lRevertSystem .EQV. .TRUE.).AND.(iterLast == 0)) call CorrectStagnation
+    if ((lRevertSystem).AND.(iterLast == 0)) call CorrectStagnation
 
     ! If the norm of the direction vector is massive and the last time the phase assemblage changed a
     ! pair of phases were swapped, try reverting the system to the last successful iteration:
@@ -203,7 +203,7 @@ subroutine CheckPhaseAssemblage
         (dGEMFunctionNorm > 0.01D0)) call RevertSystem(2)
 
     ! Check if the system is to be reverted to a previously considered phase assemblage:
-    if (lRevertSystem .EQV. .TRUE.) then
+    if (lRevertSystem) then
 
         if ((iterGlobal /= iterLast).AND.(nConPhases > 0))  call CheckPureConPhaseRem
 
@@ -238,7 +238,7 @@ subroutine CheckPhaseAssemblage
                 ! Compute the driving force for all pure condensed phases:
                 call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
 
-                if (lDebugMode .EQV. .TRUE.) print *, iMaxDrivingForce, dMaxDrivingForce
+                if (lDebugMode) print *, iMaxDrivingForce, dMaxDrivingForce
 
                 ! Loop through all metastable solution phases to compute the mole fractions of constituents
                 ! and the driving force of each solution phase:
@@ -250,9 +250,9 @@ subroutine CheckPhaseAssemblage
                     if ((iterLastMiscGapCheck == iterGlobal - 1).AND.(dDrivingForceSoln(j) < 0D0)) cycle
 
                     ! Only compute the mole fractions of constituents belonging to unstable phases:
-                    if (lSolnPhases(j) .EQV. .FALSE.) then
+                    if (.NOT.(lSolnPhases(j))) then
 
-                        if (lMiscibility(j) .EQV. .TRUE.) then
+                        if (lMiscibility(j)) then
 
                             ! This phase may contain a miscibility gap.  Periodically check for a miscibility gap:
                             if (iterGlobal - iterLastMiscGapCheck >= 50) then
@@ -272,7 +272,7 @@ subroutine CheckPhaseAssemblage
 
                 end do
 
-                if (lDebugMode .EQV. .TRUE.) print *, 'driving forces:', MINLOC(dDrivingForceSoln), MINVAL(dDrivingForceSoln)
+                if (lDebugMode) print *, 'driving forces:', MINLOC(dDrivingForceSoln), MINVAL(dDrivingForceSoln)
 
 
                 ! Determine whether a pure condensed phase should be considered first or a solution phase.

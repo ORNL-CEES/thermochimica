@@ -90,7 +90,7 @@ subroutine CorrectPhaseRule(lPhaseChange)
             call RemSolnPhase(j, lPhasePass)
 
             ! Exit if the phase has been successfully removed:
-            if (lPhasePass .EQV. .TRUE.) then
+            if (lPhasePass) then
                 lPhaseChange = .TRUE.
                 exit LOOP_SolnRem
             end if

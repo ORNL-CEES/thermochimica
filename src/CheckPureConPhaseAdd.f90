@@ -108,7 +108,7 @@ subroutine CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
 
             ! The pure condensed phase could not be added the system directly, but it might be possible to
             ! swap it for another phase that is currently in the phase assmeblage:
-            if ((lSwapLater .EQV. .TRUE.).AND.((lSwapCheck .EQV. .TRUE.).OR.(iterGlobal - iterLast >= 50))) then
+            if ((lSwapLater).AND.((lSwapCheck).OR.(iterGlobal - iterLast >= 50))) then
 
                 ! Check if a particular combination of phases should be swapped:
                 call CheckPureConPhaseSwap(iPhaseChange,lSwapLater,lPhasePass)
@@ -117,7 +117,7 @@ subroutine CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
 
         elseif ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases == nElements ).AND. &
        ! elseif ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
-            ((lSwapCheck .EQV. .TRUE.))) then
+            ((lSwapCheck))) then
 
             ! A phase cannot be added to the system when the number of phases already equals the number of
             ! elements as a consequence of the Phase Rule.  This phase must be swapped for another phase

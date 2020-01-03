@@ -87,7 +87,7 @@ subroutine RemSolnAddPureConPhase(iPhaseAdd,iPhaseRem,lPhasePass)
         ! Check the system when there are only pure condensed phases:
         call CheckSysOnlyPureConPhases
 
-        if (lConverged .EQV. .TRUE.) lPhasePass = .TRUE.
+        if (lConverged) lPhasePass = .TRUE.
 
     else
         ! Check that this phase change is acceptable:
@@ -97,9 +97,9 @@ subroutine RemSolnAddPureConPhase(iPhaseAdd,iPhaseRem,lPhasePass)
 
     end if
 
-    if (lConverged .EQV. .FALSE.) then
+    if (.NOT.(lConverged)) then
 
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             ! This phase assemblage can be considered.
             iterLastSoln            = iterGlobal
             iterLast                = iterGlobal

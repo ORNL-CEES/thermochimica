@@ -58,7 +58,7 @@ subroutine RevertSystem(iterSpecific)
     logical:: lPhasePass
 
 
-    if (lDebugMode .EQV. .TRUE.) print *, 'RevertSystem'
+    if (lDebugMode) print *, 'RevertSystem'
 
     ! Do not revert the system if the system has not yet changed:
     if (iterlast <= 0) return
@@ -85,7 +85,7 @@ subroutine RevertSystem(iterSpecific)
         call CheckPhaseAssemblageID(iWork, lPhasePass)
 
         ! Return if they are the same:
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             dMolesPhase = dTempVec
             return
         end if

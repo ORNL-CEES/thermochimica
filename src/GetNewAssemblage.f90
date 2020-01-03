@@ -160,7 +160,7 @@ subroutine GetNewAssemblage(iter)
         call CheckLevelingIterHistory(iter,lPhasePass)
 
         ! Cycle to the next phase if this assemblage has previsouly been considered:
-        if (lPhasePass .EQV. .FALSE.) cycle LOOP_NewAssemblage
+        if (.NOT.(lPhasePass)) cycle LOOP_NewAssemblage
 
         ! 3) THIRD CHECK: Verify that the phase assemblage produces real co-ordinates for the Gibbs Plane.
         ! Note: this does not add much computational expense becaue dLevel needs to be computed anyways.

@@ -83,7 +83,7 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
     call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
     ! Return if this phase assemblage fails:
-    if (lSwapLater .EQV. .TRUE.) return
+    if (lSwapLater) return
 
     ! Compute the stoichiometry of the solution phase that is to be added to the system:
     call CompStoichSolnPhase(iPhaseAdd)
@@ -109,7 +109,7 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
     ! Check that this phase change is acceptable:
     call CheckPhaseChange(lPhasePass,INFO)
 
-    if (lPhasePass .EQV. .TRUE.) then
+    if (lPhasePass) then
         ! This phase assemblage can be considered.
         iterLastSoln                 = iterGlobal
         iterLast                     = iterGlobal

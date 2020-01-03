@@ -89,7 +89,7 @@ subroutine AddPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     end if
 
     ! Proceed if the iteration history check passed:
-    if (lSwapLater .EQV. .FALSE.) then
+    if (.NOT.(lSwapLater)) then
 
         ! Add the new pure condensed phase to the assemblage:
         nConPhases                  = nConPhases + 1
@@ -98,7 +98,7 @@ subroutine AddPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         ! Check to make sure that the phase change is acceptable:
         call CheckPhaseChange(lPhasePass,INFO)
 
-        if (lPhasePass .EQV. .FALSE.) then
+        if (.NOT.(lPhasePass)) then
             ! The phase in question cannot be added. Revert the system:
             iAssemblage(nConPhases) = 0
             dMolesPhase(nConPhases) = 0D0

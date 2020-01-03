@@ -60,10 +60,10 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
     LOOP_SolnPhaseSys: do i = 1, nSolnPhasesSys
 
         ! Skip this phase if it is already predicted to be stable:
-        if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_SolnPhaseSys
+        if (lSolnPhases(i)) cycle LOOP_SolnPhaseSys
 
         ! Skip this phase if it is not the first "phase" in a phase with a miscibility gap:
-        if (lMiscibility(i) .EQV. .TRUE.) cycle LOOP_SolnPhaseSys
+        if (lMiscibility(i)) cycle LOOP_SolnPhaseSys
 
         ! Compute the mole fractions of all constituents in this solution phase:
         call CompMolFraction(i)
@@ -91,7 +91,7 @@ subroutine RemPureConAddSolnPhase(lPhasePass)
         ! Add the solution phase:
         call AddSolnPhase(iPhaseAdd,lSwapLater,lPhasePass)
 
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             ! The new phase assemblage has passed.
             iterLast                = iterGlobal
             lSolnPhases(iPhaseAdd)  = .TRUE.

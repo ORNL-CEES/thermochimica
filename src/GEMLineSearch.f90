@@ -302,7 +302,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     ! Count the number of stable miscible phases:
     do j = 1, nSolnPhases
         k = -iAssemblage(nElements - j + 1)
-        if (lMiscibility(k) .EQV. .TRUE.) nMisciblePhases = nMisciblePhases + 1
+        if (lMiscibility(k)) nMisciblePhases = nMisciblePhases + 1
     end do
 
     ! Initialize the maximum increase/decrease of functional variables
