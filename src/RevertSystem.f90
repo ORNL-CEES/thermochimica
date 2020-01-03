@@ -71,7 +71,7 @@ subroutine RevertSystem(iterSpecific)
    ! dElementPotential = dElementPotentialRevert
 
     if (iterSpecific /= 0) then
-    ! Revert to a specific iteration:
+        ! Revert to a specific iteration:
 
         iWork(1:nElements) = iterHistory(1:nElements,iterSpecific)
 
