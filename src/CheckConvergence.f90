@@ -157,7 +157,7 @@ subroutine CheckConvergence
 
     if (nSolnPhases + nConPhases > nElements - nChargedConstraints) call CorrectPhaseRule(lPhaseChange)
 
-    if (lPhaseChange .EQV. .TRUE.) return
+    if (lPhaseChange) return
 
     ! TEST #4: Check whether a pure condensed phase should be added to the phase assemblage:
     ! --------------------------------------------------------------------------------------
@@ -236,11 +236,11 @@ subroutine CheckConvergence
     LOOP_TEST7: do i = 1,nSolnPhasesSys
 
         ! Skip this phase if it is already predicted to be stable:
-        if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_TEST7
+        if (lSolnPhases(i)) cycle LOOP_TEST7
 
         ! Skip this phase if it is not the first "phase" of a phase containing a miscibility gap
         ! (this will be handled in test #8):
-        if (lMiscibility(i) .EQV. .TRUE.) cycle LOOP_TEST7
+        if (lMiscibility(i)) cycle LOOP_TEST7
 
         ! Check if the driving force of this solution phase is less than the tolerance:
         if (dDrivingForceSoln(i) < dTolerance(4)) return
@@ -280,14 +280,14 @@ subroutine CheckConvergence
     ! TEST #9: Check for a miscibility gap:
     ! -------------------------------------
 
-    ! Loop through all solution phases in the system to check for a miscibiltiy gap:
+    ! Loop through all solution phases in the system to check for a miscibility gap:
     LOOP_TEST9: do i = 1, nSolnPhasesSys
 
         ! Skip if this phase is already part of the estimated phase assemblage:
-        if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_TEST9
+        if (lSolnPhases(i)) cycle LOOP_TEST9
 
         ! Check if this phase may contain a miscibility gap:
-        if (lMiscibility(i) .EQV. .TRUE.) then
+        if (lMiscibility(i)) then
 
             ! If this phase contains a miscibility gap but none of the corresponding phases are stable, then cycle:
             LOOP_DoubleCheckMG: do j = 1, nSolnPhases
@@ -295,7 +295,7 @@ subroutine CheckConvergence
 
                 if (k == i) cycle LOOP_DoubleCheckMG
 
-                if ((cSolnPhaseName(k) == cSolnPhaseName(i)).AND.(lSolnPhases(k) .EQV. .FALSE.)) cycle LOOP_TEST9
+                if ((cSolnPhaseName(k) == cSolnPhaseName(i)).AND. .NOT.(lSolnPhases(k))) cycle LOOP_TEST9
 
             end do LOOP_DoubleCheckMG
 
@@ -303,7 +303,7 @@ subroutine CheckConvergence
             call CheckMiscibilityGap(i,lPhaseChange)
 
             ! Return if this phase should be added to the system:
-            if (lPhaseChange .EQV. .TRUE.) return
+            if (lPhaseChange) return
 
             if (dDrivingForceSoln(i) < dTolerance(4)) return
 
@@ -313,9 +313,8 @@ subroutine CheckConvergence
             if (cSolnPhaseType(i) == 'IDMX') then
                 ! This is an ideal mixing phase:
                 call CompMolFraction(i)
-            else
-                ! This is a non-ideal solution phase:
-                call CheckMiscibilityGap(i,lPhaseChange)
+            else if (i < nSolnPhasesSys) then
+                if (lMiscibility(i+1)) call CheckMiscibilityGap(i,lPhaseChange)
             end if
 
             ! If the driving force is negative, return:
