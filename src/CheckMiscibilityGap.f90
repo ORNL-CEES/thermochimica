@@ -52,7 +52,7 @@
 subroutine CheckMiscibilityGap(iSolnPhaseIndex,lAddPhase)
 
     USE ModuleThermo
-    USE MOduleGEMSolver
+    USE ModuleGEMSolver
 
     implicit none
 
