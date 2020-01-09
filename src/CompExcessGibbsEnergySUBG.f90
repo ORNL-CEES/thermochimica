@@ -413,9 +413,22 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
         ! Q-type binary terms
-        else if (cRegularParam(abxy) == 'Q') then
-            dYtot = dYi(a) + dYi(b)
-            dGex = dExcessGibbsParam(abxy) * dYi(a)**p * dYi(b)**q / (dYtot**(p + q))
+        else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+            dY1 = 0D0
+            dY2 = 0D0
+            do k = 1, nPairsSRO(iSPI,2)
+                l = iFirst + k - 1
+                if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dY1 = dY1 + (dMolFraction(l) / 4)
+                if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dY1 = dY1 + (dMolFraction(l) / 4)
+                if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dY1 = dY1 + (dMolFraction(l) / 4)
+                if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dY1 = dY1 + (dMolFraction(l) / 4)
+                if (b == iPairID(iSPI,k,1) .AND. yy == iPairID(iSPI,k,3)) dY2 = dY2 + (dMolFraction(l) / 4)
+                if (b == iPairID(iSPI,k,1) .AND. yy == iPairID(iSPI,k,4)) dY2 = dY2 + (dMolFraction(l) / 4)
+                if (b == iPairID(iSPI,k,2) .AND. yy == iPairID(iSPI,k,3)) dY2 = dY2 + (dMolFraction(l) / 4)
+                if (b == iPairID(iSPI,k,2) .AND. yy == iPairID(iSPI,k,4)) dY2 = dY2 + (dMolFraction(l) / 4)
+            end do
+            dYtot = dY1 + dY2
+            dGex = dExcessGibbsParam(abxy) * dY1**p * dY2**q / (dYtot**(p + q))
             dDgexBase = -dGex * (p + q) / dYtot
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
@@ -479,12 +492,16 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
                 if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
             ! Q-type binary terms
-            else if (cRegularParam(abxy) == 'Q') then
+            else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
                 dDgex = 0D0
-                if (i == a) dDgex = dDgex + dDgexBase / 2 + dGex * p / (2 * dYi(a))
-                if (j == a) dDgex = dDgex + dDgexBase / 2 + dGex * p / (2 * dYi(a))
-                if (i == b) dDgex = dDgex + dDgexBase / 2 + dGex * q / (2 * dYi(b))
-                if (j == b) dDgex = dDgex + dDgexBase / 2 + dGex * q / (2 * dYi(b))
+                if ((i == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
+                if ((i == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
+                if ((j == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
+                if ((j == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
+                if ((i == b).AND.(k == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
+                if ((i == b).AND.(l == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
+                if ((j == b).AND.(k == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
+                if ((j == b).AND.(l == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
             ! G-type ternary terms
             else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
                 ! Symmetric case
