@@ -470,7 +470,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                       * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
                       +  nSublatticeElements(iSPI,1) + a + ((b-2)*(b-1)/2)
                 iQuad = iQuad + iFirst - 1
-                ! print *, cSpeciesName(iQuad), dGex, ix
                 dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
                                            * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,3) &
                                            /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ix)))
@@ -541,7 +540,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
 
-            ! print *, cSpeciesName(iQuad2), dPartialExcessGibbs(iQuad2), dDgex
             dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + (dMolFraction(iBlock) * dDgex / 2)
 
             ! If A = B add dg^ex contribution from quads AC/XY to IJ/KL
@@ -572,7 +570,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                           * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
                           +  nSublatticeElements(iSPI,1) + a + ((b-2)*(b-1)/2)
                     iQuad = iQuad + iFirst - 1
-                    ! print *, cSpeciesName(iQuad2), cSpeciesName(iQuad), dDgex
                     dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + ((dMolFraction(iQuad) * dDgex / 4) &
                                               * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,3) &
                                               /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ix)))
