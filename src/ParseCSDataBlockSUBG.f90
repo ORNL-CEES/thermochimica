@@ -340,7 +340,8 @@ subroutine ParseCSDataBlockSUBG( i )
             ! Mixing terms:
             read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
             if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
-                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R'))) then
+                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R') &
+                 .OR. (cRegularParamCS(nParamCS) == 'B'))) then
                 INFO = 10000 + 1000*j + i
                 return
             end if
