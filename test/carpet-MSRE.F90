@@ -72,12 +72,12 @@ program msre
 
       dTotalMass = dElementMass(3)+dElementMass(4)+dElementMass(9)+dElementMass(90)+dElementMass(92)+dElementMass(94)
 
-      dmLi = dElementMass(3)  !/ dTotalMass
-      dmBe = dElementMass(4)  !/ dTotalMass
-      dmF  = dElementMass(9)  !/ dTotalMass
-      dmTh = dElementMass(90) !/ dTotalMass
-      dmU  = dElementMass(92) !/ dTotalMass
-      dmPu = dElementMass(94) !/ dTotalMass
+      dmLi = dElementMass(3)  / dTotalMass
+      dmBe = dElementMass(4)  / dTotalMass
+      dmF  = dElementMass(9)  / dTotalMass
+      dmTh = dElementMass(90) / dTotalMass
+      dmU  = dElementMass(92) / dTotalMass
+      dmPu = dElementMass(94) / dTotalMass
 
       OPEN(23, FILE = cPassOutFileName)
       OPEN(24, FILE = cFailOutFileName)
