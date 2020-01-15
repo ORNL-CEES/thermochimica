@@ -181,7 +181,7 @@ subroutine CheckPhaseAssemblage
 
     ! If the system has become stagnant and is very far from convergence, revert the system:
     if ((iterGlobal - iterLast > 50).AND.(dGEMFunctionNorm > 1D3).AND. &
-        (dGEMFunctionNorm/dGEMFunctionNormLast > 0.99D0).AND.(dGEMFunctionNormLast - dGEMFunctionNorm < 5D0)) call RevertSystem(0)
+        (dGEMFunctionNorm/dGEMFunctionNormLast > 0.99D0).AND.(dGEMFunctionNormLast - dGEMFunctionNorm < 5D0)) call RevertSystem(2)
 
     ! If the system has become stagnant and the direction vector has been signficandly dampened, revert:
     if ((MAXVAL(DABS(dUpdateVar)) > 1D15).AND.(iterGlobal - iterLast >= 150)) lRevertSystem = .TRUE.
@@ -200,7 +200,7 @@ subroutine CheckPhaseAssemblage
 
     ! If the system has not changed in 500 iterations and the functional norm has not decreased by 1%, revert the system:
     if ((iterGlobal - iterLast >= 500).AND.(dGEMFunctionNorm > 0.99D0 * dGEMFunctionNormLast).AND. &
-        (dGEMFunctionNorm > 0.01D0)) call RevertSystem(0)
+        (dGEMFunctionNorm > 0.01D0)) call RevertSystem(2)
 
     ! Check if the system is to be reverted to a previously considered phase assemblage:
     if (lRevertSystem) then
@@ -209,7 +209,7 @@ subroutine CheckPhaseAssemblage
 
         if ((iterGlobal /= iterLast).AND.(nSolnPhases > 0)) call CheckSolnPhaseRem
 
-        if (iterGlobal /= iterLast) call RevertSystem(0)
+        if (iterGlobal /= iterLast) call RevertSystem(2)
 
     end if
 
