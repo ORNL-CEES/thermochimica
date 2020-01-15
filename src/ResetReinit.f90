@@ -33,11 +33,14 @@
 subroutine ResetReinit
 
     USE ModuleReinit
-    USE ModuleThermoIO, ONLY: INFOThermo
+    USE ModuleThermoIO, ONLY: INFOThermo, lReinitAvailable, lReinitLoaded
 
     implicit none
 
     integer::   i, INFO
+
+    lReinitAvailable = .FALSE.
+    lReinitLoaded = .FALSE.
 
     ! Initialize variables:
     i = 0
