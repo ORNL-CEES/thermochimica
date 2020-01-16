@@ -103,7 +103,7 @@ module ModuleThermo
     real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies
     real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies
 
-    real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge
+    real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge, dStoichPairs
 
     character(12), dimension(:),   allocatable::  cElementName
     character(30), dimension(:),   allocatable::  cSpeciesName
@@ -111,5 +111,6 @@ module ModuleThermo
     character(25), dimension(:),   allocatable::  cSolnPhaseName
     character(8),  dimension(:,:,:),allocatable:: cConstituentNameSUB
     character,     dimension(:),   allocatable::  cRegularParam
+    character(30),  dimension(:,:), allocatable :: cPairName
 
 end module ModuleThermo

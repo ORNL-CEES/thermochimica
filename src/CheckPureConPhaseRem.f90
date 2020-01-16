@@ -120,11 +120,11 @@ subroutine CheckPureConPhaseRem
             call RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
             ! Exit if the phase assemblage has passed:
-            if (lPhasePass .EQV. .TRUE.) exit LOOP_PureConPhases
+            if (lPhasePass) exit LOOP_PureConPhases
 
             ! If the pure condensed phase could not be removed, but a pure condensed phase should be added,
             ! try swapping the two.
-            IF_SwapPureConPhase: if ((lSwapLater .EQV. .TRUE.).AND.(lPhasePass .EQV. .FALSE.)) then
+            IF_SwapPureConPhase: if ((lSwapLater).AND. .NOT.(lPhasePass)) then
 
                 ! Compute the driving force for all pure condensed phases:
                 call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
@@ -145,7 +145,7 @@ subroutine CheckPureConPhaseRem
                     call SwapPureConPhase(iMaxDrivingForce,lSwapLater,lPhasePass)
 
                     ! Exit if the phase assemblage has passed:
-                    if (lPhasePass .EQV. .TRUE.) exit LOOP_PureConPhases
+                    if (lPhasePass) exit LOOP_PureConPhases
 
                 end if
 
@@ -157,10 +157,10 @@ subroutine CheckPureConPhaseRem
 
                 ! If a pure condensed phase cannot be swapped for another pure condense phase, try adding
                 ! swapping it for a solution phase:
-                if (lPhasePass .EQV. .FALSE.) call RemPureConAddSolnPhase(lPhasePass)
+                if (.NOT.(lPhasePass)) call RemPureConAddSolnPhase(lPhasePass)
 
                 ! Exit if the phase assemblage has passed:
-                if (lPhasePass .EQV. .TRUE.) exit LOOP_PureConPhases
+                if (lPhasePass) exit LOOP_PureConPhases
 
             end if IF_SwapPureConPhase
 

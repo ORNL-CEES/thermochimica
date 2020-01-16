@@ -73,7 +73,7 @@ subroutine ThermoOutput
         LOOP_SolnPhasesOut: do i = 1, nSolnPhasesOut
 
             ! Check if this solution phase is in the system:
-            if (IsSolnPhaseInSys(cSolnPhaseNameOut(i)) .EQV. .TRUE. ) then
+            if (IsSolnPhaseInSys(cSolnPhaseNameOut(i)) ) then
                 ! The solution phase requested is in the system. Check if it is stable at equilibrium:
                 LOOP_nSolnPhases: do j = 1, nSolnPhases
                     k = -iAssemblage(nElements - j + 1)         ! Absolute solution phase index in system.
@@ -97,7 +97,7 @@ subroutine ThermoOutput
 
         LOOP_SpeciesOut: do i = 1, nSpeciesOut
             ! First, make sure that the solution phase that this species belongs to is in the system:
-            if (IsSolnPhaseInSys(cSpeciesPhaseOut(i)) .EQV. .TRUE. ) then
+            if (IsSolnPhaseInSys(cSpeciesPhaseOut(i)) ) then
                 ! Get the solution phase index:
                 k = GetSolnPhaseIndex(cSpeciesPhaseOut(i))
 
@@ -128,7 +128,7 @@ subroutine ThermoOutput
         LOOP_PureConPhasesOut: do i = 1, nPureConPhaseOut
 
             ! Check if this pure condensed phase is in the system:
-            if (IsPureConPhaseInSys(cPureConPhaseNameOut(i)) .EQV. .TRUE.) then
+            if (IsPureConPhaseInSys(cPureConPhaseNameOut(i))) then
                 ! The pure condensed phase requested as output is in the system.
                 ! Check if it is stable at equilibrium:
                 LOOP_nConPhases: do j = 1, nConPhases

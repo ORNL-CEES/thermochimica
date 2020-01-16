@@ -13,7 +13,8 @@ cd bin
 ./TestThermo09
 ./TestThermo10
 ./TestThermo11
-./TestThermo12
+./TestThermo12 > test12out.txt
+tail -1 test12out.txt
 ./TestThermo13
 ./TestThermo14
 ./TestThermo30

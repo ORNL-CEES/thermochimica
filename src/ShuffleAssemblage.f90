@@ -158,7 +158,7 @@ subroutine ShuffleAssemblage(iNewPhase,iPhaseTypeOut)
             end do
 
             ! If this is a miscibility gap, store the phase index:
-            if (lMiscibility(k) .EQV. .TRUE.) iMisciblePhaseID = j
+            if (lMiscibility(k)) iMisciblePhaseID = j
 
         end do
 
@@ -187,7 +187,7 @@ subroutine ShuffleAssemblage(iNewPhase,iPhaseTypeOut)
             end do
 
             ! If this is a miscibility gap, store the phase index:
-            if (lMiscibility(k) .EQV. .TRUE.) iMisciblePhaseID = j
+            if (lMiscibility(k)) iMisciblePhaseID = j
 
         end do
 

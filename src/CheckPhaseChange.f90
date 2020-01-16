@@ -61,7 +61,7 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     ! Count the number of miscible phases:
     do i = 1, nSolnPhases
         j = -iAssemblage(nElements - i + 1)
-        if (lMiscibility(j) .EQV. .TRUE.) nMiscPhases = nMiscPhases + 1
+        if (lMiscibility(j)) nMiscPhases = nMiscPhases + 1
     end do
 
     ! Determine tolerance:

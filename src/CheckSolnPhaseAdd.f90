@@ -112,11 +112,11 @@ subroutine CheckSolnPhaseAdd
         i = iTempVec(nSolnPhasesSys - j + 1)
 
         ! Skip this phase if it is already part of the assemblage:
-        if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_SolnPhaseAdd
+        if (lSolnPhases(i)) cycle LOOP_SolnPhaseAdd
 
         ! Only add a miscible phase if the functional norm is below a certain value:
-       ! if ((lMiscibility(i) .EQV. .TRUE.).AND.(dGEMFunctionNorm > 1D-4)) cycle LOOP_SolnPhaseAdd
-        if ((lMiscibility(i) .EQV. .TRUE.).AND.(dGEMFunctionNorm > 1D-4).AND.(iterGlobal - iterLast < 300)) cycle LOOP_SolnPhaseAdd
+       ! if ((lMiscibility(i)).AND.(dGEMFunctionNorm > 1D-4)) cycle LOOP_SolnPhaseAdd
+        if ((lMiscibility(i)).AND.(dGEMFunctionNorm > 1D-4).AND.(iterGlobal - iterLast < 300)) cycle LOOP_SolnPhaseAdd
 
         ! Check if a solution phase should be added:
         !IF_SolnPhaseAdd: if ((dDrivingForceSoln(i) < dTolerance(4)).AND. &
@@ -128,29 +128,29 @@ subroutine CheckSolnPhaseAdd
             call AddSolnPhase(i,lSwapLater,lPhasePass)
 
             ! If the phase assemblage changed, then return control to the main solver:
-            if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnPhaseAdd
+            if (lPhasePass) exit LOOP_SolnPhaseAdd
 
             ! The solution phase could not be added the system directly, but it might be possible to
             ! swap another phase that is currently in the phase assmeblage for this one:
-            if ((lSwapLater .EQV. .TRUE.).AND.(lSwapCheck .EQV. .TRUE.)) then
+            if ((lSwapLater).AND.(lSwapCheck)) then
 
                 ! Check if this solution phase can be swapped with another phase:
                 call CheckSolnPhaseSwap(i,lPhasePass)
 
                 ! Exit if this phase assemblage is appropriate:
-                if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnPhaseAdd
+                if (lPhasePass) exit LOOP_SolnPhaseAdd
 
             end if
 
         elseif ((dDrivingForceSoln(i) < dTolerance(4)).AND.(nConPhases + nSolnPhases == nElements).AND. &
         !elseif ((dDrivingForceSoln(i) < dTolerance(4)).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
-            (lSwapCheck .EQV. .TRUE.).AND.(iterGlobal - iterlast > 10)) then
+            (lSwapCheck).AND.(iterGlobal - iterlast > 10)) then
 
             ! Check if this solution phase can be swapped with another phase:
             call CheckSolnPhaseSwap(i,lPhasePass)
 
             ! Exit if this phase assemblage is appropriate:
-            if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnPhaseAdd
+            if (lPhasePass) exit LOOP_SolnPhaseAdd
 
         end if  IF_SolnPhaseAdd
 

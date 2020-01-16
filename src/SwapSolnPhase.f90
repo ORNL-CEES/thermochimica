@@ -97,7 +97,7 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
         j = -iAssemblage(nElements - i + 1)
 
         ! Check if this phase has a miscibility gap, and if so, make sure that it does not swap itself:
-        if ((lMiscibility(iPhaseChange) .EQV. .TRUE.).OR.(lMiscibility(j) .EQV. .TRUE.)) then
+        if ((lMiscibility(iPhaseChange)).OR.(lMiscibility(j))) then
 
             ! Either the phase that is to be added to the system or the current phase is not the first
             ! "phase" that contains a miscibility gap.
@@ -138,7 +138,7 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
             ! This phase assemblage has been considered.  Move on to the next phase:
-            if (lSwapLater .EQV. .TRUE.) cycle LOOP_SolnPhase
+            if (lSwapLater) cycle LOOP_SolnPhase
 
         end if
 
@@ -164,7 +164,7 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
 
         lRevertSystem = .FALSE.
 
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             ! This phase assemblage can be considered.
             iterLastSoln = iterGlobal
             iterLast     = iterGlobal

@@ -75,9 +75,10 @@ subroutine ParseCSDataBlockSUBG( i )
     implicit none
 
     integer                     :: i, j, k, l, n, x, y, p, a, b, nA2X2, nChar
+    integer                     :: iaaxy, ibbxy, iabxx, iabyy
     integer,     dimension(10)  :: iTempVec
     integer,     dimension(15)  :: iNumPos
-    real(8)                     :: qa, qb, qx, qy, za, zb
+    real(8)                     :: qa, qb, qx, qy, za, zb, zx, zy, dF
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cConstituentNames1, cConstituentNames2
     logical, dimension(:), allocatable :: lPairSet
@@ -97,7 +98,6 @@ subroutine ParseCSDataBlockSUBG( i )
     ! sublattice. I think there are always two sublattices for SUBG phases.
     read (1,*,IOSTAT = INFO) nSublatticeElementsCS(nCountSublatticeCS,1:2)
     nSublatticePhaseCS(nCountSublatticeCS) = 2
-
 
     ! Read in names of constituents on first sublattice:
     ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
@@ -275,16 +275,64 @@ subroutine ParseCSDataBlockSUBG( i )
         qx = dSublatticeChargeCS(nCountSublatticeCS,2,x)
         qy = dSublatticeChargeCS(nCountSublatticeCS,2,y)
 
-        za = dCoordinationNumberCS(nCountSublatticeCS, a, 1)
-        zb = dCoordinationNumberCS(nCountSublatticeCS, b, 1)
+        if ((a /= b) .AND. (x == y)) then
+            p = (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            za = dCoordinationNumberCS(nCountSublatticeCS, p + a, 1)
+            zb = dCoordinationNumberCS(nCountSublatticeCS, p + b, 1)
 
-        dCoordinationNumberCS(nCountSublatticeCS, k, 1) = za
-        dCoordinationNumberCS(nCountSublatticeCS, k, 2) = zb
-        dCoordinationNumberCS(nCountSublatticeCS, k, 3) = (qx + qy) / ((qa / za) + (qb / zb))
-        dCoordinationNumberCS(nCountSublatticeCS, k, 4) = (qx + qy) / ((qa / za) + (qb / zb))
+            dCoordinationNumberCS(nCountSublatticeCS, k, 1) = za
+            dCoordinationNumberCS(nCountSublatticeCS, k, 2) = zb
+            dCoordinationNumberCS(nCountSublatticeCS, k, 3) = (qx + qy) / ((qa / za) + (qb / zb))
+            dCoordinationNumberCS(nCountSublatticeCS, k, 4) = (qx + qy) / ((qa / za) + (qb / zb))
+        else if ((a == b) .AND. (x /= y)) then
+            p = (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            zx = dCoordinationNumberCS(nCountSublatticeCS, p + a, 3)
+            p = (y - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            zy = dCoordinationNumberCS(nCountSublatticeCS, p + a, 3)
 
+            dCoordinationNumberCS(nCountSublatticeCS, k, 1) = (qa + qb) / ((qx / zx) + (qy / zy))
+            dCoordinationNumberCS(nCountSublatticeCS, k, 2) = (qa + qb) / ((qx / zx) + (qy / zy))
+            dCoordinationNumberCS(nCountSublatticeCS, k, 3) = zx
+            dCoordinationNumberCS(nCountSublatticeCS, k, 4) = zy
+        else if ((a /= b) .AND. (x /= y)) then
+            ! Indices for AA/XY and BB/XY
+            p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+              * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            iaaxy = a + p
+            ibbxy = b + p
+            ! Indices for AB/XX and AB/YY
+            l = nSublatticeElementsCS(nCountSublatticeCS,1) + a + ((b-2)*(b-1)/2)
+            p = (x - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            iabxx = l + p
+            p = (y - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+            iabyy = l + p
+            ! Coordinations of specific species for the above quadruplets
+            za = dCoordinationNumberCS(nCountSublatticeCS,iaaxy,1)
+            zb = dCoordinationNumberCS(nCountSublatticeCS,ibbxy,1)
+            zx = dCoordinationNumberCS(nCountSublatticeCS,iabxx,3)
+            zy = dCoordinationNumberCS(nCountSublatticeCS,iabyy,3)
+            ! Equation 24 from part iv paper
+            dF = (1D0/8D0)*((qa/za)+(qb/zb)+(qx/zx)+(qy/zy))
+            ! Equation 23 from part iv paper
+            dCoordinationNumberCS(nCountSublatticeCS, k, 1) = &
+                                  1D0 / (((zx/(qx*dCoordinationNumberCS(nCountSublatticeCS,iabxx,1))) &
+                                        + (zy/(qy*dCoordinationNumberCS(nCountSublatticeCS,iabyy,1)))) * dF)
+            dCoordinationNumberCS(nCountSublatticeCS, k, 2) = &
+                                  1D0 / (((zx/(qx*dCoordinationNumberCS(nCountSublatticeCS,iabxx,2))) &
+                                        + (zy/(qy*dCoordinationNumberCS(nCountSublatticeCS,iabyy,2)))) * dF)
+            dCoordinationNumberCS(nCountSublatticeCS, k, 3) = &
+                                  1D0 / (((za/(qa*dCoordinationNumberCS(nCountSublatticeCS,iaaxy,3))) &
+                                        + (zb/(qb*dCoordinationNumberCS(nCountSublatticeCS,ibbxy,3)))) * dF)
+            dCoordinationNumberCS(nCountSublatticeCS, k, 4) = &
+                                  1D0 / (((za/(qa*dCoordinationNumberCS(nCountSublatticeCS,iaaxy,4))) &
+                                        + (zb/(qb*dCoordinationNumberCS(nCountSublatticeCS,ibbxy,4)))) * dF)
+        end if
     end do LOOP_allSROPairs
 
+    ! Copy previously-read end member info into appropriate variables before it gets overwritten by
+    ! quadruplet data calculated below.
+    cPairNameCS(nCountSublatticeCS,1:nPairsSROCS(nCountSublatticeCS,1)) = &
+                cSpeciesNameCS((nSpeciesPhaseCS(i-1)+1):(nSpeciesPhaseCS(i-1)+nPairsSROCS(nCountSublatticeCS,1)))
     dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
     dStoichPairsCS(nCountSublatticeCS,1:nPairsSROCS(nCountSublatticeCS,2),1:nElementsCS) &
                   = dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS)
@@ -303,10 +351,10 @@ subroutine ParseCSDataBlockSUBG( i )
         l = j + nSpeciesPhaseCS(i-1)
 
         ! Just get the quads directly version
-        if (a > 0) dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
-        if (b > 0) dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
-        if (x > 0) dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 3))
-        if (y > 0) dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
+        if (a > 0) dStoichSpeciesCS(l,a) = dStoichSpeciesCS(l,a) + (1D0 / dCoordinationNumberCS(nCountSublatticeCS, j, 1))
+        if (b > 0) dStoichSpeciesCS(l,b) = dStoichSpeciesCS(l,b) + (1D0 / dCoordinationNumberCS(nCountSublatticeCS, j, 2))
+        if (x > 0) dStoichSpeciesCS(l,x) = dStoichSpeciesCS(l,x) + (1D0 / dCoordinationNumberCS(nCountSublatticeCS, j, 3))
+        if (y > 0) dStoichSpeciesCS(l,y) = dStoichSpeciesCS(l,y) + (1D0 / dCoordinationNumberCS(nCountSublatticeCS, j, 4))
 
         ! Create quadruplet names
         cSpeciesNameCS(j + nSpeciesPhaseCS(i-1)) = TRIM(cConstituentNames1(iPairIDCS(nCountSublatticeCS, j, 1))) // '-' &
@@ -337,7 +385,8 @@ subroutine ParseCSDataBlockSUBG( i )
             ! Mixing terms:
             read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
             if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
-                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R'))) then
+                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R') &
+                 .OR. (cRegularParamCS(nParamCS) == 'B'))) then
                 INFO = 10000 + 1000*j + i
                 return
             end if

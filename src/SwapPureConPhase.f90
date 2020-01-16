@@ -77,7 +77,7 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
             call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
             ! If this phase assemblage has been previously considered, skip to the next phase:
-            if (lSwapLater .EQV. .TRUE.) cycle LOOP_ConPhase
+            if (lSwapLater) cycle LOOP_ConPhase
 
         end if
 
@@ -90,13 +90,7 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         ! Check that this phase change is acceptable:
         call CheckPhaseChange(lPhasePass,INFO)
 
-        if (lPhasePass .EQV. .FALSE.) then
-            ! The phase in question cannot be swapped.  Revert back to the previous assemblage:
-            iAssemblage = iAssemblageTest
-            dMolesPhase = dTempVec
-            lSwapLater  = .TRUE.
-            cycle LOOP_ConPhase
-        else
+        if (lPhasePass) then
             ! The new phase assemblage is acceptable.
             iterLastCon    = iterGlobal
             iterLast       = iterGlobal
@@ -105,6 +99,12 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
             iSolnSwap      = 0
             dMolesPhase(i) = 0D0
             exit LOOP_ConPhase
+        else
+            ! The phase in question cannot be swapped.  Revert back to the previous assemblage:
+            iAssemblage = iAssemblageTest
+            dMolesPhase = dTempVec
+            lSwapLater  = .TRUE.
+            cycle LOOP_ConPhase
         end if
 
     end do LOOP_ConPhase

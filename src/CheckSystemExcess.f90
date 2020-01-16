@@ -352,7 +352,7 @@ subroutine CheckSystemExcess
                         end if
                     end do
                     do k = 1, nRemove
-                        do l = nSublatticeElements(nCountSublattice,j), 1, -1
+                        do l = SIZE(iConstituentSublattice,3), 1, -1
                             if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
                                 iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) - 1
                             end if
@@ -374,7 +374,11 @@ subroutine CheckSystemExcess
                     lRemoved = .TRUE.
                     if (pe > 0) then
                         do l = 1, nElements
-                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
+                            if (nCompounds > 0) then
+                                if (iSublatticeElementsCS(nCountSublatticeCS,1,pe) > 0) then
+                                    lRemoved = .FALSE.
+                                end if
+                            else if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
                                 lRemoved = .FALSE.
                             end if
                         end do
@@ -386,7 +390,11 @@ subroutine CheckSystemExcess
                     if (pf > 0) then
                         pf = pf - nSublatticeElementsCS(nCountSublatticeCS,1)
                         do l = 1, nElements
-                            if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,2,pf))) then
+                            if (nCompounds > 0) then
+                                if (iSublatticeElementsCS(nCountSublatticeCS,2,pf) > 0) then
+                                    lRemoved = .FALSE.
+                                end if
+                            else if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,2,pf))) then
                                 lRemoved = .FALSE.
                             end if
                         end do

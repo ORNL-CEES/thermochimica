@@ -95,6 +95,7 @@ module ModuleParseCS
     character(8),   dimension(:),   allocatable :: cSolnPhaseTypeCS
     character(25),  dimension(:),   allocatable :: cSolnPhaseNameCS
     character(30),  dimension(:),   allocatable :: cSpeciesNameCS
+    character(30),  dimension(:,:), allocatable :: cPairNameCS
     character(8),   dimension(:,:,:), allocatable :: cConstituentNameSUBCS
     character,      dimension(:),   allocatable :: cRegularParamCS
 

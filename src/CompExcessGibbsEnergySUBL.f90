@@ -194,7 +194,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
         end do LOOP_CorrectX
 
         ! Correct the number of moles for each species if the solution phase is stable:
-        if (lSolnPhases(iSolnIndex) .EQV. .TRUE.) then
+        if (lSolnPhases(iSolnIndex)) then
             l = 0
             ! Determine the relative phase index:
             LOOP_C: do j = 1, nSolnPhases

@@ -151,7 +151,7 @@ subroutine CheckCompounds
                             cycle LOOP_adjustSublElem
                         end if
                     end do
-                    iSublatticeElementsCS(i,j,k) = -1
+                    iSublatticeElementsCS(i,j,k) = 0
                 end do LOOP_adjustSublElem
             end do
         end do

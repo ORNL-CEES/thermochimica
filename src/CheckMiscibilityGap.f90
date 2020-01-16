@@ -52,7 +52,7 @@
 subroutine CheckMiscibilityGap(iSolnPhaseIndex,lAddPhase)
 
     USE ModuleThermo
-    USE MOduleGEMSolver
+    USE ModuleGEMSolver
 
     implicit none
 
@@ -82,7 +82,7 @@ subroutine CheckMiscibilityGap(iSolnPhaseIndex,lAddPhase)
         call Subminimization(iSolnPhaseIndex, lAddPhase)
 
         ! Exit if this phase should be added to the system:
-        if (lAddPhase .EQV. .TRUE.) exit LOOP_Constituents
+        if (lAddPhase) exit LOOP_Constituents
 
     end do LOOP_Constituents
 

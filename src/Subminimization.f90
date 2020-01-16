@@ -150,28 +150,28 @@ subroutine Subminimization(iSolnPhaseIndex,lPhasePass)
         if (dSubMinFunctionNorm < dTolerance(1)) then
 
             ! Check convergence:
-            if ((dDrivingForce <= dTolerance(4)).AND.(lMiscibility(iSolnPhaseIndex) .EQV. .FALSE.)) lSubMinConverged = .TRUE.
+            if ((dDrivingForce <= dTolerance(4)).AND. .NOT.(lMiscibility(iSolnPhaseIndex))) lSubMinConverged = .TRUE.
 
         end if
 
         ! Exit if the subminimization has converged:
-        if ((lSubMinConverged .EQV. .TRUE.).OR.(INFOThermo /= 0)) exit LOOP_IterSub
+        if ((lSubMinConverged).OR.(INFOThermo /= 0)) exit LOOP_IterSub
 
         ! Check if the solution phases represening the miscibility gap duplicate one another:
-        if (lMiscibility(iSolnPhaseIndex) .EQV. .TRUE.) call SubMinCheckDuplicate(lDuplicate)
+        if (lMiscibility(iSolnPhaseIndex)) call SubMinCheckDuplicate(lDuplicate)
 
         ! Exit if the subminimization has converged:
-        if (lDuplicate .EQV. .TRUE.) exit LOOP_IterSub
+        if (lDuplicate) exit LOOP_IterSub
 
     end do LOOP_IterSub
 
     ! If the composition of phases representing a miscibility gap duplicate one another (i.e., they have virtually
     ! the same composition), then set the driving force to zero to prevent this phase from being added to the system.
-    if (lDuplicate .EQV. .TRUE.) dDrivingForce = 0D0
+    if (lDuplicate) dDrivingForce = 0D0
 
     ! If the driving force is less than a specified tolerance and the system has converged,
     ! add this solution phase to the system:
-    if ((dDrivingForce < dTolerance(4)).AND.(lSubMinConverged .EQV. .TRUE.)) lPhasePass = .TRUE.
+    if ((dDrivingForce < dTolerance(4)).AND.(lSubMinConverged)) lPhasePass = .TRUE.
 
     ! If the mole fraction and charge neutrality constraints were not satisfied, then set the driving force to zero:
     if (dSubMinFunctionNorm > 10D0*dTolerance(1)) dDrivingForce = 0D0
@@ -291,7 +291,7 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
 
     ! If this phase contains a miscibility gap, determine the absolute index of the corresponding
     ! solution phase with the miscibility gap:
-    if (lMiscibility(iSolnPhaseIndex) .EQV. .TRUE.) then
+    if (lMiscibility(iSolnPhaseIndex)) then
 
         ! Check the name of the solution phases:
         if (cSolnPhaseName(iSolnPhaseIndex) == cSolnPhaseName(iSolnPhaseIndex-1)) then

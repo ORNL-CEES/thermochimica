@@ -111,7 +111,7 @@ subroutine CheckPureConPhaseRemHistory(iTempVec)
             nConPhases = nConPhases + 1
 
             ! If the phase assmeblage has already been considered, then shuffle the iTempVec vector:
-            if (lSwapLater .EQV. .TRUE.) then
+            if (lSwapLater) then
 
                 ! Shuffle the vector:
                 k                    = iTempVec(nConPhases)

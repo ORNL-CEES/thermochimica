@@ -92,12 +92,12 @@ subroutine CorrectStagnation
             call RemSolnPhase(j,lPhasePass)
 
             ! Exit if the new phase assemblage has passed:
-            if (lPhasePass .EQV. .TRUE.) exit LOOP_SolnRem
+            if (lPhasePass) exit LOOP_SolnRem
 
         end do LOOP_SolnRem
 
         ! If a solution phase cannot be removed from the system, then try removing a pure condensed phase:
-        if (lPhasePass .EQV. .FALSE.) then
+        if (.NOT.(lPhasePass)) then
 
             iTempVec = 0
             dTempVec = -1D6
@@ -117,7 +117,7 @@ subroutine CorrectStagnation
                 call RemPureConPhase(j,lSwapLater,lPhasePass)
 
                 ! Exit if the new phase assemblage has passed:
-                if (lPhasePass .EQV. .TRUE.) exit LOOP_PureConRem
+                if (lPhasePass) exit LOOP_PureConRem
 
             end do LOOP_PureConRem
 

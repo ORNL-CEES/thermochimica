@@ -231,8 +231,8 @@ subroutine CheckSystem
         dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
         if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
             ! Element j should not be considered.
-            iElementSystem(j) = 0
             dElementMass(iElementSystem(j)) = 0
+            iElementSystem(j) = 0
             if (cElementNameCS(j) == 'e-') then
                 nElements         = nElements + 1
                 iElementSystem(j) = -1
@@ -432,7 +432,7 @@ subroutine CheckSystem
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
                      iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dSublatticeCharge,iChemicalGroup, STAT = n)
+                     dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -449,6 +449,8 @@ subroutine CheckSystem
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
+            allocate(cPairName(nCountSublattice,MAXVAL(nPairsSROCS(:,1))))
         end if
 
     else
@@ -480,6 +482,8 @@ subroutine CheckSystem
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
+            allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
+            allocate(cPairName(nCountSublattice,MAXVAL(nPairsSROCS(:,1))))
         end if
 
     end if
@@ -513,7 +517,8 @@ subroutine CheckSystem
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
         dSublatticeCharge    = 0D0
-        iChemicalGroup    = 0
+        iChemicalGroup       = 0
+        dStoichPairs         = 0D0
     end if
 
     ! Re-establish the character vector representing the element names:

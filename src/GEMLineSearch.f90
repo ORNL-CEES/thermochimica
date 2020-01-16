@@ -302,7 +302,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     ! Count the number of stable miscible phases:
     do j = 1, nSolnPhases
         k = -iAssemblage(nElements - j + 1)
-        if (lMiscibility(k) .EQV. .TRUE.) nMisciblePhases = nMisciblePhases + 1
+        if (lMiscibility(k)) nMisciblePhases = nMisciblePhases + 1
     end do
 
     ! Initialize the maximum increase/decrease of functional variables
@@ -377,11 +377,14 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
-            if (dMolFraction(i) > 0) then
-                dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i))))
-            else
-                ! if set negative or zero then just make this really big
-                dMaxSpeciesChange = 1e16
+            ! This check was getting hung up on tiny tiny mole fractions in some cases,
+            ! so I've added the outer if to skip these
+            if (dMolesSpecies(i) > 1D-100) then
+                if (dMolFraction(i) > 0) then
+                    dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i)))*dStepLength)
+                else
+                    ! if set negative or zero do nothing, I guess
+                end if
             end if
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
 

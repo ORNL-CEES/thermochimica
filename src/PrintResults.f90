@@ -165,9 +165,12 @@ subroutine PrintResultsSolnPhase
 
     ! Loop through solution phases:
     LOOP_SolnStable: do j = 1, nSolnPhases
+
         ! Relative and absolute solution phase indices, respectively:
         k      = nElements - iTempVec(j) + 1
         l      = -iAssemblage(k)
+
+        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l)
 
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(l-1) + 1

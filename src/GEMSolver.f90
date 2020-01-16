@@ -106,7 +106,7 @@ subroutine GEMSolver
         call CheckSysOnlyPureConPhases
 
         ! Report an error if this failed:
-        if (lConverged .EQV. .FALSE.) then
+        if (.NOT.(lConverged)) then
             INFOThermo = 14
             return
         end if
@@ -117,7 +117,7 @@ subroutine GEMSolver
     LOOP_GEMSolver: do iterGlobal = 1, iterGlobalMax
 
         ! If in debug mode, call the debugger:
-        if (lDebugMode .EQV. .TRUE.) call GEMDebug(1)
+        if (lDebugMode) call GEMDebug(1)
 
         ! Construct the Hessian matrix and compute the direction vector:
         call GEMNewton(INFO)
@@ -132,15 +132,15 @@ subroutine GEMSolver
         if (iterGlobal /= iterLast) call CheckConvergence
 
         ! If in debug mode, call the debugger:
-        if (lDebugMode .EQV. .TRUE.) call GEMDebug(9)
+        if (lDebugMode) call GEMDebug(9)
 
         ! Return control to the main program if an error has occured or if the solution has converged:
-        if ((INFOThermo /= 0).OR.(lConverged .EQV. .TRUE.)) exit LOOP_GEMSolver
+        if ((INFOThermo /= 0).OR.(lConverged)) exit LOOP_GEMSolver
 
     end do LOOP_GEMSolver
 
     ! Report an error if the GEMSolver did not converge but no other errors were encountered:
-    if ((lConverged .EQV. .FALSE.).AND.(INFOThermo == 0)) INFOThermo = 12
+    if (.NOT.(lConverged).AND.(INFOThermo == 0)) INFOThermo = 12
 
     return
 

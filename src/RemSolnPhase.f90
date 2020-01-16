@@ -92,7 +92,7 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
 
         if (INFOTHermo == 27) INFOTHermo = 0
 
-        if (lConverged .EQV. .TRUE.) then
+        if (lConverged) then
             ! The system can be represented by only pure condensed phases.
             lPhasePass = .TRUE.
         else
@@ -123,8 +123,19 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
         end do LOOP_PhaseCheck
     end if
 
-    if (lConverged .EQV. .FALSE.) then
-        if (lPhasePass .EQV. .FALSE.) then
+    if (.NOT.(lConverged)) then
+        if (lPhasePass) then
+            ! The new phase assemblage has passed.
+            lSolnPhases(iSolnPhaseLast) = .FALSE.
+            iterLastSoln    = iterGlobal
+            iterLast        = iterGlobal
+
+            call CheckRemMisciblePhase(iSolnPhaseLast)
+
+            ! Compute the number of moles of all phases:
+            !call CompMolAllSolnPhases
+
+        else
             ! The phase in question cannot be removed. Return variables to their previous values:
             nSolnPhases     = nSolnPhases + 1
             j               = nElements - nSolnPhases  + 1
@@ -136,17 +147,6 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
             iSolnPhaseLast  = iSolnPhaseLastOld
 
             if (iterGlobal - iterLast >= 40) lRevertSystem = .TRUE.
-
-        else
-            ! The new phase assemblage has passed.
-            lSolnPhases(iSolnPhaseLast) = .FALSE.
-            iterLastSoln    = iterGlobal
-            iterLast        = iterGlobal
-
-            call CheckRemMisciblePhase(iSolnPhaseLast)
-
-            ! Compute the number of moles of all phases:
-            !call CompMolAllSolnPhases
 
         end if
     else

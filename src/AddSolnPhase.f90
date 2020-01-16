@@ -101,7 +101,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
     if ((MINVAL(dMolesPhase(1:nConPhases)) < 0D0).AND.(iterGlobal - iterLast < 20)) return
 
     ! If the current phase has a miscibility gap, check the index numbers:
-    if (lMiscibility(iPhaseChange) .EQV. .TRUE.) then
+    if (lMiscibility(iPhaseChange)) then
 
         call CheckAddMisciblePhaseIndex(iPhaseChange)
 
@@ -124,7 +124,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
         call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
         ! This phase assemblage has been considered.  Move on to the next phase:
-        if (lSwapLater .EQV. .TRUE.) return
+        if (lSwapLater) return
 
     end if
 
@@ -170,7 +170,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
                 call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
                 ! This phase assemblage has been considered.  Move on to the next phase:
-                if (lSwapLater .EQV. .TRUE.) then
+                if (lSwapLater) then
                     lPhasePass = .FALSE.
                     exit LOOP_CheckAssemblage
                 end if
@@ -184,7 +184,16 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
     end do LOOP_CheckAssemblage
 
     ! Check if this new phase assemblage is acceptable:
-    if (lPhasePass .EQV. .FALSE.) then
+    if (lPhasePass) then
+        ! The new phase assemblage is appropriate for testing.
+        iterLastSoln   = iterGlobal
+        iterlast       = iterGlobal
+        iSolnPhaseLast = iPhaseChange
+        lPhasePass     = .TRUE.
+
+        dDrivingForceSoln(iPhaseChange) = 0D0
+        lSolnPhases(iPhaseChange)       = .TRUE.
+    else
         ! The phase in question cannot be removed.  Revert the system:
         nSolnPhases         = nSolnPhases - 1
         iAssemblage         = iAssemblageLast
@@ -194,15 +203,6 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
 
         ! The following is (probably) unnecessary:
         dPartialExcessGibbs = dPartialExcessGibbsLast
-    else
-        ! The new phase assemblage is appropriate for testing.
-        iterLastSoln   = iterGlobal
-        iterlast       = iterGlobal
-        iSolnPhaseLast = iPhaseChange
-        lPhasePass     = .TRUE.
-
-        dDrivingForceSoln(iPhaseChange) = 0D0
-        lSolnPhases(iPhaseChange)       = .TRUE.
     end if
 
     return

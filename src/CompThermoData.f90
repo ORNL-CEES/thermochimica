@@ -107,10 +107,9 @@ subroutine CompThermoData
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
-    integer                            :: iaaxx, ibbxx, iaayy, ibbyy
     integer, dimension(nElementsCS)    :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
-    real(8)                            :: dZaxa, dZbxb, dZaya, dZbyb, dStdEnergyTemp, dChemPot1, dChemPot2
+    real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
 
@@ -197,8 +196,17 @@ subroutine CompThermoData
                                         * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)) &
                             + iFirst - 1
                 if (iSpeciesPass(iIndex) > 0) then
+                    nPairsSRO(iSublPhaseIndex,1) = nPairsSRO(iSublPhaseIndex,1) + 1
                     jj = jj + 1
                     dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                    cPairName(iSublPhaseIndex,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
+                    m = 0
+                    do k = 1, nElemOrComp
+                        if (iElementSystem(k) /= 0) then
+                            m = m + 1
+                            dStoichPairs(iSublPhaseIndex,jj,m) = dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k)
+                        end if
+                    end do
                 end if
 
                 ! I'm like pretty sure that these are g_A2/X2 and not g_A/X,
@@ -267,25 +275,11 @@ subroutine CompThermoData
                     end if
                 end do
 
-                iaaxx = ii + (ka - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-                ibbxx = jj + (ka - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-                iaayy = ii + (la - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-                ibbyy = jj + (la - 1) * (nSublatticeElements(iSublPhaseIndex,1) * (nSublatticeElements(iSublPhaseIndex,1) + 1) / 2)
-                dZaxa = dCoordinationNumberCS(iSublPhaseIndex,iaaxx,1)
-                dZbxb = dCoordinationNumberCS(iSublPhaseIndex,ibbxx,2)
-                dZaya = dCoordinationNumberCS(iSublPhaseIndex,iaayy,1)
-                dZbyb = dCoordinationNumberCS(iSublPhaseIndex,ibbyy,2)
-
                 dChemicalPotential(j) = ((dQx * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
                       + (dQx * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
                       + (dQy * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy)) &
                       + (dQy * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
                       / ((dQx/dZx) + (dQy/dZy))
-                ! dChemicalPotential(j) = ((dQx * dZaxa * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
-                !       + (dQx * dZbxb * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
-                !       + (dQy * dZaya * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy)) &
-                !       + (dQy * dZbyb * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
-                !       / (2 * ((dQx/dZx) + (dQy/dZy)))
             end do LOOP_nSUBGQCS
         else
             LOOP_nSpeciesCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)

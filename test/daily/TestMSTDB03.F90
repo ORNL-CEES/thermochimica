@@ -27,7 +27,7 @@ program mstdb
     dElementMass(3)       = 1D0
 
     ! Specify output and debug modes:
-    iPrintResultsMode     = 2
+    iPrintResultsMode     = 0
     lDebugMode            = .FALSE.
 
     ! Parse the ChemSage data-file:
@@ -35,6 +35,8 @@ program mstdb
 
     ! Call Thermochimica:
     if (INFOThermo == 0)        call Thermochimica
+
+    if (iPrintResultsMode > 0)  call PrintResults
 
     ! Check results:
     if (INFOThermo == 0) then
@@ -45,7 +47,7 @@ program mstdb
         ((DABS(dMolFraction(4)  - 9.3920D-02)/9.3920D-02) < 1D-3) .AND. &
         ((DABS(dMolFraction(5)  - 5.1978D-13)/5.1978D-13) < 1D-3) .AND. &
         ((DABS(dMolFraction(6)  - 1.2012D-02)/1.2012D-02) < 1D-3) .AND. &
-        
+
         ((DABS(dMolFraction(7)  - 0.32446D00)/0.32446D00) < 1D-3) .AND. &
         ((DABS(dMolFraction(8)  - 6.8356D-02)/6.8356D-02) < 1D-3) .AND. &
         ((DABS(dMolFraction(9)  - 2.4117D-04)/2.4117D-04) < 1D-3) .AND. &

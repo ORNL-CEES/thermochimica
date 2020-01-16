@@ -108,7 +108,7 @@ subroutine SwapPureConForSolnPhase(iPhaseChange,lPhasePass)
         call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
         ! Skip to this next solution phase if the phase assemblage has been previously considered:
-        if (lSwapLater .EQV. .TRUE.) cycle LOOP_SolnPhases
+        if (lSwapLater) cycle LOOP_SolnPhases
 
         ! Store the info for the solution phase to be removed to temporary variables:
         iAssemblageTest         = iAssemblage
@@ -135,8 +135,8 @@ subroutine SwapPureConForSolnPhase(iPhaseChange,lPhasePass)
 
             lRevertSystem = .FALSE.
 
-            !if (lPhasePass .EQV. .TRUE.) then
-            if (lConverged .EQV. .TRUE.) then
+            !if (lPhasePass) then
+            if (lConverged) then
                 ! The system is comprised of only pure condensed phases.
                 lConverged = .TRUE.
                 exit LOOP_SolnPhases
@@ -150,7 +150,7 @@ subroutine SwapPureConForSolnPhase(iPhaseChange,lPhasePass)
         end if
 
         ! Check if the new phase assemblage has passed:
-        if (lPhasePass .EQV. .TRUE.) then
+        if (lPhasePass) then
             ! This phase assemblage can be considered.
             iterLastSoln = iterGlobal
             iterLast     = iterGlobal
