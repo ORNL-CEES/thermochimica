@@ -507,6 +507,7 @@ subroutine CheckSystem
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
         dSiteFraction          = 0D0
+        dStoichSublattice      = 0D0
         iConstituentSublattice = 0
         nSublatticePhase       = 0
         nConstituentSublattice = 0
