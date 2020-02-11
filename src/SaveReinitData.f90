@@ -49,7 +49,7 @@ subroutine SaveReinitData
   dElementPotential_Old   = dElementPotential
   ! Save old phase data
   iAssemblage_Old         = iAssemblage
-  dMolesPhase_Old         = dMolesPhase / dNormalizeInput
+  dMolesPhase_Old         = dMolesPhase !/ dNormalizeInput
   dMolFraction_Old        = dMolFraction
   ! Save which elements were included
   iElementsUsed_Old       = min(ceiling(dElementMass),1)

@@ -65,7 +65,7 @@ subroutine LoadReinitData
   if (.NOT. allocated(dMolesPhase)) allocate(dMolesPhase(nElements))
   if (.NOT. allocated(dMolFraction)) allocate(dMolFraction(nSpecies))
   iAssemblage         = iAssemblage_Old
-  dMolesPhase         = dMolesPhase_Old
+  dMolesPhase         = dMolesPhase_Old * dNormalizeInput
   dMolFraction        = dMolFraction_Old
 
   lReinitLoaded = .TRUE.
