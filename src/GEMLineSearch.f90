@@ -462,6 +462,11 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         end if
     end do
 
+
+    dTemp = 0.05D0
+
+    ! Count the number of solution phases (i.e., j) that are changing by at least 5%:
+    call CheckStagnation(dTemp,dMaxChange,j)
     ! Check if there is at least one solution phase that is tending to zero:
     if (i > 0) then
         ! An issue with the Gibbs Energy Minimization method is that one is effectively attempting to
@@ -473,13 +478,12 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         ! moles of that phase alone will change significantly.  If the number of moles of more than
         ! one solution phase changes, then the system may need to be further dampened.
 
-        dTemp = 0.05D0
-
-        ! Count the number of solution phases (i.e., j) that are changing by at least 5%:
-        call CheckStagnation(dTemp,dMaxChange,j)
-
         ! If there is more than one solution phase that is changing by more than 5%, then dampen some more:
         if (j > 1) dStepLength = dStepLength * 0.5D0
+
+    else
+        ! Stagnating? Seen a lot of oscillation in small dMolFractions, try reducing step size
+        if (dMaxChange < 1D-6) dStepLength = dStepLength * 0.5D0
 
     end if
 
