@@ -272,10 +272,13 @@ subroutine CheckSystemExcess
                     n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
                     if ((n1 == 0) .OR. (n2 == 0)) then
                         cycle LOOP_iConstitSubl
-                    else if (n1 > 0) then
-                        if (iElementSystem(n1) <= 0) cycle LOOP_iConstitSubl
-                    else if (n2 > 0) then
-                        if (iElementSystem(n2) <= 0) cycle LOOP_iConstitSubl
+                    else
+                        if (n1 > 0) then
+                            if (iElementSystem(n1) <= 0) cycle LOOP_iConstitSubl
+                        end if
+                        if (n2 > 0) then
+                            if (iElementSystem(n2) <= 0) cycle LOOP_iConstitSubl
+                        end if
                     end if
                     m = m + 1
                     iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
