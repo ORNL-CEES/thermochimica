@@ -75,11 +75,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix
+    integer :: iA2X2, iB2X2, iA2Y2, iB2Y2, iADX2, iD2X2, i2, ia, ix
     integer :: iGroupA, iGroupB, iGroupD
-    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
+    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumXij
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXADX2, dXD2X2, dX2, dY1, dY2, dBlock
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
@@ -161,7 +161,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do
 
     ! Compute X_i/j
-    dSum = 0D0
+    dSumXij = 0D0
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
             m = iConstituentSublattice(iSPI,1,i) + &
@@ -184,13 +184,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
                 dNij(i,j) = dNij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
             end do
-            dSum = dSum + dNij(i,j)
+            dSumXij = dSumXij + dNij(i,j)
         end do
     end do
 
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
-            dXij(i,j) = dNij(i,j) / dSum
+            dXij(i,j) = dNij(i,j) / dSumXij
         end do
     end do
 
@@ -413,7 +413,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
         ! Q-type binary terms
-        else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+        ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+        else if (cRegularParam(abxy) == 'Q') then
             dY1 = 0D0
             dY2 = 0D0
             do k = 1, nPairsSRO(iSPI,2)
@@ -430,6 +431,31 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dYtot = dY1 + dY2
             dGex = dExcessGibbsParam(abxy) * dY1**p * dY2**q / (dYtot**(p + q))
             dDgexBase = -dGex * (p + q) / dYtot
+        ! B-type binary terms
+        else if (cRegularParam(abxy) == 'B') then
+            dBlock = dMolFraction(iBlock)
+            iA2X2 = (x - 1) * (nSublatticeElements(iSPI,1) &
+                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
+                            + a + iFirst - 1
+            iB2Y2 = (y - 1) * (nSublatticeElements(iSPI,1) &
+                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
+                            + b + iFirst - 1
+            dXA2X2 = dMolFraction(iA2X2)
+            dXB2Y2 = dMolFraction(iB2Y2)
+            ! dGex = dExcessGibbsParam(abxy)*(2D0*dXA2X2 + dBlock)*(2D0*dXB2Y2 + dBlock)/(4D0*(dXA2X2 + dXB2Y2 + dBlock)**2D0)
+            dGex = dExcessGibbsParam(abxy) * dXij(a,x) * dXij(b,y) * (dXij(b,y) - dXij(a,x))**q
+            dDgexBase = -dGex
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + dGex*((1D0/(2D0*dXA2X2 + dBlock)) &
+                                                                                        + (1D0/(2D0*dXB2Y2 + dBlock)))
+            dPartialExcessGibbs(iA2X2)  = dPartialExcessGibbs(iA2X2)  + dGex*((2D0/(2D0*dXA2X2 + dBlock)))
+            dPartialExcessGibbs(iB2Y2)  = dPartialExcessGibbs(iB2Y2)  + dGex*((2D0/(2D0*dXB2Y2 + dBlock)))
+            do ijkl = 1, nPairsSRO(iSPI,2)
+                iQuad2 = ijkl + iFirst - 1
+                dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + dDgexBase
+            end do
+            ! print *, dGex
+            ! print *, dPartialExcessGibbs(iA2X2), dPartialExcessGibbs(iB2Y2), dPartialExcessGibbs(iBlock)
+            cycle LOOP_Param
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
             dGex = dExcessGibbsParam(abxy)
@@ -438,8 +464,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             INFOThermo = 42
         end if
 
-
-        ! First add g^ex contribution to quad corresponding to block AB/XY
         dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
 
         ! If A = B add g^ex contribution to quads AC/XY
@@ -453,9 +477,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                       * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
                       +  nSublatticeElements(iSPI,1) + e + ((f-2)*(f-1)/2)
                 iQuad = iQuad + iFirst - 1
-                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
-                                           * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,1) &
-                                           /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ia)))
+                ! if (cRegularParam(abxy) /= 'B') then
+                    dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
+                                               * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,1) &
+                                               /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ia)))
+                ! end if
             end do LOOP_AC1
         end if
 
@@ -491,7 +517,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
                 if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
             ! Q-type binary terms
-            else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+            else if (cRegularParam(abxy) == 'Q') then
+            ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
                 dDgex = 0D0
                 if ((i == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
                 if ((i == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
