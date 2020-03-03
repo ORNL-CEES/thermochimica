@@ -71,13 +71,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la
+    integer :: i, j, k, l, m, ii, jj, kk ,ll, ka, la
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
     integer :: iA2X2, iB2X2, iA2Y2, iB2Y2, iADX2, iD2X2, i2, ia, ix
     integer :: iGroupA, iGroupB, iGroupD
-    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumXij
+    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXADX2, dXD2X2, dX2, dY1, dY2, dBlock
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
@@ -161,7 +161,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do
 
     ! Compute X_i/j
-    dSumXij = 0D0
+    dSumNij = 0D0
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
             m = iConstituentSublattice(iSPI,1,i) + &
@@ -184,13 +184,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
                 dNij(i,j) = dNij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
             end do
-            dSumXij = dSumXij + dNij(i,j)
+            dSumNij = dSumNij + dNij(i,j)
         end do
     end do
 
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
-            dXij(i,j) = dNij(i,j) / dSumXij
+            dXij(i,j) = dNij(i,j) / dSumNij
         end do
     end do
 
@@ -433,28 +433,43 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dDgexBase = -dGex * (p + q) / dYtot
         ! B-type binary terms
         else if (cRegularParam(abxy) == 'B') then
-            dBlock = dMolFraction(iBlock)
-            iA2X2 = (x - 1) * (nSublatticeElements(iSPI,1) &
-                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                            + a + iFirst - 1
-            iB2Y2 = (y - 1) * (nSublatticeElements(iSPI,1) &
-                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                            + b + iFirst - 1
-            dXA2X2 = dMolFraction(iA2X2)
-            dXB2Y2 = dMolFraction(iB2Y2)
-            ! dGex = dExcessGibbsParam(abxy)*(2D0*dXA2X2 + dBlock)*(2D0*dXB2Y2 + dBlock)/(4D0*(dXA2X2 + dXB2Y2 + dBlock)**2D0)
-            dGex = dExcessGibbsParam(abxy) * dXij(a,x) * dXij(b,y) * (dXij(b,y) - dXij(a,x))**q
-            dDgexBase = -dGex
-            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + dGex*((1D0/(2D0*dXA2X2 + dBlock)) &
-                                                                                        + (1D0/(2D0*dXB2Y2 + dBlock)))
-            dPartialExcessGibbs(iA2X2)  = dPartialExcessGibbs(iA2X2)  + dGex*((2D0/(2D0*dXA2X2 + dBlock)))
-            dPartialExcessGibbs(iB2Y2)  = dPartialExcessGibbs(iB2Y2)  + dGex*((2D0/(2D0*dXB2Y2 + dBlock)))
-            do ijkl = 1, nPairsSRO(iSPI,2)
-                iQuad2 = ijkl + iFirst - 1
-                dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + dDgexBase
-            end do
-            ! print *, dGex
-            ! print *, dPartialExcessGibbs(iA2X2), dPartialExcessGibbs(iB2Y2), dPartialExcessGibbs(iBlock)
+            ! Start by calculating mixing energy term
+            dXtot = dXij(a,x) + dXij(b,y)
+            dGex = dExcessGibbsParam(abxy) * dXij(a,x)**(1D0+p) * dXij(b,y)**(1D0+q) / dXtot**(1D0+p+q)
+            dDgexBase = - dGex / dSumNij
+            LOOP_Bder: do i = 1, nSublatticeElements(iSPI,1)
+                do j = 1, nSublatticeElements(iSPI,2)
+                    dDgex = dDgexBase
+                    if ((i == a) .AND. (j == x)) then
+                        dDgex = dDgex + dGex * (dNij(b,y) + dNij(b,y) * p - dNij(a,x) * q) / (dNij(a,x) * (dNij(b,y) + dNij(a,x)))
+                    else if ((i == b) .AND. (j == y)) then
+                        dDgex = dDgex + dGex * (dNij(a,x) - dNij(b,y) * p + dNij(a,x) * q) / (dNij(b,y) * (dNij(b,y) + dNij(a,x)))
+                    end if
+                    m = iConstituentSublattice(iSPI,1,i) + &
+                    ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+                    do k = 1, nPairsSRO(iSPI,2)
+                        l = iFirst + k - 1
+                        nA = 0
+                        if (i == iPairID(iSPI,k,1))  then
+                            nA = nA + 1
+                        end if
+                        if (i == iPairID(iSPI,k,2))  then
+                            nA = nA + 1
+                        end if
+                        nX = 0
+                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,3))  then
+                            nX = nX + 1
+                        end if
+                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
+                            nX = nX + 1
+                        end if
+                        ! Add derivative contribution
+                        dPartialExcessGibbs(l) = dPartialExcessGibbs(l) + (dDgex * nA * nX / dZetaSpecies(iSPI,m))
+                        ! Add dGex to every quadruplet chemical potential
+                        dPartialExcessGibbs(l) = dPartialExcessGibbs(l) + (dGex  * nA * nX / 4D0)
+                    end do
+                end do
+            end do LOOP_Bder
             cycle LOOP_Param
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
