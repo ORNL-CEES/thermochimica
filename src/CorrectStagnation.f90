@@ -87,6 +87,7 @@ subroutine CorrectStagnation
 
             ! Store phase index:
             j = iTempVec(i)
+            if (j > nSolnPhases) cycle LOOP_SolnRem
 
             ! Try removing this solution phase:
             call RemSolnPhase(j,lPhasePass)
