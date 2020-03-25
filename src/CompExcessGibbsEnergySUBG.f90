@@ -75,11 +75,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iB2Y2, iADX2, iD2X2, i2, ia, ix
+    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix!, iB2Y2
     integer :: iGroupA, iGroupB, iGroupD
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXB2Y2, dXADX2, dXD2X2, dX2, dY1, dY2, dBlock
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2!, dBlock, dXB2Y2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
@@ -441,12 +441,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 do j = 1, nSublatticeElements(iSPI,2)
                     dDgex = dDgexBase
                     if ((i == a) .AND. (j == x)) then
+                        ! the if below is just to prove that there are numerical issues with this mixing scheme
+                        ! if (iterGlobal > 10) then
                         dDgex = dDgex + dGex * (dNij(b,y) + dNij(b,y) * p - dNij(a,x) * q) / (dNij(a,x) * (dNij(b,y) + dNij(a,x)))
+                        ! end if
                     else if ((i == b) .AND. (j == y)) then
                         dDgex = dDgex + dGex * (dNij(a,x) - dNij(b,y) * p + dNij(a,x) * q) / (dNij(b,y) * (dNij(b,y) + dNij(a,x)))
                     end if
-                    m = iConstituentSublattice(iSPI,1,i) + &
-                    ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+                    m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
                     do k = 1, nPairsSRO(iSPI,2)
                         l = iFirst + k - 1
                         nA = 0
