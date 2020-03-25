@@ -71,15 +71,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, p, q, r, s, ii, jj, kk ,ll, ka, la
+    integer :: i, j, k, l, m, ii, jj, kk ,ll, ka, la
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix
+    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix!, iB2Y2
     integer :: iGroupA, iGroupB, iGroupD
-    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi
+    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2!, dBlock, dXB2Y2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFracion
@@ -161,7 +161,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do
 
     ! Compute X_i/j
-    dSum = 0D0
+    dSumNij = 0D0
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
             m = iConstituentSublattice(iSPI,1,i) + &
@@ -184,13 +184,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
                 dNij(i,j) = dNij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
             end do
-            dSum = dSum + dNij(i,j)
+            dSumNij = dSumNij + dNij(i,j)
         end do
     end do
 
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
-            dXij(i,j) = dNij(i,j) / dSum
+            dXij(i,j) = dNij(i,j) / dSumNij
         end do
     end do
 
@@ -413,7 +413,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
         ! Q-type binary terms
-        else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+        ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+        else if (cRegularParam(abxy) == 'Q') then
             dY1 = 0D0
             dY2 = 0D0
             do k = 1, nPairsSRO(iSPI,2)
@@ -430,6 +431,48 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dYtot = dY1 + dY2
             dGex = dExcessGibbsParam(abxy) * dY1**p * dY2**q / (dYtot**(p + q))
             dDgexBase = -dGex * (p + q) / dYtot
+        ! B-type binary terms
+        else if (cRegularParam(abxy) == 'B') then
+            ! Start by calculating mixing energy term
+            dXtot = dXij(a,x) + dXij(b,y)
+            dGex = dExcessGibbsParam(abxy) * dXij(a,x)**(1D0+p) * dXij(b,y)**(1D0+q) / dXtot**(1D0+p+q)
+            dDgexBase = - dGex / dSumNij
+            LOOP_Bder: do i = 1, nSublatticeElements(iSPI,1)
+                do j = 1, nSublatticeElements(iSPI,2)
+                    dDgex = dDgexBase
+                    if ((i == a) .AND. (j == x)) then
+                        ! the if below is just to prove that there are numerical issues with this mixing scheme
+                        ! if (iterGlobal > 10) then
+                        dDgex = dDgex + dGex * (dNij(b,y) + dNij(b,y) * p - dNij(a,x) * q) / (dNij(a,x) * (dNij(b,y) + dNij(a,x)))
+                        ! end if
+                    else if ((i == b) .AND. (j == y)) then
+                        dDgex = dDgex + dGex * (dNij(a,x) - dNij(b,y) * p + dNij(a,x) * q) / (dNij(b,y) * (dNij(b,y) + dNij(a,x)))
+                    end if
+                    m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+                    do k = 1, nPairsSRO(iSPI,2)
+                        l = iFirst + k - 1
+                        nA = 0
+                        if (i == iPairID(iSPI,k,1))  then
+                            nA = nA + 1
+                        end if
+                        if (i == iPairID(iSPI,k,2))  then
+                            nA = nA + 1
+                        end if
+                        nX = 0
+                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,3))  then
+                            nX = nX + 1
+                        end if
+                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
+                            nX = nX + 1
+                        end if
+                        ! Add derivative contribution
+                        dPartialExcessGibbs(l) = dPartialExcessGibbs(l) + (dDgex * nA * nX / dZetaSpecies(iSPI,m))
+                        ! Add dGex to every quadruplet chemical potential
+                        dPartialExcessGibbs(l) = dPartialExcessGibbs(l) + (dGex  * nA * nX / 4D0)
+                    end do
+                end do
+            end do LOOP_Bder
+            cycle LOOP_Param
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
             dGex = dExcessGibbsParam(abxy)
@@ -438,8 +481,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             INFOThermo = 42
         end if
 
-
-        ! First add g^ex contribution to quad corresponding to block AB/XY
         dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + (dGex / 2)
 
         ! If A = B add g^ex contribution to quads AC/XY
@@ -453,9 +494,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                       * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
                       +  nSublatticeElements(iSPI,1) + e + ((f-2)*(f-1)/2)
                 iQuad = iQuad + iFirst - 1
-                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
-                                           * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,1) &
-                                           /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ia)))
+                ! if (cRegularParam(abxy) /= 'B') then
+                    dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
+                                               * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,1) &
+                                               /  dCoordinationNumber(iSPI,iQuad  - iFirst + 1,ia)))
+                ! end if
             end do LOOP_AC1
         end if
 
@@ -491,7 +534,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
                 if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
             ! Q-type binary terms
-            else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+            else if (cRegularParam(abxy) == 'Q') then
+            ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
                 dDgex = 0D0
                 if ((i == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
                 if ((i == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
