@@ -559,6 +559,10 @@ subroutine CompThermoData
                             m                    = iRegularParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
                             iRegularParam(n,k+1) = iSpeciesPass(m)
                         end do
+                        if (iRegularParamCS(j,1) == 3) then
+                            m                    = iRegularParamCS(j,iRegularParamCS(j,1)+2) + nSpeciesPhaseCS(i-1)
+                            iRegularParam(n,iRegularParamCS(j,1)+2) = iSpeciesPass(m)
+                        end if
 
                     case ('SUBG','SUBQ')
 
