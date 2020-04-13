@@ -170,7 +170,7 @@ subroutine PrintResultsSolnPhase
         k      = nElements - iTempVec(j) + 1
         l      = -iAssemblage(k)
 
-        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l)
+        ! if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l)
 
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(l-1) + 1
