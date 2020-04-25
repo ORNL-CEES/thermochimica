@@ -133,8 +133,10 @@ subroutine ParseCSDataBlock
         if ((cSolnPhaseTypeCS(i) == 'RKMPM').OR.(cSolnPhaseTypeCS(i) == 'SUBLM')) then
             ! Magnetic ordering terms are present.
 
-            j = nSpeciesPhaseCS(i-1) + 1
-            read (1,*,IOSTAT = INFO) dGibbsMagneticCS(j,3:4)
+            read (1,*,IOSTAT = INFO) dTempVec(1:2)
+            do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                dGibbsMagneticCS(j,3:4) = dTempVec(1:2)
+            end do
 
             ! Record an error if necessesary:
             if (INFO /= 0) then

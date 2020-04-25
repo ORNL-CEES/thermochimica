@@ -128,9 +128,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     k = MIN(nElementsCS,10)
     read (1,*, IOSTAT = INFO) iGibbsEqType, nGibbsEqSpecies(j), dTempVec(1:k)
 
-    if ((iGibbsEqType == 4).OR.(iGibbsEqType == 16).OR.(iGibbsEqType == 1)) then
-        ! Placeholder: do nothing.
-    else
+    if (.NOT.((iGibbsEqType == 4).OR.(iGibbsEqType == 16).OR.(iGibbsEqType == 1).OR.(iGibbsEqType == 13))) then
         ! The type of Gibbs energy equation is not supported.
         INFO = 1400 + i
         return
@@ -196,7 +194,10 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
         elseif (l == 3) then
             read (1,*, IOSTAT = INFO) iDummy, dGibbsCoeffSpeciesTemp(8:13,iCounterGibbsEqn)
         elseif (l == 0) then
-            ! Do nothing.
+            ! Do nothing... except still have to read a line for 4 or 16.
+            if ((iGibbsEqType == 16).OR.(iGibbsEqType == 4)) then
+                read (1,*,IOSTAT = INFO) l
+            end if
         else
             INFO = 1500 + i
             return
@@ -205,7 +206,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     end do LOOP_GibbsEquations      ! End loop of variable m
 
     ! Check if the equation has magnetic contributions:
-    if (iGibbsEqType == 16) then
+    if ((iGibbsEqType == 16).OR.(iGibbsEqType == 13)) then
         ! This species has magnetic contributions to the Gibbs energy equation:
 
         ! Check if this is a pure condensed phase or solution phase:
