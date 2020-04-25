@@ -194,7 +194,10 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
         elseif (l == 3) then
             read (1,*, IOSTAT = INFO) iDummy, dGibbsCoeffSpeciesTemp(8:13,iCounterGibbsEqn)
         elseif (l == 0) then
-            ! Do nothing.
+            ! Do nothing... except still have to read a line for 4 or 16.
+            if ((iGibbsEqType == 16).OR.(iGibbsEqType == 4)) then
+                read (1,*,IOSTAT = INFO) l
+            end if
         else
             INFO = 1500 + i
             return
