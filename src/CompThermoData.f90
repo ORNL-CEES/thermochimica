@@ -677,14 +677,78 @@ subroutine CompThermoData
             IF_MagParamPass: if (iMagParamPassCS(j) /= 0) then
                 nn = nn + 1
                 iMagneticParam(nn,1:nParamMax*2+3) = iMagneticParamCS(j,1:nParamMax*2+3)
+                dMagneticParam(nn,1:2) = dMagneticParamCS(j,1:2)
 
-                if ((cSolnPhaseTypeCS(i) == 'SUBLM') .OR. (cSolnPhaseTypeCS(i) == 'RKMPM')) then
-                    dMagneticParam(nn,1:2) = dMagneticParamCS(j,1:2)
+                if (cSolnPhaseTypeCS(i) == 'RKMPM') then
                     ! Loop through species involved in mixing parameter:
                     do k = 1, iMagneticParamCS(j,1)
                         m                    = iMagneticParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
                         iMagneticParam(nn,k+1) = iSpeciesPass(m)
                     end do
+                    if (iMagneticParamCS(j,1) == 3) then
+                        m                    = iMagneticParamCS(j,iMagneticParamCS(j,1)+2) + nSpeciesPhaseCS(i-1)
+                        iMagneticParam(nn,iMagneticParamCS(j,1)+2) = iSpeciesPass(m)
+                    end if
+                else if (cSolnPhaseTypeCS(i) == 'SUBLM') then
+                    ! Loop through constituents involved in mixing parameter:
+                    do k = 1, iMagneticParamCS(j,1)
+
+                        ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                        ! a continuing count of the constituents.
+                        m = iMagneticParamCS(j,k+1)
+
+                        ! Figure out the sublattice (l) and constituent (m) indices:
+                        LOOP_SUBLmag: do s = 1, nSublatticePhaseCS(nCounter)
+                            l = s
+                            if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                m = m - nConstituentSublatticeCS(nCounter,s)
+                            else
+                                exit LOOP_SUBLmag
+                            end if
+
+                        end do LOOP_SUBLmag
+
+                        ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                        ! sublattice l):
+                        iMagneticParam(nn,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+
+                    end do
+
+                    ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
+                    ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
+                    ! may be three constituents mixing where the first constituent is on the first sublattice and
+                    ! the second and third are on the second sublattice.
+                    LOOP_SUBLmag_Check: do k = 2, iMagneticParamCS(j,1)
+
+                        l = MOD(iMagneticParam(nn,k), 10000)
+                        l = (iMagneticParam(nn,k) - l) / 10000
+
+                        m = MOD(iMagneticParam(nn,k+1), 10000)
+                        m = (iMagneticParam(nn,k+1) - m) / 10000
+
+                        ! If these two constituents are on the same sublattice and they correspond to the
+                        ! first two mixing constituents, then exit:
+                        if (l == m) then
+
+                            ! Check the order of constituents:
+                            if (k == 2) then
+                                ! These constituent indices are correctly placed:
+                                exit LOOP_SUBLmag_Check
+                            elseif (k == 3) then
+                                ! Shuffle the vector:
+                                l = iMagneticParam(nn,2)
+                                iMagneticParam(nn,2) = iMagneticParam(nn,3)
+                                iMagneticParam(nn,3) = iMagneticParam(nn,4)
+                                iMagneticParam(nn,4) = l
+
+                                exit LOOP_SUBLmag_Check
+                            else
+                                ! Report an error and exit:
+                                INFOThermo = 36
+                                exit LOOP_SUBLmag_Check
+                            end if
+                        end if
+                    end do LOOP_SUBLmag_Check
                 end if
             end if IF_MagParamPass
         end do LOOP_MagParam
