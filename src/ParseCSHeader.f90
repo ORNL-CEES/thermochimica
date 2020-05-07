@@ -122,7 +122,7 @@ subroutine ParseCSHeader
 
     ! Allocate memory for pertinent variables:
     j = MAX(1,nSolnPhasesSysCS)
-    allocate(nSpeciesPhaseCS(0:j),nParamPhaseCS(0:j))
+    allocate(nSpeciesPhaseCS(0:j),nParamPhaseCS(0:j),nMagParamPhaseCS(0:j))
     allocate(cElementNameCS(nElementsCS),dAtomicMass(nElementsCS))
     allocate(cSolnPhaseNameCS(j),cSolnPhaseTypeCS(j))
     allocate(iPhaseSublatticeCS(j))
@@ -180,6 +180,7 @@ subroutine ParseCSHeader
     allocate(iRegularParamCS(1000,nParamMax*2+3),dRegularParamCS(1000,6),cRegularParamCS(1000))
     allocate(iPhaseCS(nSpeciesCS),iParticlesPerMoleCS(nSpeciesCS))
     allocate(dGibbsMagneticCS(nSpeciesCS,4))
+    allocate(iMagneticParamCS(1000,nParamMax*2+3),dMagneticParamCS(1000,2))
 
     ! Initialize variables:
     dGibbsCoeffSpeciesTemp = 0D0

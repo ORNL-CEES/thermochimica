@@ -55,6 +55,7 @@ subroutine InitThermo
     nSolnPhases    = 0
     nSolnPhasesSys = 0
     nParam         = 0
+    nMagParam      = 0
     nMaxParam      = nParamMax
 
     ! The universal gas constant used below is calculated using Avogadro's # (6.0221415D23) to 8

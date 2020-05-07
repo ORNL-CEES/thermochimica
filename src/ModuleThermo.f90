@@ -83,14 +83,14 @@ module ModuleThermo
 
     SAVE
 
-    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nElemOrComp
+    integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nElemOrComp, nMagParam
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118, nMaxCompounds = 50
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
-    integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass
+    integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass, nMagParamPhase
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
-    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO
+    integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO, iMagneticParam
     integer,       dimension(:,:), allocatable::  nSublatticeElements
     integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements, iPairID
     integer,       dimension(:,:,:),allocatable:: iChemicalGroup
@@ -101,7 +101,7 @@ module ModuleThermo
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
     real(8),       dimension(:),   allocatable::  dElementPotential, dMolesPhase, dMolesElement, dMolFraction
     real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies
-    real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies
+    real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies, dMagneticParam
 
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge, dStoichPairs
 

@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2
+    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer, dimension(nElementsCS)    :: iRemove
@@ -531,6 +531,7 @@ subroutine CompThermoData
 
     ! Update all the excess properties:
     n = 0
+    nn = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
@@ -670,6 +671,23 @@ subroutine CompThermoData
                 end select
             end if IF_ParamPass
         end do LOOP_Param
+        LOOP_MagParam: do j = nMagParamPhaseCS(i-1) + 1, nMagParamPhaseCS(i)
+
+            ! Proceed if the parameter passed:
+            IF_MagParamPass: if (iMagParamPassCS(j) /= 0) then
+                nn = nn + 1
+                iMagneticParam(nn,1:nParamMax*2+3) = iMagneticParamCS(j,1:nParamMax*2+3)
+
+                if ((cSolnPhaseTypeCS(i) == 'SUBLM') .OR. (cSolnPhaseTypeCS(i) == 'RKMPM')) then
+                    dMagneticParam(nn,1:2) = dMagneticParamCS(j,1:2)
+                    ! Loop through species involved in mixing parameter:
+                    do k = 1, iMagneticParamCS(j,1)
+                        m                    = iMagneticParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
+                        iMagneticParam(nn,k+1) = iSpeciesPass(m)
+                    end do
+                end if
+            end if IF_MagParamPass
+        end do LOOP_MagParam
     end do LOOP_SolnPhases
 
     ! Update the phase index vector (iPhase):

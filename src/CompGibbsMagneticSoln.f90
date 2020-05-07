@@ -63,9 +63,10 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
     implicit none
 
-    integer :: i, iFirst, iLast, iSolnPhaseIndex
+    integer :: i, iFirst, iLast, iSolnPhaseIndex, iParam, iExponent
     real(8) :: B, D, p, invpmone, tau, Tcritical, g, StructureFactor
     real(8) :: dTemp, dTempA, dTempB, dTempC, dTempD
+    real(8) :: x1, x2, xprod, dx
 
 
     ! Initialize variables:
@@ -88,6 +89,32 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         Tcritical = Tcritical + dMolFraction(i) * dCoeffGibbsMagnetic(i,1)
         B         = B + dMolFraction(i) * dCoeffGibbsMagnetic(i,2)
     end do
+    ! Tcritical = Tcritical + dMolFraction(iFirst) * dMolFraction(iLast) * (-3605.0D0)
+    ! B         = B + dMolFraction(iFirst) * dMolFraction(iLast) * (-1.91D0)
+
+    LOOP_Param: do iParam = nMagParamPhase(iSolnPhaseIndex-1)+1, nMagParamPhase(iSolnPhaseIndex)
+        ! Compute temporary variables for sake of convenience:
+        x1    = dMolFraction(iFirst + iMagneticParam(iParam,2) - 1)
+        x2    = dMolFraction(iFirst + iMagneticParam(iParam,3) - 1)
+        iExponent = iMagneticParam(iParam,4)
+        xprod = x1 * x2
+        dx    = x1 - x2
+        IF_ParamType: if (iMagneticParam(iParam,1) == 2) then
+            ! Binary parameter:
+            ! Cycle if dx = 0 to prevent calculating either an INF or a NAN:
+            if (dx == 0D0) cycle LOOP_Param
+            Tcritical = Tcritical + xprod * dx**iExponent * dMagneticParam(iParam,1)
+            B         = B         + xprod * dx**iExponent * dMagneticParam(iParam,2)
+        else
+            ! The parameter index is not supported/recognized.  Report an error and exit.
+            INFOThermo = 43
+            exit LOOP_Param
+
+        end if IF_ParamType
+
+    end do LOOP_Param
+
+    ! print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
 
     ! ChemSage files store the critical temperature for antiferromagnetic materials
     ! (i.e., the Neel temperature) as a negative real value divided by the structure factor.
@@ -95,6 +122,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         Tcritical = -Tcritical * StructureFactor
         B         = -B * StructureFactor
     end if
+    ! print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
 
     ! Only proceed if the critical temperature is not zero:
     IF_Proceed: if (Tcritical /= 0D0) then
@@ -130,10 +158,13 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             do i = iFirst, iLast
                 dTemp = (dCoeffGibbsMagnetic(i,1) - Tcritical) * dTempD
                 dTemp = g * ((dCoeffGibbsMagnetic(i,2) - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
+                ! print *, dTemp
                 dMagGibbsEnergy(i) = dTemp
             end do
 
         end if IF_Tau
+
+        ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, g, Tcritical, dTempD, B
 
     end if IF_Proceed
 

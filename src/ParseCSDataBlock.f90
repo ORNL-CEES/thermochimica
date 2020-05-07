@@ -82,8 +82,10 @@ subroutine ParseCSDataBlock
     iCounterGibbsEqn    = 0
     iParticlesPerMoleCS = 1
     nParamCS            = 0
+    nMagParamCS         = 0
     dTempVec            = 0D0
     nParamPhaseCS       = 0
+    nMagParamPhaseCS    = 0
     dGibbsMagneticCS    = 0D0
 
     ! Loop through all solution phases:
@@ -265,11 +267,13 @@ subroutine ParseCSDataBlock
 
         ! Record the index of the mixing parameter for this phase:
         nParamPhaseCS(i) = nParamCS
+        nMagParamPhaseCS(i) = nMagParamCS
 
     end do LOOP_SolnPhases      ! Variable i
 
-    allocate(iParamPassCS(nParamCS))
+    allocate(iParamPassCS(nParamCS),iMagParamPassCS(nMagParamCS))
     iParamPassCS = 0
+    iMagParamPassCS = 0
 
     ! Begin parsing pure condensed phases:
     LOOP_PureConPhase: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS

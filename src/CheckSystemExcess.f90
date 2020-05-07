@@ -431,6 +431,34 @@ subroutine CheckSystemExcess
                 return
         end select
 
+        ! Magnetic mixing terms:
+        if ((cSolnPhaseTypeCS(i) == 'SUBLM') .OR. (cSolnPhaseTypeCS(i) == 'RKMPM')) then
+            ! Note that this is just checking whether the parameter should be considered.  This format
+            ! is consistent amoungst the above list of phase types.
+
+            ! Proceed if there are any mixing parameters for this phase:
+            if (nMagParamPhaseCS(i) /= nMagParamPhaseCS(i-1)) then
+                ! Loop through mixing parameters:
+                do j = nMagParamPhaseCS(i-1) + 1, nMagParamPhaseCS(i)
+                    if (iMagneticParamCS(j,1) == 2) then
+                        ! Binary term
+                        k = iMagneticParamCS(j,2) + nSpeciesPhaseCS(i-1)
+                        l = iMagneticParamCS(j,3) + nSpeciesPhaseCS(i-1)
+                        if ((iSpeciesPass(k) > 0).AND.(iSpeciesPass(l) > 0)) then
+                            nMagParam = nMagParam + 1
+                            iMagParamPassCS(j) = 1
+                        end if
+                    else
+                        ! An unsupported number of mixing terms.  Report an error:
+                        INFOThermo = 43
+                        return
+                    end if
+                end do
+            end if
+
+        end if
+        nMagParamPhase(nCounter) = nMagParam
+
     end do LOOP_SolnPhases
 
     ! Check to see if the mixing terms need to be reallocated:
@@ -447,6 +475,22 @@ subroutine CheckSystemExcess
     else
         ! Allocate memory for excess parameters:
         allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
+    end if
+
+    ! Same as above, for magnetic mixing:
+    if (allocated(dMagneticParam)) then
+        i = SIZE(dMagneticParam)
+        if (i /= nMagParam) then
+            deallocate(iMagneticParam,dMagneticParam, STAT = n)
+            if (n /= 0) then
+                INFOThermo = 19
+                return
+            end if
+            allocate(iMagneticParam(nMagParam,nParamMax*2+3),dMagneticParam(nMagParam,2))
+        end if
+    else
+        ! Allocate memory for excess parameters:
+        allocate(iMagneticParam(nMagParam,nParamMax*2+3),dMagneticParam(nMagParam,2))
     end if
 
     ! Determine whether a solution phase is miscibile.  This flag will be used by the main solver.
