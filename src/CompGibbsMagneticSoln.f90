@@ -67,6 +67,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
     real(8) :: B, D, p, invpmone, tau, Tcritical, g, StructureFactor
     real(8) :: dTemp, dTempA, dTempB, dTempC, dTempD
     real(8) :: x1, x2, xprod, dx, dPreFactor
+    logical :: lAF
 
 
     ! Initialize variables:
@@ -89,8 +90,6 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         Tcritical = Tcritical + dMolFraction(i) * dCoeffGibbsMagnetic(i,1)
         B         = B + dMolFraction(i) * dCoeffGibbsMagnetic(i,2)
     end do
-    ! Tcritical = Tcritical + dMolFraction(iFirst) * dMolFraction(iLast) * (-3605.0D0)
-    ! B         = B + dMolFraction(iFirst) * dMolFraction(iLast) * (-1.91D0)
 
     LOOP_Param: do iParam = nMagParamPhase(iSolnPhaseIndex-1)+1, nMagParamPhase(iSolnPhaseIndex)
         if (cSolnPhaseType(iSolnPhaseIndex) == 'RKMPM') then
@@ -151,7 +150,10 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
     ! ChemSage files store the critical temperature for antiferromagnetic materials
     ! (i.e., the Neel temperature) as a negative real value divided by the structure factor.
+    lAF = .FALSE.
     if (Tcritical < 0D0) then
+        ! phase is antiferromagnetic
+        lAF = .TRUE.
         Tcritical = -Tcritical * StructureFactor
         B         = -B * StructureFactor
     end if
@@ -174,6 +176,10 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
             ! Loop through species in this phase and update the chemical potential:
             do i = iFirst, iLast
+                if (lAF .AND. (dCoeffGibbsMagnetic(i,1) < 0)) then
+                    dCoeffGibbsMagnetic(i,1) = -dCoeffGibbsMagnetic(i,1) * StructureFactor
+                    dCoeffGibbsMagnetic(i,2) = -dCoeffGibbsMagnetic(i,2) * StructureFactor
+                end if
                 dTemp = (Tcritical - dCoeffGibbsMagnetic(i,1)) * dTempD
                 dTemp = g * ((dCoeffGibbsMagnetic(i,2) - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
                 dMagGibbsEnergy(i) = dTemp
@@ -189,9 +195,13 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
             ! Loop through species in this phase and update the chemical potential:
             do i = iFirst, iLast
+                if (lAF .AND. (dCoeffGibbsMagnetic(i,1) < 0)) then
+                    dCoeffGibbsMagnetic(i,1) = -dCoeffGibbsMagnetic(i,1) * StructureFactor
+                    dCoeffGibbsMagnetic(i,2) = -dCoeffGibbsMagnetic(i,2) * StructureFactor
+                end if
                 dTemp = (dCoeffGibbsMagnetic(i,1) - Tcritical) * dTempD
                 dTemp = g * ((dCoeffGibbsMagnetic(i,2) - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
-                ! print *, dTemp
+                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i), dTemp
                 dMagGibbsEnergy(i) = dTemp
             end do
 
