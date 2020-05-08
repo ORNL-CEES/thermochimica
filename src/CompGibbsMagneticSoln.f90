@@ -65,9 +65,9 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
     integer :: i, iFirst, iLast, iSolnPhaseIndex, iParam, iExponent, n, c, s, iChargedPhaseID, k
     real(8) :: B, D, p, invpmone, tau, Tcritical, g, StructureFactor
-    real(8) :: dTemp, dTempA, dTempB, dTempC, dTempD
+    real(8) :: dTemp, dTempA, dTempB, dTempC, dTempD, dTempCoeff1, dTempCoeff2
     real(8) :: x1, x2, xprod, dx, dPreFactor
-    logical :: lAF
+    logical :: lTn, lBn
 
 
     ! Initialize variables:
@@ -143,19 +143,21 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             Tcritical = Tcritical + dPreFactor * dMagneticParam(iParam,1)
             B         = B         + dPreFactor * dMagneticParam(iParam,2)
         end if
-
     end do LOOP_Param
 
-    ! print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
+    ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
 
     ! ChemSage files store the critical temperature for antiferromagnetic materials
     ! (i.e., the Neel temperature) as a negative real value divided by the structure factor.
-    lAF = .FALSE.
-    if (Tcritical < 0D0) then
-        ! phase is antiferromagnetic
-        lAF = .TRUE.
-        Tcritical = -Tcritical * StructureFactor
+    lBn = .FALSE.
+    lTn = .FALSE.
+    if (B < 0D0) then
+        lBn = .TRUE.
         B         = -B * StructureFactor
+    end if
+    if (Tcritical < 0D0) then
+        lTn = .TRUE.
+        Tcritical = -Tcritical * StructureFactor
     end if
     ! print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
 
@@ -167,6 +169,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         D   = (518D0/1125D0) + (11692D0/15975D0) * invpmone
 
         ! The magnetic model of Hillert and Jarl is empirical and depends on tau:
+        ! print *, cSolnPhaseName(iSolnPhaseIndex), tau, lTn, lBn, ' ----------------'
         IF_Tau: if (tau > 1D0) then
             dTempA = tau**(-5)                  ! tau^(-5)
             dTempB = dTempA**(3)                ! tau^(-15)
@@ -176,12 +179,25 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
             ! Loop through species in this phase and update the chemical potential:
             do i = iFirst, iLast
-                if (lAF .AND. (dCoeffGibbsMagnetic(i,1) < 0)) then
-                    dCoeffGibbsMagnetic(i,1) = -dCoeffGibbsMagnetic(i,1) * StructureFactor
-                    dCoeffGibbsMagnetic(i,2) = -dCoeffGibbsMagnetic(i,2) * StructureFactor
+                dTempCoeff1 = dCoeffGibbsMagnetic(i,1)
+                dTempCoeff2 = dCoeffGibbsMagnetic(i,2)
+                if (lTn) then
+                    dTempCoeff1 = -dTempCoeff1 * StructureFactor
                 end if
-                dTemp = (Tcritical - dCoeffGibbsMagnetic(i,1)) * dTempD
-                dTemp = g * ((dCoeffGibbsMagnetic(i,2) - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
+                if (lBn) then
+                    dTempCoeff2 = -dTempCoeff2 * StructureFactor
+                end if
+                ! TEST THIS LINE: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                ! dTemp = (Tcritical - dTempCoeff1) * dTempD
+                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
+                if (lTn) then
+                    dTemp = 0D0 - (Tcritical - dTempCoeff1) * dTempD
+                else
+                    dTemp = -(Tcritical - dTempCoeff1) * dTempD
+                end if
+                ! THAT ONE ^^^^^^^^^
+                ! for undiscovered reasons, at least one FactSage result is reproduced by above
+                dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
                 dMagGibbsEnergy(i) = dTemp
             end do
         else
@@ -195,14 +211,25 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
 
             ! Loop through species in this phase and update the chemical potential:
             do i = iFirst, iLast
-                if (lAF .AND. (dCoeffGibbsMagnetic(i,1) < 0)) then
-                    dCoeffGibbsMagnetic(i,1) = -dCoeffGibbsMagnetic(i,1) * StructureFactor
-                    dCoeffGibbsMagnetic(i,2) = -dCoeffGibbsMagnetic(i,2) * StructureFactor
+                dTempCoeff1 = dCoeffGibbsMagnetic(i,1)
+                dTempCoeff2 = dCoeffGibbsMagnetic(i,2)
+                if (lTn) then
+                    dTempCoeff1 = -dTempCoeff1 * StructureFactor
                 end if
-                dTemp = (dCoeffGibbsMagnetic(i,1) - Tcritical) * dTempD
-                dTemp = g * ((dCoeffGibbsMagnetic(i,2) - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
+                if (lBn) then
+                    dTempCoeff2 = -dTempCoeff2 * StructureFactor
+                end if
+                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
+                if (lTn) then
+                    dTemp = 0D0 - (Tcritical - dTempCoeff1) * dTempD
+                else
+                    dTemp = -(Tcritical - dTempCoeff1) * dTempD
+                end if
+                ! dTemp = (dTempCoeff1 - Tcritical) * dTempD
+                dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
                 ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i), dTemp
                 dMagGibbsEnergy(i) = dTemp
+                ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, cSpeciesName(i), dTemp
             end do
 
         end if IF_Tau
