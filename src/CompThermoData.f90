@@ -400,7 +400,9 @@ subroutine CompThermoData
 
                 ! Add pressure dependence term to the chemical potential term:
                 if (iPhaseCS(i) == 1) then
-                    if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                    ! For real??? Using the phase name here? I'm going to lose my mind.
+                    ! if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                    if (cSolnPhaseTypeCS(1) == 'IDMX') then
                         ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
                         ! the first solution phase in the data-file.
                         dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
