@@ -113,30 +113,6 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             dTempC = dTempA * dTempA * dTempB   ! tau^(-25)
             dTempD = (1D0 / (D * Tcritical)) * (dTempA / 2D0 + dTempB / 21D0 + dTempC / 60D0)
             g      = -(dTempA/10D0 + dTempB/315D0 + dTempC/1500D0) / D
-
-            ! Loop through species in this phase and update the chemical potential:
-            do i = iFirst, iLast
-                dTempCoeff1 = dCoeffGibbsMagnetic(i,1)
-                dTempCoeff2 = dCoeffGibbsMagnetic(i,2)
-                if (lTn) then
-                    dTempCoeff1 = -dTempCoeff1 * StructureFactor
-                end if
-                if (lBn) then
-                    dTempCoeff2 = -dTempCoeff2 * StructureFactor
-                end if
-                ! TEST THIS LINE: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                ! dTemp = (Tcritical - dTempCoeff1) * dTempD
-                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
-                if (lTn) then
-                    dTemp = 0D0 - (Tcritical - dTempCoeff1) * dTempD
-                else
-                    dTemp = -(Tcritical - dTempCoeff1) * dTempD
-                end if
-                ! THAT ONE ^^^^^^^^^
-                ! for undiscovered reasons, at least one FactSage result is reproduced by above
-                dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
-                dMagGibbsEnergy(i) = dTemp
-            end do
         else
             dTempA = tau**(3)                   ! tau^(3)
             dTempB = dTempA**(3)                ! tau^(9)
@@ -145,31 +121,25 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             dTempD = dTempD + (474D0/(497D0*Tcritical)) * invpmone * (dTempA / 2D0 + dTempB / 15D0 + dTempC / 40D0)
             dTempD = dTempD / D
             g      = 1D0 - (79D0/(140D0*p*tau) + (474D0/497D0)*invpmone*(dTempA/6D0 + dTempB/135D0 + dTempC/600D0)) / D
-
-            ! Loop through species in this phase and update the chemical potential:
-            do i = iFirst, iLast
-                dTempCoeff1 = dCoeffGibbsMagnetic(i,1)
-                dTempCoeff2 = dCoeffGibbsMagnetic(i,2)
-                if (lTn) then
-                    dTempCoeff1 = -dTempCoeff1 * StructureFactor
-                end if
-                if (lBn) then
-                    dTempCoeff2 = -dTempCoeff2 * StructureFactor
-                end if
-                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
-                if (lTn) then
-                    dTemp = 0D0 - (Tcritical - dTempCoeff1) * dTempD
-                else
-                    dTemp = -(Tcritical - dTempCoeff1) * dTempD
-                end if
-                ! dTemp = (dTempCoeff1 - Tcritical) * dTempD
-                dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
-                ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i), dTemp
-                dMagGibbsEnergy(i) = dTemp
-                ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, cSpeciesName(i), dTemp
-            end do
-
         end if IF_Tau
+
+        ! Loop through species in this phase and update the chemical potential:
+        do i = iFirst, iLast
+            dTempCoeff1 = dCoeffGibbsMagnetic(i,1)
+            dTempCoeff2 = dCoeffGibbsMagnetic(i,2)
+            if (lTn) then
+                dTempCoeff1 = -dTempCoeff1 * StructureFactor
+            end if
+            if (lBn) then
+                dTempCoeff2 = -dTempCoeff2 * StructureFactor
+            end if
+            ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
+            dTemp = -(Tcritical - dTempCoeff1) * dTempD
+            dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
+            ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i), dTemp
+            dMagGibbsEnergy(i) = dTemp
+            ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, cSpeciesName(i), dTemp
+        end do
 
         ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, g, Tcritical, dTempD, B
 
