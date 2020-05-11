@@ -140,7 +140,7 @@ subroutine PrintResultsSolnPhase
 
     integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nMax, nCutOff
     integer,    dimension(:),   allocatable :: iTempVec, iTempSpecies
-    real(8)                                 :: dCutOff, dTemp
+    real(8)                                 :: dCutOff, dTemp, Tcritical, B, StructureFactor
     real(8),    dimension(:),   allocatable :: dTempVec, dTempSpecies
     character(2)                            :: cDummy
     character(30)                           :: cDummyB, FMTA, FMTB
@@ -203,6 +203,23 @@ subroutine PrintResultsSolnPhase
             dTemp = dMolesPhase(k)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
             print '(A7,A6,A5,A15)', cDummy, FMTA, ' mol ', cSolnPhaseName(l)
+        end if
+
+        if ((cSolnPhaseType(l) == 'SUBLM') .OR. (cSolnPhaseType(l) == 'RKMPM')) then
+            Tcritical = 0D0
+            B = 0D0
+            call CompMagneticTemperatureMoment(l,Tcritical,B)
+            StructureFactor = dCoeffGibbsMagnetic(iFirst,3)
+            if (Tcritical < 0D0) then
+                Tcritical = -Tcritical * StructureFactor
+                print '(A27,F10.2,A4)', 'Neel temperature = ', Tcritical, ' [K]'
+            else
+                print '(A28,F10.2,A4)', 'Curie temperature = ', Tcritical, ' [K]'
+            end if
+            if (B < 0D0) then
+                B         = -B * StructureFactor
+            end if
+            print '(A35,F10.5)', 'Magnetic moment per atom = ', B
         end if
 
         if (allocated(iTempSpecies)) deallocate(iTempSpecies)
