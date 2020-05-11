@@ -100,7 +100,6 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         lTn = .TRUE.
         Tcritical = -Tcritical * StructureFactor
     end if
-    ! print *, cSolnPhaseName(iSolnPhaseIndex), Tcritical, B
 
     ! Only proceed if the critical temperature is not zero:
     IF_Proceed: if (Tcritical /= 0D0) then
@@ -110,7 +109,6 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
         D   = (518D0/1125D0) + (11692D0/15975D0) * invpmone
 
         ! The magnetic model of Hillert and Jarl is empirical and depends on tau:
-        ! print *, cSolnPhaseName(iSolnPhaseIndex), tau, lTn, lBn, ' ----------------'
         IF_Tau: if (tau > 1D0) then
             dTempA = tau**(-5)                  ! tau^(-5)
             dTempB = dTempA**(3)                ! tau^(-15)
@@ -137,12 +135,9 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             if (lBn) then
                 dTempCoeff2 = -dTempCoeff2 * StructureFactor
             end if
-            ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i),lAF, dCoeffGibbsMagnetic(i,1)
             dTemp = -(Tcritical - dTempCoeff1) * dTempD
             dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
-            ! print *, cSolnPhaseName(iSolnPhaseIndex), cSpeciesName(i), dTemp
             dMagGibbsEnergy(i) = dTemp
-            ! if (cSolnPhaseName(iSolnPhaseIndex) == 'FCC_A1') print *, cSpeciesName(i), dTemp
         end do
 
         LOOP_Param: do iParam = nMagParamPhase(iSolnPhaseIndex-1)+1, nMagParamPhase(iSolnPhaseIndex)
@@ -155,8 +150,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                 dTempCoeff2 = -dTempCoeff2 * StructureFactor
             end if
             dTemp = -(-dTempCoeff1) * dTempD
-            dTemp = g * ((dTempCoeff2 ) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp)
-            ! print *, cSolnPhaseName(iSolnPhaseIndex), dTempCoeff1, dTempCoeff2, dTemp
+            dTemp = g * ((dTempCoeff2) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp)
             if (cSolnPhaseType(iSolnPhaseIndex) == 'RKMPM') then
                 ! Compute temporary variables for sake of convenience:
                 if (iMagneticParam(iParam,1) == 2) then
@@ -230,7 +224,6 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                 dPreFactor = dPreFactor * dTemp * (x1 - x2)**iExponent
 
                 LOOP_Param_Species: do i = iFirst, iLast
-
                     ! Reinitialize variables:
                     KD    = 0
                     m     = i - iFirst + 1
