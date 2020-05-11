@@ -156,7 +156,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             end if
             dTemp = -(-dTempCoeff1) * dTempD
             dTemp = g * ((dTempCoeff2 ) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp)
-            print *, cSolnPhaseName(iSolnPhaseIndex), dTempCoeff1, dTempCoeff2, dTemp
+            ! print *, cSolnPhaseName(iSolnPhaseIndex), dTempCoeff1, dTempCoeff2, dTemp
             if (cSolnPhaseType(iSolnPhaseIndex) == 'RKMPM') then
                 ! Compute temporary variables for sake of convenience:
                 if (iMagneticParam(iParam,1) == 2) then
