@@ -261,7 +261,7 @@ subroutine PrintResultsSolnPhase
 
         ! First species:
         c = iTempSpecies(1) + iFirst - 1
-        if (dmolFraction(iFirst) >= 1D-1) then
+        if (dmolFraction(c) >= 1D-1) then
             print '(A20,F7.5,A3,A35)', '{ ', dmolFraction(c), ' ', cSpeciesName(c)
         else
             print '(A20,ES10.4,A35)', '{ ', dmolFraction(c), cSpeciesName(c)
