@@ -502,6 +502,7 @@ subroutine CheckSystem
     dAtomFractionSpecies = 0D0
     dGibbsSolnPhase      = 0D0
     dCoeffGibbsMagnetic  = 0D0
+    dMagGibbsEnergy      = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
 
