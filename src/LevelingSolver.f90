@@ -170,7 +170,7 @@ subroutine LevelingSolver
         ! Since the phase assemblage is comprised of only pure species, the number of moles of each phase
         ! can be easily computed (the stoichiometry matrix is a diagonal matrix) by the following:
         do i = 1, nElements
-            dMolesPhase(i) = dMolesElement(i) / dSpeciesTotalAtoms(i)
+            dMolesPhase(i) = dMolesElement(i) / dSpeciesTotalAtoms(iAssemblage(i))
         end do
 
     end if
