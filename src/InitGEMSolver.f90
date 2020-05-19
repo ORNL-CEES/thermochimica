@@ -243,7 +243,7 @@ subroutine InitGEMSolver
                       dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
                   end do
                   dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
-                  dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
+                  dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i) - dMagGibbsEnergy(i))
                   dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
                   dSum            = dSum + dMolFraction(i)
               end do

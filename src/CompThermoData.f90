@@ -391,8 +391,12 @@ subroutine CompThermoData
                 ! end if
 
                 ! Compute the magnetic terms (if applicable):
-                if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                    call CompGibbsMagnetic(i,j)
+                if ((dGibbsMagneticCS(i,1) /= 0D0)) then
+                    if (iPhase(j) == 0) then
+                        call CompGibbsMagnetic(i,j)
+                    else
+                        call CompGibbsMagneticSolnInit(i,j)
+                    end if
                 end if
 
                 ! Convert chemical potentials to dimensionless units:
@@ -807,6 +811,7 @@ subroutine CompThermoData
     ! Store the standard molar Gibbs energies:
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
+        dChemicalPotential(i) = dChemicalPotential(i) + dMagGibbsEnergy(i)
     end do
 
     ! Store an integer vector representing the component index when the phase is ionic.
