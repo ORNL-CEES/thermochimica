@@ -64,7 +64,7 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
     implicit none
 
     integer :: i, j, iFirst, iLast, iSolnPhaseIndex, iExponent, iParam
-    integer :: k, m, n, s, c, sd, KD
+    integer :: k, m, n, s, c, sd, KD, l
     integer :: nSublattice, iChargedPhaseID
     integer :: iFirstParam, iSecondParam, iSubParam
     real(8) :: B, D, p, invpmone, tau, Tcritical, g, StructureFactor
@@ -137,7 +137,35 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
             end if
             dTemp = -(Tcritical - dTempCoeff1) * dTempD
             dTemp = g * ((dTempCoeff2 - B) / (1D0 + B)) + DLOG(1D0 + B) * (dTemp + g)
-            dMagGibbsEnergy(i) = dTemp
+            if (cSolnPhaseType(iSolnPhaseIndex) == 'RKMPM') then
+                dMagGibbsEnergy(i) = dTemp
+            else if (cSolnPhaseType(iSolnPhaseIndex) == 'SUBLM') then
+                m = i - iFirst + 1
+                iChargedPhaseID = iPhaseSublattice(iSolnPhaseIndex)
+                nSublattice     = nSublatticePhase(iChargedPhaseID)
+                do j = iFirst, iLast
+                    ! Relative species index:
+                    n = j - iFirst + 1
+
+                    ! Compute pre-factor term:
+                    dPreFactor = 1D0 - DFLOAT(nSublattice)
+
+                    ! Loop through sublattices:
+                    do s = 1, nSublattice
+                        ! Store constituent indices:
+                        k = iConstituentSublattice(iChargedPhaseID,s,m)
+                        l = iConstituentSublattice(iChargedPhaseID,s,n)
+
+                        ! Effectively apply Kronecker-Delta term to pre-factor:
+                        if (k == l)  dPreFactor = dPreFactor + 1D0 / dSiteFraction(iChargedPhaseID,s,k)
+                    end do
+
+                    ! Update the reference molar Gibbs energy:
+                    ! print *, cSpeciesName(i), cSpeciesName(j), dPreFactor, dTemp
+                    dMagGibbsEnergy(j) = dMagGibbsEnergy(j) + dPreFactor * dMolFraction(i) * dTemp
+                end do
+
+            end if
         end do
 
         LOOP_Param: do iParam = nMagParamPhase(iSolnPhaseIndex-1)+1, nMagParamPhase(iSolnPhaseIndex)
