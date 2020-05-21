@@ -36,3 +36,4 @@ tail -1 test12out.txt
 ./TestThermo52
 ./TestThermo53
 ./TestThermo54
+./TestThermo55
