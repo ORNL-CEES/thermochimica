@@ -736,16 +736,13 @@ subroutine CompThermoData
                 if (DABS(dStoichSpecies(j,i)) > 0D0) cycle LOOP_ElementUse
             end do
             ! If there is none of an element (i.e. it's an electron) and no species use it
-            ! then remove it
+            ! then set it for removal
             nRemove = nRemove + 1
             iRemove(nRemove) = i
-            ! do k = i + 1, nElements
-            !     do j = 1, nSpecies - nDummySpecies
-            !         dStoichSpecies(j,k-1) = dStoichSpecies(j,k)
-            !     end do
-            ! end do
         end if
     end do LOOP_ElementUse
+
+    ! Do removal of unused electron elements
     if (nRemove > 0) then
         ! Create temp variables for copying
         allocate(cElementNameTemp(nElements),dMolesElementTemp(nElements))
