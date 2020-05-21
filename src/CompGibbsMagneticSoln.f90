@@ -166,12 +166,12 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                     if (dx == 0D0) cycle LOOP_Param
                     do i = iFirst, iLast
                         j = i - iFirst + 1
-                        if (j == iRegularParam(iParam,2)) then
+                        if (j == iMagneticParam(iParam,2)) then
                             ! First species of parameter.
                             dMagGibbsEnergy(i) = dMagGibbsEnergy(i) + dTemp * &
                                 dxvmo * ((x2 - xprod)*dx + DFLOAT(iExponent)*xprod*(1D0 - dx))
 
-                        elseif (j == iRegularParam(iParam,3)) then
+                        elseif (j == iMagneticParam(iParam,3)) then
                             ! Second species of parameter.
                             dMagGibbsEnergy(i) = dMagGibbsEnergy(i) + dTemp * &
                                 dxvmo * ((x1 - xprod)*dx - DFLOAT(iExponent)*xprod*(1D0 + dx))
