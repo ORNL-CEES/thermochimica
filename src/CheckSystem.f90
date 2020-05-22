@@ -131,7 +131,8 @@ subroutine CheckSystem
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
-    character(12)                            :: cDummy
+    character(12)                           :: cDummy
+    logical                                 :: lPos, lNeg
 
 
     ! Check to see if the allocatable arrays have already been allocated
@@ -278,6 +279,27 @@ subroutine CheckSystem
                 iSpeciesPass(j) = m
                 l = j   ! If there is only one species in this phase, this species will be removed later.
             end do LOOP_SpeciesInSolnPhase
+
+            ! For electrons, there have to be species with positive and negative stoichiometries still in the system.
+            ! Otherwise, remove the species that use that electron.
+            do k = 1, nElementsCS
+                if (cElementNameCS(k) == 'e-') then
+                    lPos = .FALSE.
+                    lNeg = .FALSE.
+                    do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                        if ((iSpeciesPass(j) > 0) .AND. dStoichSpeciesCS(j,k) > 0D0) lPos = .TRUE.
+                        if ((iSpeciesPass(j) > 0) .AND. dStoichSpeciesCS(j,k) < 0D0) lNeg = .TRUE.
+                    end do
+                    if (lPos .NEQV. lNeg) then
+                        do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                            if ((iSpeciesPass(j) > 0) .AND. DABS(dStoichSpeciesCS(j,k)) > 0D0) then
+                                iSpeciesPass(j) = 0
+                                nSpecies = nSpecies - 1
+                            end if
+                        end do
+                    end if
+                end if
+            end do
 
             ! Store temporary counter for the number of charged phases from the CS data-file:
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
