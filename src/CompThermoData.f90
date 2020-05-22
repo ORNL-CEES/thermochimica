@@ -756,6 +756,7 @@ subroutine CompThermoData
 
         ! Set new number of elements
         nElements = nElements - nRemove
+        nChargedConstraints = nChargedConstraints - nRemove
 
         ! De- and re-allocate permanent variables
         deallocate(cElementName,dMolesElement,dAtomFractionSpecies,dStoichSpecies)
