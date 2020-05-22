@@ -760,7 +760,7 @@ subroutine CompThermoData
 
         ! De- and re-allocate permanent variables
         deallocate(cElementName,dMolesElement,dAtomFractionSpecies,dStoichSpecies)
-        if (nCountSublattice > 0) deallocate(dStoichPairsTemp)
+        if (nCountSublattice > 0) deallocate(dStoichPairs)
         allocate(cElementName(nElements),dMolesElement(nElements))
         allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
         if (nCountSublattice > 0) allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
