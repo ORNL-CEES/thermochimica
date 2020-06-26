@@ -109,8 +109,8 @@ subroutine CompThermoData
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax, dCoay, dCobx, dCoby
-    real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
-    real(8), dimension(6)              :: dGibbsCoeff
+    real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2, dHeatCapTemp, dHeatCap1, dHeatCap2
+    real(8), dimension(6)              :: dGibbsCoeff, dHeatCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
     character(12), dimension(:),     allocatable :: cElementNameTemp
     real(8),       dimension(:),     allocatable :: dMolesElementTemp
@@ -133,6 +133,13 @@ subroutine CompThermoData
     dGibbsCoeff(6)   = 1D0 / dTemperature              ! F
     dLogT            = DLOG(dTemperature)              ! ln(T)
     dLogP            = DLOG(dPressure)                 ! ln(P)
+    ! Compute heat capacity coefficients:
+    dHeatCoeff(1)   = -1D0
+    dHeatCoeff(2)   = -2D0 * dTemperature
+    dHeatCoeff(3)   = -6D0 * dTemperature**2
+    dHeatCoeff(4)   = -2D0 / dTemperature**2
+    dHeatCoeff(5)   =  1D0 / dTemperature              ! use for Log(T)
+    dHeatCoeff(6)   =  0.25D0 / DSQRT(dTemperature)     ! use for SQRT(T)
 
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
@@ -283,7 +290,7 @@ subroutine CompThermoData
                 dCoay = dConstituentCoefficientsCS(iSublPhaseIndex,iay,1)
                 dCobx = dConstituentCoefficientsCS(iSublPhaseIndex,ibx,1)
                 dCoby = dConstituentCoefficientsCS(iSublPhaseIndex,iby,1)
-                
+
                 dChemicalPotential(j) = (((dQx / dCoax) * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx))  &
                                        + ((dQx / dCobx) * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx))  &
                                        + ((dQy / dCoay) * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy))  &
@@ -328,27 +335,47 @@ subroutine CompThermoData
                 do k = 2, 7
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
                 end do
+                print *, cSpeciesName(j)
+                do k = 1, 4
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(k+3,l2) * dHeatCoeff(k)
+                    print *, dGibbsCoeffSpeciesTemp(k+3,l2), dHeatCoeff(k)
+                end do
 
                 ! Compute additional standard molar Gibbs energy terms:
                 if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(5)
+                    print *, 'test log ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(5)
                 else
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
                         *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+                    if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 0.5D0) then
+                        dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(6)
+                        print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(6)
+                    end if
                 end if
 
                 if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(5)
                 else
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
                         * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+                    if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 0.5D0) then
+                        dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(6)
+                        print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(10,l2), dHeatCoeff(6)
+                    end if
                 end if
 
                 if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(5)
                 else
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+                    if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 0.5D0) then
+                        dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(6)
+                    end if
                 end if
 
                 ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
@@ -410,6 +437,7 @@ subroutine CompThermoData
 
                 ! Convert chemical potentials to dimensionless units:
                 dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
+                !dStdHeatCapacity(j) = dStdHeatCapacity(j) * DFLOAT(iParticlesPerMoleCS(i))
 
                 ! Add pressure dependence term to the chemical potential term:
                 if (iPhaseCS(i) == 1) then
@@ -459,31 +487,48 @@ subroutine CompThermoData
         end do
 
         dStdEnergyTemp = dChemicalPotential(j)
+        dHeatCapTemp = dStdHeatCapacity(j)
 
         do k = 2, 7
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
         end do
 
+        do k = 1, 4
+            dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(k+3,l2) * dHeatCoeff(k)
+        end do
+
         ! Compute additional standard molar Gibbs energy terms:
         if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+            dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(5)
         else
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
                 *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+            if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 0.5D0) then
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(6)
+            end if
         end if
 
         if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+            dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(5)
         else
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
                 * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+            if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 0.5D0) then
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(6)
+            end if
         end if
 
         if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+            dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(5)
         else
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
                 * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+            if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 0.5D0) then
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(6)
+            end if
         end if
 
         ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
@@ -491,6 +536,7 @@ subroutine CompThermoData
         ! negative) energy for pure condensed phases only!
         if (nGibbsEqSpecies(i) > 1) then
             dChemPot1 = dChemicalPotential(j)
+            dHeatCap1 = dStdHeatCapacity(j)
             if ((l1 > 0) .AND. (l1 < nGibbsEqSpecies(i))) then
                 if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
                     l2 = l2 + 1
@@ -501,33 +547,56 @@ subroutine CompThermoData
                 end if
             end if
             dChemicalPotential(j) = dStdEnergyTemp
+            dStdHeatCapacity(j) = dHeatCapTemp
             do k = 2, 7
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
             end do
+
+            do k = 1, 4
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(k+3,l2) * dHeatCoeff(k)
+            end do
+
             ! Compute additional standard molar Gibbs energy terms:
             if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(5)
             else
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
                     *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
+                if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 0.5D0) then
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(6)
+                end if
             end if
 
             if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(5)
             else
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
                     * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
+                if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 0.5D0) then
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(6)
+                end if
             end if
 
             if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
+                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(5)
             else
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
                     * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
+                if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 0.5D0) then
+                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(12,l2) * dHeatCoeff(6)
+                end if
             end if
 
             dChemPot2 = dChemicalPotential(j)
-            dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
+            ! dHeatCap2 = dStdHeatCapacity(j)
+            if (dChemPot1 > dChemPot2) then
+                dChemicalPotential(j) = dChemPot1
+                dStdHeatCapacity(j) = dHeatCap1
+            end if
+            ! dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
         end if
 
         ! Compute the magnetic terms (if applicable):
@@ -537,6 +606,7 @@ subroutine CompThermoData
 
         ! Convert chemical potentials to dimensionless units:
         dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
+        !dStdHeatCapacity(j) = dStdHeatCapacity(j) * DFLOAT(iParticlesPerMoleCS(i))
 
         if (iPhaseCS(i) == -1) then
             ! Explicitly set dummy species chemical potentials
@@ -838,6 +908,7 @@ subroutine CompThermoData
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
         dChemicalPotential(i) = dChemicalPotential(i) + dMagGibbsEnergy(i)
+        dStdHeatCapacity(i) = dStdHeatCapacity(i) * dSpeciesTotalAtoms(i) !/ DFLOAT(iParticlesPerMole(i))
     end do
 
     nRemove = 0
