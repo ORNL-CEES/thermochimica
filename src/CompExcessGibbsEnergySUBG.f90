@@ -77,12 +77,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
     integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix!, iB2Y2
     integer :: iGroupA, iGroupB, iGroupD
+    integer :: nAsymmetric1, nAsymmetric2
+    logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2!, dBlock, dXB2Y2
+    real(8) :: dEpsilon1, dEpsilon2, dChi1, dChi2, dEpsilonDen, dChiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
-    ! X_ij/kl corresponds to dMolFracion
+    ! X_ij/kl corresponds to dMolFraction
 
 
     ! Only proceed if the correct phase type is selected:
@@ -99,11 +102,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     if (allocated(dNi)) deallocate(dNi)
     if (allocated(dXij)) deallocate(dXij)
     if (allocated(dNij)) deallocate(dNij)
+    if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
+    if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     j = iLast - iFirst + 1
     nPhaseElements = nSublatticeElements(iSPI,1) + nSublatticeElements(iSPI,2)
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
     allocate(dXij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
     allocate(dNij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
+    allocate(lAsymmetric1(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
+    allocate(lAsymmetric2(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
 
     ! Initialize variables:
     dXi                               = 0D0
@@ -329,6 +336,56 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
         iBlock = iBlock + iFirst - 1
 
+        if (x == y) then
+            dEpsilon1 = 0D0
+            dEpsilon2 = 0D0
+            dEpsilonDen = 0D0
+            dChi1 = 0D0
+            dChi2 = 0D0
+            dChiDen = 0D0
+            nAsymmetric1 = 0
+            lAsymmetric1 = .FALSE.
+            nAsymmetric2 = 0
+            lAsymmetric2 = .FALSE.
+            if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
+                do i = 1, nSublatticeElements(iSPI,1)
+                    if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
+                        nAsymmetric1 = nAsymmetric1 + 1
+                        lAsymmetric1(i) = .TRUE.
+                    else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
+                        nAsymmetric2 = nAsymmetric2 + 1
+                        lAsymmetric2(i) = .TRUE.
+                    end if
+                end do
+            end if
+            do i = 1, nSublatticeElements(iSPI,1)
+                LOOP_EpsilonChi: do j = i, nSublatticeElements(iSPI,1)
+                    iQuad = (x - 1) * (nSublatticeElements(iSPI,1) &
+                                    * (nSublatticeElements(iSPI,1) + 1) / 2)
+                    if (i == j) then
+                        iQuad = iQuad + i
+                    else if (i > j) then
+                        cycle LOOP_EpsilonChi
+                    else
+                        iQuad = iQuad + nSublatticeElements(iSPI,1) + i + ((j-2)*(j-1)/2)
+                    end if
+                    iQuad = iQuad + iFirst - 1
+                    if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
+                        dChi1 = dChi1 + dMolFraction(iQuad)
+                    end if
+                    if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
+                        dChi2 = dChi2 + dMolFraction(iQuad)
+                    end if
+                    if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
+                        dChiDen = dChiDen + dMolFraction(iQuad)
+                    end if
+                end do LOOP_EpsilonChi
+            end do
+            dChi1 = dChi1 / dChiDen
+            dChi2 = dChi2 / dChiDen
+            print *, dChi1, dChi2, dChiDen
+        end if
+
         ! Calculate energy for this term
         ! G-type terms
         if (cRegularParam(abxy) == 'G') then
@@ -356,7 +413,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     INFOThermo = 42
                 end if
                 dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
-                dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
+                ! dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
+                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi1**q
                 dDgexBase = -dGex * (p + q) / dXtot
             ! G-type ternary terms
             else if (d > 0) then
@@ -624,7 +682,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do LOOP_Param
 
     ! Deallocate allocatable arrays:
-    deallocate(dXi,dYi,dNi,dXij,dNij)
+    deallocate(dXi,dYi,dNi,dXij,dNij,lAsymmetric1,lAsymmetric2)
 
     return
 
