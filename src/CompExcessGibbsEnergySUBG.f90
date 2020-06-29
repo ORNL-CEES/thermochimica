@@ -395,11 +395,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         iD2X2 = (x - 1) * (nSublatticeElements(iSPI,1) &
                                         * (nSublatticeElements(iSPI,1) + 1) / 2) &
                                         + d + iFirst - 1
-                        if (a < d) then
+                        if (b < d) then
                             iADX2 = (x - 1) * (nSublatticeElements(iSPI,1) &
                                             * (nSublatticeElements(iSPI,1) + 1) / 2) &
                                               + nSublatticeElements(iSPI,1) + b + ((d-2)*(d-1)/2)
-                        else if (a > d) then
+                        else if (b > d) then
                             iADX2 = (x - 1) * (nSublatticeElements(iSPI,1) &
                                             * (nSublatticeElements(iSPI,1) + 1) / 2) &
                                               + nSublatticeElements(iSPI,1) + d + ((b-2)*(b-1)/2)
