@@ -112,7 +112,10 @@ subroutine CompThermoData
     real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
-
+    character(12), dimension(:),     allocatable :: cElementNameTemp
+    real(8),       dimension(:),     allocatable :: dMolesElementTemp
+    real(8),       dimension(:,:),   allocatable :: dAtomFractionSpeciesTemp, dStoichSpeciesTemp
+    real(8),       dimension(:,:,:), allocatable :: dStoichPairsTemp
 
     ! Initialize variables:
     j                = 0
@@ -724,6 +727,63 @@ subroutine CompThermoData
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
     end do
+
+    nRemove = 0
+    iRemove = 0
+    LOOP_ElementUse: do i = nElements, 1, -1
+        if (dElementMass(i) == 0D0) then
+            do j = 1, nSpecies - nDummySpecies
+                if (DABS(dStoichSpecies(j,i)) > 0D0) cycle LOOP_ElementUse
+            end do
+            ! If there is none of an element (i.e. it's an electron) and no species use it
+            ! then set it for removal
+            nRemove = nRemove + 1
+            iRemove(nRemove) = i
+        end if
+    end do LOOP_ElementUse
+
+    ! Do removal of unused electron elements
+    if (nRemove > 0) then
+        ! Create temp variables for copying
+        allocate(cElementNameTemp(nElements),dMolesElementTemp(nElements))
+        allocate(dAtomFractionSpeciesTemp(nSpecies,nElements),dStoichSpeciesTemp(nSpecies,nElements))
+        if (nCountSublattice > 0) allocate(dStoichPairsTemp(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
+        cElementNameTemp = cElementName
+        dMolesElementTemp = dMolesElement
+        dAtomFractionSpeciesTemp = dAtomFractionSpecies
+        dStoichSpeciesTemp = dStoichSpecies
+        if (nCountSublattice > 0) dStoichPairsTemp = dStoichPairs
+
+        ! Set new number of elements
+        nElements = nElements - nRemove
+        nChargedConstraints = nChargedConstraints - nRemove
+
+        ! De- and re-allocate permanent variables
+        deallocate(cElementName,dMolesElement,dAtomFractionSpecies,dStoichSpecies)
+        if (nCountSublattice > 0) deallocate(dStoichPairs)
+        allocate(cElementName(nElements),dMolesElement(nElements))
+        allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
+        if (nCountSublattice > 0) allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
+
+        ! Copy required elements
+        k = 0
+        LOOP_CopyElements: do i = 1, (nElements + nRemove)
+            do j = 1, nRemove
+                if (i == iRemove(j)) cycle LOOP_CopyElements
+            end do
+            k = k + 1
+            cElementName(k) = cElementNameTemp(i)
+            dMolesElement(k) = dMolesElementTemp(i)
+            dAtomFractionSpecies(1:nSpecies,k) = dAtomFractionSpeciesTemp(1:nSpecies,i)
+            dStoichSpecies(1:nSpecies,k) = dStoichSpeciesTemp(1:nSpecies,i)
+            if (nCountSublattice > 0) dStoichPairs(1:nCountSublattice,1:MAXVAL(nPairsSROCS(:,1)),k) = &
+                        dStoichPairsTemp(1:nCountSublattice,1:MAXVAL(nPairsSROCS(:,1)),i)
+        end do LOOP_CopyElements
+
+        ! Cleanup
+        deallocate(cElementNameTemp,dMolesElementTemp,dAtomFractionSpeciesTemp,dStoichSpeciesTemp)
+        if (nCountSublattice > 0) deallocate(dStoichPairsTemp)
+    end if
 
     ! Store an integer vector representing the component index when the phase is ionic.
     if (allocated(iPhaseElectronID)) deallocate(iPhaseElectronID)
