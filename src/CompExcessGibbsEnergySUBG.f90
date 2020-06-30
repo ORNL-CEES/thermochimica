@@ -82,7 +82,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2
-    real(8) :: dEpsilon1, dEpsilon2, dChi1, dChi2, dEpsilonDen, dChiDen
+    real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     ! X_ij/kl corresponds to dMolFraction
@@ -339,9 +339,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         iBlock = iBlock + iFirst - 1
 
         if (x == y) then
-            dEpsilon1 = 0D0
-            dEpsilon2 = 0D0
-            dEpsilonDen = 0D0
+            dXi1 = 0D0
+            dXi2 = 0D0
+            dXiDen = 0D0
             dChi1 = 0D0
             dChi2 = 0D0
             dChiDen = 0D0
@@ -381,21 +381,21 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                     ! Below is epsilon without counting of x /= y quads
                     ! if (lAsymmetric1(i)) then
-                    !     ! dEpsilon1 = dEpsilon1 + dMolFraction(iQuad) / 2D0
+                    !     ! dXi1 = dXi1 + dMolFraction(iQuad) / 2D0
                     !     if (i == iPairID(iSPI,k,1))  then
-                    !         dEpsilon1 = dEpsilon1 + (dMolFraction(iQuad) / 2D0)
+                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
                     !     end if
                     !     if (i == iPairID(iSPI,k,2))  then
-                    !         dEpsilon1 = dEpsilon1 + (dMolFraction(iQuad) / 2D0)
+                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
                     !     end if
                     ! end if
                     ! if (lAsymmetric2(i)) then
-                    !     ! dEpsilon2 = dEpsilon2 + dMolFraction(iQuad) / 2D0
+                    !     ! dXi2 = dXi2 + dMolFraction(iQuad) / 2D0
                     !     if (i == iPairID(iSPI,k,1))  then
-                    !         dEpsilon2 = dEpsilon2 + (dMolFraction(iQuad) / 2D0)
+                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
                     !     end if
                     !     if (i == iPairID(iSPI,k,2))  then
-                    !         dEpsilon2 = dEpsilon2 + (dMolFraction(iQuad) / 2D0)
+                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
                     !     end if
                     ! end if
                 end do
@@ -403,20 +403,20 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 do k = 1, nPairsSRO(iSPI,2)
                     l = k + iFirst - 1
                     if (lAsymmetric1(i)) then
-                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dEpsilon1 = dEpsilon1 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dEpsilon1 = dEpsilon1 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dEpsilon1 = dEpsilon1 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dEpsilon1 = dEpsilon1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
                     end if
                     if (lAsymmetric2(i)) then
-                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dEpsilon2 = dEpsilon2 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dEpsilon2 = dEpsilon2 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dEpsilon2 = dEpsilon2 + (dMolFraction(l) / 4)
-                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dEpsilon2 = dEpsilon2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
                     end if
                 end do
             end do
-            dEpsilonDen = dEpsilon1 + dEpsilon2
+            dXiDen = dXi1 + dXi2
         end if
 
         ! Calculate energy for this term
@@ -494,8 +494,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             end if
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
-            dGex = dExcessGibbsParam(abxy) * dEpsilon1**p * dEpsilon2**q / (dEpsilonDen**(p + q))
-            dDgexBase = -dGex * (p + q) / dEpsilonDen
+            dGex = dExcessGibbsParam(abxy) * dXi1**p * dXi2**q / (dXiDen**(p + q))
+            dDgexBase = -dGex * (p + q) / dXiDen
         ! B-type binary terms
         else if (cRegularParam(abxy) == 'B') then
             ! Start by calculating mixing energy term
@@ -610,16 +610,16 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 do ii = 1, nSublatticeElements(iSPI,1)
                     ! Below is epsilon with counting of x /= y quads
                     if (lAsymmetric1(ii)) then
-                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dEpsilon1)
-                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dEpsilon1)
-                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dEpsilon1)
-                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dEpsilon1)
+                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
                     end if
                     if (lAsymmetric2(ii)) then
-                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dEpsilon2)
-                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dEpsilon2)
-                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dEpsilon2)
-                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dEpsilon2)
+                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
                     end if
                 end do
             ! G-type ternary terms
