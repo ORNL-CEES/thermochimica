@@ -75,13 +75,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix!, iB2Y2
+    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, ia, ix
     integer :: iGroupA, iGroupB, iGroupD
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2!, dBlock, dXB2Y2
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dY1, dY2
     real(8) :: dEpsilon1, dEpsilon2, dChi1, dChi2, dEpsilonDen, dChiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
@@ -345,19 +345,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dChi1 = 0D0
             dChi2 = 0D0
             dChiDen = 0D0
-            ! nAsymmetric1 = 0
             lAsymmetric1 = .FALSE.
-            ! nAsymmetric2 = 0
             lAsymmetric2 = .FALSE.
             lAsymmetric1(a) = .TRUE.
             lAsymmetric2(b) = .TRUE.
             if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
                 do i = 1, nSublatticeElements(iSPI,1)
                     if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
-                        ! nAsymmetric1 = nAsymmetric1 + 1
                         lAsymmetric1(i) = .TRUE.
                     else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
-                        ! nAsymmetric2 = nAsymmetric2 + 1
                         lAsymmetric2(i) = .TRUE.
                     end if
                 end do
@@ -383,11 +379,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                 end do
             end do
-            dChi1 = dChi1 / dChiDen
-            dChi2 = dChi2 / dChiDen
-            print *, abxy, dChi1, dChi2, dChiDen
-            print *, lAsymmetric1
-            print *, lAsymmetric2
         end if
 
         ! Calculate energy for this term
@@ -407,20 +398,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dXA2Y2 = dMolFraction(iA2Y2)
             ! G-type binary terms
             if ((d == 0) .AND. (w == 0)) then
-                ! if ((a /= b) .AND. (x == y)) then
-                !     i2 = iB2X2
-                !     dX2 = dXB2X2
-                ! else if ((a == b) .AND. (x /= y)) then
-                !     i2 = iA2Y2
-                !     dX2 = dXA2Y2
-                ! else
-                !     INFOThermo = 42
-                ! end if
-                ! dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
-                ! dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
-                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q
+                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q / (dChiDen**(p + q))
                 dDgexBase = -dGex * (p + q) / dChiDen
-                ! print *, dGex, dDgexBase
             ! G-type ternary terms
             else if (d > 0) then
                 iGroupA = iChemicalGroup(iSPI,1,a)
@@ -592,10 +571,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Calculate d(g^ex_ab/xy)/d(n_ij/kl)
             ! G-type binary terms
             if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-                ! if ((iQuad2 /= iA2X2) .AND. (iQuad2 /= i2) .AND. (iQuad2 /= iBlock)) cycle LOOP_ijkl
-                ! dDgex = dDgexBase
-                ! if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
-                ! if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
                 dDgex = 0
                 if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
                     dDgex = dDgex + dGex * p / dChi1
@@ -608,7 +583,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             ! Q-type binary terms
             else if (cRegularParam(abxy) == 'Q') then
-            ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
+              ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
                 dDgex = 0D0
                 if ((i == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
                 if ((i == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
@@ -656,7 +631,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                 end if
             end if
-            print *, i, j, dDgex
+
             dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + (dMolFraction(iBlock) * dDgex / 2)
 
             ! If A = B add dg^ex contribution from quads AC/XY to IJ/KL
