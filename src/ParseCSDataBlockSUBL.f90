@@ -168,17 +168,49 @@ subroutine ParseCSDataBlockSUBL(i)
     end if
 
     ! SUBLM phases include magnetic mixing terms right before non-ideal mixing terms.
-    ! NOTE: I HAVE NOT DEVELOPED THE CAPABILITY TO READ IN THESE MAGNETIC MIXING TERMS
     ! The end of the list of mixing terms is indicated by a "0".
-    if (cSolnPhaseTypeCS(i) == 'SUBLM') then
+    if (cSolnPhaseTypeCS(i) == 'SUBLM') then! call ParseCSMagneticMixing(i)
+        LOOP_MagneticMixingSUBL: do
 
-        read (1,*,IOSTAT = INFO) j
+            ! Read in number of constituents involved in parameter:
+            read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,1)
 
-        ! Record an error:
-        if ((INFO /= 0).OR.(j /= 0)) then
-            INFO = 2300 + i
-            return
-        end if
+            ! The end of the section of mixing terms is labelled "0".
+            if (iMagneticParamCS(nMagParamCS+1,1) == 0) exit LOOP_MagneticMixingSUBL
+
+            ! Update counter of the number of parameters:
+            nMagParamCS = nMagParamCS + 1
+
+            ! Read in the list of constituent indices involved in this parameter:
+            j = iMagneticParamCS(nMagParamCS,1)
+            read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS,2:j+2)
+
+            ! Read in the mixing parameter:
+            read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
+
+            ! Store number of mixing parameters per component array:
+            n = iMagneticParamCS(nMagParamCS, j+2)
+
+            ! Correct the indexing scheme (order of mixing) for the first parameter:
+            iMagneticParamCS(nMagParamCS, j+2) = 0
+
+            ! Loop through number of mixing terms per component array:
+            do k = 2, n
+
+                ! Update counter of the number of parameters:
+                nMagParamCS = nMagParamCS + 1
+
+                ! Add additional terms:
+                iMagneticParamCS(nMagParamCS,1:nParamMax*2+1) = iMagneticParamCS(nMagParamCS-1,1:nParamMax*2+1)
+
+                ! Correct the indexing scheme (order of mixing parameter):
+                iMagneticParamCS(nMagParamCS, j+2) = k - 1
+
+                ! Read mixing terms:
+                read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
+
+            end do
+        end do LOOP_MagneticMixingSUBL
     end if
 
     ! Loop through excess mixing parameters:
@@ -200,7 +232,7 @@ subroutine ParseCSDataBlockSUBL(i)
         ! Read in the mixing parameter:
         read (1,*,IOSTAT = INFO) dRegularParamCS(nParamCS,1:6)
 
-        ! Store number of mixing paramters per component array:
+        ! Store number of mixing parameters per component array:
         n = iRegularParamCS(nParamCS, j+2)
 
         ! Correct the indexing scheme (order of mixing) for the first parameter:

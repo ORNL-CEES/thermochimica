@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2
+    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer, dimension(nElementsCS)    :: iRemove
@@ -394,8 +394,12 @@ subroutine CompThermoData
                 ! end if
 
                 ! Compute the magnetic terms (if applicable):
-                if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
-                    call CompGibbsMagnetic(i,j)
+                if ((dGibbsMagneticCS(i,1) /= 0D0)) then
+                    if (iPhase(j) == 0) then
+                        call CompGibbsMagnetic(i,j)
+                    else
+                        call CompGibbsMagneticSolnInit(i,j)
+                    end if
                 end if
 
                 ! Convert chemical potentials to dimensionless units:
@@ -403,7 +407,9 @@ subroutine CompThermoData
 
                 ! Add pressure dependence term to the chemical potential term:
                 if (iPhaseCS(i) == 1) then
-                    if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                    ! For real??? Using the phase name here? I'm going to lose my mind.
+                    ! if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                    if (cSolnPhaseTypeCS(1) == 'IDMX') then
                         ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
                         ! the first solution phase in the data-file.
                         dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
@@ -534,6 +540,7 @@ subroutine CompThermoData
 
     ! Update all the excess properties:
     n = 0
+    nn = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
@@ -673,6 +680,87 @@ subroutine CompThermoData
                 end select
             end if IF_ParamPass
         end do LOOP_Param
+        LOOP_MagParam: do j = nMagParamPhaseCS(i-1) + 1, nMagParamPhaseCS(i)
+
+            ! Proceed if the parameter passed:
+            IF_MagParamPass: if (iMagParamPassCS(j) /= 0) then
+                nn = nn + 1
+                iMagneticParam(nn,1:nParamMax*2+3) = iMagneticParamCS(j,1:nParamMax*2+3)
+                dMagneticParam(nn,1:2) = dMagneticParamCS(j,1:2)
+
+                if (cSolnPhaseTypeCS(i) == 'RKMPM') then
+                    ! Loop through species involved in mixing parameter:
+                    do k = 1, iMagneticParamCS(j,1)
+                        m                    = iMagneticParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
+                        iMagneticParam(nn,k+1) = iSpeciesPass(m)
+                    end do
+                    if (iMagneticParamCS(j,1) == 3) then
+                        m                    = iMagneticParamCS(j,iMagneticParamCS(j,1)+2) + nSpeciesPhaseCS(i-1)
+                        iMagneticParam(nn,iMagneticParamCS(j,1)+2) = iSpeciesPass(m)
+                    end if
+                else if (cSolnPhaseTypeCS(i) == 'SUBLM') then
+                    ! Loop through constituents involved in mixing parameter:
+                    do k = 1, iMagneticParamCS(j,1)
+
+                        ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                        ! a continuing count of the constituents.
+                        m = iMagneticParamCS(j,k+1)
+
+                        ! Figure out the sublattice (l) and constituent (m) indices:
+                        LOOP_SUBLmag: do s = 1, nSublatticePhaseCS(nCounter)
+                            l = s
+                            if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                m = m - nConstituentSublatticeCS(nCounter,s)
+                            else
+                                exit LOOP_SUBLmag
+                            end if
+
+                        end do LOOP_SUBLmag
+
+                        ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                        ! sublattice l):
+                        iMagneticParam(nn,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+
+                    end do
+
+                    ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
+                    ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
+                    ! may be three constituents mixing where the first constituent is on the first sublattice and
+                    ! the second and third are on the second sublattice.
+                    LOOP_SUBLmag_Check: do k = 2, iMagneticParamCS(j,1)
+
+                        l = MOD(iMagneticParam(nn,k), 10000)
+                        l = (iMagneticParam(nn,k) - l) / 10000
+
+                        m = MOD(iMagneticParam(nn,k+1), 10000)
+                        m = (iMagneticParam(nn,k+1) - m) / 10000
+
+                        ! If these two constituents are on the same sublattice and they correspond to the
+                        ! first two mixing constituents, then exit:
+                        if (l == m) then
+
+                            ! Check the order of constituents:
+                            if (k == 2) then
+                                ! These constituent indices are correctly placed:
+                                exit LOOP_SUBLmag_Check
+                            elseif (k == 3) then
+                                ! Shuffle the vector:
+                                l = iMagneticParam(nn,2)
+                                iMagneticParam(nn,2) = iMagneticParam(nn,3)
+                                iMagneticParam(nn,3) = iMagneticParam(nn,4)
+                                iMagneticParam(nn,4) = l
+
+                                exit LOOP_SUBLmag_Check
+                            else
+                                ! Report an error and exit:
+                                INFOThermo = 36
+                                exit LOOP_SUBLmag_Check
+                            end if
+                        end if
+                    end do LOOP_SUBLmag_Check
+                end if
+            end if IF_MagParamPass
+        end do LOOP_MagParam
     end do LOOP_SolnPhases
 
     ! Update the phase index vector (iPhase):
@@ -726,6 +814,7 @@ subroutine CompThermoData
     ! Store the standard molar Gibbs energies:
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
+        dChemicalPotential(i) = dChemicalPotential(i) + dMagGibbsEnergy(i)
     end do
 
     nRemove = 0

@@ -75,18 +75,19 @@ module ModuleParseCS
     SAVE
 
     integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO
-    integer                                     :: nParamCS, nCountSublatticeCS, nMaxSpeciesPhaseCS
+    integer                                     :: nParamCS, nCountSublatticeCS, nMaxSpeciesPhaseCS, nMagParamCS
     integer,        parameter                   :: nSolnPhasesSysMax = 42, nMaxSublatticeCS = 5
     integer,        parameter                   :: nSolnTypeSupport = 8
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
-    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS
+    integer,        dimension(:),   allocatable :: iMagParamPassCS, nMagParamPhaseCS
+    integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iMagneticParamCS
     integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
     integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iSublatticeElementsCS, iPairIDCS, iChemicalGroupCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMass
-    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS
+    real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dMagneticParamCS
     real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS, dZetaSpeciesCS
     real(8),        dimension(:,:,:), allocatable :: dSublatticeChargeCS, dStoichPairsCS
     real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS

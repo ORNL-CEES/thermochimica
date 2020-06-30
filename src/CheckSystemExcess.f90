@@ -147,7 +147,7 @@ subroutine CheckSystemExcess
                 n = nSublatticePhase(nCountSublattice)
                 dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
-                iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
+                ! iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 k = iPhaseSublatticeCS(i)
 
                 ! Loop through species in phase to determine which constituents are stable:
@@ -181,7 +181,41 @@ subroutine CheckSystemExcess
                             iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
                             j = j + 1
                             cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
+                            ! iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
                         end if
+                    end do
+                end do
+
+                ! Get the constituents that passed on each sublattice
+                j = 0
+                LOOP_findPassed: do c = 1, SIZE(iConstituentSublatticeCS, DIM=3)
+                    do s = 1, nSublatticePhaseCS(k)
+                        if (iConstituentSublatticeCS(k,s,c) < 1) cycle LOOP_findPassed
+                        if (iConstituentPass(k,s,iConstituentSublatticeCS(k,s,c)) == 0) cycle LOOP_findPassed
+                    end do
+                    ! If not cycled above, then all constituents passed
+                    j = j + 1
+                    do s = 1, nSublatticePhaseCS(k)
+                        iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                    end do
+                end do LOOP_findPassed
+
+                ! Now reduce indices to account for removed constituents
+                do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+                    nRemove = 0
+                    iRemove = 0
+                    do c = nConstituentSublatticeCS(k,s), 1, -1
+                        if (iConstituentPass(k,s,c) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = c
+                        end if
+                    end do
+                    do c = 1, nRemove
+                        do l = SIZE(iConstituentSublattice,3), 1, -1
+                            if (iConstituentSublattice(nCountSublattice,s,l) > iRemove(c)) then
+                                iConstituentSublattice(nCountSublattice,s,l) = iConstituentSublattice(nCountSublattice,s,l) - 1
+                            end if
+                        end do
                     end do
                 end do
 
@@ -431,6 +465,94 @@ subroutine CheckSystemExcess
                 return
         end select
 
+        ! Magnetic mixing terms:
+        if (cSolnPhaseTypeCS(i) == 'RKMPM') then
+            ! Proceed if there are any mixing parameters for this phase:
+            if (nMagParamPhaseCS(i) /= nMagParamPhaseCS(i-1)) then
+                ! Loop through mixing parameters:
+                do j = nMagParamPhaseCS(i-1) + 1, nMagParamPhaseCS(i)
+                    if (iMagneticParamCS(j,1) == 2) then
+                        ! Binary term
+                        k = iMagneticParamCS(j,2) + nSpeciesPhaseCS(i-1)
+                        l = iMagneticParamCS(j,3) + nSpeciesPhaseCS(i-1)
+                        if ((iSpeciesPass(k) > 0).AND.(iSpeciesPass(l) > 0)) then
+                            nMagParam = nMagParam + 1
+                            iMagParamPassCS(j) = 1
+                        end if
+                    elseif (iMagneticParamCS(j,1) == 3) then
+                        ! Ternary term
+                        k = iMagneticParamCS(j,2) + nSpeciesPhaseCS(i-1)
+                        l = iMagneticParamCS(j,3) + nSpeciesPhaseCS(i-1)
+                        m = iMagneticParamCS(j,4) + nSpeciesPhaseCS(i-1)
+                        if ((iSpeciesPass(k) > 0).AND.(iSpeciesPass(l) > 0).AND.(iSpeciesPass(m) > 0)) then
+                            nMagParam = nMagParam + 1
+                            iMagParamPassCS(j) = 1
+                        end if
+                    elseif (iMagneticParamCS(j,1) == 4) then
+                        ! Quaternary term
+                        k = iMagneticParamCS(j,2) + nSpeciesPhaseCS(i-1)
+                        l = iMagneticParamCS(j,3) + nSpeciesPhaseCS(i-1)
+                        m = iMagneticParamCS(j,4) + nSpeciesPhaseCS(i-1)
+                        n = iMagneticParamCS(j,4) + nSpeciesPhaseCS(i-1)
+                        if ((iSpeciesPass(k) > 0).AND.(iSpeciesPass(l) > 0).AND.(iSpeciesPass(m) > 0).AND.&
+                            (iSpeciesPass(n) > 0)) then
+                            nMagParam = nMagParam + 1
+                            iMagParamPassCS(j) = 1
+                        end if
+                    else
+                        ! An unsupported number of mixing terms.  Report an error:
+                        INFOThermo = 43
+                        return
+                    end if
+                end do
+            end if
+        else if (cSolnPhaseTypeCS(i) == 'SUBLM') then
+            ! Proceed if there are any mixing parameters for this phase:
+            if (nMagParamPhaseCS(i) /= nMagParamPhaseCS(i-1)) then
+
+                ! Loop through all mixing parameters for this phase:
+                LOOP_MagParam_SUBL: do j = nMagParamPhaseCS(i-1) + 1, nMagParamPhaseCS(i)
+
+                    ! Loop through constituents associated with this parameter:
+                    do k = 1, iMagneticParamCS(j,1)
+
+                        ! Store the constituent index to memory:
+                        l = iMagneticParamCS(j,1+k)
+
+                        ! Loop through sublattices associated with this phase:
+                        LOOP_Cmag: do m = 1, nSublatticePhaseCS(iPhaseSublatticeCS(i))
+
+                            ! Store the number of constituents for this sublattice:
+                            n = nConstituentSublatticeCS(iPhaseSublatticeCS(i),m)
+
+                            if (l <= n) then
+                                ! l is the constituent index on sublattice m.
+
+                                if (iConstituentPass(iPhaseSublatticeCS(i),m,l) == 0) then
+
+                                    ! If any of the constituents associated with this parameter did not pass, then
+                                    ! the mixing parameter will not be used.
+                                    cycle LOOP_MagParam_SUBL
+                                else
+                                    exit LOOP_Cmag
+                                end if
+                            else
+                                l = l - n
+                                cycle LOOP_Cmag
+                            end if
+                        end do LOOP_Cmag
+
+                    end do
+
+                    ! The parameter will be considered in the system.
+                    nMagParam          = nMagParam + 1
+                    iMagParamPassCS(j) = 1
+
+                end do LOOP_MagParam_SUBL
+            end if
+        end if
+        nMagParamPhase(nCounter) = nMagParam
+
     end do LOOP_SolnPhases
 
     ! Check to see if the mixing terms need to be reallocated:
@@ -447,6 +569,22 @@ subroutine CheckSystemExcess
     else
         ! Allocate memory for excess parameters:
         allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
+    end if
+
+    ! Same as above, for magnetic mixing:
+    if (allocated(dMagneticParam)) then
+        i = SIZE(dMagneticParam)
+        if (i /= nMagParam) then
+            deallocate(iMagneticParam,dMagneticParam, STAT = n)
+            if (n /= 0) then
+                INFOThermo = 19
+                return
+            end if
+            allocate(iMagneticParam(nMagParam,nParamMax*2+3),dMagneticParam(nMagParam,2))
+        end if
+    else
+        ! Allocate memory for excess parameters:
+        allocate(iMagneticParam(nMagParam,nParamMax*2+3),dMagneticParam(nMagParam,2))
     end if
 
     ! Determine whether a solution phase is miscibile.  This flag will be used by the main solver.

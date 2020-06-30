@@ -47,7 +47,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
     real(8), intent(in)  :: dMolesPhaseIn(nElements), dMolFractionIn(nSpecies)
     real(8), intent(out) :: dGibbsEnergySysOut
     integer              :: i, j, k, iPhaseIndex
-    real(8)              :: dGibbsPhase, dMolFractionPhase
+    real(8)              :: dGibbsPhase, dMolFractionPhase, dGibbsEnergySysTemp
 
     ! Temporary variables to store things that must be overwritten
     integer  :: nConPhasesTemp, nSolnPhasesTemp
@@ -60,6 +60,7 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
     dMolesPhaseTemp = dMolesPhase
     dMolFractionTemp = dMolFraction
     dMolesSpeciesTemp = dMolesSpecies
+    dGibbsEnergySysTemp = dGibbsEnergySys
 
     nConPhases = nConPhasesIn
     nSolnPhases = nSolnPhasesIn
@@ -98,6 +99,9 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
             dGibbsEnergySysOut = dGibbsEnergySysOut + dStdGibbsEnergy(iPhaseIndex) * dMolesPhaseIn(i)
         end do
         dGibbsEnergySysOut = dGibbsEnergySysOut * dIdealConstant * dTemperature
+        dGibbsEnergySys = dGibbsEnergySysOut
+        ! call PrintResults
+        dGibbsEnergySys = dGibbsEnergySysTemp
         print '(A26,ES12.5,A4)', ' Gibbs energy of input  = ', dGibbsEnergySysOut, ' [J]'
         print '(A26,ES12.5,A4)', ' Gibbs energy diff      = ', dGibbsEnergySysOut - dGibbsEnergySys, ' [J]'
 

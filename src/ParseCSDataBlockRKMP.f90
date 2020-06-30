@@ -74,15 +74,87 @@ subroutine ParseCSDataBlockRKMP( i )
 
     ! RKMPM phases include magnetic mixing terms right before non-ideal mixing terms.
     ! The end of the list of mixing terms is indicated by a "0".
-    if (cSolnPhaseTypeCS(i) == 'RKMPM') then
+    if (cSolnPhaseTypeCS(i) == 'RKMPM') then! call ParseCSMagneticMixing(i)
+        LOOP_MagneticMixingRKMP: do
 
-        read (1,*,IOSTAT = INFO) j
+            ! Read in number of constituents involved in parameter:
+            read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,1)
 
-        ! Record an error:
-        if ((INFO /= 0).OR.(j /= 0)) then
-            INFO = 1600 + i
-            return
-        end if
+            ! The end of the parameter listing is marked by "0":
+            if (iMagneticParamCS(nMagParamCS+1,1) == 0) exit LOOP_MagneticMixingRKMP
+
+            ! Check if the parameter is binary or ternary:
+            if (iMagneticParamCS(nMagParamCS+1,1) == 2) then
+
+                ! Binary mixing terms:
+                read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,2:4)
+
+                ! Store the number of equations to temporary memory:
+                k = iMagneticParamCS(nMagParamCS+1,4)
+
+                ! Loop through the number of terms per constituent matrix:
+                do j = 1, k
+                    ! Count the number of parameters:
+                    nMagParamCS = nMagParamCS + 1
+
+                    ! Record mixing ID's:
+                    iMagneticParamCS(nMagParamCS,1:3) = iMagneticParamCS(nMagParamCS-j+1,1:3)
+
+                    ! Set the exponent:
+                    iMagneticParamCS(nMagParamCS,4)   = j - 1
+                    read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
+
+                end do
+
+            elseif (iMagneticParamCS(nMagParamCS+1,1) == 3) then
+
+                ! Ternary mixing terms:
+                read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,2:5)
+
+                k = iMagneticParamCS(nMagParamCS+1,5)
+
+                ! Loop through the number of terms per constituent matrix:
+                do j = 1, k
+
+                    ! Count the number of parameters:
+                    nMagParamCS = nMagParamCS + 1
+
+                    ! Record mixing ID's:
+                    iMagneticParamCS(nMagParamCS,1:5) = iMagneticParamCS(nMagParamCS-j+1,1:5)
+
+                    ! Record the last constituent index:
+                    iMagneticParamCS(nMagParamCS,5)   = iMagneticParamCS(nMagParamCS,1+j)
+                    read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
+                end do
+
+            elseif (iMagneticParamCS(nMagParamCS+1,1) == 4) then
+
+                ! Quaternary mixing terms:
+                read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,2:6)
+
+                k = iMagneticParamCS(nMagParamCS+1,6)
+
+                ! Loop through the number of terms per constituent matrix:
+                do j = 1, k
+
+                    ! Count the number of parameters:
+                    nMagParamCS = nMagParamCS + 1
+
+                    ! Record mixing ID's:
+                    iMagneticParamCS(nMagParamCS,1:6) = iMagneticParamCS(nMagParamCS-j+1,1:6)
+
+                    ! Record the last constituent index:
+                    iMagneticParamCS(nMagParamCS,6)   = iMagneticParamCS(nMagParamCS,1+j)
+                    read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
+                end do
+
+            else
+                ! This parameter is not recognized; record an error.
+                INFO = 43
+                return
+            end if
+
+        end do LOOP_MagneticMixingRKMP
     end if
 
     ! Loop through excess mixing parameters:

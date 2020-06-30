@@ -436,13 +436,13 @@ subroutine CheckSystem
         if (k /= nSolnPhasesSys) then
             ! The number of solution phases in the system has changed.
             deallocate(nSpeciesPhase,nParamPhase,cSolnPhaseType,cSolnPhaseName,lSolnPhases,dGibbsSolnPhase, &
-                lMiscibility, STAT = n)
+                lMiscibility,nMagParamPhase, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
             ! Allocate memory:
-            allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys))
+            allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
             allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
             allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
 
@@ -483,7 +483,7 @@ subroutine CheckSystem
         allocate(iParticlesPerMole(nSpecies),dCoeffGibbsMagnetic(nSpecies,4),dMagGibbsEnergy(nSpecies))
         allocate(cElementName(nElements),dMolesElement(nElements))
         allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
-        allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys))
+        allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
         allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
 
@@ -517,12 +517,14 @@ subroutine CheckSystem
     dStoichSpecies       = 0
     nSpeciesPhase        = 0
     nParamPhase          = 0
+    nMagParamPhase       = 0
     dChemicalPotential   = 0D0
     dStdGibbsEnergy      = 0D0
     dMolesElement        = 0D0
     dAtomFractionSpecies = 0D0
     dGibbsSolnPhase      = 0D0
     dCoeffGibbsMagnetic  = 0D0
+    dMagGibbsEnergy      = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
 
