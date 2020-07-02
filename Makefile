@@ -23,21 +23,18 @@
 AR          = ar
 FC          = gfortran
 FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
-#FCFLAGS     = -Wall -g -fbounds-check
-#FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check
-#LDFLAGS     = -framework Accelerate -g -fbounds-check
-#LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
-#LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
 
-# links to lapack and blas libraries:
-LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
-
-# link flags for linux users:
-LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
-
-# link flags for mac users:
-#LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
-
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    # links to lapack and blas libraries:
+		LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
+		# link flags for linux users:
+		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+endif
+ifeq ($(UNAME_S),Darwin)
+    # link flags for mac users:
+		LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
+endif
 
 ## ====================
 ## DIRECTORY VARIABLES:
@@ -133,9 +130,10 @@ $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
 ## =====
 clean:
 	rm -f $(OBJ_DIR)/*
-	rm -f $(BIN_DIR)/*
+	find bin -name \*.dSYM -exec rm -rf {} \; > /dev/null 2>&1 || rm -f $(BIN_DIR)/*
 
 veryclean: clean cleandoc
+	rm -fr $(OBJ_DIR)/*
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
 
