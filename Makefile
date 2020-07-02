@@ -133,6 +133,7 @@ clean:
 	rm -f $(BIN_DIR)/*
 
 veryclean: clean cleandoc
+	find bin -name \*.dSYM -exec rm -rf {} \; > /dev/null 2>&1
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
 
