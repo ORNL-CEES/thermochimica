@@ -130,7 +130,7 @@ $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
 ## =====
 clean:
 	rm -f $(OBJ_DIR)/*
-		find bin -name \*.dSYM -exec rm -rf {} \; > /dev/null 2>&1
+	find bin -name \*.dSYM -exec rm -rf {} \; > /dev/null 2>&1
 	rm -f $(BIN_DIR)/*
 
 veryclean: clean cleandoc
