@@ -23,11 +23,6 @@
 AR          = ar
 FC          = gfortran
 FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
-#FCFLAGS     = -Wall -g -fbounds-check
-#FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check
-#LDFLAGS     = -framework Accelerate -g -fbounds-check
-#LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
-#LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
