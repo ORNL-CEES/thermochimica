@@ -132,8 +132,9 @@ clean:
 	rm -f $(OBJ_DIR)/*
 	rm -f $(BIN_DIR)/*
 
-veryclean: clean cleandoc
+veryclean: cleandoc
 	find bin -name \*.dSYM -exec rm -rf {} \; > /dev/null 2>&1
+	rm -fr $(OBJ_DIR)/*
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
 
