@@ -29,15 +29,17 @@ FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA
 #LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
 #LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
 
-# links to lapack and blas libraries:
-LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
-
-# link flags for linux users:
-LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
-
-# link flags for mac users:
-#LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
-
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    # links to lapack and blas libraries:
+		LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
+		# link flags for linux users:
+		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+endif
+ifeq ($(UNAME_S),Darwin)
+    # link flags for mac users:
+		LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
+endif
 
 ## ====================
 ## DIRECTORY VARIABLES:
