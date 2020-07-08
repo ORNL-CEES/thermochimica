@@ -203,6 +203,8 @@ subroutine CheckSystem
         return
     end do LOOP_Small
 
+    cInputUnitMass = 'moles'
+
     if (nCompounds > 0) then
         call CheckCompounds
         dSum = 0

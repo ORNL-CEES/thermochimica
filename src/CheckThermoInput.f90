@@ -126,6 +126,8 @@ subroutine CheckThermoInput
             return
     end select
 
+    cInputUnitTemperature = 'K'
+
     ! Check that the absolute temperature [K] is within an acceptable range and real:
     if ((dTemperature < 295D0).OR.(dTemperature > 6000D0).OR.(dTemperature /= dTemperature)) then
         INFOThermo = 1
@@ -149,6 +151,8 @@ subroutine CheckThermoInput
             INFOThermo = 4
             return
     end select
+
+    cInputUnitPressure = 'atm'
 
     ! Check that the absolute hydrostatic pressure [atm] is within an acceptable range and real:
     if ((dPressure < 1D-6).OR.(dPressure > 1D6).OR.(dPressure /= dPressure)) then
