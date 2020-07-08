@@ -772,7 +772,6 @@ subroutine CompThermoData
 
                                 exit LOOP_SUBLmag_Check
                             else
-                            else
                                 ! Report an error and exit:
                                 INFOThermo = 36
                                 exit LOOP_SUBLmag_Check
