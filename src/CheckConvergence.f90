@@ -150,6 +150,35 @@ subroutine CheckConvergence
 
     if (lPhaseChange .EQV. .TRUE.) return
 
+    ! TEST #8: Check the relative errors of the mass balance equations:
+    ! -----------------------------------------------------------------
+    ! print *, "Test 8 "
+    LOOP_TEST8: do j = 1, nElements
+        dResidual = -dMolesElement(j)
+        ! Loop through solution phases:
+        do l = 1, nSolnPhases
+            k = -iAssemblage(nElements - l + 1)                 ! Absolute solution phase index.
+            do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)     ! Absolute solution species index.
+                dResidual = dResidual + dMolesSpecies(i) * dStoichSpecies(i,j) / DFLOAT(iParticlesPerMole(i))
+            end do
+        end do
+
+        ! Loop through pure condensed phases:
+        do i = 1, nConPhases
+            k = iAssemblage(i)                                  ! Absolute pure condensed phase index.
+            dResidual = dResidual + dMolesPhase(i) * dStoichSpecies(k,j)
+        end do
+
+        ! Compute residual or relative error term:
+        if (dMolesElement(j) == 0D0) then
+            ! The system component corresponds to an electron:
+            dResidual = DABS(dResidual)
+        else
+            dResidual = DABS(dResidual) / dMolesElement(j)
+        end if
+        if (dResidual > dTolerance(1)) return
+    end do LOOP_TEST8
+
     ! CONVERGENCE TEST SHORTCUT
     ! -----------------------------------------------------------------------------------
     ! print *, "Test Shortcut ", dGEMFunctionNorm
@@ -261,36 +290,6 @@ subroutine CheckConvergence
         if (dDrivingForceSoln(i) < dTolerance(4)) return
 
     end do LOOP_TEST7
-
-    ! TEST #8: Check the relative errors of the mass balance equations:
-    ! -----------------------------------------------------------------
-    ! print *, "Test 8 "
-    LOOP_TEST8: do j = 1, nElements
-        dResidual = -dMolesElement(j)
-        ! Loop through solution phases:
-        do l = 1, nSolnPhases
-            k = -iAssemblage(nElements - l + 1)                 ! Absolute solution phase index.
-            do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)     ! Absolute solution species index.
-                dResidual = dResidual + dMolesSpecies(i) * dStoichSpecies(i,j) / DFLOAT(iParticlesPerMole(i))
-            end do
-        end do
-
-        ! Loop through pure condensed phases:
-        do i = 1, nConPhases
-            k = iAssemblage(i)                                  ! Absolute pure condensed phase index.
-            dResidual = dResidual + dMolesPhase(i) * dStoichSpecies(k,j)
-        end do
-
-        ! Compute residual or relative error term:
-        if (dMolesElement(j) == 0D0) then
-            ! The system component corresponds to an electron:
-            dResidual = DABS(dResidual)
-        else
-            dResidual = DABS(dResidual) / dMolesElement(j)
-        end if
-
-        if (dResidual > dTolerance(1)) return
-    end do LOOP_TEST8
 
     ! TEST #9: Check for a miscibility gap:
     ! -------------------------------------
