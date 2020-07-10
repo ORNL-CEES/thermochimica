@@ -290,9 +290,9 @@ subroutine PrintResultsSolnPhase
         cDummyB(nMax+2:nMax+3) = '}'
 
         if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A40)', '+ ', dmolFraction(c), ' ', cDummyB
+            print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cDummyB
         else
-            print '(A20,ES10.4,A40)', '+ ', dmolFraction(c), cDummyB
+            print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cDummyB
         end if
         print *
 
@@ -400,7 +400,7 @@ subroutine PrintResultsPureConPhase
         j = iTempVec(i)
 
         if ((dMolesPhase(j) >= 1D4).OR.(dMolesPhase(j) <= 1D-1)) then
-            print '(A3,ES10.4,A4,A15)', cDummy, dMolesPhase(j), ' mol', cSpeciesName(iAssemblage(j))
+            print '(A3,ES10.4,A5,A15)', cDummy, dMolesPhase(j), ' mol ', cSpeciesName(iAssemblage(j))
         elseif ((dMolesPhase(j) < 0.99949).AND.(dMolesPhase(j) > 1D-1)) then
             ! Format the output so that there are 5 significant figures (k = 6 because it includes ".").
             k = 7
@@ -410,7 +410,7 @@ subroutine PrintResultsPureConPhase
             write (FMTB, *) k
             dTemp = dMolesPhase(j)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A6,A7,A4,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
+            print '(A6,A7,A5,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
         else
             ! Format the output so that there are 5 significant figures (k = 6 because it includes ".").
             k = 6
@@ -420,7 +420,7 @@ subroutine PrintResultsPureConPhase
             write (FMTB, *) k
             dTemp = dMolesPhase(j)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A7,A6,A4,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
+            print '(A7,A6,A5,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
         end if
         print *
 

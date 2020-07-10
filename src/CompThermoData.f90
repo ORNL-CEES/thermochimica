@@ -670,6 +670,16 @@ subroutine CompThermoData
                                     iRegularParam(n,4) = l
 
                                     exit LOOP_SUBL_Check
+                                elseif (k == 4) then
+                                    ! Shuffle the vector:
+                                    l = iRegularParam(n,2)
+                                    m = iRegularParam(n,3)
+                                    iRegularParam(n,2) = iRegularParam(n,4)
+                                    iRegularParam(n,3) = iRegularParam(n,5)
+                                    iRegularParam(n,4) = l
+                                    iRegularParam(n,5) = m
+
+                                    exit LOOP_SUBL_Check
                                 else
                                     ! Report an error and exit:
                                     INFOThermo = 36
@@ -749,6 +759,16 @@ subroutine CompThermoData
                                 iMagneticParam(nn,2) = iMagneticParam(nn,3)
                                 iMagneticParam(nn,3) = iMagneticParam(nn,4)
                                 iMagneticParam(nn,4) = l
+
+                                exit LOOP_SUBLmag_Check
+                            elseif (k == 4) then
+                                ! Shuffle the vector:
+                                l = iMagneticParam(nn,2)
+                                m = iMagneticParam(nn,3)
+                                iMagneticParam(nn,2) = iMagneticParam(nn,4)
+                                iMagneticParam(nn,3) = iMagneticParam(nn,5)
+                                iMagneticParam(nn,4) = l
+                                iMagneticParam(nn,5) = m
 
                                 exit LOOP_SUBLmag_Check
                             else

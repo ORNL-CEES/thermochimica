@@ -1,4 +1,4 @@
-subroutine CalculateCompositionSUBG(iSolnIndex)
+subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -13,6 +13,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex)
     real(8) :: dZa, dZb, dZx, dZy!, dXtot, dYtot
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
+    logical :: lPrint
     ! X_ij/kl corresponds to dMolFracion
 
 
@@ -64,13 +65,13 @@ subroutine CalculateCompositionSUBG(iSolnIndex)
         end do
         dSum = dSum + dNi(i)
     end do
-    print *, "Cation fractions:"
+    if (lPrint) print *, "Cation fractions:"
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum
         if (iSublatticeElements(iSPI,1,i) > 0) then
-            print *, cElementName(iSublatticeElements(iSPI,1,i)), dXi(i)
+            if (lPrint) print *, cElementName(iSublatticeElements(iSPI,1,i)), dXi(i)
         else if (iSublatticeElements(iSPI,1,i) == -1) then
-            print *, 'Va          ', dXi(i)
+            if (lPrint) print *, 'Va          ', dXi(i)
         end if
     end do
     ! Do anions now:
@@ -92,14 +93,14 @@ subroutine CalculateCompositionSUBG(iSolnIndex)
         end do
         dSum = dSum + dNi(j)
     end do
-    print *, "Anion fractions:"
+    if (lPrint) print *, "Anion fractions:"
     do i = 1, nSub2
         j = i + nSub1
         dXi(j) = dNi(j) / dSum
         if (iSublatticeElements(iSPI,2,i) > 0) then
-            print *, cElementName(iSublatticeElements(iSPI,2,i)), dXi(j)
+            if (lPrint) print *, cElementName(iSublatticeElements(iSPI,2,i)), dXi(j)
         else if (iSublatticeElements(iSPI,2,i) == -1) then
-            print *, 'Va          ', dXi(j)
+            if (lPrint) print *, 'Va          ', dXi(j)
         end if
     end do
 
@@ -173,13 +174,13 @@ subroutine CalculateCompositionSUBG(iSolnIndex)
     end do
 
     dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
-    print *, ""
-    print *, dMolesPairs, " Moles of pairs, fractions:"
+    if (lPrint) print *, ""
+    if (lPrint) print *, dMolesPairs, " Moles of pairs, fractions:"
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
-        print *, cPairName(iSPI,m), dXij(i,j)
+        if (lPrint) print *, cPairName(iSPI,m), dXij(i,j)
     end do
 
 

@@ -47,6 +47,7 @@ subroutine PostProcess
     dMolesPhase     = dMolesPhase   * dNormalizeInput
     dMolesElement   = dMolesElement * dNormalizeInput
     dMolesSpecies   = dMolesSpecies * dNormalizeInput
+    dElementMass    = dElementMass  * dNormalizeInput
 
     ! Compute the integral Gibbs energy of the system:
     do i = 1, nElements

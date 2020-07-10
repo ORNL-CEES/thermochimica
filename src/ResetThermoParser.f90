@@ -51,8 +51,9 @@ subroutine ResetThermoParser
 
     ! Deallocate integer arrays from ModuleParseCS:
     if (allocated(nSpeciesPhaseCS)) then
-        deallocate (nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS, nParamPhaseCS, &
-            iParamPassCS, dStoichSpeciesCS, iRegularParamCS, cRegularParamCS, STAT = INFO)
+        deallocate (nSpeciesPhaseCS,nGibbsEqSpecies,iPhaseCS,iParticlesPerMoleCS,nParamPhaseCS, &
+            iParamPassCS,dStoichSpeciesCS,iRegularParamCS,cRegularParamCS, &
+            nMagParamPhaseCS,iMagneticParamCS,dMagneticParamCS,iMagParamPassCS,STAT = INFO)
         i = i + INFO
     end if
 

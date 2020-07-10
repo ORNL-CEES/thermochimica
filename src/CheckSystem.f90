@@ -81,7 +81,7 @@
     !!    <td> All quantities are in grams.  </td>
     !! </tr>
     !! <tr>
-    !!    <td> "pounds" </td>
+    !!    <td> "pounds" or "lbs" </td>
     !!    <td> All quantities are in pounds.  </td>
     !! </tr>
     !! <tr>
@@ -177,7 +177,7 @@ subroutine CheckSystem
             if (cElementNameCS(j) == cElementNamePT(i)) then
                 ! Convert the mass of each element to moles:
                 select case (cInputUnitMass)
-                    case ('mass fraction','kilograms','grams','pounds')
+                case ('mass fraction','kilograms','grams','pounds','lbs')
                         ! Convert mass unit to moles:
                         dElementMass(i) = dElementMass(i) / dAtomicMass(j)
                     case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
@@ -202,6 +202,8 @@ subroutine CheckSystem
         INFOThermo = 31
         return
     end do LOOP_Small
+
+    cInputUnitMass = 'moles'
 
     if (nCompounds > 0) then
         call CheckCompounds

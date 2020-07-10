@@ -129,7 +129,8 @@ subroutine GEMSolver
         call CheckPhaseAssemblage
 
         ! Check convergence:
-        if (iterGlobal /= iterLast) call CheckConvergence
+        ! if (iterGlobal /= iterLast) call CheckConvergence
+        call CheckConvergence
 
         ! If in debug mode, call the debugger:
         if (lDebugMode) call GEMDebug(9)
