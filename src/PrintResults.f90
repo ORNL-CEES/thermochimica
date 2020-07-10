@@ -290,9 +290,9 @@ subroutine PrintResultsSolnPhase
         cDummyB(nMax+2:nMax+3) = '}'
 
         if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A40)', '+ ', dmolFraction(c), ' ', cDummyB
+            print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cDummyB
         else
-            print '(A20,ES10.4,A40)', '+ ', dmolFraction(c), cDummyB
+            print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cDummyB
         end if
         print *
 
