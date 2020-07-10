@@ -75,14 +75,17 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, i2, ia, ix!, iB2Y2
+    integer :: iA2X2, iB2X2, iA2Y2, iADX2, iD2X2, ia, ix
     integer :: iGroupA, iGroupB, iGroupD
+    ! integer :: nAsymmetric1, nAsymmetric2
+    logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
-    real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot, dYtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2, dX2, dY1, dY2!, dBlock, dXB2Y2
+    real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
+    real(8) :: dXA2X2, dXB2X2, dXA2Y2, dXADX2, dXD2X2
+    real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
-    ! X_ij/kl corresponds to dMolFracion
+    ! X_ij/kl corresponds to dMolFraction
 
 
     ! Only proceed if the correct phase type is selected:
@@ -99,11 +102,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     if (allocated(dNi)) deallocate(dNi)
     if (allocated(dXij)) deallocate(dXij)
     if (allocated(dNij)) deallocate(dNij)
+    if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
+    if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     j = iLast - iFirst + 1
     nPhaseElements = nSublatticeElements(iSPI,1) + nSublatticeElements(iSPI,2)
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
     allocate(dXij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
     allocate(dNij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
+    allocate(lAsymmetric1(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
+    allocate(lAsymmetric2(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
 
     ! Initialize variables:
     dXi                               = 0D0
@@ -124,11 +131,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dZb = dCoordinationNumber(iSPI,k,2)
             if (i == iPairID(iSPI,k,1))  then
                 dNi(i) = dNi(i) + (dMolFraction(l) / dZa)
-                dYi(i) = dYi(i) + (dMolFraction(l) / 2)
+                dYi(i) = dYi(i) + (dMolFraction(l) / 2D0)
             end if
             if (i == iPairID(iSPI,k,2))  then
                 dNi(i) = dNi(i) + (dMolFraction(l) / dZb)
-                dYi(i) = dYi(i) + (dMolFraction(l) / 2)
+                dYi(i) = dYi(i) + (dMolFraction(l) / 2D0)
             end if
         end do
         dSum = dSum + dNi(i)
@@ -297,6 +304,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     ! Loop through excess mixing parameters:
     LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
 
+        if (dExcessGibbsParam(abxy) == 0D0) cycle LOOP_Param
+
         ! AB/XY parametrization
         a = iRegularParam(abxy,2)              ! Index of A
         b = iRegularParam(abxy,3)              ! Index of B
@@ -329,6 +338,87 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
         iBlock = iBlock + iFirst - 1
 
+        if (x == y) then
+            dXi1 = 0D0
+            dXi2 = 0D0
+            dXiDen = 0D0
+            dChi1 = 0D0
+            dChi2 = 0D0
+            dChiDen = 0D0
+            lAsymmetric1 = .FALSE.
+            lAsymmetric2 = .FALSE.
+            lAsymmetric1(a) = .TRUE.
+            lAsymmetric2(b) = .TRUE.
+            ! First make a list of which constituents make asymmetric ternaries
+            if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
+                do i = 1, nSublatticeElements(iSPI,1)
+                    if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
+                        lAsymmetric1(i) = .TRUE.
+                    else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
+                        lAsymmetric2(i) = .TRUE.
+                    end if
+                end do
+            end if
+            ! Now use lists to generate epsilon and chi
+            do i = 1, nSublatticeElements(iSPI,1)
+                do j = i, nSublatticeElements(iSPI,1)
+                    k = (x - 1) * (nSublatticeElements(iSPI,1) &
+                                    * (nSublatticeElements(iSPI,1) + 1) / 2)
+                    if (i == j) then
+                        k = k + i
+                    else
+                        k = k + nSublatticeElements(iSPI,1) + i + ((j-2)*(j-1)/2)
+                    end if
+                    iQuad = k + iFirst - 1
+                    if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
+                        dChi1 = dChi1 + dMolFraction(iQuad)
+                    end if
+                    if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
+                        dChi2 = dChi2 + dMolFraction(iQuad)
+                    end if
+                    if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
+                        dChiDen = dChiDen + dMolFraction(iQuad)
+                    end if
+                    ! Below is epsilon without counting of x /= y quads
+                    ! if (lAsymmetric1(i)) then
+                    !     ! dXi1 = dXi1 + dMolFraction(iQuad) / 2D0
+                    !     if (i == iPairID(iSPI,k,1))  then
+                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
+                    !     end if
+                    !     if (i == iPairID(iSPI,k,2))  then
+                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
+                    !     end if
+                    ! end if
+                    ! if (lAsymmetric2(i)) then
+                    !     ! dXi2 = dXi2 + dMolFraction(iQuad) / 2D0
+                    !     if (i == iPairID(iSPI,k,1))  then
+                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
+                    !     end if
+                    !     if (i == iPairID(iSPI,k,2))  then
+                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
+                    !     end if
+                    ! end if
+                end do
+                ! Below is epsilon with counting of x /= y quads
+                do k = 1, nPairsSRO(iSPI,2)
+                    l = k + iFirst - 1
+                    if (lAsymmetric1(i)) then
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                    end if
+                    if (lAsymmetric2(i)) then
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (i == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                    end if
+                end do
+            end do
+            dXiDen = dXi1 + dXi2
+        end if
+
         ! Calculate energy for this term
         ! G-type terms
         if (cRegularParam(abxy) == 'G') then
@@ -346,18 +436,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dXA2Y2 = dMolFraction(iA2Y2)
             ! G-type binary terms
             if ((d == 0) .AND. (w == 0)) then
-                if ((a /= b) .AND. (x == y)) then
-                    i2 = iB2X2
-                    dX2 = dXB2X2
-                else if ((a == b) .AND. (x /= y)) then
-                    i2 = iA2Y2
-                    dX2 = dXA2Y2
-                else
-                    INFOThermo = 42
-                end if
-                dXtot = dXA2X2 + dX2 + dMolFraction(iBlock)
-                dGex = dExcessGibbsParam(abxy) * dXA2X2**p * dX2**q / (dXtot**(p + q))
-                dDgexBase = -dGex * (p + q) / dXtot
+                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q / (dChiDen**(p + q))
+                dDgexBase = -dGex * (p + q) / dChiDen
             ! G-type ternary terms
             else if (d > 0) then
                 iGroupA = iChemicalGroup(iSPI,1,a)
@@ -413,24 +493,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end if
             end if
         ! Q-type binary terms
-        ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
         else if (cRegularParam(abxy) == 'Q') then
-            dY1 = 0D0
-            dY2 = 0D0
-            do k = 1, nPairsSRO(iSPI,2)
-                l = iFirst + k - 1
-                if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dY1 = dY1 + (dMolFraction(l) / 4)
-                if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dY1 = dY1 + (dMolFraction(l) / 4)
-                if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dY1 = dY1 + (dMolFraction(l) / 4)
-                if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dY1 = dY1 + (dMolFraction(l) / 4)
-                if (b == iPairID(iSPI,k,1) .AND. yy == iPairID(iSPI,k,3)) dY2 = dY2 + (dMolFraction(l) / 4)
-                if (b == iPairID(iSPI,k,1) .AND. yy == iPairID(iSPI,k,4)) dY2 = dY2 + (dMolFraction(l) / 4)
-                if (b == iPairID(iSPI,k,2) .AND. yy == iPairID(iSPI,k,3)) dY2 = dY2 + (dMolFraction(l) / 4)
-                if (b == iPairID(iSPI,k,2) .AND. yy == iPairID(iSPI,k,4)) dY2 = dY2 + (dMolFraction(l) / 4)
-            end do
-            dYtot = dY1 + dY2
-            dGex = dExcessGibbsParam(abxy) * dY1**p * dY2**q / (dYtot**(p + q))
-            dDgexBase = -dGex * (p + q) / dYtot
+            dGex = dExcessGibbsParam(abxy) * dXi1**p * dXi2**q / (dXiDen**(p + q))
+            dDgexBase = -dGex * (p + q) / dXiDen
         ! B-type binary terms
         else if (cRegularParam(abxy) == 'B') then
             ! Start by calculating mixing energy term
@@ -529,22 +594,34 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Calculate d(g^ex_ab/xy)/d(n_ij/kl)
             ! G-type binary terms
             if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
-                if ((iQuad2 /= iA2X2) .AND. (iQuad2 /= i2) .AND. (iQuad2 /= iBlock)) cycle LOOP_ijkl
-                dDgex = dDgexBase
-                if (iQuad2 == iA2X2) dDgex = dDgex + dGex * p / dXA2X2
-                if (iQuad2 == i2)    dDgex = dDgex + dGex * q / dX2
+                dDgex = 0
+                if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
+                    dDgex = dDgex + dGex * p / dChi1
+                end if
+                if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
+                    dDgex = dDgex + dGex * q / dChi2
+                end if
+                if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
+                    dDgex = dDgex + dDgexBase
+                end if
             ! Q-type binary terms
             else if (cRegularParam(abxy) == 'Q') then
-            ! else if ((cRegularParam(abxy) == 'Q') .OR. (cRegularParam(abxy) == 'B')) then
                 dDgex = 0D0
-                if ((i == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
-                if ((i == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
-                if ((j == a).AND.(k == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
-                if ((j == a).AND.(l == x)) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dY1)
-                if ((i == b).AND.(k == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
-                if ((i == b).AND.(l == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
-                if ((j == b).AND.(k == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
-                if ((j == b).AND.(l == y)) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dY2)
+                do ii = 1, nSublatticeElements(iSPI,1)
+                    ! Below is epsilon with counting of x /= y quads
+                    if (lAsymmetric1(ii)) then
+                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
+                    end if
+                    if (lAsymmetric2(ii)) then
+                        if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == j .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                        if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
+                    end if
+                end do
             ! G-type ternary terms
             else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
                 ! Symmetric case
@@ -624,7 +701,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do LOOP_Param
 
     ! Deallocate allocatable arrays:
-    deallocate(dXi,dYi,dNi,dXij,dNij)
+    deallocate(dXi,dYi,dNi,dXij,dNij,lAsymmetric1,lAsymmetric2)
 
     return
 
