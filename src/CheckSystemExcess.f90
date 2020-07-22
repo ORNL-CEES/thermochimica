@@ -54,7 +54,7 @@ subroutine CheckSystemExcess
     implicit none
 
     integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex
-    integer, dimension(nElementsCS) :: iRemove
+    integer, dimension(nElementsCS**2) :: iRemove
 
 
     ! Initialize variables:

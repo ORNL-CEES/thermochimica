@@ -369,6 +369,11 @@ subroutine CheckSystem
             do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
                 m = m + 1
                 iSpeciesPass(j) = m
+                if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
+                    k = iPhaseSublatticeCS(i)
+                    if (iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,1,j-nSpeciesPhaseCS(i-1)) = 1
+                    if (iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,2,j-nSpeciesPhaseCS(i-1)) = 1
+                end if
             end do
             nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(i) - iTempVec(i-1))
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &

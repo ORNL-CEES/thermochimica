@@ -107,7 +107,7 @@ subroutine CompThermoData
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
-    integer, dimension(nElementsCS)    :: iRemove
+    integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
     real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
     real(8), dimension(6)              :: dGibbsCoeff
