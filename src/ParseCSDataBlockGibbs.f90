@@ -224,16 +224,6 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
             INFO = 1500 + j
             return
         end if
-    elseif (i > 0) then ! This checks if the phase type is not a pure condensed phase to avoid indexing error (i.e., i == 0).
-        if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
-            ! For some reason that I do not understand, species in SUBG phases end with a
-            ! real vector that appears to correspond to the stoichiometry of the species.
-            ! This is odd since it's already defined (?).
-            ! Also, I'm not sure about the # of variables on this line. I'm working with a pseudo-binary system
-            ! with a binary SUBG phases, which has five entries (?).
-            read (1,*,IOSTAT = INFO) dTempVec(1:5)
-            ! Do nothing with dTempVec.
-        end if
     end if
 
     ! Assign an arbitrarily large positive value for the Gibbs energy equations for dummy species:

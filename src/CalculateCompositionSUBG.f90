@@ -6,7 +6,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
 
     implicit none
 
-    integer :: i, j, k, l, m, ii, jj
+    integer :: i, j, k, l, m
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nSub1, nSub2, iMax
     real(8) :: dSum, dMax, dSumElementQuads, dSumElementPairs,dMolesPairs
@@ -68,11 +68,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
     if (lPrint) print *, "Cation fractions:"
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum
-        if (iSublatticeElements(iSPI,1,i) > 0) then
-            if (lPrint) print *, cElementName(iSublatticeElements(iSPI,1,i)), dXi(i)
-        else if (iSublatticeElements(iSPI,1,i) == -1) then
-            if (lPrint) print *, 'Va          ', dXi(i)
-        end if
+        if (lPrint) print *, cConstituentNameSUB(iSPI,1,i), dXi(i)
     end do
     ! Do anions now:
     dSum = 0D0
@@ -97,75 +93,48 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
     do i = 1, nSub2
         j = i + nSub1
         dXi(j) = dNi(j) / dSum
-        if (iSublatticeElements(iSPI,2,i) > 0) then
-            if (lPrint) print *, cElementName(iSublatticeElements(iSPI,2,i)), dXi(j)
-        else if (iSublatticeElements(iSPI,2,i) == -1) then
-            if (lPrint) print *, 'Va          ', dXi(j)
-        end if
+        if (lPrint) print *, cConstituentNameSUB(iSPI,2,i), dXi(j)
     end do
 
     dSum = 0D0
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)
-        ii = iSublatticeElements(iSPI,1,i)
         j = iConstituentSublattice(iSPI,2,m)
-        jj = iSublatticeElements(iSPI,2,j)
-        if (i > 0) then
-            do k = 1, nPairsSRO(iSPI,2)
-                l = iFirst + k - 1
-                dZa = dCoordinationNumber(iSPI,k,1)
-                dZb = dCoordinationNumber(iSPI,k,2)
-                if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dStoichPairs(iSPI,m,ii)
-                end if
-                if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dStoichPairs(iSPI,m,ii)
-                end if
-                if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dStoichPairs(iSPI,m,ii)
-                end if
-                if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dStoichPairs(iSPI,m,ii)
-                end if
-            end do
-        else if ((i == -1) .AND. (j > 0)) then
-            do k = 1, nPairsSRO(iSPI,2)
-                l = iFirst + k - 1
-                dZx = dCoordinationNumber(iSPI,k,3)
-                dZy = dCoordinationNumber(iSPI,k,4)
-                if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZx) / dStoichPairs(iSPI,m,jj)
-                end if
-                if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZx) / dStoichPairs(iSPI,m,jj)
-                end if
-                if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZy) / dStoichPairs(iSPI,m,jj)
-                end if
-                if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                    dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZy) / dStoichPairs(iSPI,m,jj)
-                end if
-            end do
-        end if
+        do k = 1, nPairsSRO(iSPI,2)
+            l = iFirst + k - 1
+            dZa = dCoordinationNumber(iSPI,k,1)
+            dZb = dCoordinationNumber(iSPI,k,2)
+            if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentMultipliers(iSPI,m,1)
+            end if
+            if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentMultipliers(iSPI,m,1)
+            end if
+            if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentMultipliers(iSPI,m,1)
+            end if
+            if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentMultipliers(iSPI,m,1)
+            end if
+        end do
         dSum = dSum + dNij(i,j)
     end do
 
-    ! Use most abundant element on 1st sublattice to convert # of moles
+    ! Use most abundant element in phase to normalize
     dMax = 0D0
-    do i = 1, nSub1
-        ii = iSublatticeElements(iSPI,1,i)
-        if (ii > 0) then
-            if (dNi(i) > dMax) then
-                dMax = dNi(i)
-                iMax = ii
-            end if
+    do i = 1, nElements
+        dSumElementQuads = 0D0
+        do k = 1, nPairsSRO(iSPI,2)
+            l = iFirst + k - 1
+            dSumElementQuads = dSumElementQuads + dStoichSpecies(l,i)*dMolesSpecies(l)
+        end do
+        if (dSumElementQuads > dMax) then
+            dMax = dSumElementQuads
+            iMax = i
         end if
     end do
-    dSumElementQuads = 0D0
-    do k = 1, nPairsSRO(iSPI,2)
-        l = iFirst + k - 1
-        dSumElementQuads = dSumElementQuads + dStoichSpecies(l,iMax)*dMolesSpecies(l)
-    end do
+    dSumElementQuads = dMax
+
     dSumElementPairs = 0D0
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)

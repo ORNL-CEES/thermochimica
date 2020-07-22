@@ -92,7 +92,7 @@ module ModuleThermo
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO, iMagneticParam
     integer,       dimension(:,:), allocatable::  nSublatticeElements
-    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iSublatticeElements, iPairID
+    integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iPairID
     integer,       dimension(:,:,:),allocatable:: iChemicalGroup
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput
@@ -104,6 +104,7 @@ module ModuleThermo
     real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies, dMagneticParam
 
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge, dStoichPairs
+    real(8),      dimension(:,:,:),allocatable::  dConstituentMultipliers
 
     character(12), dimension(:),   allocatable::  cElementName
     character(30), dimension(:),   allocatable::  cSpeciesName

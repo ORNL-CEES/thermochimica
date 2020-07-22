@@ -194,12 +194,18 @@ subroutine ParseCSDataBlock
             ! Store the phase index corresponding to the current species:
             iPhaseCS(j) = i
 
-            if (cSolnPhaseTypeCS(i) == 'SUBQ') then
+            if ((cSolnPhaseTypeCS(i) == 'SUBG') .OR. (cSolnPhaseTypeCS(i) == 'SUBQ')) then
               ! The following subroutine parses the Gibbs energy equations (entries 3-5):
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
-              ! Read zeta (FNN/SNN ratio)
-              ! In SUBQ zeta can differ for each FNN pair
-              read (1,*,IOSTAT = INFO) dZetaSpeciesCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1))
+
+              ! Get pair stoichiometry in terms of constituents
+              read (1,*,IOSTAT = INFO) dConstituentMultipliersCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:5)
+
+              if (cSolnPhaseTypeCS(i) == 'SUBQ') then
+                  ! Read zeta (FNN/SNN ratio)
+                  ! In SUBQ zeta can differ for each FNN pair
+                  read (1,*,IOSTAT = INFO) dZetaSpeciesCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1))
+              end if
             else
               ! The following subroutine parses the Gibbs energy equations (entries 3-5):
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)

@@ -140,7 +140,7 @@ subroutine PrintResultsSolnPhase
 
     integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nMax, nCutOff
     integer,    dimension(:),   allocatable :: iTempVec, iTempSpecies
-    real(8)                                 :: dCutOff, dTemp, Tcritical, B, StructureFactor
+    real(8)                                 :: dCutOff, dTemp, Tcritical, B, StructureFactor, dMolesPairs
     real(8),    dimension(:),   allocatable :: dTempVec, dTempSpecies
     character(2)                            :: cDummy
     character(30)                           :: cDummyB, FMTA, FMTB
@@ -170,7 +170,7 @@ subroutine PrintResultsSolnPhase
         k      = nElements - iTempVec(j) + 1
         l      = -iAssemblage(k)
 
-        ! if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l)
+        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l,dMolesPairs,.TRUE.)
 
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(l-1) + 1

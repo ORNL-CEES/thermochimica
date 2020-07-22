@@ -202,6 +202,7 @@ subroutine CompThermoData
                     nPairsSRO(iSublPhaseIndex,1) = nPairsSRO(iSublPhaseIndex,1) + 1
                     jj = jj + 1
                     dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                    dConstituentMultipliers(iSublPhaseIndex,jj,1:5) = dConstituentMultipliersCS(iSublPhaseIndex,i - iFirst + 1,1:5)
                     cPairName(iSublPhaseIndex,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
                     m = 0
                     do k = 1, nElemOrComp
@@ -576,16 +577,13 @@ subroutine CompThermoData
 
                     case ('SUBG','SUBQ')
 
-                        ! Must remove unused elements from iRegularParam
+                        ! Must remove unused constituents from iRegularParam
                         iSublPhaseIndex = iPhaseSublatticeCS(i)
                         nRemove = 0
                         iRemove = 0
                         do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
                             do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
-                                if (iSublatticeElementsCS(iSublPhaseIndex,k,l) <= 0) then
-                                    nRemove = nRemove + 1
-                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
-                                elseif (iElementSystem(iSublatticeElementsCS(iSublPhaseIndex,k,l)) == 0) then
+                                if (iConstituentPass(iSublPhaseIndex,k,l) <= 0) then
                                     nRemove = nRemove + 1
                                     iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
                                 end if

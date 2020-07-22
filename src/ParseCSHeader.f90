@@ -209,9 +209,9 @@ subroutine ParseCSHeader
     allocate(nConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(cConstituentNameSUBCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iConstituentSublatticeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
-    allocate(iSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS,nElementsCS))
     allocate(nSublatticeElementsCS(nSolnPhasesSysCS,nMaxSublatticeCS))
     allocate(dZetaSpeciesCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
+    allocate(dConstituentMultipliersCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,5))
     allocate(dSublatticeChargeCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(iChemicalGroupCS(nSolnPhasesSysCS,nMaxSublatticeCS,nMaxSpeciesPhaseCS))
     allocate(dStoichPairsCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,nElementsCS))
@@ -222,7 +222,6 @@ subroutine ParseCSHeader
     nConstituentSublatticeCS = 0
     iConstituentSublatticeCS = 0
     dStoichSublatticeCS      = 0D0
-    iSublatticeElementsCS    = 0
     nSublatticeElementsCS    = 0
     dZetaSpeciesCS           = 0D0
     dSublatticeChargeCS      = 0D0

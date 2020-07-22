@@ -280,6 +280,11 @@ subroutine CheckSystem
                 m = m + 1
                 iSpeciesPass(j) = m
                 l = j   ! If there is only one species in this phase, this species will be removed later.
+                if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
+                    k = iPhaseSublatticeCS(i)
+                    if (iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,1,j-nSpeciesPhaseCS(i-1)) = 1
+                    if (iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,2,j-nSpeciesPhaseCS(i-1)) = 1
+                end if
             end do LOOP_SpeciesInSolnPhase
 
             ! For electrons, there have to be species with positive and negative stoichiometries still in the system.
@@ -455,8 +460,8 @@ subroutine CheckSystem
 
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
-                     iSublatticeElements,nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName, STAT = n)
+                     nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
+                     dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName,dConstituentMultipliers, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -466,11 +471,11 @@ subroutine CheckSystem
             allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
             allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
             j = MAXVAL(nSublatticeElementsCS)
-            allocate(iSublatticeElements(nCountSublattice,nMaxSublatticeSys,j))
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
+            allocate(dConstituentMultipliers(nCountSublattice,nMaxSpeciesPhase,5))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
             allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
@@ -499,11 +504,11 @@ subroutine CheckSystem
             allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
             allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
             j = MAXVAL(nSublatticeElementsCS)
-            allocate(iSublatticeElements(nCountSublattice,nMaxSublatticeSys,j))
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
+            allocate(dConstituentMultipliers(nCountSublattice,nMaxSpeciesPhase,5))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
             allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
@@ -538,11 +543,11 @@ subroutine CheckSystem
         nSublatticePhase       = 0
         nConstituentSublattice = 0
         nSublatticeElements  = 0
-        iSublatticeElements  = 0
         nPairsSRO            = 0
         iPairID              = 0
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
+        dConstituentMultipliers = 0D0
         dSublatticeCharge    = 0D0
         iChemicalGroup       = 0
         dStoichPairs         = 0D0
