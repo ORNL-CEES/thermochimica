@@ -53,7 +53,7 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
     integer, dimension(nElementsCS**2) :: iRemove
 
 
@@ -285,11 +285,15 @@ subroutine CheckSystemExcess
 
                 m = 0
                 LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
-                    if (iConstituentPass(nCountSublatticeCS,1,k) == 0) cycle LOOP_iConstitSubl
-                    if (iConstituentPass(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
+                    iCon1 = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
+                    iCon2 = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    if (iCon1 == 0) cycle LOOP_iConstitSubl
+                    if (iCon2 == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCountSublatticeCS,1,iCon1) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCountSublatticeCS,2,iCon2) == 0) cycle LOOP_iConstitSubl
                     m = m + 1
-                    iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
-                    iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    iConstituentSublattice(nCountSublattice,1,m) = iCon1
+                    iConstituentSublattice(nCountSublattice,2,m) = iCon2
                     cConstituentNameSUB(nCountSublattice,1,m) = cConstituentNameSUBCS(nCountSublatticeCS,1,k)
                     cConstituentNameSUB(nCountSublattice,2,m) = cConstituentNameSUBCS(nCountSublatticeCS,2,k)
                 end do LOOP_iConstitSubl

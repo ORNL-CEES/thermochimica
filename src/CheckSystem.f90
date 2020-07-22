@@ -127,7 +127,7 @@ subroutine CheckSystem
 
     implicit none
 
-    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp
+    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
@@ -282,8 +282,10 @@ subroutine CheckSystem
                 l = j   ! If there is only one species in this phase, this species will be removed later.
                 if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                     k = iPhaseSublatticeCS(i)
-                    if (iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,1,j-nSpeciesPhaseCS(i-1)) = 1
-                    if (iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,2,j-nSpeciesPhaseCS(i-1)) = 1
+                    iCon1 = iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1))
+                    iCon2 = iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1))
+                    if (iCon1 > 0) iConstituentPass(k,1,iCon1) = 1
+                    if (iCon2 > 0) iConstituentPass(k,2,iCon2) = 1
                 end if
             end do LOOP_SpeciesInSolnPhase
 
@@ -371,8 +373,10 @@ subroutine CheckSystem
                 iSpeciesPass(j) = m
                 if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                     k = iPhaseSublatticeCS(i)
-                    if (iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,1,j-nSpeciesPhaseCS(i-1)) = 1
-                    if (iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1)) > 0) iConstituentPass(k,2,j-nSpeciesPhaseCS(i-1)) = 1
+                    iCon1 = iConstituentSublatticeCS(k,1,j-nSpeciesPhaseCS(i-1))
+                    iCon2 = iConstituentSublatticeCS(k,2,j-nSpeciesPhaseCS(i-1))
+                    if (iCon1 > 0) iConstituentPass(k,1,iCon1) = 1
+                    if (iCon2 > 0) iConstituentPass(k,2,iCon2) = 1
                 end if
             end do
             nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(i) - iTempVec(i-1))
