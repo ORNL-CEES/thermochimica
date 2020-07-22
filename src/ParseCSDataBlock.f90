@@ -199,7 +199,7 @@ subroutine ParseCSDataBlock
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
 
               ! Get pair stoichiometry in terms of constituents
-              read (1,*,IOSTAT = INFO) dConstituentMultipliersCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:5)
+              read (1,*,IOSTAT = INFO) dConstituentCoefficientsCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:5)
 
               if (cSolnPhaseTypeCS(i) == 'SUBQ') then
                   ! Read zeta (FNN/SNN ratio)

@@ -105,16 +105,16 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
             dZa = dCoordinationNumber(iSPI,k,1)
             dZb = dCoordinationNumber(iSPI,k,2)
             if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentMultipliers(iSPI,m,1)
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1)
             end if
             if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentMultipliers(iSPI,m,1)
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1)
             end if
             if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentMultipliers(iSPI,m,1)
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1)
             end if
             if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentMultipliers(iSPI,m,1)
+                dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1)
             end if
         end do
         dSum = dSum + dNij(i,j)

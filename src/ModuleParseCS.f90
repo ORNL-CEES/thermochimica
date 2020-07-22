@@ -89,7 +89,7 @@ module ModuleParseCS
     real(8),        dimension(:),   allocatable :: dAtomicMass
     real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dMagneticParamCS
     real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS, dZetaSpeciesCS, dStoichConstituentCS
-    real(8),        dimension(:,:,:), allocatable :: dSublatticeChargeCS, dStoichPairsCS, dConstituentMultipliersCS
+    real(8),        dimension(:,:,:), allocatable :: dSublatticeChargeCS, dStoichPairsCS, dConstituentCoefficientsCS
     real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS
 
     character(3),   dimension(:),   allocatable :: cElementNameCS

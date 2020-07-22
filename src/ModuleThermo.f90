@@ -104,7 +104,7 @@ module ModuleThermo
     real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies, dMagneticParam
 
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge, dStoichPairs
-    real(8),      dimension(:,:,:),allocatable::  dConstituentMultipliers
+    real(8),      dimension(:,:,:),allocatable::  dConstituentCoefficients
 
     character(12), dimension(:),   allocatable::  cElementName
     character(30), dimension(:),   allocatable::  cSpeciesName

@@ -461,7 +461,7 @@ subroutine CheckSystem
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
                     dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
                      nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
-                     dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName,dConstituentMultipliers, STAT = n)
+                     dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName,dConstituentCoefficients, STAT = n)
 
             allocate(iPhaseSublattice(nSolnPhasesSys),nSublatticePhase(nCountSublattice))
             allocate(nConstituentSublattice(nCountSublattice,nMaxSublatticeSys))
@@ -475,7 +475,7 @@ subroutine CheckSystem
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
-            allocate(dConstituentMultipliers(nCountSublattice,nMaxSpeciesPhase,5))
+            allocate(dConstituentCoefficients(nCountSublattice,nMaxSpeciesPhase,5))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
             allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
@@ -508,7 +508,7 @@ subroutine CheckSystem
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dZetaSpecies(nCountSublattice,nMaxSpeciesPhase))
-            allocate(dConstituentMultipliers(nCountSublattice,nMaxSpeciesPhase,5))
+            allocate(dConstituentCoefficients(nCountSublattice,nMaxSpeciesPhase,5))
             allocate(dSublatticeCharge(nCountSublattice,nMaxSublatticeSys,j))
             allocate(iChemicalGroup(nCountSublattice,nMaxSublatticeSys,j))
             allocate(dStoichPairs(nCountSublattice,MAXVAL(nPairsSROCS(:,1)),nElements))
@@ -547,7 +547,7 @@ subroutine CheckSystem
         iPairID              = 0
         dCoordinationNumber  = 0D0
         dZetaSpecies         = 0D0
-        dConstituentMultipliers = 0D0
+        dConstituentCoefficients = 0D0
         dSublatticeCharge    = 0D0
         iChemicalGroup       = 0
         dStoichPairs         = 0D0
