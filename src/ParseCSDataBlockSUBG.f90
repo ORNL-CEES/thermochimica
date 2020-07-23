@@ -415,7 +415,7 @@ subroutine ParseConstituentName(k, iSub)
         end do
 
         iFirstCapital = MINVAL(iCapital)
-        iCurrent = iFirstCapital
+        iCurrent = iCurrent + iFirstCapital - 1
 
         if (iFirstCapital == 100) then
             ! print *, 'Cannot parse constituent ', TRIM(cConstituentName), ' in solution phase ', cSolnPhaseNameCS(i)
