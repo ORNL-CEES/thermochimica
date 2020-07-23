@@ -108,7 +108,7 @@ subroutine CompThermoData
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer, dimension(nElementsCS**2) :: iRemove
-    real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy
+    real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax, dCoay, dCobx, dCoby
     real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
@@ -279,11 +279,16 @@ subroutine CompThermoData
                     end if
                 end do
 
-                dChemicalPotential(j) = ((dQx * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx)) &
-                      + (dQx * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx)) &
-                      + (dQy * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy)) &
-                      + (dQy * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
-                      / ((dQx/dZx) + (dQy/dZy))
+                dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,iax,1)
+                dCoay = dConstituentCoefficientsCS(iSublPhaseIndex,iay,1)
+                dCobx = dConstituentCoefficientsCS(iSublPhaseIndex,ibx,1)
+                dCoby = dConstituentCoefficientsCS(iSublPhaseIndex,iby,1)
+                
+                dChemicalPotential(j) = (((dQx / dCoax) * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx))  &
+                                       + ((dQx / dCobx) * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx))  &
+                                       + ((dQy / dCoay) * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy))  &
+                                       + ((dQy / dCoby) * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
+                                       / ((dQx/dZx) + (dQy/dZy))
             end do LOOP_nSUBGQCS
         else
             LOOP_nSpeciesCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
