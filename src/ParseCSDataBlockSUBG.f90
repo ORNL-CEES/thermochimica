@@ -90,13 +90,9 @@ subroutine ParseCSDataBlockSUBG( i )
     dTempVec = 0D0
     iTempVec = 0
 
-    ! SUBG phases appear to be represented as multi-sublattice phases; however,
-    ! they don't appear to make use of any sublattice information. I'm going to
-    ! to read these lines for now, but it may need to be revised at a later time.
-
     ! This line contains N integers (where N is the number of sublattices)
     ! where each integer represents the number of constituents on the respective
-    ! sublattice. I think there are always two sublattices for SUBG phases.
+    ! sublattice. There are always two sublattices for SUBG phases.
     read (1,*,IOSTAT = INFO) nSublatticeElementsCS(nCSCS,1:2)
     nConstituentSublatticeCS(nCSCS,1:2) = nSublatticeElementsCS(nCSCS,1:2)
     nSublatticePhaseCS(nCSCS) = 2
@@ -107,7 +103,6 @@ subroutine ParseCSDataBlockSUBG( i )
     nPairs = nSublatticeElementsCS(nCSCS,1) * nSublatticeElementsCS(nCSCS,2)
 
     ! Read in names of constituents on first sublattice:
-    ! NOTE: THIS LINE MAY NEED TO BE REVISED IF THERE ARE A LARGE # OF CONSTITUENTS:
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
     ! Match elements on 1st sublattice with elements in dat file order
     LOOP_Sub1Names: do k = 1, nSublatticeElementsCS(nCSCS,1)
@@ -122,14 +117,12 @@ subroutine ParseCSDataBlockSUBG( i )
     end do LOOP_Sub2Names
 
     ! Read in the charge of each constituent on the first sublattice.
-    ! This seems unnecessary so I'm going to ignore it for now:
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
 
     ! Chemical groups on sublattice 1:
     read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
-    ! This seems unnecessary so I'm going to ignore it for now:
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
 
     ! Chemical groups on sublattice 2:
@@ -142,7 +135,6 @@ subroutine ParseCSDataBlockSUBG( i )
     read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCSCS, 2, 1:nPairs)
 
     ! Set up default pair IDs and coordination numbers
-    ! dCoordinationNumberCS(nCSCS,1:nMaxSpeciesPhaseCS,1:4) = 6D0
     dCoordinationNumberCS(nCSCS,1:nMaxSpeciesPhaseCS,1:4) = 0D0
     do y = 1, nSublatticeElementsCS(nCSCS,2)
         LOOP_sroPairsOuter: do x = 1, nSublatticeElementsCS(nCSCS,2)
@@ -299,6 +291,8 @@ subroutine ParseCSDataBlockSUBG( i )
 
         l = j + nSpeciesPhaseCS(i-1)
 
+        ! Use the constituent stoichiometries to construct the stoichiometry matrix for the species.
+        ! To be clear, the species are the quadruplets.
         do k = 1, nElementsCS
             dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(a,k) / dCoordinationNumberCS(nCSCS, j, 1))
             dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(b,k) / dCoordinationNumberCS(nCSCS, j, 2))
@@ -321,8 +315,11 @@ subroutine ParseCSDataBlockSUBG( i )
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
-        ! The end of the parameter listing is marked by "0":
-        ! or a negative number indicating the number of extra parameter lines
+        ! The end of the parameter listing is marked by "0"
+        ! or a negative number indicating the number of extra parameter lines.
+        ! These lines indicate interpolation schemes, but I don't understand
+        ! what these add, given that we can already generate interpolation
+        ! schemes based on the chemical groups.
         if (iRegularParamCS(nParamCS+1,1) <= 0) then
             do k = 1, -iRegularParamCS(nParamCS+1,1)
                 read (1,*,IOSTAT = INFO) cTempVec(1:10)
@@ -339,7 +336,7 @@ subroutine ParseCSDataBlockSUBG( i )
             ! Mixing terms:
             read (1,*,IOSTAT = INFO) cRegularParamCS(nParamCS), iRegularParamCS(nParamCS,2:9)
             if (.NOT.((cRegularParamCS(nParamCS) == 'G') &
-                .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R') &
+                 .OR. (cRegularParamCS(nParamCS) == 'Q') .OR. (cRegularParamCS(nParamCS) == 'R') &
                  .OR. (cRegularParamCS(nParamCS) == 'B'))) then
                 INFO = 10000 + 1000*j + i
                 return
@@ -370,6 +367,10 @@ subroutine ParseCSDataBlockSUBG( i )
 end subroutine ParseCSDataBlockSUBG
 
 subroutine ParseConstituentName(k, iSub)
+    ! The purpose of this module to construct the constituent stoichiometry matrix
+    ! dStoichConstituentCS by parsing the constituent names. This really (really really)
+    ! seems like it shouldn't be necessary, but I do not see any other way to extract
+    ! this information from the data file.
     USE ModuleParseCS
 
     implicit none
@@ -409,6 +410,7 @@ subroutine ParseConstituentName(k, iSub)
     do while (.TRUE.)
         iCurrent = iCurrent + 1
 
+        ! Look for a capital letter (yes we are relying on cases to indicate starts of element names)
         do j = 1, 26
             iCapital(j) = INDEX(cConstituentName(iCurrent:),capitalLetters(j))
             if (iCapital(j) == 0) iCapital(j) = 100
@@ -417,12 +419,12 @@ subroutine ParseConstituentName(k, iSub)
         iFirstCapital = MINVAL(iCapital)
         iCurrent = iCurrent + iFirstCapital - 1
 
+        ! If there is no new capital letter, get out of here
         if (iFirstCapital == 100) then
-            ! print *, 'Cannot parse constituent ', TRIM(cConstituentName), ' in solution phase ', cSolnPhaseNameCS(i)
-            ! INFO = 1600 + i
             return
         end if
 
+        ! See if the following letter is lowercase, indicating element symbol with 2 letters
         nextIsLower = .FALSE.
         iTemp = 0
         do j = 1, 26
@@ -432,12 +434,14 @@ subroutine ParseConstituentName(k, iSub)
             end if
         end do
 
+        ! Identify the element
         do j = 1, nElementsCS
             if (cConstituentName(iCurrent:iCurrent+iTemp) == cElementNameCS(j)) then
                 iElement = j
             end if
         end do
 
+        ! Check for a following number (i.e. stoichiometric coefficient)
         iNumber = 1
         do j = 1, 9
             if (cConstituentName(iCurrent+iTemp+1:iCurrent+iTemp+1) == numbers(j)) then
@@ -445,6 +449,7 @@ subroutine ParseConstituentName(k, iSub)
             end if
         end do
 
+        ! If the number is followed by a +/-, then it denotes charge rather than being a coefficient
         if (iNumber > 1) then
             if ((cConstituentName(iCurrent+iTemp+2:iCurrent+iTemp+2) == '+') &
            .OR. (cConstituentName(iCurrent+iTemp+2:iCurrent+iTemp+2) == '-')) then
@@ -452,6 +457,7 @@ subroutine ParseConstituentName(k, iSub)
             end if
         end if
 
+        ! Add to stoichiometry matrix
         if (iElement > 0) dStoichConstituentCS(k,iElement) = dStoichConstituentCS(k,iElement) + iNumber * 1D0
 
     end do
