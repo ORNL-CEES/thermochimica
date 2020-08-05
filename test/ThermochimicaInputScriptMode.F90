@@ -19,7 +19,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program ThermochimicaInputFileMode
+program ThermochimicaInputScriptMode
 
   USE ModuleThermoIO
   USE ModuleThermo
@@ -27,6 +27,8 @@ program ThermochimicaInputFileMode
 
   implicit none
   character(1024) :: cInputFile
+  real(8) :: dTempLow, dTempHigh, dDeltaT
+  integer :: i, nT
 
   ! Read input argument to get filename
   call get_command_argument(1, cInputFile)
@@ -36,21 +38,33 @@ program ThermochimicaInputFileMode
   endif
 
   ! Call input parser
-  call ParseInput(cInputFile)
+  call ParseInput(cInputFile,dTempLow,dTempHigh,dDeltaT)
 
-  ! Parse the ChemSage data-file:
-  call ParseCSDataFile(cThermoFileName)
+  if ((dTempHigh == dTempLow) .OR. (dDeltaT == 0)) then
+    nT = 0
+  else
+    nT = CEILING(DABS(dTempHigh-dTempLow)/DABS(dDeltaT))
+  end if
 
-  ! Call Thermochimica:
-  call Thermochimica
+  do i = 0, nT
+    dTemperature = dTempLow + i*dDeltaT
+    if ((dTempHigh > dTempLow) .AND. (dTemperature > dTempHigh)) dTemperature = dTempHigh
+    if ((dTempHigh < dTempLow) .AND. (dTemperature < dTempHigh)) dTemperature = dTempHigh
 
-  ! Perform post-processing of results:
-  if (iPrintResultsMode > 0)  call PrintResults
+    ! Parse the ChemSage data-file:
+    call ParseCSDataFile(cThermoFileName)
 
-  ! Reset Thermochimica:
-  call ResetThermo
+    ! Call Thermochimica:
+    call Thermochimica
 
-  ! Call the debugger:
-  call ThermoDebug
+    ! Perform post-processing of results:
+    if (iPrintResultsMode > 0)  call PrintResults
 
-end program ThermochimicaInputFileMode
+    ! Reset Thermochimica:
+    call ResetThermoAll
+
+    ! Call the debugger:
+    call ThermoDebug
+  end do
+
+end program ThermochimicaInputScriptMode

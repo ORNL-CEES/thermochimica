@@ -39,7 +39,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-subroutine ParseInput(cInputFileName)
+subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT)
 
   USE ModuleThermoIO
   USE ModuleGEMSolver
@@ -48,10 +48,11 @@ subroutine ParseInput(cInputFileName)
   implicit none
 
   character(*)                :: cInputFileName
-  integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber
+  integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
   character(1024)             :: cLineInit
+  real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT
 
   ! Initialize INFO
   INFO = 0
@@ -134,11 +135,29 @@ subroutine ParseInput(cInputFileName)
         endif
         lPressure = .TRUE.
       case ('t','temp','temperature','T','Temp','Temperature')
-        read(cValue,*,IOSTAT = INFO) dTemperature
+        iColon1 = 0
+        iColon2 = 0
+        iColon1 = INDEX(cValue,':')
+        if (iColon1 > 0) then
+          iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
+          read(cValue(1:iColon1-1),*,IOSTAT = INFO) dTempLow
+          if (iColon2 > 0) then
+            read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dTempHigh
+            read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaT
+          else
+            read(cValue(iColon1+1:),*,IOSTAT = INFO) dTempHigh
+            if (dTempHigh >  dTempLow) dDeltaT =  10
+            if (dTempHigh <  dTempLow) dDeltaT = -10
+            if (dTempHigh == dTempLow) dDeltaT =  0
+          end if
+        else
+          read(cValue,*,IOSTAT = INFO) dTempLow
+          dTempHigh = dTempLow
+          dDeltaT = 0
+        end if
         if (INFO /= 0) then
           INFOThermo = 44
-          write (cErrMsg, '(A33,I10)') 'Cannot read temperature on line: ', iCounter
-          print *,  trim(cErrMsg)
+          print *, 'Cannot read temperature on line: ', iCounter
           return
         endif
         lTemperature = .TRUE.
