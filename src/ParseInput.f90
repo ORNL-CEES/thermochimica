@@ -39,7 +39,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT)
+subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPressHigh,dDeltaP)
 
   USE ModuleThermoIO
   USE ModuleGEMSolver
@@ -52,7 +52,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT)
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
   character(1024)             :: cLineInit
-  real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT
+  real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
 
   ! Initialize INFO
   INFO = 0
@@ -126,7 +126,26 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT)
     ! Now look through possible tags to assign variables
     select case (cTag)
       case ('p','P','pressure','press','Pressure','Press')
-        read(cValue,*,IOSTAT = INFO) dPressure
+        iColon1 = 0
+        iColon2 = 0
+        iColon1 = INDEX(cValue,':')
+        if (iColon1 > 0) then
+          iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
+          read(cValue(1:iColon1-1),*,IOSTAT = INFO) dPressLow
+          if (iColon2 > iColon1) then
+            read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dPressHigh
+            read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaP
+          else
+            read(cValue(iColon1+1:),*,IOSTAT = INFO) dPressHigh
+            if (dPressHigh >  dPressLow) dDeltaP =  1
+            if (dPressHigh <  dPressLow) dDeltaP = -1
+            if (dPressHigh == dPressLow) dDeltaP =  0
+          end if
+        else
+          read(cValue,*,IOSTAT = INFO) dPressLow
+          dPressHigh = dPressLow
+          dDeltaP = 0
+        end if
         if (INFO /= 0) then
           INFOThermo = 44
           write (cErrMsg, '(A30,I10)') 'Cannot read pressure on line: ', iCounter
@@ -141,7 +160,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT)
         if (iColon1 > 0) then
           iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
           read(cValue(1:iColon1-1),*,IOSTAT = INFO) dTempLow
-          if (iColon2 > 0) then
+          if (iColon2 > iColon1) then
             read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dTempHigh
             read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaT
           else

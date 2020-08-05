@@ -27,8 +27,8 @@ program ThermochimicaInputScriptMode
 
   implicit none
   character(1024) :: cInputFile
-  real(8) :: dTempLow, dTempHigh, dDeltaT
-  integer :: i, nT
+  real(8) :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
+  integer :: i, nT, j, nP
 
   ! Read input argument to get filename
   call get_command_argument(1, cInputFile)
@@ -38,7 +38,7 @@ program ThermochimicaInputScriptMode
   endif
 
   ! Call input parser
-  call ParseInput(cInputFile,dTempLow,dTempHigh,dDeltaT)
+  call ParseInput(cInputFile,dTempLow,dTempHigh,dDeltaT,dPressLow,dPressHigh,dDeltaP)
 
   if ((dTempHigh == dTempLow) .OR. (dDeltaT == 0)) then
     nT = 0
@@ -46,25 +46,37 @@ program ThermochimicaInputScriptMode
     nT = CEILING(DABS(dTempHigh-dTempLow)/DABS(dDeltaT))
   end if
 
+  if ((dPressHigh == dPressLow) .OR. (dDeltaP == 0)) then
+    nP = 0
+  else
+    nP = CEILING(DABS(dPressHigh-dPressLow)/DABS(dDeltaP))
+  end if
+
   do i = 0, nT
     dTemperature = dTempLow + i*dDeltaT
     if ((dTempHigh > dTempLow) .AND. (dTemperature > dTempHigh)) dTemperature = dTempHigh
     if ((dTempHigh < dTempLow) .AND. (dTemperature < dTempHigh)) dTemperature = dTempHigh
 
-    ! Parse the ChemSage data-file:
-    call ParseCSDataFile(cThermoFileName)
+    do j = 0, nP
+      dPressure = dPressLow + j*dDeltaP
+      if ((dPressHigh > dPressLow) .AND. (dPressure > dPressHigh)) dPressure = dPressHigh
+      if ((dPressHigh < dPressLow) .AND. (dPressure < dPressHigh)) dPressure = dPressHigh
+      ! Parse the ChemSage data-file:
+      call ParseCSDataFile(cThermoFileName)
 
-    ! Call Thermochimica:
-    call Thermochimica
+      ! Call Thermochimica:
+      call Thermochimica
 
-    ! Perform post-processing of results:
-    if (iPrintResultsMode > 0)  call PrintResults
+      ! Perform post-processing of results:
+      if (iPrintResultsMode > 0)  call PrintResults
 
-    ! Reset Thermochimica:
-    call ResetThermoAll
+      ! Reset Thermochimica:
+      call ResetThermoAll
 
-    ! Call the debugger:
-    call ThermoDebug
+      ! Call the debugger:
+      call ThermoDebug
+    end do
   end do
+  print *, dPressLow,dPressHigh,dDeltaP
 
 end program ThermochimicaInputScriptMode
