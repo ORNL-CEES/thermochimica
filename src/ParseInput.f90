@@ -289,18 +289,73 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   endif
   if (.NOT. lPressureUnit) then
     INFOThermo = 45
-    print *,  'Pressure unit not set'
+    ! print *,  'Pressure unit not set'
+    cInputUnitPressure = 'atm'
     return
   endif
   if (.NOT. lTemperatureUnit) then
     INFOThermo = 45
-    print *,  'Temperature unit not set'
+    ! print *,  'Temperature unit not set'
+    cInputUnitTemperature = 'K'
     return
   endif
   if (.NOT. lMassUnit) then
     INFOThermo = 45
-    print *,  'Mass unit not set'
+    ! print *,  'Mass unit not set'
+    cInputUnitMass = 'moles'
     return
   endif
+
+  select case (cInputUnitTemperature)
+      case ('K')
+          ! Do nothing.
+      case ('C')
+          dTempLow  = dTempLow  + 273.15D0
+          dTempHigh = dTempHigh + 273.15D0
+          cInputUnitTemperature = 'K'
+      case ('F')
+          dTempLow  = (dTempLow  + 459.67D0) * (5D0/9D0)
+          dTempHigh = (dTempHigh + 459.67D0) * (5D0/9D0)
+          dDeltaT   = dDeltaT * (5D0/9D0)
+          cInputUnitTemperature = 'K'
+      case ('R')
+          dTempLow  = dTempLow  * (5D0/9D0)
+          dTempHigh = dTempHigh * (5D0/9D0)
+          dDeltaT   = dDeltaT * (5D0/9D0)
+          cInputUnitTemperature = 'K'
+      case default
+          ! Temperature unit not recognized.
+          INFOThermo = 4
+          return
+  end select
+
+  select case (cInputUnitPressure)
+      case ('atm')
+          ! Do nothing.
+      case ('psi')
+          dPressLow  = dPressLow  * 0.068045957064D0
+          dPressHigh = dPressHigh * 0.068045957064D0
+          dDeltaP    = dDeltaP * 0.068045957064D0
+          cInputUnitPressure = 'atm'
+      case ('bar')
+          dPressLow  = dPressLow  * 0.98692316931D0
+          dPressHigh = dPressHigh * 0.98692316931D0
+          dDeltaP    = dDeltaP * 0.98692316931D0
+          cInputUnitPressure = 'atm'
+      case ('Pa')
+          dPressLow  = dPressLow  * 0.009869231693D0 * 1D-3
+          dPressHigh = dPressHigh * 0.009869231693D0 * 1D-3
+          dDeltaP    = dDeltaP * 0.009869231693D0 * 1D-3
+          cInputUnitPressure = 'atm'
+      case ('kPa')
+          dPressLow  = dPressLow  * 0.009869231693D0
+          dPressHigh = dPressHigh * 0.009869231693D0
+          dDeltaP    = dDeltaP * 0.009869231693D0
+          cInputUnitPressure = 'atm'
+      case default
+          ! Pressure unit not recognized.
+          INFOThermo = 4
+          return
+  end select
 
 end subroutine ParseInput
