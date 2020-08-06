@@ -37,7 +37,13 @@ subroutine SaveReinitData
 
   implicit none
 
+  ! If error has occurred, do not save
+  if (INFOThermo /= 0) return
+  ! If a calculation has not run, do not save
   if (.NOT. allocated(iAssemblage)) return
+  ! If no solution phases, do not save
+  ! (this seems to cause errors for new conditions where solution phase should be stable)
+  if (nSolnPhases == 0) return
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lReinitAvailable) then
