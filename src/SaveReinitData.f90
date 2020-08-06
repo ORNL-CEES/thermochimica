@@ -37,6 +37,8 @@ subroutine SaveReinitData
 
   implicit none
 
+  if (.NOT. allocated(iAssemblage)) return
+
   ! Initialize storage variables if not allocated already
   if (.NOT. lReinitAvailable) then
     allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
