@@ -1,6 +1,6 @@
 ! Initialize variables:
 pressure          = 2:4
-temperature       = 900:889:-4
+temperature       = 900:489:-1
 mass(6)           = 1
 mass(8)           = 1
 temperature unit  = K
@@ -11,3 +11,4 @@ data file         = data/C-O.dat
 ! Specify output and debug modes:
 print mode        = 2
 debug mode        = .FALSE.
+reinit            = .TRUE.

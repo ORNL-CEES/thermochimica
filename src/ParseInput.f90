@@ -255,6 +255,16 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *,  trim(cErrMsg)
           return
         endif
+      case ('reinit','Reinit','reinitialization','Reinitialization',&
+        'reinit_mode','Reinit_mode','Reinit_Mode','reinitialization_mode','Reinitialization_mode','Reinitialization_Mode',&
+        'reinit mode','Reinit mode','Reinit Mode','reinitialization mode','Reinitialization mode','Reinitialization Mode')
+        read(cValue,*,IOSTAT = INFO) lReinitRequested
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A32,I10)') 'Cannot read reinitialization mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
       case default
         write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)

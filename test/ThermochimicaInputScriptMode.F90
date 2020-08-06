@@ -39,6 +39,8 @@ program ThermochimicaInputScriptMode
 
   ! Call input parser
   call ParseInput(cInputFile,dTempLow,dTempHigh,dDeltaT,dPressLow,dPressHigh,dDeltaP)
+  ! Parse the ChemSage data-file:
+  call ParseCSDataFile(cThermoFileName)
 
   if ((dTempHigh == dTempLow) .OR. (dDeltaT == 0)) then
     nT = 0
@@ -61,22 +63,23 @@ program ThermochimicaInputScriptMode
       dPressure = dPressLow + j*dDeltaP
       if ((dPressHigh > dPressLow) .AND. (dPressure > dPressHigh)) dPressure = dPressHigh
       if ((dPressHigh < dPressLow) .AND. (dPressure < dPressHigh)) dPressure = dPressHigh
-      ! Parse the ChemSage data-file:
-      call ParseCSDataFile(cThermoFileName)
 
       ! Call Thermochimica:
       call Thermochimica
+
+      if (lReinitRequested) call SaveReinitData
 
       ! Perform post-processing of results:
       if (iPrintResultsMode > 0)  call PrintResults
 
       ! Reset Thermochimica:
-      call ResetThermoAll
+      call ResetThermo
 
       ! Call the debugger:
       call ThermoDebug
     end do
   end do
-  print *, dPressLow,dPressHigh,dDeltaP
+
+  call ResetThermoAll
 
 end program ThermochimicaInputScriptMode
