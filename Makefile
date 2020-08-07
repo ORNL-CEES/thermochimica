@@ -35,6 +35,11 @@ ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
 		LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
 endif
+ifneq (,$(findstring NT,$(UNAME_S)))
+		LDLOC     =  -llapack -lblas -lgfortran
+		# link flags for Windows users:
+		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+endif
 
 ## ====================
 ## DIRECTORY VARIABLES:
