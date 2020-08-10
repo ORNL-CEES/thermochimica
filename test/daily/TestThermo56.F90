@@ -75,7 +75,7 @@ program TestThermo56
                         fccPass = .TRUE.
                     end if
                 else if (cSolnPhaseName(j) == 'Liquid') then
-                    if (DABS((dMolesPhase(i)-2.9666D0)/2.9666D0) < 1D-3) then
+                    if (DABS((dMolesPhase(nElements + 1 - i)-2.9666D0)/2.9666D0) < 1D-3) then
                         if (DABS((dMolFraction(nSpeciesPhase(j))-4.4975D-2)/4.4975D-2) < 1D-3) then
                             liquidPass = .TRUE.
                         end if
