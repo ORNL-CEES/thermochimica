@@ -98,7 +98,7 @@ subroutine CompMolFraction(k)
     implicit none
 
     integer :: i, j, k, m, n
-    real(8) :: dTemp
+    real(8) :: dTemp, dDrivingForceTemp
     logical :: lPhasePass
 
 
@@ -113,6 +113,7 @@ subroutine CompMolFraction(k)
     ! Reset sum of mole fractions and the effective stoichiometry:
     dSumMolFractionSoln(k)             = 0D0
     dEffStoichSolnPhase(k,1:nElements) = 0D0
+    dDrivingForceTemp                  = 0D0
 
     ! Compute the mole fraction depending on the type of solution phase:
     select case (cSolnPhaseType(k))
@@ -135,6 +136,7 @@ subroutine CompMolFraction(k)
                 dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
                 dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
                 dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
+                dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i) * (dStdGibbsEnergy(i) - dTemp)
             end do
 
     end select
@@ -156,7 +158,7 @@ subroutine CompMolFraction(k)
     ! Compute the driving force for ideal mixtures (this is computed by
     ! Subminimization for other solution phases):
     if (cSolnPhaseType(k) == 'IDMX') then
-        dDrivingForceSoln(k) = -DLOG(dSumMolFractionSoln(k))
+        dDrivingForceSoln(k) = dDrivingForceTemp
     end if
 
     return
