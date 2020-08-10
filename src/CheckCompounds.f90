@@ -54,7 +54,7 @@ subroutine CheckCompounds
 
     implicit none
 
-    integer                                 :: i, j, k, l, lwork, iElem
+    integer                                 :: i, j, k, lwork
     integer, dimension(:), allocatable      :: iElementSystemTemp
     real(8)                                 :: dCompoundUnitMass, dSum
     real(8), dimension(:), allocatable      :: dStoichSpeciesTemp
@@ -134,25 +134,6 @@ subroutine CheckCompounds
             do j = 1, nCompounds
                 ! Copy LAPACK solution vector to new stoichiometry
                 dStoichSpeciesCompounds(i,j) = dStoichSpeciesTemp(j)
-            end do
-        end do
-    end if
-
-    ! If there are sublattice phases, will need to adjust iSublatticeElementsCS
-    if (nCountSublatticeCS > 0) then
-        do i = 1, nSolnPhasesSysCS
-            do j = 1, nMaxSublatticeCS
-                LOOP_adjustSublElem: do k =1, nElementsCS
-                    iElem = iSublatticeElementsCS(i,j,k)
-                    if (iElem == 0) cycle LOOP_adjustSublElem
-                    do l =1, nCompounds
-                        if (dCompoundStoichSmall(l,iElem) > 0) then
-                            iSublatticeElementsCS(i,j,k) = l
-                            cycle LOOP_adjustSublElem
-                        end if
-                    end do
-                    iSublatticeElementsCS(i,j,k) = 0
-                end do LOOP_adjustSublElem
             end do
         end do
     end if

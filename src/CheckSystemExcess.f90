@@ -53,9 +53,8 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, n1, n2, p, iIndex
-    integer, dimension(nElementsCS) :: iRemove
-    logical:: lRemoved
+    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
+    integer, dimension(nElementsCS**2) :: iRemove
 
 
     ! Initialize variables:
@@ -274,23 +273,9 @@ subroutine CheckSystemExcess
                 nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
                 do j = 1, nSublatticePhase(nCountSublattice)
                     m = 0
-                    do k = 1, nElementsCS
-                        if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) > 0)) then
-                            if (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,k)) > 0) then
-                                m = m + 1
-                                ! Convert element indices from CS element list to reduced element list
-                                do l = 1, nElements
-                                    if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,j,k))) then
-                                        iSublatticeElements(nCountSublattice,j,m) = l
-                                    end if
-                                end do
-                                dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
-                                iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
-                            end if
-                        ! Check for vacancies
-                        else if ((iSublatticeElementsCS(nCountSublatticeCS,j,k) == -1)) then
+                    do k = 1, nSublatticeElementsCS(nCountSublatticeCS,j)
+                        if (iConstituentPass(nCountSublatticeCS,j,k) /= 0) then
                             m = m + 1
-                            iSublatticeElements(nCountSublattice,j,m) = iSublatticeElementsCS(nCountSublatticeCS,j,k)
                             dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                             iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                         end if
@@ -300,23 +285,17 @@ subroutine CheckSystemExcess
 
                 m = 0
                 LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
-                    if (iConstituentSublatticeCS(nCountSublatticeCS,1,k) == 0) cycle LOOP_iConstitSubl
-                    if (iConstituentSublatticeCS(nCountSublatticeCS,2,k) == 0) cycle LOOP_iConstitSubl
-                    n1 = iSublatticeElementsCS(nCountSublatticeCS,1,iConstituentSublatticeCS(nCountSublatticeCS,1,k))
-                    n2 = iSublatticeElementsCS(nCountSublatticeCS,2,iConstituentSublatticeCS(nCountSublatticeCS,2,k))
-                    if ((n1 == 0) .OR. (n2 == 0)) then
-                        cycle LOOP_iConstitSubl
-                    else
-                        if (n1 > 0) then
-                            if (iElementSystem(n1) <= 0) cycle LOOP_iConstitSubl
-                        end if
-                        if (n2 > 0) then
-                            if (iElementSystem(n2) <= 0) cycle LOOP_iConstitSubl
-                        end if
-                    end if
+                    iCon1 = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
+                    iCon2 = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    if (iCon1 == 0) cycle LOOP_iConstitSubl
+                    if (iCon2 == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCountSublatticeCS,1,iCon1) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCountSublatticeCS,2,iCon2) == 0) cycle LOOP_iConstitSubl
                     m = m + 1
-                    iConstituentSublattice(nCountSublattice,1,m) = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
-                    iConstituentSublattice(nCountSublattice,2,m) = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    iConstituentSublattice(nCountSublattice,1,m) = iCon1
+                    iConstituentSublattice(nCountSublattice,2,m) = iCon2
+                    cConstituentNameSUB(nCountSublattice,1,m) = cConstituentNameSUBCS(nCountSublatticeCS,1,k)
+                    cConstituentNameSUB(nCountSublattice,2,m) = cConstituentNameSUBCS(nCountSublatticeCS,2,k)
                 end do LOOP_iConstitSubl
 
                 ! Save quadruplet data corresponding to the quadruplets remaining in the system
@@ -355,10 +334,7 @@ subroutine CheckSystemExcess
                 iRemove = 0
                 do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
                     do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
-                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
-                            nRemove = nRemove + 1
-                            iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
-                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                        if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
                         end if
@@ -380,10 +356,7 @@ subroutine CheckSystemExcess
                     nRemove = 0
                     iRemove = 0
                     do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
-                        if (iSublatticeElementsCS(nCountSublatticeCS,j,l) <= 0) then
-                            nRemove = nRemove + 1
-                            iRemove(nRemove) = l
-                        elseif (iElementSystem(iSublatticeElementsCS(nCountSublatticeCS,j,l)) == 0) then
+                        if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l
                         end if
@@ -408,34 +381,16 @@ subroutine CheckSystemExcess
                     pf = iRegularParamCS(j,11)
 
                     ! If this is a ternary and the 3rd element got removed, then skip parameter
-                    lRemoved = .TRUE.
+                    ! lRemoved = .TRUE.
                     if (pe > 0) then
-                        do l = 1, nElements
-                            if (nCompounds > 0) then
-                                if (iSublatticeElementsCS(nCountSublatticeCS,1,pe) > 0) then
-                                    lRemoved = .FALSE.
-                                end if
-                            else if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,1,pe))) then
-                                lRemoved = .FALSE.
-                            end if
-                        end do
-                        if (lRemoved) cycle LOOP_excess
+                        if (iConstituentPass(nCountSublatticeCS,1,pe) == 0) cycle LOOP_excess
                     end if
                     ! If this is a ternary and the 3rd element got removed, then skip parameter
                     ! Making a guess at how to handle this for the other entry
-                    lRemoved = .TRUE.
+                    ! lRemoved = .TRUE.
                     if (pf > 0) then
                         pf = pf - nSublatticeElementsCS(nCountSublatticeCS,1)
-                        do l = 1, nElements
-                            if (nCompounds > 0) then
-                                if (iSublatticeElementsCS(nCountSublatticeCS,2,pf) > 0) then
-                                    lRemoved = .FALSE.
-                                end if
-                            else if (cElementName(l) == cElementNameCS(iSublatticeElementsCS(nCountSublatticeCS,2,pf))) then
-                                lRemoved = .FALSE.
-                            end if
-                        end do
-                        if (lRemoved) cycle LOOP_excess
+                        if (iConstituentPass(nCountSublatticeCS,2,pf) == 0) cycle LOOP_excess
                     end if
 
                     if (px == py) then
