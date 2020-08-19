@@ -359,7 +359,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                 end do
             end if
-            ! Now use lists to generate epsilon and chi
+            ! Now use lists to generate xi and chi
             do i = 1, nSublatticeElements(iSPI,1)
                 do j = i, nSublatticeElements(iSPI,1)
                     k = (x - 1) * (nSublatticeElements(iSPI,1) &
@@ -379,27 +379,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
                         dChiDen = dChiDen + dMolFraction(iQuad)
                     end if
-                    ! Below is epsilon without counting of x /= y quads
-                    ! if (lAsymmetric1(i)) then
-                    !     ! dXi1 = dXi1 + dMolFraction(iQuad) / 2D0
-                    !     if (i == iPairID(iSPI,k,1))  then
-                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
-                    !     end if
-                    !     if (i == iPairID(iSPI,k,2))  then
-                    !         dXi1 = dXi1 + (dMolFraction(iQuad) / 2D0)
-                    !     end if
-                    ! end if
-                    ! if (lAsymmetric2(i)) then
-                    !     ! dXi2 = dXi2 + dMolFraction(iQuad) / 2D0
-                    !     if (i == iPairID(iSPI,k,1))  then
-                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
-                    !     end if
-                    !     if (i == iPairID(iSPI,k,2))  then
-                    !         dXi2 = dXi2 + (dMolFraction(iQuad) / 2D0)
-                    !     end if
-                    ! end if
                 end do
-                ! Below is epsilon with counting of x /= y quads
+                ! Below is xi with counting of x /= y quads
                 do k = 1, nPairsSRO(iSPI,2)
                     l = k + iFirst - 1
                     if (lAsymmetric1(i)) then
@@ -417,6 +398,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
             end do
             dXiDen = dXi1 + dXi2
+            dChi1 = dChi1 / dChiDen
+            dChi2 = dChi2 / dChiDen
         end if
 
         ! Calculate energy for this term
@@ -436,7 +419,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dXA2Y2 = dMolFraction(iA2Y2)
             ! G-type binary terms
             if ((d == 0) .AND. (w == 0)) then
-                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q / (dChiDen**(p + q))
+                dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q
                 dDgexBase = -dGex * (p + q) / dChiDen
             ! G-type ternary terms
             else if (d > 0) then
@@ -595,11 +578,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! G-type binary terms
             if ((cRegularParam(abxy) == 'G') .AND. (d == 0) .AND. (w == 0)) then
                 dDgex = 0
+                if ((a == b) .AND. ((i /= a) .OR. (j /= a))) cycle LOOP_ijkl
+                if ((x == y) .AND. ((k /= x) .OR. (l /= x))) cycle LOOP_ijkl
                 if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
-                    dDgex = dDgex + dGex * p / dChi1
+                    dDgex = dDgex + dGex * p / dChi1 / dChiDen
                 end if
                 if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
-                    dDgex = dDgex + dGex * q / dChi2
+                    dDgex = dDgex + dGex * q / dChi2 / dChiDen
                 end if
                 if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
                     dDgex = dDgex + dDgexBase
@@ -608,7 +593,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             else if (cRegularParam(abxy) == 'Q') then
                 dDgex = 0D0
                 do ii = 1, nSublatticeElements(iSPI,1)
-                    ! Below is epsilon with counting of x /= y quads
+                    ! Below is xi with counting of x /= y quads
                     if (lAsymmetric1(ii)) then
                         if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
                         if (ii == i .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
