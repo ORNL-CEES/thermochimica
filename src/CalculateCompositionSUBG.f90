@@ -14,7 +14,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     logical :: lPrint
-    ! X_ij/kl corresponds to dMolFracion
+    ! X_ij/kl corresponds to dMolFraction
 
 
     ! Only proceed if the correct phase type is selected:
