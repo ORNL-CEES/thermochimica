@@ -1,4 +1,4 @@
-subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
+subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -14,6 +14,8 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
     logical :: lPrint
+    character(30), dimension(*), intent(out),optional :: cPair
+    real(8), dimension(*), intent(out),optional       :: dPair
     ! X_ij/kl corresponds to dMolFraction
 
 
@@ -149,6 +151,8 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
+        if (present(cPair)) cPair(m) = ADJUSTL(cPairName(iSPI,m))
+        if (present(dPair)) dPair(m) = dXij(i,j)
         if (lPrint) print *, cPairName(iSPI,m), dXij(i,j)
     end do
 
