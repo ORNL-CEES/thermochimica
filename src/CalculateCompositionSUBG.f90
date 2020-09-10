@@ -1,3 +1,5 @@
+module ModulePrintUtils
+contains
 subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
 
     USE ModuleThermo
@@ -151,7 +153,10 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
-        if (present(cPair)) cPair(m) = ADJUSTL(cPairName(iSPI,m))
+        if (present(cPair)) then
+            print *, 'why'
+            cPair(m) = ADJUSTL(cPairName(iSPI,m))
+        end if
         if (present(dPair)) dPair(m) = dXij(i,j)
         if (lPrint) print *, cPairName(iSPI,m), dXij(i,j)
     end do
@@ -162,3 +167,4 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     deallocate(dXi,dYi,dNi,dXij,dNij)
 
 end subroutine CalculateCompositionSUBG
+end module ModulePrintUtils

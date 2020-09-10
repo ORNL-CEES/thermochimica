@@ -46,6 +46,7 @@ subroutine PrintResults
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
+    USE ModulePrintUtils
 
     implicit none
 
@@ -135,6 +136,7 @@ subroutine PrintResultsSolnPhase
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePrintUtils
 
     implicit none
 
@@ -170,7 +172,9 @@ subroutine PrintResultsSolnPhase
         k      = nElements - iTempVec(j) + 1
         l      = -iAssemblage(k)
 
-        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) call CalculateCompositionSUBG(l,dMolesPairs,.TRUE.)
+        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
+            call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
+        end if
 
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(l-1) + 1
@@ -368,6 +372,7 @@ subroutine PrintResultsPureConPhase
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePrintUtils
 
     implicit none
 
