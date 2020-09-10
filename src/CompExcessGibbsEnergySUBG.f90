@@ -75,12 +75,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
-    integer :: iA2X2, iB2X2, iA2Y2, ia, ix
+    integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
-    real(8) :: dXA2X2, dXB2X2, dXA2Y2
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
     real(8) :: dTernarySum1, dTernarySum2
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
@@ -407,18 +406,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Calculate energy for this term
         ! G-type terms
         if (cRegularParam(abxy) == 'G') then
-            iA2X2 = (x - 1) * (nSublatticeElements(iSPI,1) &
-                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                            + a + iFirst - 1
-            iB2X2 = (x - 1) * (nSublatticeElements(iSPI,1) &
-                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                            + b + iFirst - 1
-            iA2Y2 = (y - 1) * (nSublatticeElements(iSPI,1) &
-                            * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                            + a + iFirst - 1
-            dXA2X2 = dMolFraction(iA2X2)
-            dXB2X2 = dMolFraction(iB2X2)
-            dXA2Y2 = dMolFraction(iA2Y2)
             ! G-type binary terms
             if ((d == 0) .AND. (w == 0)) then
                 dGex = dExcessGibbsParam(abxy) * dChi1**p * dChi2**q
@@ -463,7 +450,40 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             end if
         ! Q-type binary terms
         else if (cRegularParam(abxy) == 'Q') then
-            dGex = dExcessGibbsParam(abxy) * dXi1**p * dXi2**q / (dXiDen**(p + q))
+            if (d > 0) then
+                dYdk = 0D0
+                do k = 1, nPairsSRO(iSPI,2)
+                    l = k + iFirst - 1
+                    if (d == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dYdk = dYdk + (dMolFraction(l) / 4)
+                    if (d == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dYdk = dYdk + (dMolFraction(l) / 4)
+                    if (d == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dYdk = dYdk + (dMolFraction(l) / 4)
+                    if (d == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dYdk = dYdk + (dMolFraction(l) / 4)
+                end do
+                if (lAsymmetric2(d)) then
+                    dYjk = 0D0
+                    do k = 1, nPairsSRO(iSPI,2)
+                        l = k + iFirst - 1
+                        if (b == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dYjk = dYjk + (dMolFraction(l) / 4)
+                        if (b == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dYjk = dYjk + (dMolFraction(l) / 4)
+                        if (b == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dYjk = dYjk + (dMolFraction(l) / 4)
+                        if (b == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dYjk = dYjk + (dMolFraction(l) / 4)
+                    end do
+                    dTernaryFactorG = (dYdk / dXi2) * (1 - (dYjk / dXi2))**(r-1)
+                else if (lAsymmetric1(d)) then
+                    dYik = 0D0
+                    do k = 1, nPairsSRO(iSPI,2)
+                        l = k + iFirst - 1
+                        if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,3)) dYik = dYik + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,1) .AND. xx == iPairID(iSPI,k,4)) dYik = dYik + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,3)) dYik = dYik + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. xx == iPairID(iSPI,k,4)) dYik = dYik + (dMolFraction(l) / 4)
+                    end do
+                    dTernaryFactorG = (dYdk / dXi1) * (1 - (dYik / dXi1))**(r-1)
+                else
+                    dTernaryFactorG = dYdk * (1D0 - dXi1 - dXi2)**(r-1)
+                end if
+            end if
+            dGex = (dExcessGibbsParam(abxy) * dXi1**p * dXi2**q / (dXiDen**(p + q))) * dTernaryFactorG
             dDgexBase = -dGex * (p + q) / dXiDen
         ! B-type binary terms
         else if (cRegularParam(abxy) == 'B') then
@@ -593,6 +613,91 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
                     end if
                 end do
+
+                dTernaryFactorDG = 0D0
+                if (d > 0) then
+                    if (lAsymmetric2(d)) then
+                        nA = 0
+                        if (i == d) nA = nA + 1
+                        if (j == d) nA = nA + 1
+                        nX = 0
+                        if (k == x) nX = nX + 1
+                        if (l == x) nX = nX + 1
+                        dTernaryFactorDG = dTernaryFactorDG + (nA * nX) / (4D0 * dYdk)
+
+                        dTernarySum2 = 0D0
+                        do e = 1, nSublatticeElements(iSPI,1)
+                            nA = 0
+                            if (i == e) nA = nA + 1
+                            if (j == e) nA = nA + 1
+                            if (lAsymmetric2(e)) then
+                                dTernarySum2 = dTernarySum2 + (nA * nX) / (4D0 * dXi2)
+                            end if
+                        end do
+
+                        dTernaryFactorDG = dTernaryFactorDG - dTernarySum2
+
+                        nA = 0
+                        if (i == b) nA = nA + 1
+                        if (j == b) nA = nA + 1
+
+                        dTernaryFactorDG = dTernaryFactorDG - (r - 1D0) * ((nA * nX / 4D0) - dYjk * dTernarySum2) &
+                                            / (dXi2 * (1D0 - dYjk / dXi2))
+                    else if (lAsymmetric1(d)) then
+                        nA = 0
+                        if (i == d) nA = nA + 1
+                        if (j == d) nA = nA + 1
+                        nX = 0
+                        if (k == x) nX = nX + 1
+                        if (l == x) nX = nX + 1
+                        dTernaryFactorDG = dTernaryFactorDG + (nA * nX) / (4D0 * dYdk)
+
+                        dTernarySum1 = 0D0
+                        do e = 1, nSublatticeElements(iSPI,1)
+                            nA = 0
+                            if (i == e) nA = nA + 1
+                            if (j == e) nA = nA + 1
+                            if (lAsymmetric1(e)) then
+                                dTernarySum1 = dTernarySum1 + (nA * nX) / (4D0 * dXi1)
+                            end if
+                        end do
+
+                        dTernaryFactorDG = dTernaryFactorDG - dTernarySum1
+
+                        nA = 0
+                        if (i == a) nA = nA + 1
+                        if (j == a) nA = nA + 1
+
+                        dTernaryFactorDG = dTernaryFactorDG - (r - 1D0) * ((nA * nX / 4D0) - dYik * dTernarySum1) &
+                                            / (dXi1 * (1D0 - dYik / dXi1))
+                    else
+                        dTernaryFactorDG = -r
+                        nA = 0
+                        if (i == d) nA = nA + 1
+                        if (j == d) nA = nA + 1
+                        nX = 0
+                        if (k == x) nX = nX + 1
+                        if (l == x) nX = nX + 1
+                        dTernaryFactorDG = dTernaryFactorDG + (nA * nX) / (4D0 * dYdk)
+
+                        dTernarySum1 = 0D0
+                        dTernarySum2 = 0D0
+                        do e = 1, nSublatticeElements(iSPI,1)
+                            nA = 0
+                            if (i == e) nA = nA + 1
+                            if (j == e) nA = nA + 1
+                            if (lAsymmetric1(e)) then
+                                dTernarySum1 = dTernarySum1 + (nA * nX) / 4D0
+                            end if
+                            if (lAsymmetric2(e)) then
+                                dTernarySum2 = dTernarySum2 + (nA * nX) / 4D0
+                            end if
+                        end do
+                        dTernaryFactorDG = dTernaryFactorDG + (r - 1D0) * (1D0 - dTernarySum1 - dTernarySum2) / (1D0 - dXi1 - dXi2)
+                    end if
+                end if
+
+                dDgex = dDgex + dGex * dTernaryFactorDG
             ! G-type ternary terms
             else if ((cRegularParam(abxy) == 'G') .AND. (d > 0)) then
                 dDgex = 0D0
