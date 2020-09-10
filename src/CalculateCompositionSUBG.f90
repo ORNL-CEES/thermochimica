@@ -153,11 +153,11 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
-        if (present(cPair)) then
+        if (PRESENT(cPair)) then
             print *, 'why'
             cPair(m) = ADJUSTL(cPairName(iSPI,m))
         end if
-        if (present(dPair)) dPair(m) = dXij(i,j)
+        if (PRESENT(dPair)) dPair(m) = dXij(i,j)
         if (lPrint) print *, cPairName(iSPI,m), dXij(i,j)
     end do
 
