@@ -335,23 +335,23 @@ subroutine CompThermoData
                 do k = 2, 7
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
                 end do
-                print *, cSpeciesName(j)
+                ! print *, cSpeciesName(j)
                 do k = 1, 4
                     dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(k+3,l2) * dHeatCoeff(k)
-                    print *, dGibbsCoeffSpeciesTemp(k+3,l2), dHeatCoeff(k)
+                    ! print *, dGibbsCoeffSpeciesTemp(k+3,l2), dHeatCoeff(k)
                 end do
 
                 ! Compute additional standard molar Gibbs energy terms:
                 if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
                     dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(5)
-                    print *, 'test log ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(5)
+                    ! print *, 'test log ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(5)
                 else
                     dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
                         *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
                     if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 0.5D0) then
                         dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(6)
-                        print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(6)
+                        ! print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(8,l2), dHeatCoeff(6)
                     end if
                 end if
 
@@ -363,7 +363,7 @@ subroutine CompThermoData
                         * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
                     if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 0.5D0) then
                         dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(10,l2) * dHeatCoeff(6)
-                        print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(10,l2), dHeatCoeff(6)
+                        ! print *, 'test sqrt ', dGibbsCoeffSpeciesTemp(10,l2), dHeatCoeff(6)
                     end if
                 end if
 
@@ -447,6 +447,7 @@ subroutine CompThermoData
                         ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
                         ! the first solution phase in the data-file.
                         dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
+                        ! dStdHeatCapacity(j) = dStdHeatCapacity(j) + (-dLogP + (0.10945D0 / dIdealConstant)) * dTemperature
                     end if
                 end if
 
@@ -908,7 +909,7 @@ subroutine CompThermoData
     do i = 1, nSpecies
         dStdGibbsEnergy(i) = dChemicalPotential(i) * dSpeciesTotalAtoms(i) / DFLOAT(iParticlesPerMole(i))
         dChemicalPotential(i) = dChemicalPotential(i) + dMagGibbsEnergy(i)
-        dStdHeatCapacity(i) = dStdHeatCapacity(i) * dSpeciesTotalAtoms(i) !/ DFLOAT(iParticlesPerMole(i))
+        dStdHeatCapacity(i) = dStdHeatCapacity(i) !* dSpeciesTotalAtoms(i) !/ DFLOAT(iParticlesPerMole(i))
     end do
 
     nRemove = 0
