@@ -87,6 +87,11 @@ subroutine CheckThermoData
         if (iTempVec(i) == 0) INFOThermo = 9
     end do
 
+    ! Check if there are enough species in the system
+    if (nElements > (nSpecies - nDummySpecies)) then
+        INFOThermo = 99
+        return
+    end if
 
     ! Check if the input masses can be represented in terms of the available species
     nNonDummy = nSpecies - nDummySpecies
