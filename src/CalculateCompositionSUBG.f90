@@ -148,13 +148,13 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
 
     dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
     if (lPrint) print *, ""
-    if (lPrint) print *, dMolesPairs, " Moles of pairs, fractions:"
+    if (lPrint) print *, dMolesPairs, " Moles of pairs"
+    if (lPrint) print *, "Pair fractions:"
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
         if (PRESENT(cPair)) then
-            print *, 'why'
             cPair(m) = ADJUSTL(cPairName(iSPI,m))
         end if
         if (PRESENT(dPair)) dPair(m) = dXij(i,j)
