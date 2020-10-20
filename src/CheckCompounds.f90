@@ -54,7 +54,7 @@ subroutine CheckCompounds
 
     implicit none
 
-    integer                                 :: i, j, k, lwork
+    integer                                 :: i, j, k, lwork, iSub
     integer, dimension(:), allocatable      :: iElementSystemTemp
     real(8)                                 :: dCompoundUnitMass, dSum
     real(8), dimension(:), allocatable      :: dStoichSpeciesTemp
@@ -134,6 +134,36 @@ subroutine CheckCompounds
             do j = 1, nCompounds
                 ! Copy LAPACK solution vector to new stoichiometry
                 dStoichSpeciesCompounds(i,j) = dStoichSpeciesTemp(j)
+            end do
+        end do
+    end if
+
+    ! Convert stoichiometry of all MQM pairs to compounds
+    ! Do not re-calculate this stoichiometry matrix if this is a reinited calculation
+    if (.NOT. lCompoundStoichCalculated) then
+        do iSub = 1, nCountSublatticeCS
+            do i = 1, nMaxSpeciesPhaseCS
+                do j = 1, nElementsCS
+                    ! Make vector to pass stoichiometry to LAPACK
+                    dStoichSpeciesTemp(j) = dStoichPairsCS(iSub,i,j)
+                end do
+                do j = 1, nCompounds
+                    do k = 1, nElementsCS
+                        ! Make matrix for LAPACK
+                        A(k,j) = dCompoundStoichSmall(j,k)
+                    end do
+                end do
+                ! Linear solve on rectangular (overdetermined) system
+                call DGELS( 'N', nElementsCS, nCompounds, 1, A, nElementsCS, &
+                                 dStoichSpeciesTemp, nElementsCS, work, lwork, INFO )
+                if (INFO > 0) then
+                    INFOThermo = 41
+                    return
+                end if
+                do j = 1, nCompounds
+                    ! Copy LAPACK solution vector to new stoichiometry
+                    dStoichPairsCS(iSub,i,j) = dStoichSpeciesTemp(j)
+                end do
             end do
         end do
     end if
