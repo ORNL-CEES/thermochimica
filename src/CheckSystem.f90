@@ -127,7 +127,7 @@ subroutine CheckSystem
 
     implicit none
 
-    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
+    integer                                 :: i, j, k, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
@@ -279,7 +279,6 @@ subroutine CheckSystem
                 nSpecies = nSpecies + 1
                 m = m + 1
                 iSpeciesPass(j) = m
-                l = j   ! If there is only one species in this phase, this species will be removed later.
                 if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                     k = iPhaseSublatticeCS(i)
                     iCon1 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),1)
