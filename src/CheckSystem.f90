@@ -337,7 +337,7 @@ subroutine CheckSystem
                 end if
             elseif (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
                 ! There is only one species in this solution phase.  This solution phase should not be considered.
-                iSpeciesPass(l)          = 0
+                iSpeciesPass(nSpeciesPhaseCS(i-1) + 1 : nSpeciesPhaseCS(i))          = 0
                 nSpecies                 = nSpecies - 1
                 iTempVec(nSolnPhasesSys) = nSpecies
             else
