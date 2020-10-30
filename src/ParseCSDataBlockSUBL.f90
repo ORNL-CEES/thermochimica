@@ -147,7 +147,7 @@ subroutine ParseCSDataBlockSUBL(i)
         ! Number of full lines of constituent indices (per sublattice):
         l = (n - k) / 19
 
-        ! Loop through full lines of consitutent indices:
+        ! Loop through full lines of constituent indices:
         do m = 1, l
             p = (m-1)*19 + 1
             read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, p:p+18)
