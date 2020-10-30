@@ -125,8 +125,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     end if
 
     ! Entry 4: Read thermodynamic data for constituent species:
-    k = MIN(nElementsCS,10)
-    read (1,*, IOSTAT = INFO) iGibbsEqType, nGibbsEqSpecies(j), dTempVec(1:k)
+    read (1,*, IOSTAT = INFO) iGibbsEqType, nGibbsEqSpecies(j), dStoichSpeciesCS(j,1:nElementsCS)
 
     if (.NOT.((iGibbsEqType == 4).OR.(iGibbsEqType == 16).OR.(iGibbsEqType == 1).OR.(iGibbsEqType == 13))) then
         ! The type of Gibbs energy equation is not supported.
@@ -138,24 +137,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     ! be less than one when there are more than 1 particles/mole.  I am going to convert the stoichiometry
     ! to an integer to minimize numerical error while still recording the number of particles per mole.
     dTemp = DFLOAT(iParticlesPerMoleCS(j))
-    dStoichSpeciesCS(j,1:k) = dTempVec(1:k) * dTemp
-
-    l = MOD(nElementsCS-10,11)
-    l = (nElementsCS - 10 - l) / 11
-
-    ! Read in the next line(s) of stoichiometry coefficients:
-    do m = 1, l
-        k = MIN(nElementsCS-10-(m-1)*11,11)
-        read (1,*,IOSTAT = INFO) dTempVec(1:k)
-        dStoichSpeciesCS(j,m*11:m*11+k-1) = dTempVec(1:k) * dTemp
-    end do
-
-    ! Read in the last line of stoichiometry coefficients:
-    k = MOD(nElementsCS-10,11)
-    if (k > 0) then
-        read (1,*,IOSTAT = INFO) dTempVec(1:k)
-        dStoichSpeciesCS(j,(l+1)*11:(l+1)*11+k-1) = dTempVec(1:k) * dTemp
-    end if
+    dStoichSpeciesCS(j,1:nElementsCS) = dStoichSpeciesCS(j,1:nElementsCS) * dTemp
 
     if (INFO /= 0) then
         INFO = 1400 + i
