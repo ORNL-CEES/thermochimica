@@ -107,6 +107,7 @@ subroutine CompThermoData
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
+    integer                            :: iMixStart, iMixLength, nMixSets
     integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax, dCoay, dCobx, dCoby
     real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
@@ -283,7 +284,7 @@ subroutine CompThermoData
                 dCoay = dConstituentCoefficientsCS(iSublPhaseIndex,iay,1)
                 dCobx = dConstituentCoefficientsCS(iSublPhaseIndex,ibx,1)
                 dCoby = dConstituentCoefficientsCS(iSublPhaseIndex,iby,1)
-                
+
                 dChemicalPotential(j) = (((dQx / dCoax) * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx))  &
                                        + ((dQx / dCobx) * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx))  &
                                        + ((dQy / dCoay) * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy))  &
@@ -649,47 +650,41 @@ subroutine CompThermoData
                         ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
                         ! may be three constituents mixing where the first constituent is on the first sublattice and
                         ! the second and third are on the second sublattice.
-                        LOOP_SUBL_Check: do k = 2, iRegularParamCS(j,1)
+
+                        nMixSets = 0
+                        k = 2
+                        LOOP_SUBL_Check: do while (k <= iRegularParamCS(j,1))
 
                             l = MOD(iRegularParam(n,k), 10000)
                             l = (iRegularParam(n,k) - l) / 10000
 
-                            m = MOD(iRegularParam(n,k+1), 10000)
-                            m = (iRegularParam(n,k+1) - m) / 10000
+                            iMixLength = 1
+                            iMixStart = 0
 
-                            ! If these two constituents are on the same sublattice and they correspond to the
-                            ! first two mixing constituents, then exit:
-                            if (l == m) then
-
-                                ! Check the order of constituents:
-                                if (k == 2) then
-                                    ! These constituent indices are correctly placed:
-                                    exit LOOP_SUBL_Check
-                                elseif (k == 3) then
-                                    ! Shuffle the vector:
-                                    l = iRegularParam(n,2)
-                                    iRegularParam(n,2) = iRegularParam(n,3)
-                                    iRegularParam(n,3) = iRegularParam(n,4)
-                                    iRegularParam(n,4) = l
-
-                                    exit LOOP_SUBL_Check
-                                elseif (k == 4) then
-                                    ! Shuffle the vector:
-                                    l = iRegularParam(n,2)
-                                    m = iRegularParam(n,3)
-                                    iRegularParam(n,2) = iRegularParam(n,4)
-                                    iRegularParam(n,3) = iRegularParam(n,5)
-                                    iRegularParam(n,4) = l
-                                    iRegularParam(n,5) = m
-
-                                    exit LOOP_SUBL_Check
+                            LOOP_SUBL_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
+                                m = MOD(iRegularParam(n,ii), 10000)
+                                m = (iRegularParam(n,ii) - m) / 10000
+                                if (l == m) then
+                                    iMixLength = iMixLength + 1
+                                    if (ii - k == 1) then
+                                        nMixSets = nMixSets + 1
+                                        iMixStart = k
+                                    end if
                                 else
-                                    ! Report an error and exit:
-                                    INFOThermo = 36
-                                    exit LOOP_SUBL_Check
+                                    exit LOOP_SUBL_MIXING
                                 end if
+                            end do LOOP_SUBL_MIXING
+
+                            if (iMixLength > 1) then
+                                iSUBLParamData(n,nMixSets*2) = iMixStart
+                                iSUBLParamData(n,nMixSets*2+1) = iMixLength
                             end if
+
+                            k = k + iMixLength
                         end do LOOP_SUBL_Check
+
+                        iSUBLParamData(n,1) = nMixSets
+
                 end select
             end if IF_ParamPass
         end do LOOP_Param

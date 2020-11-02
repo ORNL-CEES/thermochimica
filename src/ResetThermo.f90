@@ -51,8 +51,8 @@ subroutine ResetThermo
     if (allocated(dStoichSpecies)) then
         ! Deallocate integer arrays from ModuleThermo:
         deallocate (dStoichSpecies,dSpeciesTotalAtoms,iPhase,nSpeciesPhase,nParamPhase, &
-            iRegularParam,iElementSystem,iSpeciesPass,iParticlesPerMole, dMagGibbsEnergy, &
-            dCoeffGibbsMagnetic, cRegularParam, STAT = INFO)
+            iElementSystem,iSpeciesPass,iParticlesPerMole, dMagGibbsEnergy, &
+            dCoeffGibbsMagnetic, STAT = INFO)
         i = i + INFO
     end if
 
@@ -64,7 +64,7 @@ subroutine ResetThermo
 
     if (allocated(dChemicalPotential)) then
         ! Deallocate real arrays from ModuleThermo:
-        deallocate (dChemicalPotential,dExcessGibbsParam,dMolesElement,dAtomFractionSpecies, &
+        deallocate (dChemicalPotential,dMolesElement,dAtomFractionSpecies, &
         dStdGibbsEnergy,nMagParamPhase,iMagneticParam,dMagneticParam,STAT = INFO)
         i = i + INFO
     end if
@@ -128,10 +128,17 @@ subroutine ResetThermo
         deallocate(iPairID,dCoordinationNumber)
     end if
 
-   if (allocated(nPairsSRO)) then
-         deallocate(nPairsSRO, STAT = INFO)
-      i = i + INFO
-   end if
+    if (allocated(nPairsSRO)) then
+        ! Deallocate short-range-order pair info
+        deallocate(nPairsSRO, STAT = INFO)
+        i = i + INFO
+    end if
+
+    if (allocated(dExcessGibbsParam)) then
+        ! Deallocate excess mixing parameter data
+        deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData, STAT = INFO)
+        i = i + INFO
+    end if
 
 
 !    if (allocated(lSpeciesStable)) then

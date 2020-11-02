@@ -514,16 +514,16 @@ subroutine CheckSystemExcess
     if (allocated(dExcessGibbsParam)) then
         i = SIZE(dExcessGibbsParam)
         if (i /= nParam) then
-            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam, STAT = n)
+            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
-            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
+            allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam),iSUBLParamData(nParam,7))
         end if
     else
         ! Allocate memory for excess parameters:
-        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam))
+        allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam),iSUBLParamData(nParam,7))
     end if
 
     ! Same as above, for magnetic mixing:

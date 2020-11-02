@@ -134,8 +134,10 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
 
     integer :: i, j, k, l, m, n, s, c, d, KD
     integer :: iSolnIndex, nSublattice, iChargedPhaseID
-    integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam
-    real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam
+    integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
+    integer :: iTempParam1, iTempParam2, iExponent, iTempSub
+    real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2
+    real(8) :: dTempParam1, dTempParam2
     real(8), dimension(nMaxSublatticeSys):: dTempVec
 
 
@@ -267,35 +269,107 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
 
             ! Reinitialize temporary variable:
             dPreFactor = 1D0
+            iFirstParam = 0
+            iSecondParam = 0
+            iFirstParam2 = 0
+            iSecondParam2 = 0
 
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
+            ! print *, iSUBLParamData(l,:)
+            ! Determine the mixing parameter type
+            if ((iSUBLParamData(l,1) == 1) .AND. (iSUBLParamData(l,3) == 2)) then
 
-            ! Loop through constituents associated with this parameter:
-            do k = 2, n + 1
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
 
-                ! Determine constituent and sublattice indices:
-                c = MOD(iRegularParam(l,k), 10000)
-                s = iRegularParam(l,k) - c
-                s = s / 10000
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
 
-                ! Compute prefactor term:
-                dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
 
-                ! Store the first and second site fractions:
-                ! This assumes that the constituents that are mixing are the first two listed:
-                if (k == 2) then
-                    dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
-                    iFirstParam = c
-                    iSubParam   = s
-                elseif (k == 3) then
-                    dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
-                    iSecondParam = c
+                    ! Store the first and second site fractions:
+                    if (k == iSUBLParamData(l,2)) then
+                        dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
+                        iFirstParam = c
+                        iSubParam   = s
+                    else if (k == iSUBLParamData(l,2) + 1) then
+                        dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
+                        iSecondParam = c
+                    end if
+                end do
+
+                ! Multiply prefactor term by excess Gibbs energy parameter:
+                iExponent = iRegularParam(l,n+2)
+                dPreFactor = dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+            else if ((iSUBLParamData(l,1) == 1) .AND. (iSUBLParamData(l,3) == 3)) then
+                print *, 'ternary SUBL mixing', iSUBLParamData(l,:)
+            else if ((iSUBLParamData(l,1) == 2) .AND. (iSUBLParamData(l,3) == 2) .AND. (iSUBLParamData(l,5) == 2)) then
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
+
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
+
+                    ! Store the site fractions:
+                    if (k == iSUBLParamData(l,2)) then
+                        dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
+                        iFirstParam = c
+                        iSubParam   = s
+                    else if (k == iSUBLParamData(l,2) + 1) then
+                        dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
+                        iSecondParam = c
+                    else if (k == iSUBLParamData(l,4)) then
+                        dFirstParam2 = dSiteFraction(iChargedPhaseID,s,c)
+                        iFirstParam2 = c
+                        iSubParam2   = s
+                    else if (k == iSUBLParamData(l,4) + 1) then
+                        dSecondParam2 = dSiteFraction(iChargedPhaseID,s,c)
+                        iSecondParam2 = c
+                    end if
+                end do
+
+                ! Multiply prefactor term by excess Gibbs energy parameter:
+                if (MOD(iRegularParam(l,n+2),2) == 0) then
+                    iExponent = iRegularParam(l,n+2)/2
+                else if (MOD(iRegularParam(l,n+2),2) == 1) then
+                    iExponent = (iRegularParam(l,n+2)-1)/2
+                    iTempParam1 = iFirstParam
+                    iTempParam2 = iSecondParam
+                    dTempParam1 = dFirstParam
+                    dTempParam2 = dSecondParam
+
+                    iFirstParam = iFirstParam2
+                    iSecondParam = iSecondParam2
+                    dFirstParam = dFirstParam2
+                    dSecondParam = dSecondParam2
+
+                    iFirstParam2 = iTempParam1
+                    iSecondParam2 = iTempParam2
+                    dFirstParam2 = dTempParam1
+                    dSecondParam2 = dTempParam2
+
+                    iTempSub = iSubParam
+                    iSubParam = iSubParam2
+                    iSubParam2 = iTempSub
                 end if
-            end do
 
-            ! Multiply prefactor term by excess Gibbs energy parameter:
-            dPreFactor = dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iRegularParam(l,n+2))
+                dPreFactor = dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+
+                ! print *, dExcessGibbsParam(l), dFirstParam, dSecondParam, dFirstParam2, dSecondParam2
+            else
+                print *, 'Unrecognized excess mixing term in SUBL phase ', cSolnPhaseName(iSolnIndex)
+                INFOThermo = 36
+                return
+            end if
 
             ! Loop through species in phase:
             LOOP_Param_Species: do i = iFirst, iLast
@@ -303,7 +377,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 ! Reinitialize variables:
                 KD    = 0
                 m     = i - iFirst + 1
-                dTemp = -DFLOAT(nSublattice + iRegularParam(l,n+2))
+                dTemp = -DFLOAT(nSublattice + iExponent)
 
                 ! Loop through sublattices associated with this phase:
                 LOOP_Param_Sub: do s = 1, nSublattice
@@ -345,7 +419,11 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
 
                 ! Apply higher order terms (only if dFirstParam and dSecondParam are not the same):
                 if (dFirstParam /= dSecondParam) then
-                    dTemp = dTemp + DFLOAT(KD * iRegularParam(l,n+2)) / (dFirstParam - dSecondParam)
+                    dTemp = dTemp + DFLOAT(KD * iExponent) / (dFirstParam - dSecondParam)
+                end if
+
+                if (iSUBLParamData(l,1) == 2) then
+                    dTemp = dTemp - 1D0
                 end if
 
                 ! Apply partial molar excess Gibbs energy of mixing:
