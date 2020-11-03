@@ -133,7 +133,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, m, n, s, c, d
-    integer :: iSolnIndex, nSublattice, iChargedPhaseID
+    integer :: iSolnIndex, nSublattice, iChargedPhaseID, iMixType
     integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
     integer :: iTempParam1, iTempParam2, iExponent, iTempSub, iThirdParam, iTernaryCon
     real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
@@ -271,15 +271,17 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
             iFirstParam2 = 0
             iSecondParam2 = 0
 
+            iMixType = 0
+
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
             ! print *, iSUBLParamData(l,:)
             ! Determine the mixing parameter type
             if ((iSUBLParamData(l,1) == 1) .AND. (iSUBLParamData(l,3) == 2)) then
+                iMixType = 2
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
-
                     ! Determine constituent and sublattice indices:
                     c = MOD(iRegularParam(l,k), 10000)
                     s = iRegularParam(l,k) - c
@@ -303,12 +305,11 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 iExponent = iRegularParam(l,n+2)
                 dPreFactor = dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
             else if ((iSUBLParamData(l,1) == 1) .AND. (iSUBLParamData(l,3) == 3)) then
-                ! print *, 'ternary SUBL mixing', iSUBLParamData(l,:)
+                iMixType = 3
                 iTernaryCon = iRegularParam(l,n+2)
-                ! print *, iTernaryCon, MOD(iTernaryCon + 1, 3), MOD(iTernaryCon + 2, 3)
+
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
-
                     ! Determine constituent and sublattice indices:
                     c = MOD(iRegularParam(l,k), 10000)
                     s = iRegularParam(l,k) - c
@@ -336,6 +337,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 dPreFactor = dPreFactor * dExcessGibbsParam(l)
                 dPreFactor = dPreFactor * (dFirstParam + (1D0 - dFirstParam - dSecondParam - dThirdParam) / 3D0)
             else if ((iSUBLParamData(l,1) == 2) .AND. (iSUBLParamData(l,3) == 2) .AND. (iSUBLParamData(l,5) == 2)) then
+                iMixType = 4
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
 
@@ -417,21 +419,21 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                     if (s == iSubParam) then
                         if (c == iFirstParam) then
                             ! This is the first mixing constituent:
-                            if (iSUBLParamData(l,3) == 2) then
+                            if ((iMixType == 2) .OR. (iMixType == 4)) then
                                 KD = 1D0
-                            else if (iSUBLParamData(l,3) == 3) then
+                            else if (iMixType == 3) then
                                 KD = 2D0/3D0
                             end if
                         elseif (c == iSecondParam) then
                             ! This is the second mixing constituent:
-                            if (iSUBLParamData(l,3) == 2) then
+                            if ((iMixType == 2) .OR. (iMixType == 4)) then
                                 KD = -1D0
-                            else if (iSUBLParamData(l,3) == 3) then
+                            else if (iMixType == 3) then
                                 KD = -1D0/3D0
                             end if
                         elseif (c == iThirdParam) then
                             ! This is the second mixing constituent:
-                            if (iSUBLParamData(l,3) == 3) then
+                            if (iMixType == 3) then
                                 KD = -1D0/3D0
                             end if
                         else
@@ -458,15 +460,21 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                     end do LOOP_Param_Const ! j
                 end do LOOP_Param_Sub       ! s
 
-                ! Apply higher order terms (only if dFirstParam and dSecondParam are not the same):
-                if (dFirstParam /= dSecondParam) then
-                    dTemp = dTemp + KD * DFLOAT(iExponent) / (dFirstParam - dSecondParam)
-                end if
-
-                if (iSUBLParamData(l,1) == 2) then
-                    dTemp = dTemp - 1D0
-                else if (iSUBLParamData(l,3) == 3) then
+                ! Apply higher order terms
+                if (iMixType == 2) then
+                    ! only if dFirstParam and dSecondParam are not the same:
+                    if (dFirstParam /= dSecondParam) then
+                        dTemp = dTemp + KD * DFLOAT(iExponent) / (dFirstParam - dSecondParam)
+                    end if
+                else if (iMixType == 3) then
+                    dTemp = dTemp + KD / (dFirstParam + (1D0 - dFirstParam - dSecondParam - dThirdParam) / 3D0)
                     dTemp = dTemp + 1D0
+                else if (iMixType == 4) then
+                    ! only if dFirstParam and dSecondParam are not the same:
+                    if (dFirstParam /= dSecondParam) then
+                        dTemp = dTemp + KD * DFLOAT(iExponent) / (dFirstParam - dSecondParam)
+                    end if
+                    dTemp = dTemp - 1D0
                 end if
 
                 ! Apply partial molar excess Gibbs energy of mixing:
