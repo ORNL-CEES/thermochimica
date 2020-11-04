@@ -137,7 +137,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
     integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
     integer :: iTempParam1, iTempParam2, iExponent, iTempSub, iThirdParam, iTernaryCon
     real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
-    real(8) :: dTempParam1, dTempParam2, KD
+    real(8) :: dTempParam1, dTempParam2, KD, dSum
     real(8), dimension(nMaxSublatticeSys):: dTempVec
 
 
@@ -245,6 +245,12 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                     * DLOG(dSiteFraction(iChargedPhaseID,s,c))
             end do
 
+            ! Sum stoichiometry and add large penalty if this species is vacancies only and a large mole fraction
+            dSum = 0D0
+            do j = 1, nElements
+                dSum = dSum + ABS(dStoichSpecies(i,j))
+            end do
+            if ((dSum == 0D0) .AND. (dMolFraction(i) > 0.9D0)) dChemicalPotential(i) = dChemicalPotential(i) + 1D3
         end do LOOP_Ideal
 
 
