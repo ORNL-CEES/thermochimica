@@ -333,7 +333,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 end do
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
-                iExponent = 1
+                iExponent = 0
                 dPreFactor = dPreFactor * dExcessGibbsParam(l)
                 dPreFactor = dPreFactor * (dFirstParam + (1D0 - dFirstParam - dSecondParam - dThirdParam) / 3D0)
             else if ((iSUBLParamData(l,1) == 2) .AND. (iSUBLParamData(l,3) == 2) .AND. (iSUBLParamData(l,5) == 2)) then
@@ -407,7 +407,11 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 ! Reinitialize variables:
                 KD    = 0D0
                 m     = i - iFirst + 1
-                dTemp = -DFLOAT(nSublattice + iExponent)
+                if ((iMixType == 2) .OR. (iMixType == 4)) then
+                    dTemp = -DFLOAT(nSublattice + iExponent)
+                else if (iMixType == 3) then
+                    dTemp = -3D0
+                end if
 
                 ! Loop through sublattices associated with this phase:
                 LOOP_Param_Sub: do s = 1, nSublattice
@@ -468,7 +472,6 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                     end if
                 else if (iMixType == 3) then
                     dTemp = dTemp + KD / (dFirstParam + (1D0 - dFirstParam - dSecondParam - dThirdParam) / 3D0)
-                    dTemp = dTemp + 1D0
                 else if (iMixType == 4) then
                     ! only if dFirstParam and dSecondParam are not the same:
                     if (dFirstParam /= dSecondParam) then
