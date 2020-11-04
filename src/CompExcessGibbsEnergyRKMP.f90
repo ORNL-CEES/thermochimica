@@ -161,7 +161,6 @@ subroutine CompExcessGibbsEnergyRKMP(iSolnIndex)
 
                 ! Loop through species in this phase:
                 do i = iFirstSpecies, iLastSpecies
-
                     ! Compute Kronecker-Delta term for ternary parameter:
                     KD = 0
                     if (iRegularParam(iParam,5) == i - iFirstSpecies + 1) KD = 1
@@ -177,12 +176,10 @@ subroutine CompExcessGibbsEnergyRKMP(iSolnIndex)
 
                         dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
                             xprod * (((1d0 / xi) - 3D0) * ((1D0 - x1 - x2 - x3)/3D0 + xj) + KD)
-
                     else
                         ! This species does not contribute to the parameter.
-                        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + &
-                            xprod * dExcessGibbsParam(iParam) * (x1 + x2 + x3 - 3D0*xj - 2D0/3D0)
-
+                        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
+                            xprod * (x1 + x2 + x3 - 3D0*xj - 2D0/3D0)
                     end if
                 end do
 
