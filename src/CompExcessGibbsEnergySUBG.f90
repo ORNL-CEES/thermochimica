@@ -78,12 +78,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, p, q, r, s
+    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
     real(8) :: dTernarySum1, dTernarySum2
-    real(8), allocatable, dimension(:) :: dXi, dYi, dNi
-    real(8), allocatable, dimension(:,:) :: dXij, dNij
+    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dFi
+    real(8), allocatable, dimension(:,:) :: dXij, dNij, dXsij, dNsij
     ! X_ij/kl corresponds to dMolFraction
 
 
@@ -98,25 +98,33 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     ! Allocate allocatable arrays:
     if (allocated(dXi)) deallocate(dXi)
     if (allocated(dYi)) deallocate(dYi)
+    if (allocated(dFi)) deallocate(dFi)
     if (allocated(dNi)) deallocate(dNi)
     if (allocated(dXij)) deallocate(dXij)
     if (allocated(dNij)) deallocate(dNij)
+    if (allocated(dXsij)) deallocate(dXsij)
+    if (allocated(dNsij)) deallocate(dNsij)
     if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
     if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     j = iLast - iFirst + 1
     nPhaseElements = nSublatticeElements(iSPI,1) + nSublatticeElements(iSPI,2)
-    allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
+    allocate(dXi(nPhaseElements),dYi(nPhaseElements),dFi(nPhaseElements),dNi(nPhaseElements))
     allocate(dXij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
     allocate(dNij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
+    allocate(dXsij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
+    allocate(dNsij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
     allocate(lAsymmetric1(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
     allocate(lAsymmetric2(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
 
     ! Initialize variables:
     dXi                               = 0D0
     dYi                               = 0D0
+    dFi                               = 0D0
     dNi                               = 0D0
     dXij                              = 0D0
     dNij                              = 0D0
+    dXsij                             = 0D0
+    dNsij                             = 0D0
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
 
@@ -168,6 +176,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     ! Compute X_i/j
     dSumNij = 0D0
+    dSumNsij = 0D0
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
             m = iConstituentSublattice(iSPI,1,i) + &
@@ -188,15 +197,27 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
-                dNij(i,j) = dNij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
+                dNij(i,j)  = dNij(i,j)  + (dMolFraction(l) * nA * nX)
+                dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
             end do
-            dSumNij = dSumNij + dNij(i,j)
+            dSumNij  = dSumNij  + dNij(i,j)
+            dSumNsij = dSumNsij + dNsij(i,j)
         end do
     end do
 
     do i = 1, nSublatticeElements(iSPI,1)
         do j = 1, nSublatticeElements(iSPI,2)
-            dXij(i,j) = dNij(i,j) / dSumNij
+            dXij(i,j)  = dNij(i,j)  / dSumNij
+            dXsij(i,j) = dNsij(i,j) / dSumNsij
+        end do
+    end do
+
+    ! For updated implementation, calculate F_i
+    do i = 1, nSublatticeElements(iSPI,1)
+        do j = 1, nSublatticeElements(iSPI,2)
+            dFi(i) = dFi(i) + dXsij(i,j)
+            k = j + nSublatticeElements(iSPI,1)
+            dFi(k) = dFi(k) + dXsij(i,j)
         end do
     end do
 
@@ -257,8 +278,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
-                dEntropy = dEntropy + (DLOG(dXij(i,j) / (dYi(i) * dYi(j + nSublatticeElements(iSPI,1)))) &
-                                      * (nA * nX / dZetaSpecies(iSPI,m)))
+                dEntropy = dEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSublatticeElements(iSPI,1)))) &
+                                    * (nA * nX / dZetaSpecies(iSPI,m)))
             end do
         end do
 
@@ -447,21 +468,21 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dGex = (dExcessGibbsParam(abxy) * dXi1**p * dXi2**q / (dXiDen**(p + q))) * dTernaryFactorG
             dDgexBase = -dGex * (p + q) / dXiDen
         ! B-type binary terms
-        else if (cRegularParam(abxy) == 'B') then
+        else if ((cRegularParam(abxy) == 'B') .OR. (cRegularParam(abxy) == 'H')) then
             ! Start by calculating mixing energy term
-            dXtot = dXij(a,x) + dXij(b,y)
-            dGex = dExcessGibbsParam(abxy) * dXij(a,x)**(1D0+p) * dXij(b,y)**(1D0+q) / dXtot**(1D0+p+q)
-            dDgexBase = - dGex / dSumNij
+            dXtot = dXsij(a,x) + dXsij(b,y)
+            dGex = dExcessGibbsParam(abxy) * dXsij(a,x)**(1D0+p) * dXsij(b,y)**(1D0+q) / dXtot**(1D0+p+q)
+            dDgexBase = - dGex / dSumNsij
             LOOP_Bder: do i = 1, nSublatticeElements(iSPI,1)
                 do j = 1, nSublatticeElements(iSPI,2)
                     dDgex = dDgexBase
                     if ((i == a) .AND. (j == x)) then
                         ! the if below is just to prove that there are numerical issues with this mixing scheme
                         ! if (iterGlobal > 10) then
-                        dDgex = dDgex + dGex * (dNij(b,y) + dNij(b,y) * p - dNij(a,x) * q) / (dNij(a,x) * (dNij(b,y) + dNij(a,x)))
+                        dDgex = dDgex + dGex*(dNsij(b,y) + dNsij(b,y)*p - dNsij(a,x)*q) / (dNsij(a,x) * (dNsij(b,y) + dNsij(a,x)))
                         ! end if
                     else if ((i == b) .AND. (j == y)) then
-                        dDgex = dDgex + dGex * (dNij(a,x) - dNij(b,y) * p + dNij(a,x) * q) / (dNij(b,y) * (dNij(b,y) + dNij(a,x)))
+                        dDgex = dDgex + dGex*(dNsij(a,x) - dNsij(b,y)*p + dNsij(a,x)*q) / (dNsij(b,y) * (dNsij(b,y) + dNsij(a,x)))
                     end if
                     m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
                     do k = 1, nPairsSRO(iSPI,2)
@@ -660,7 +681,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         if (ii == j .AND. x == l) dDgex = dDgex + dDgexBase / 4 + dGex * q / (4 * dXi2)
                     end if
                 end do
-                
+
                 dDgex = dDgex + dGex * dTernaryFactorDG
             end if
 
@@ -704,7 +725,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     end do LOOP_Param
 
     ! Deallocate allocatable arrays:
-    deallocate(dXi,dYi,dNi,dXij,dNij,lAsymmetric1,lAsymmetric2)
+    deallocate(dXi,dYi,dFi,dNi,dXij,dNij,dXsij,dNsij,lAsymmetric1,lAsymmetric2)
 
     return
 
