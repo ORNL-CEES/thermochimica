@@ -141,23 +141,7 @@ subroutine ParseCSDataBlockSUBL(i)
         ! Number of components for this phase:
         n = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
 
-        ! Number of consituents on last line (per sublattice):
-        k = MOD(n, 19)
-
-        ! Number of full lines of constituent indices (per sublattice):
-        l = (n - k) / 19
-
-        ! Loop through full lines of constituent indices:
-        do m = 1, l
-            p = (m-1)*19 + 1
-            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, p:p+18)
-        end do
-
-        ! Read in the last line of the constituent indices if there is less than 19 constituents:
-        if (k /= 0) then
-            p = (l)*19 + 1
-            read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, p:p+k-1)
-        end if
+        read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, 1:n)
 
     end do LOOP_SUBL_CONST_ID
 
