@@ -105,12 +105,13 @@ subroutine CompThermoData
     implicit none
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
-    integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby
+    integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
     integer, dimension(nElementsCS**2) :: iRemove
-    real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax, dCoay, dCobx, dCoby
-    real(8)                            :: dStdEnergyTemp!, dChemPot1, dChemPot2
+    real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax
+    real(8)                            :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
+    real(8)                            :: dStdEnergyTemp
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
     character(12), dimension(:),     allocatable :: cElementNameTemp
@@ -214,11 +215,11 @@ subroutine CompThermoData
                     end do
                 end if
 
-                ! I'm like pretty sure that these are g_A2/X2 and not g_A/X,
-                ! but only because it doesn't work the other way.
-                ! Also the seem to be multiplied by the relevant coordination already.
-                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) !* 4 / dZetaSpecies(iSublPhaseIndex,jj)
-
+                ! I have set these to be g^_A2/X2 because it helps me to follow,
+                ! this is not the most computationally efficient option.
+                dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1)
+                dZa = dCoordinationNumberCS(iSublPhaseIndex,iIndex - iFirst + 1,1)
+                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dZa / dCoax
             end do LOOP_SROPairs
 
             LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
@@ -280,15 +281,25 @@ subroutine CompThermoData
                     end if
                 end do
 
-                dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,iax,1)
-                dCoay = dConstituentCoefficientsCS(iSublPhaseIndex,iay,1)
-                dCobx = dConstituentCoefficientsCS(iSublPhaseIndex,ibx,1)
-                dCoby = dConstituentCoefficientsCS(iSublPhaseIndex,iby,1)
+                ia2x2 = ii + ((ka - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
+                ib2x2 = jj + ((ka - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
+                ia2y2 = ii + ((la - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
+                ib2y2 = jj + ((la - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
+                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
 
-                dChemicalPotential(j) = (((dQx / dCoax) * dChemicalPotentialTemp(iax + iFirst - 1) / (dZa * dZx))  &
-                                       + ((dQx / dCobx) * dChemicalPotentialTemp(ibx + iFirst - 1) / (dZb * dZx))  &
-                                       + ((dQy / dCoay) * dChemicalPotentialTemp(iay + iFirst - 1) / (dZa * dZy))  &
-                                       + ((dQy / dCoby) * dChemicalPotentialTemp(iby + iFirst - 1) / (dZb * dZy))) &
+                dZaA2X2 = dCoordinationNumberCS(iSublPhaseIndex,ia2x2,1)
+                dZbB2X2 = dCoordinationNumberCS(iSublPhaseIndex,ib2x2,1)
+                dZaA2Y2 = dCoordinationNumberCS(iSublPhaseIndex,ia2y2,1)
+                dZbB2Y2 = dCoordinationNumberCS(iSublPhaseIndex,ib2y2,1)
+
+                ! This is equation 17.38 in Pelton's book
+                dChemicalPotential(j) = (((dQx * dZaA2X2) * dChemicalPotentialTemp(iax + iFirst - 1) / (2D0 * dZa * dZx))  &
+                                       + ((dQx * dZbB2X2) * dChemicalPotentialTemp(ibx + iFirst - 1) / (2D0 * dZb * dZx))  &
+                                       + ((dQy * dZaA2Y2) * dChemicalPotentialTemp(iay + iFirst - 1) / (2D0 * dZa * dZy))  &
+                                       + ((dQy * dZbB2Y2) * dChemicalPotentialTemp(iby + iFirst - 1) / (2D0 * dZb * dZy))) &
                                        / ((dQx/dZx) + (dQy/dZy))
             end do LOOP_nSUBGQCS
         else
