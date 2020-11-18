@@ -75,9 +75,10 @@ subroutine ParseCSDataBlockSUBG( i )
     implicit none
 
     integer                     :: i, j, k, l, n, x, y, p, a, b, nPairs, nCSCS, nTotalConst
+    integer                     :: xa, ya, nA2X2, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                     :: iaaxy, ibbxy, iabxx, iabyy
     integer,     dimension(10)  :: iTempVec
-    real(8)                     :: qa, qb, qx, qy, za, zb, zx, zy, dF
+    real(8)                     :: qa, qb, qx, qy, za, zb, zx, zy, dF, dCoax, dCobx, dCoay, dCoby
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cTempVec
     logical, dimension(:), allocatable :: lPairSet
@@ -105,16 +106,9 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Read in names of constituents on first sublattice:
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
     ! Match elements on 1st sublattice with elements in dat file order
-    LOOP_Sub1Names: do k = 1, nSublatticeElementsCS(nCSCS,1)
-        call ParseConstituentName(k,1)
-    end do LOOP_Sub1Names
 
     ! Read in names of constituents on second sublattice: (ignore for now):
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
-    ! Match elements on 2nd sublattice with elements in dat file order
-    LOOP_Sub2Names: do k = 1, nSublatticeElementsCS(nCSCS,2)
-        call ParseConstituentName(k + nSublatticeElementsCS(nCSCS,1),2)
-    end do LOOP_Sub2Names
 
     ! Read in the charge of each constituent on the first sublattice.
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
@@ -289,16 +283,39 @@ subroutine ParseCSDataBlockSUBG( i )
         x = iPairIDCS(nCSCS, j, 3)
         y = iPairIDCS(nCSCS, j, 4)
 
-        l = j + nSpeciesPhaseCS(i-1)
+        xa = x - nSublatticeElementsCS(nCSCS,1)
+        ya = y - nSublatticeElementsCS(nCSCS,1)
 
-        ! Use the constituent stoichiometries to construct the stoichiometry matrix for the species.
-        ! To be clear, the species are the quadruplets.
-        do k = 1, nElementsCS
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(a,k) / dCoordinationNumberCS(nCSCS, j, 1))
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(b,k) / dCoordinationNumberCS(nCSCS, j, 2))
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(x,k) / dCoordinationNumberCS(nCSCS, j, 3))
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + (dStoichConstituentCS(y,k) / dCoordinationNumberCS(nCSCS, j, 4))
+        nA2X2 = nSublatticeElementsCS(nCSCS,1) * nSublatticeElementsCS(nCSCS,2)
+        do k = 1, nA2X2
+            if   ((iConstituentSublatticeCS(nCSCS,1,k) == a) &
+            .AND. (iConstituentSublatticeCS(nCSCS,2,k) == xa)) then
+                iax = k
+            end if
+            if   ((iConstituentSublatticeCS(nCSCS,1,k) == b) &
+            .AND. (iConstituentSublatticeCS(nCSCS,2,k) == xa)) then
+                ibx = k
+            end if
+            if   ((iConstituentSublatticeCS(nCSCS,1,k) == a) &
+            .AND. (iConstituentSublatticeCS(nCSCS,2,k) == ya)) then
+                iay = k
+            end if
+            if   ((iConstituentSublatticeCS(nCSCS,1,k) == b) &
+            .AND. (iConstituentSublatticeCS(nCSCS,2,k) == ya)) then
+                iby = k
+            end if
         end do
+
+        ia2x2 = a + ((xa - 1) * (nSublatticeElementsCS(nCSCS,1) &
+                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
+        ib2x2 = b + ((xa - 1) * (nSublatticeElementsCS(nCSCS,1) &
+                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
+        ia2y2 = a + ((ya - 1) * (nSublatticeElementsCS(nCSCS,1) &
+                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
+        ib2y2 = b + ((ya - 1) * (nSublatticeElementsCS(nCSCS,1) &
+                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
+
+        l = j + nSpeciesPhaseCS(i-1)
 
         ! Create quadruplet names
         cSpeciesNameCS(l) = TRIM(cConstituentNameSUBCS(nCSCS,1,a)) // '-' &
@@ -306,6 +323,20 @@ subroutine ParseCSDataBlockSUBG( i )
                          // TRIM(cConstituentNameSUBCS(nCSCS,2,x - nSublatticeElementsCS(nCSCS,1))) // '-' &
                          // TRIM(cConstituentNameSUBCS(nCSCS,2,y - nSublatticeElementsCS(nCSCS,1)))
 
+        dCoax = dConstituentCoefficientsCS(nCSCS,iax,1)
+        dCobx = dConstituentCoefficientsCS(nCSCS,ibx,1)
+        dCoay = dConstituentCoefficientsCS(nCSCS,iay,1)
+        dCoby = dConstituentCoefficientsCS(nCSCS,iby,1)
+        do k = 1, nElementsCS
+            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
+                                   (dStoichPairsCS(nCSCS,iax,k) / dCoordinationNumberCS(nCSCS, j, 1)) / (2D0 * dCoax)
+            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
+                                   (dStoichPairsCS(nCSCS,ibx,k) / dCoordinationNumberCS(nCSCS, j, 2)) / (2D0 * dCobx)
+            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
+                                   (dStoichPairsCS(nCSCS,iay,k) / dCoordinationNumberCS(nCSCS, j, 1)) / (2D0 * dCoay)
+            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
+                                   (dStoichPairsCS(nCSCS,iby,k) / dCoordinationNumberCS(nCSCS, j, 2)) / (2D0 * dCoby)
+        end do
     end do
 
     ! Loop through excess mixing parameters:
@@ -365,103 +396,3 @@ subroutine ParseCSDataBlockSUBG( i )
     return
 
 end subroutine ParseCSDataBlockSUBG
-
-subroutine ParseConstituentName(k, iSub)
-    ! The purpose of this module to construct the constituent stoichiometry matrix
-    ! dStoichConstituentCS by parsing the constituent names. This really (really really)
-    ! seems like it shouldn't be necessary, but I do not see any other way to extract
-    ! this information from the data file.
-    USE ModuleParseCS
-
-    implicit none
-
-    integer                     :: j, k, iSub, nCSCS, iFirstCapital, iCurrent, iElement, iTemp, iNumber
-    integer, dimension(26)      :: iCapital
-    character(8)                :: cConstituentName
-    character(1),dimension(26)  :: capitalLetters, lowerLetters
-    character(1),dimension(10)  :: numbers
-    logical                     :: nextIsLower
-
-    nCSCS = nCountSublatticeCS
-    cConstituentName = cConstituentNameSUBCS(nCSCS,iSub,k - nSublatticeElementsCS(nCSCS,1)*(iSub-1))
-
-    ! First do the default (sensible) cases, then move on to the madness
-    if (cConstituentName == 'Va') then
-        return
-    end if
-    do j = 1, nElementsCS
-        if (cConstituentName == cElementNameCS(j)) then
-            dStoichConstituentCS(k,j) = 1D0
-            return
-        end if
-    end do
-
-    ! Now for the madness... to handle compound constituents it looks like I have to parse the text...
-
-    ! I honestly can't believe it has come to this
-    capitalLetters = (/'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'/)
-    lowerLetters =   (/'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','e','s','r','u','v','w','x','y','z'/)
-    numbers = (/'1','2','3','4','5','6','7','8','9','0'/)
-
-    iCurrent = 0
-
-    ! This block of code is so bad
-    ! that we might as well just meme it at this point
-    do while (.TRUE.)
-        iCurrent = iCurrent + 1
-
-        ! Look for a capital letter (yes we are relying on cases to indicate starts of element names)
-        do j = 1, 26
-            iCapital(j) = INDEX(cConstituentName(iCurrent:),capitalLetters(j))
-            if (iCapital(j) == 0) iCapital(j) = 100
-        end do
-
-        iFirstCapital = MINVAL(iCapital)
-        iCurrent = iCurrent + iFirstCapital - 1
-
-        ! If there is no new capital letter, get out of here
-        if (iFirstCapital == 100) then
-            return
-        end if
-
-        ! See if the following letter is lowercase, indicating element symbol with 2 letters
-        nextIsLower = .FALSE.
-        iTemp = 0
-        do j = 1, 26
-            if (cConstituentName(iCurrent+1:iCurrent+1) == lowerLetters(j)) then
-                iTemp = 1
-                nextIsLower = .TRUE.
-            end if
-        end do
-
-        ! Identify the element
-        do j = 1, nElementsCS
-            if (cConstituentName(iCurrent:iCurrent+iTemp) == cElementNameCS(j)) then
-                iElement = j
-            end if
-        end do
-
-        ! Check for a following number (i.e. stoichiometric coefficient)
-        iNumber = 1
-        do j = 1, 9
-            if (cConstituentName(iCurrent+iTemp+1:iCurrent+iTemp+1) == numbers(j)) then
-                iNumber = j
-            end if
-        end do
-
-        ! If the number is followed by a +/-, then it denotes charge rather than being a coefficient
-        if (iNumber > 1) then
-            if ((cConstituentName(iCurrent+iTemp+2:iCurrent+iTemp+2) == '+') &
-           .OR. (cConstituentName(iCurrent+iTemp+2:iCurrent+iTemp+2) == '-')) then
-                iNumber = 1
-            end if
-        end if
-
-        ! Add to stoichiometry matrix
-        if (iElement > 0) dStoichConstituentCS(k,iElement) = dStoichConstituentCS(k,iElement) + iNumber * 1D0
-
-    end do
-
-    return
-
-end subroutine ParseConstituentName
