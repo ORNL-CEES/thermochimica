@@ -105,7 +105,6 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Read in names of constituents on first sublattice:
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
-    ! Match elements on 1st sublattice with elements in dat file order
 
     ! Read in names of constituents on second sublattice: (ignore for now):
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
