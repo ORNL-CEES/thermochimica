@@ -294,8 +294,8 @@ subroutine CheckSystemExcess
                     m = m + 1
                     iConstituentSublattice(nCountSublattice,1,m) = iCon1
                     iConstituentSublattice(nCountSublattice,2,m) = iCon2
-                    cConstituentNameSUB(nCountSublattice,1,m) = cConstituentNameSUBCS(nCountSublatticeCS,1,k)
-                    cConstituentNameSUB(nCountSublattice,2,m) = cConstituentNameSUBCS(nCountSublatticeCS,2,k)
+                    cConstituentNameSUB(nCountSublattice,1,m) = cConstituentNameSUBCS(nCountSublatticeCS,1,iCon1)
+                    cConstituentNameSUB(nCountSublattice,2,m) = cConstituentNameSUBCS(nCountSublatticeCS,2,iCon2)
                 end do LOOP_iConstitSubl
 
                 ! Save quadruplet data corresponding to the quadruplets remaining in the system
