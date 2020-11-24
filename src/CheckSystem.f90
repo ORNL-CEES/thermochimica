@@ -550,6 +550,8 @@ subroutine CheckSystem
     dMagGibbsEnergy      = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
+    cConstituentNameSUB  = ' '
+    cPairName            = ' '
 
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
