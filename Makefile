@@ -51,6 +51,7 @@ BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
 TST_DIR     = test
+LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
 WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
@@ -144,6 +145,10 @@ veryclean: clean cleandoc
 	rm -f *.mod
 	rm -f $(SRC_DIR)/*.lo
 	rm -f $(SRC_DIR)/*.lo.d
+	rm -f $(SRC_DIR)/.libs/*
+	rm -f $(SRC_DIR)/*.mod
+	rm -f $(LIB_DIR)/*
+	rm -f $(LIB_DIR)/.libs/*
 
 
 ## =======
