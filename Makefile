@@ -142,6 +142,8 @@ veryclean: clean cleandoc
 	rm -fr $(OBJ_DIR)/*
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
+	rm -f $(SRC_DIR)/*.lo
+	rm -f $(SRC_DIR)/*.lo.d
 
 
 ## =======
