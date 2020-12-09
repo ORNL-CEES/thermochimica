@@ -35,7 +35,7 @@ subroutine SetUnitTemperature(cUnitTemperature)
 
   implicit none
 
-  character(*), intent(in)::  cUnitTemperature
+  character(15), intent(in)::  cUnitTemperature
   character(15) :: cUnitTemperatureLen
 
   cUnitTemperatureLen = cUnitTemperature(1:min(15,len(cUnitTemperature)))
@@ -51,7 +51,7 @@ subroutine SetUnitPressure(cUnitPressure)
 
   implicit none
 
-  character(*), intent(in)::  cUnitPressure
+  character(15), intent(in)::  cUnitPressure
   character(15) :: cUnitPressureLen
 
   cUnitPressureLen = cUnitPressure(1:min(15,len(cUnitPressure)))
@@ -67,7 +67,7 @@ subroutine SetUnitMass(cUnitMass)
 
   implicit none
 
-  character(*), intent(in)::  cUnitMass
+  character(15), intent(in)::  cUnitMass
   character(15) :: cUnitMassLen
 
   cUnitMassLen = cUnitMass(1:min(15,len(cUnitMass)))
@@ -573,14 +573,14 @@ subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
               mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
   USE ModuleReinit
   USE ModuleThermoIO
-  USE ModuleThermo, ONLY: nElements, nSpecies, nElementsPT, nMaxCompounds
+  USE ModuleThermo, ONLY: nElements, nSpecies
   implicit none
 
   integer, intent(out)                           :: mReinitAvailable
   integer, intent(out), dimension(nElements)     :: mAssemblage
   real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
   real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
-  integer, intent(out), dimension(0:nElementsPT + nMaxCompounds) :: mElementsUsed
+  integer, intent(out), dimension(0:168) :: mElementsUsed
 
 
   if (lReinitAvailable) then
@@ -604,18 +604,19 @@ subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
   USE ModuleReinit
   USE ModuleThermoIO
-  USE ModuleThermo, ONLY: nElementsPT, nMaxCompounds
+  USE ModuleThermo
   implicit none
 
   integer, intent(in)                            :: mElements, mSpecies
   integer, intent(in), dimension(mElements)      :: mAssemblage
   real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
   real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
-  integer, intent(in), dimension(0:nElementsPT + nMaxCompounds)  :: mElementsUsed
+  integer, intent(in), dimension(0:168)  :: mElementsUsed
 
   allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
   dMolFraction_Old(mSpecies))
   allocate(iAssemblage_Old(mElements))
+  ! allocate(iElementsUsed_Old(0:168))
 
   iAssemblage_Old = mAssemblage
   dMolesPhase_Old = mMolesPhase
@@ -659,8 +660,61 @@ subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
         end if
     end do
 
-    call GibbsEnergy(nConPhasesReinit, nSolnPhasesReinit, iAssemblage_Old, dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
+    call GibbsEnergy(nConPhasesReinit, nSolnPhasesReinit, iAssemblage_Old, &
+                     dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
 
     return
 
 end subroutine GibbsEnergyOfReinitData
+
+
+subroutine GetAssemblage(mAssemblage)
+  USE ModuleThermo, ONLY: nElements, iAssemblage
+  implicit none
+
+  integer, intent(out), dimension(nElements)     :: mAssemblage
+
+  mAssemblage = iAssemblage
+
+  return
+
+end subroutine GetAssemblage
+
+subroutine GetAllElementPotential(mElementPotential)
+  USE ModuleThermo, ONLY: nElements, dElementPotential
+  implicit none
+
+  real(8), intent(out), dimension(nElements)     :: mElementPotential
+
+  mElementPotential = dElementPotential
+
+  return
+
+end subroutine GetAllElementPotential
+
+subroutine GetElementFraction(iAtom, dFrac)
+
+  USE ModuleThermoIO, ONLY: dElementMass
+  USE ModuleThermo,   ONLY: nElementsPT
+
+  implicit none
+
+  integer, intent(in) ::  iAtom
+  real(8), intent(out)::  dFrac
+  real(8)             ::  dTotalElementMass
+  integer :: i
+
+  if( iAtom <= 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in GetElementFraction ', iAtom
+      stop
+  else
+      dTotalElementMass = 0D0
+      do i = 1, nElementsPT
+          dTotalElementMass = dTotalElementMass + dElementMass(i)
+      end do
+      dFrac = dElementMass(iAtom) / dTotalElementMass
+  end if
+
+  return
+
+end subroutine GetElementFraction
