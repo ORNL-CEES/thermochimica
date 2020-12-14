@@ -358,15 +358,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
         iBlock = iBlock + iFirst - 1
 
+        dXi1 = 0D0
+        dXi2 = 0D0
+        dXiDen = 0D0
+        dChi1 = 0D0
+        dChi2 = 0D0
+        dChiDen = 0D0
+        lAsymmetric1 = .FALSE.
+        lAsymmetric2 = .FALSE.
         if (x == y) then
-            dXi1 = 0D0
-            dXi2 = 0D0
-            dXiDen = 0D0
-            dChi1 = 0D0
-            dChi2 = 0D0
-            dChiDen = 0D0
-            lAsymmetric1 = .FALSE.
-            lAsymmetric2 = .FALSE.
             lAsymmetric1(a) = .TRUE.
             lAsymmetric2(b) = .TRUE.
             ! First make a list of which constituents make asymmetric ternaries
@@ -417,10 +417,64 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                 end do
             end do
-            dXiDen = dXi1 + dXi2
-            dChi1 = dChi1 / dChiDen
-            dChi2 = dChi2 / dChiDen
+        else if (a == b) then
+            lAsymmetric1(x) = .TRUE.
+            lAsymmetric2(y) = .TRUE.
+            ! First make a list of which constituents make asymmetric ternaries
+            if (iChemicalGroup(iSPI,2,x) /= iChemicalGroup(iSPI,2,y)) then
+                do i = 1, nSublatticeElements(iSPI,2)
+                    if (iChemicalGroup(iSPI,2,i) == iChemicalGroup(iSPI,2,x)) then
+                        lAsymmetric1(i) = .TRUE.
+                    else if (iChemicalGroup(iSPI,2,i) == iChemicalGroup(iSPI,2,y)) then
+                        lAsymmetric2(i) = .TRUE.
+                    end if
+                end do
+            end if
+            ! Now use lists to generate xi and chi
+            do i = 1, nSublatticeElements(iSPI,2)
+                do j = i, nSublatticeElements(iSPI,2)
+                    k = a
+                    if (i == j) then
+                        k = k + (i - 1) * (nSublatticeElements(iSPI,1) &
+                                        * (nSublatticeElements(iSPI,1) + 1) / 2)
+                    else
+                        k = k + (nSublatticeElements(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                              * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2)
+                    end if
+                    iQuad = k + iFirst - 1
+                    if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
+                        dChi1 = dChi1 + dMolFraction(iQuad)
+                    end if
+                    if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
+                        dChi2 = dChi2 + dMolFraction(iQuad)
+                    end if
+                    if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
+                        dChiDen = dChiDen + dMolFraction(iQuad)
+                    end if
+                end do
+                ! Below is xi with counting of x /= y quads
+                ii = i + nSublatticeElements(iSPI,1)
+                do k = 1, nPairsSRO(iSPI,2)
+                    l = k + iFirst - 1
+                    if (lAsymmetric1(i)) then
+                        if (a == iPairID(iSPI,k,1) .AND. ii == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,1) .AND. ii == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. ii == iPairID(iSPI,k,3)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. ii == iPairID(iSPI,k,4)) dXi1 = dXi1 + (dMolFraction(l) / 4)
+                    end if
+                    if (lAsymmetric2(i)) then
+                        if (a == iPairID(iSPI,k,1) .AND. ii == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,1) .AND. ii == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. ii == iPairID(iSPI,k,3)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                        if (a == iPairID(iSPI,k,2) .AND. ii == iPairID(iSPI,k,4)) dXi2 = dXi2 + (dMolFraction(l) / 4)
+                    end if
+                end do
+            end do
         end if
+
+        dXiDen = dXi1 + dXi2
+        dChi1 = dChi1 / dChiDen
+        dChi2 = dChi2 / dChiDen
 
         dTernaryFactorG = 1D0
         if (d > 0) then
@@ -453,7 +507,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
                 dTernaryFactorG = (dYdk / dXi1) * (1 - (dYik / dXi1))**(r-1)
             else
-                dTernaryFactorG = dYdk * (1D0 - dXi1 - dXi2)**(r-1)
+                dTernaryFactorG = dYdk * (1D0 - dXi1 - dXi2)**(r-1D0)
             end if
         end if
 

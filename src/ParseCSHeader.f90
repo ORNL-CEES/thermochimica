@@ -69,7 +69,7 @@
     ! cElementName              The name of a chemical element.
     ! cSolnPhaseName            The name of a solution phase.
     ! cSpeciesName              The name of a species (short hand).
-    ! dAtomicMass               Atomic mass of an element.
+    ! dAtomicMassCS             Atomic mass of an element.
     ! dGibbsCoeffSpeciesTemp    Temporary double array of coefficients for a Gibbs energy equation.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ subroutine ParseCSHeader
     ! Allocate memory for pertinent variables:
     j = MAX(1,nSolnPhasesSysCS)
     allocate(nSpeciesPhaseCS(0:j),nParamPhaseCS(0:j),nMagParamPhaseCS(0:j))
-    allocate(cElementNameCS(nElementsCS),dAtomicMass(nElementsCS))
+    allocate(cElementNameCS(nElementsCS),dAtomicMassCS(nElementsCS))
     allocate(cSolnPhaseNameCS(j),cSolnPhaseTypeCS(j))
     allocate(iPhaseSublatticeCS(j))
     allocate(nPairsSROCS(j,2))
@@ -229,7 +229,7 @@ subroutine ParseCSHeader
     dStoichPairsCS           = 0D0
 
     ! Line 4: List of atomic masses of the elements:
-    read (1,*,IOSTAT = INFO) dAtomicMass(1:nElementsCS)
+    read (1,*,IOSTAT = INFO) dAtomicMassCS(1:nElementsCS)
 
     if (INFO /= 0) then
         !INFO = 14

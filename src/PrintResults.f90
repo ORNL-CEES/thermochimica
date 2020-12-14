@@ -172,10 +172,6 @@ subroutine PrintResultsSolnPhase
         k      = nElements - iTempVec(j) + 1
         l      = -iAssemblage(k)
 
-        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
-            call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
-        end if
-
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(l-1) + 1
         iLast  = nSpeciesPhase(l)
@@ -224,6 +220,11 @@ subroutine PrintResultsSolnPhase
                 B         = -B * StructureFactor
             end if
             print '(A35,F10.5)', 'Magnetic moment per atom = ', B
+        end if
+
+        if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
+            call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
+            print *, 'Quadruplet fractions:'
         end if
 
         if (allocated(iTempSpecies)) deallocate(iTempSpecies)
