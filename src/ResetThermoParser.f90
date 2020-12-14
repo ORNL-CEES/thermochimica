@@ -58,8 +58,8 @@ subroutine ResetThermoParser
     end if
 
     ! Deallocate real arrays from ModuleParseCS:
-    if (allocated(dAtomicMass)) then
-        deallocate (dAtomicMass, dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, STAT = INFO)
+    if (allocated(dAtomicMassCS)) then
+        deallocate (dAtomicMassCS, dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, STAT = INFO)
         i = i + INFO
     end if
 

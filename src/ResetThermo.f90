@@ -71,7 +71,7 @@ subroutine ResetThermo
 
     if (allocated(dMolesSpecies)) then
         ! Deallocate real arrays from ModuleThermo:
-        deallocate (dMolesSpecies,dElementPotential,dMolesPhase,dMolesPhaseLast,STAT = INFO)
+        deallocate (dMolesSpecies,dElementPotential,dMolesPhase,dMolesPhaseLast,dAtomicMass,STAT = INFO)
         i = i + INFO
     end if
 
