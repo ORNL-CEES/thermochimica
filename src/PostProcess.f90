@@ -49,6 +49,11 @@ subroutine PostProcess
     dMolesSpecies   = dMolesSpecies * dNormalizeInput
     dElementMass    = dElementMass  * dNormalizeInput
 
+    ! Write the moles of condensed phases to corresponding species
+    do i = 1, nConPhases
+        dMolesSpecies(iAssemblage(i)) = dMolesPhase(i)
+    end do
+
     ! Compute the integral Gibbs energy of the system:
     do i = 1, nElements
         dGibbsEnergySys = dGibbsEnergySys + dElementPotential(i) * dMolesElement(i)

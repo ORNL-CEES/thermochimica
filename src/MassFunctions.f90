@@ -10,12 +10,12 @@ subroutine getSpeciesMass(iSpecies, dMass, ierr)
   ierr = 0
   dMass = 0D0
   if (iSpecies < 1 .OR. iSpecies > nSpecies) then
-     ierr = 1
+      ierr = 1
   else
-    do i = 1, nElements
-        dMass = dMass + dStoichSpecies(iSpecies,i) * dAtomicMass(i)
-    end do
-    dMass = dMass * dMolesSpecies(iSpecies)
+      do i = 1, nElements
+          dMass = dMass + dStoichSpecies(iSpecies,i) * dAtomicMass(i)
+      end do
+      dMass = dMass * dMolesSpecies(iSpecies)
   endif
 
   return
@@ -34,13 +34,16 @@ subroutine getPhaseMass(iPhaseID, dMass, ierr)
   ierr = 0
   dMass = 0D0
 
-  if ((iPhaseID < 1) .OR. (iPhaseID > nSolnPhasesSys)) then
-    ierr = 1
+  if ((iPhaseID < 1) .OR. (iPhaseID > nSpecies)) then
+      ierr = 1
+  elseif (iPhaseID <= nSolnPhasesSys) then
+      do i = nSpeciesPhase(iPhaseID - 1) + 1, nSpeciesPhase(iPhaseID)
+          call getSpeciesMass(i, dSpeciesMass, ierr)
+          dMass = dMass + dSpeciesMass
+      end do
   else
-    do i = nSpeciesPhase(iPhaseID - 1) + 1, nSpeciesPhase(iPhaseID)
-        call getSpeciesMass(i, dSpeciesMass, ierr)
-        dMass = dMass + dSpeciesMass
-    end do
+      call getSpeciesMass(iPhaseID, dSpeciesMass, ierr)
+      dMass = dMass + dSpeciesMass
   end if
 
   return
