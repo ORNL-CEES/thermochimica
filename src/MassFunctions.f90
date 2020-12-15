@@ -73,21 +73,59 @@ subroutine getTotalMass(dMass, ierr)
   return
 end subroutine getTotalMass
 
-subroutine getMassFraction(iSpecies, dFraction, ierr)
+subroutine getSpeciesMassFraction(iSpecies, dFraction, ierr)
   USE ModuleThermo
   implicit none
 
-  integer, intent(in)  ::  iSpecies
+  integer, intent(in)  :: iSpecies
   integer, intent(out) :: ierr
   real(8), intent(out) :: dFraction
+  real(8) :: dSpeciesMass, dPhaseMass
+  integer :: i
 
   ierr = 0
   dFraction = 0D0
+  dSpeciesMass = 0D0
+  dPhaseMass = 0D0
   if (iSpecies < 1 .OR. iSpecies > nSpecies) then
      ierr = 1
   else
-     dFraction = dMolFraction(iSpecies)
+      LOOP_CheckPhases: do i = 1, nSolnPhasesSys
+          if (iSpecies <= nSpeciesPhase(i)) then
+              call getPhaseMass(i, dPhaseMass, ierr)
+              exit LOOP_CheckPhases
+          end if
+      end do LOOP_CheckPhases
+      if (dPhaseMass > 0D0) then
+          call getSpeciesMass(iSpecies, dSpeciesMass, ierr)
+          dFraction = dSpeciesMass / dPhaseMass
+      end if
   endif
 
   return
-end subroutine getMassFraction
+end subroutine getSpeciesMassFraction
+
+subroutine getPhaseMassFraction(iPhaseID, dFraction, ierr)
+  USE ModuleThermo
+  implicit none
+
+  integer, intent(in)  :: iPhaseID
+  integer, intent(out) :: ierr
+  real(8), intent(out) :: dFraction
+  real(8) :: dTotalMass, dPhaseMass
+
+  ierr = 0
+  dFraction = 0D0
+  dTotalMass = 0D0
+  dPhaseMass = 0D0
+  if (iPhaseID < 1 .OR. iPhaseID > nSpecies) then
+     ierr = 1
+  else
+     call getTotalMass(dTotalMass, ierr)
+     if (iPhaseID <= nSolnPhasesSys) call getPhaseMass(iPhaseID, dPhaseMass, ierr)
+     if (iPhaseID > nSolnPhasesSys)  call getSpeciesMass(iPhaseID, dPhaseMass, ierr)
+     dFraction = dPhaseMass / dTotalMass
+  endif
+
+  return
+end subroutine getPhaseMassFraction
