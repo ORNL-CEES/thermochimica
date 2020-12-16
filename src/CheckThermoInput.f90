@@ -165,10 +165,8 @@ subroutine CheckThermoInput
             ! This seems silly, but here we are.
             dMassScale = 1D0 / 6.0221409D23
         case ('kilograms','kg')
-            ! dMassScale = SUM(dElementMass)
             dMassScale = dMassScale * 1D3
         case ('pounds','lbs')
-            ! dMassScale = SUM(dElementMass)
             dMassScale = dMassScale * 4.53592D2
         case default
             ! The character string representing input units is not recognized.
