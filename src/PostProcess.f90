@@ -44,10 +44,10 @@ subroutine PostProcess
 
     ! Multiply the number of moles of all phases by the normalizing constant:
     dNormalizeInput = 1D0 / dNormalizeInput
-    dMolesPhase     = dMolesPhase   * dNormalizeInput
-    dMolesElement   = dMolesElement * dNormalizeInput
-    dMolesSpecies   = dMolesSpecies * dNormalizeInput
-    dElementMass    = dElementMass  * dNormalizeInput
+    dMolesPhase     = dMolesPhase   * dNormalizeInput * dMassScale
+    dMolesElement   = dMolesElement * dNormalizeInput * dMassScale
+    dMolesSpecies   = dMolesSpecies * dNormalizeInput * dMassScale
+    dElementMass    = dElementMass  * dNormalizeInput * dMassScale
 
     ! Write the moles of condensed phases to corresponding species
     do i = 1, nConPhases
