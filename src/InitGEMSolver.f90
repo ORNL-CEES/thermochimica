@@ -306,16 +306,16 @@ subroutine InitGEMSolver
                 print *, nConPhases, nSolnPhases, iAssemblage
                 print *, k
 
-                if (k > nElements + nSolnPhases) then
-                    ! A pure condensed phase should be removed.
-                    k = k - nElements - nSolnPhases
-                    iAssemblage(k)          = iAssemblage(nConPhases)
-                    dMolesPhase(k)          = dMolesPhase(nConPhases)
-                    iAssemblage(nConPhases) = 0
-                    dMolesPhase(nConPhases) = 0D0
-                    nConPhases = nConPhases - 1
-                elseif (k == 0) then
+                if (k == 0) then
                     exit LOOP_CheckPhaseAssemblage
+                ! elseif (k > nElements + nSolnPhases) then
+                !     ! A pure condensed phase should be removed.
+                !     k = k - nElements - nSolnPhases
+                !     iAssemblage(k)          = iAssemblage(nConPhases)
+                !     dMolesPhase(k)          = dMolesPhase(nConPhases)
+                !     iAssemblage(nConPhases) = 0
+                !     dMolesPhase(nConPhases) = 0D0
+                !     nConPhases = nConPhases - 1
                 else
                     ! Placeholder...the phase assemblage has failed...
                     exit LOOP_CheckPhaseAssemblage

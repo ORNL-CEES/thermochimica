@@ -86,13 +86,13 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
         if (INFO > nElements + nSolnPhases) then
             ! A pure condensed phase should be removed.
-            j = INFO - nElements - nSolnPhases
-            iAssemblage(j)          = iAssemblage(nConPhases)
-            dMolesPhase(j)          = dMolesPhase(nConPhases)
-            iAssemblage(nConPhases) = 0
-            dMolesPhase(nConPhases) = 0D0
-            nConPhases              = nConPhases - 1
-            iterLast                = iterGlobal
+            ! j = INFO - nElements - nSolnPhases
+            ! iAssemblage(j)          = iAssemblage(nConPhases)
+            ! dMolesPhase(j)          = dMolesPhase(nConPhases)
+            ! iAssemblage(nConPhases) = 0
+            ! dMolesPhase(nConPhases) = 0D0
+            ! nConPhases              = nConPhases - 1
+            ! iterLast                = iterGlobal
         else
             ! This phase assemblage is appropriate.
             exit
