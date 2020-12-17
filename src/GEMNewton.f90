@@ -103,7 +103,7 @@ subroutine GEMNewton(INFO)
 
 
     ! Determine the number of unknowns/linear equations:
-    nVar = nElements + nConPhases + nSolnPhases
+    nVar = nElements + nConPhases + nSolnPhases + nDummySpecies - nChargedConstraints
 
     ! Allocate memory:
     allocate(A(nVar, nVar))
@@ -163,13 +163,23 @@ subroutine GEMNewton(INFO)
     end do
 
     ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
-    do j = nElements + nSolnPhases + 1, nVar
+    do j = nElements + nSolnPhases + 1, nVar - nDummySpecies + nChargedConstraints
         k = j - nElements - nSolnPhases
         do i = 1, nElements
             A(i,j) = dStoichSpecies(iAssemblage(k),i)
             A(j,i) = A(i,j)
         end do
         B(j) = dStdGibbsEnergy(iAssemblage(k))
+    end do
+
+    ! Construct the Hessian matrix and constraint vector (contribution from dummy species):
+    do j = nVar - nDummySpecies + nChargedConstraints + 1, nVar
+        k = nSpecies - nChargedConstraints + j - nVar
+        do i = 1, nElements
+            A(i,j) = dStoichSpecies(k,i)
+            A(j,i) = A(i,j)
+        end do
+        B(j) = dStdGibbsEnergy(k)
     end do
 
     ! Check if the Hessian is properly structured if the system contains any charged phases:
@@ -198,7 +208,7 @@ subroutine GEMNewton(INFO)
     end if
 
     ! Check for a NAN:
-    LOOP_CheckNan: do i = 1, nVar
+    LOOP_CheckNan: do i = 1, nVar - nDummySpecies + nChargedConstraints
         if (B(i) /= B(i)) then
             INFO = 1
             exit LOOP_CheckNan
@@ -207,7 +217,7 @@ subroutine GEMNewton(INFO)
 
     ! Store the updated variables if LAPACK is successful:
     if (INFO == 0) then
-        do j = 1, nVar
+        do j = 1, nVar - nDummySpecies + nChargedConstraints
             dUpdateVar(j) = B(j)
         end do
 
