@@ -154,6 +154,26 @@ subroutine CheckThermoInput
 
     cInputUnitPressure = 'atm'
 
+    ! Check that mass units are valid and set scaling (scale everything to grams)
+    dMassScale = 1D0
+    select case (cInputUnitMass)
+    case ('mass fraction','mole fraction','atom fraction','gram-atoms','moles','mol','grams','g')
+            ! Assume any fractional mass units are just grams,
+            ! the user will have to set a mass unit if they care.
+            dMassScale = 1D0
+        case ('atoms')
+            ! This seems silly, but here we are.
+            dMassScale = 1D0 / 6.0221409D23
+        case ('kilograms','kg')
+            dMassScale = dMassScale * 1D3
+        case ('pounds','lbs')
+            dMassScale = dMassScale * 4.53592D2
+        case default
+            ! The character string representing input units is not recognized.
+            INFOThermo = 4
+            return
+    end select
+
     ! Check that the absolute hydrostatic pressure [atm] is within an acceptable range and real:
     if ((dPressure < 1D-6).OR.(dPressure > 1D6).OR.(dPressure /= dPressure)) then
         INFOThermo = 2

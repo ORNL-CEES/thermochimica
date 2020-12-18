@@ -177,10 +177,10 @@ subroutine CheckSystem
             if (cElementNameCS(j) == cElementNamePT(i)) then
                 ! Convert the mass of each element to moles:
                 select case (cInputUnitMass)
-                case ('mass fraction','kilograms','grams','pounds','lbs')
+                case ('mass fraction','kilograms','grams','pounds','lbs','g','kg')
                         ! Convert mass unit to moles:
                         dElementMass(i) = dElementMass(i) / dAtomicMassCS(j)
-                    case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
+                    case ('mole fraction','atom fraction','atoms','moles','mol','gram-atoms')
                         ! Do nothing
                     case default
                         ! The character string representing input units is not recognized.
