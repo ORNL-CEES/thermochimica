@@ -100,7 +100,7 @@ subroutine GEMSolver
     !!! CONSIDER MOVING THIS INTO THE InitGEMSolver SUBROUTINE:
     !!!
     ! The system may be converged if there aren't any solution phases:
-    if ((nSolnPhases == 0).AND.(INFOThermo == 0)) then
+    if ((nSolnPhases == 0).AND.(INFOThermo == 0).AND.(.NOT. lReinitLoaded)) then
 
         ! Check the system if only pure condensed phases are expected to appear:
         call CheckSysOnlyPureConPhases
