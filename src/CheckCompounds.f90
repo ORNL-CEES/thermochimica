@@ -94,7 +94,7 @@ subroutine CheckCompounds
     do i = 1, nCompounds
         dCompoundUnitMass = 0
         do j = 1, nElementsCS
-            dCompoundUnitMass = dCompoundUnitMass + dCompoundStoich(i,iElementSystem(j)) * dAtomicMass(j)
+            dCompoundUnitMass = dCompoundUnitMass + dCompoundStoich(i,iElementSystem(j)) * dAtomicMassCS(j)
         end do
         select case (cInputUnitMass)
             case ('mass fraction','kilograms','grams','pounds')

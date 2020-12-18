@@ -177,10 +177,10 @@ subroutine CheckSystem
             if (cElementNameCS(j) == cElementNamePT(i)) then
                 ! Convert the mass of each element to moles:
                 select case (cInputUnitMass)
-                case ('mass fraction','kilograms','grams','pounds','lbs')
+                case ('mass fraction','kilograms','grams','pounds','lbs','g','kg')
                         ! Convert mass unit to moles:
-                        dElementMass(i) = dElementMass(i) / dAtomicMass(j)
-                    case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
+                        dElementMass(i) = dElementMass(i) / dAtomicMassCS(j)
+                    case ('mole fraction','atom fraction','atoms','moles','mol','gram-atoms')
                         ! Do nothing
                     case default
                         ! The character string representing input units is not recognized.
@@ -434,13 +434,13 @@ subroutine CheckSystem
         j = SIZE(cElementName)
         if (j /= nElements) then
             ! The number of elements has changed.
-            deallocate(cElementName,dMolesElement, STAT = n)
+            deallocate(cElementName,dMolesElement,dAtomicMass, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
             ! Allocate memory:
-            allocate(cElementName(nElements),dMolesElement(nElements))
+            allocate(cElementName(nElements),dMolesElement(nElements),dAtomicMass(nElements))
         end if
 
         ! Check to see if either the number of species or the number of elements has changed:
@@ -504,7 +504,7 @@ subroutine CheckSystem
         allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
         allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies))
         allocate(iParticlesPerMole(nSpecies),dCoeffGibbsMagnetic(nSpecies,4),dMagGibbsEnergy(nSpecies))
-        allocate(cElementName(nElements),dMolesElement(nElements))
+        allocate(cElementName(nElements),dMolesElement(nElements),dAtomicMass(nElements))
         allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
         allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
@@ -550,10 +550,6 @@ subroutine CheckSystem
     dMagGibbsEnergy      = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
-    if (nCountSublattice > 0) then
-        cConstituentNameSUB  = ' '
-        cPairName            = ' '
-    end if
 
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
@@ -571,6 +567,8 @@ subroutine CheckSystem
         dSublatticeCharge    = 0D0
         iChemicalGroup       = 0
         dStoichPairs         = 0D0
+        cConstituentNameSUB  = ' '
+        cPairName            = ' '
     end if
 
     ! Re-establish the character vector representing the element names:
@@ -581,6 +579,7 @@ subroutine CheckSystem
             if (nCompounds == 0) then
                 cElementName(j)  = cElementNameCS(i)
                 cDummy           = cElementName(j)
+                dAtomicMass(j)   = dAtomicMassCS(i)
             else
                 cElementName(i)  = cCompoundNames(i)
             end if
