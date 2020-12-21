@@ -553,7 +553,7 @@ subroutine CompThermoData
 
         if (iPhaseCS(i) == -1) then
             ! Explicitly set dummy species chemical potentials
-            dChemicalPotential(j) = 100000
+            dChemicalPotential(j) = 100000 + j
         end if
     end do LOOP_nPureConSpeciesCS ! End loop of species (i)
 
