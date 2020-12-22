@@ -105,8 +105,8 @@ subroutine GEMNewton(INFO)
     ! Determine the number of unknowns/linear equations:
     nVar = nElements + nConPhases + nSolnPhases
     nAddVar = 0
-    nAddVar = MIN(nDummySpecies - nChargedConstraints,nElements*2 - nVar)
-    print *, 'nAddVar ', nAddVar, nElements, nVar
+    ! nAddVar = MIN(nDummySpecies - nChargedConstraints,nElements*2 - nVar)
+    ! print *, 'nAddVar ', nAddVar, nElements, nVar
     nVar = nVar + nAddVar
 
     ! Allocate memory:
@@ -183,9 +183,10 @@ subroutine GEMNewton(INFO)
         do i = 1, nElements
             A(i,j) = dStoichSpecies(k,i)
             A(j,i) = A(i,j)
-            B(j) = B(j) + dStoichSpecies(k,i) * dElementPotential(i)
+            ! B(j) = B(j) + dStoichSpecies(k,i) * dElementPotential(i)
         end do
-        ! B(j) = dStdGibbsEnergy(k)
+        B(j) = dStdGibbsEnergy(k)
+        ! B(j) = 0D0
     end do
 
     ! Check if the Hessian is properly structured if the system contains any charged phases:
@@ -211,11 +212,9 @@ subroutine GEMNewton(INFO)
 
     ! Call the linear equation solver:
     if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
-        ! print *, INFO, B
+        ! print *, B
         call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
-        if (INFO > 0) then
-            ! print *, INFO, B
-        end if
+        ! print *, B
     else
         do i = 1, nElements
             B(i) = dElementPotential(i)
