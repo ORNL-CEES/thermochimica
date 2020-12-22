@@ -95,7 +95,7 @@ subroutine GEMNewton(INFO)
 
     implicit none
 
-    integer                              :: i, j, k, l, m, INFO, nVar, nAddVar
+    integer                              :: i, j, k, l, m, INFO, nVar
     integer, dimension(:),   allocatable :: IPIV
     real(8)                              :: dTemp
     real(8), dimension(:),   allocatable :: B
@@ -104,10 +104,6 @@ subroutine GEMNewton(INFO)
 
     ! Determine the number of unknowns/linear equations:
     nVar = nElements + nConPhases + nSolnPhases
-    nAddVar = 0
-    ! nAddVar = MIN(nDummySpecies - nChargedConstraints,nElements*2 - nVar)
-    ! print *, 'nAddVar ', nAddVar, nElements, nVar
-    nVar = nVar + nAddVar
 
     ! Allocate memory:
     allocate(A(nVar, nVar))
@@ -167,26 +163,13 @@ subroutine GEMNewton(INFO)
     end do
 
     ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
-    do j = nElements + nSolnPhases + 1, nVar - nAddVar
+    do j = nElements + nSolnPhases + 1, nVar
         k = j - nElements - nSolnPhases
         do i = 1, nElements
             A(i,j) = dStoichSpecies(iAssemblage(k),i)
             A(j,i) = A(i,j)
         end do
         B(j) = dStdGibbsEnergy(iAssemblage(k))
-    end do
-
-    ! Construct the Hessian matrix and constraint vector (contribution from dummy species):
-    do j = nVar - nAddVar + 1, nVar
-        k = nSpecies - nChargedConstraints + j - nVar
-        B(j) = 0D0
-        do i = 1, nElements
-            A(i,j) = dStoichSpecies(k,i)
-            A(j,i) = A(i,j)
-            ! B(j) = B(j) + dStoichSpecies(k,i) * dElementPotential(i)
-        end do
-        B(j) = dStdGibbsEnergy(k)
-        ! B(j) = 0D0
     end do
 
     ! Check if the Hessian is properly structured if the system contains any charged phases:
@@ -204,17 +187,9 @@ subroutine GEMNewton(INFO)
         end do LOOP_SUB
     end if
 
-    ! print *, ' '
-    ! do i = 1, nVar
-    !     print *, A(i,:)
-    ! end do
-    ! print *, ' '
-
     ! Call the linear equation solver:
     if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
-        ! print *, B
         call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
-        ! print *, B
     else
         do i = 1, nElements
             B(i) = dElementPotential(i)
@@ -223,7 +198,7 @@ subroutine GEMNewton(INFO)
     end if
 
     ! Check for a NAN:
-    LOOP_CheckNan: do i = 1, nVar - nAddVar
+    LOOP_CheckNan: do i = 1, nVar
         if (B(i) /= B(i)) then
             INFO = 1
             exit LOOP_CheckNan
@@ -232,7 +207,7 @@ subroutine GEMNewton(INFO)
 
     ! Store the updated variables if LAPACK is successful:
     if (INFO == 0) then
-        do j = 1, nVar - nAddVar
+        do j = 1, nVar
             dUpdateVar(j) = B(j)
         end do
 
