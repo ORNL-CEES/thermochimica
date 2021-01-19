@@ -125,7 +125,8 @@ subroutine ParseCSDataBlock
 
         ! Count sublattice phases
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBI')) then
              nCountSublatticeCS = nCountSublatticeCS + 1
              iPhaseSublatticeCS(i) = nCountSublatticeCS
         end if
@@ -259,6 +260,11 @@ subroutine ParseCSDataBlock
 
                 ! Parse the data-block section for SUBQ phases:
                 call ParseCSDataBlockSUBG(i)
+
+            ! Ionic Liquid Model:
+            case ('SUBI')
+
+                call ParseCSDataBlockSUBI(i)
 
             case default
 
