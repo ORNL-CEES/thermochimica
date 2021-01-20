@@ -162,13 +162,23 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         ! Q first
         do i = 1, nConstituentSublattice(iChargedPhaseID,1)
             dStoichSublattice(iChargedPhaseID,2) = dStoichSublattice(iChargedPhaseID,2) + &
-                dSublatticeCharge(iChargedPhaseID,2,i) * dSiteFraction(iChargedPhaseID,2,i)
+                dSublatticeCharge(iChargedPhaseID,1,i) * dSiteFraction(iChargedPhaseID,1,i)
         end do
         ! Then P
         do i = 1, nConstituentSublattice(iChargedPhaseID,2)
-            dStoichSublattice(iChargedPhaseID,1) = dStoichSublattice(iChargedPhaseID,1) - &
-                dSublatticeCharge(iChargedPhaseID,1,i) * dSiteFraction(iChargedPhaseID,1,i)
+            if ((cConstituentNameSUB(iChargedPhaseID,2,i) == 'VA') .OR. &
+                (cConstituentNameSUB(iChargedPhaseID,2,i) == 'Va') .OR. &
+                (cConstituentNameSUB(iChargedPhaseID,2,i) == 'va')) then
+                ! Use Q as charge if this constituent is vacancy
+                dStoichSublattice(iChargedPhaseID,1) = dStoichSublattice(iChargedPhaseID,1) + &
+                    dStoichSublattice(iChargedPhaseID,2) * dSiteFraction(iChargedPhaseID,2,i)
+            else
+                dStoichSublattice(iChargedPhaseID,1) = dStoichSublattice(iChargedPhaseID,1) - &
+                    dSublatticeCharge(iChargedPhaseID,2,i) * dSiteFraction(iChargedPhaseID,2,i)
+            end if
         end do
+
+        print *, 'Q: ', dStoichSublattice(iChargedPhaseID,2), 'P: ', dStoichSublattice(iChargedPhaseID,1)
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
@@ -197,15 +207,32 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end do
 
                 ! Update the reference molar Gibbs energy:
-                dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
+                if ((dSublatticeCharge(iChargedPhaseID,2,l)   == 0D0)) then
+                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) &
+                                            * 0.5D0 * dStdGibbsEnergy(j)
+                else
+                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
+                end if
             end do LOOP_Ideal_Components
+            print *, 'Reference ', cSpeciesName(i), dChemicalPotential(i)* dIdealConstant * dTemperature
 
             ! Add ideal mixing contribution:
             do s = 1, nSublattice
                 c = iConstituentSublattice(iChargedPhaseID,s,m)
                 dChemicalPotential(i) = dChemicalPotential(i) + dStoichSublattice(iChargedPhaseID,s) &
                     * DLOG(dSiteFraction(iChargedPhaseID,s,c))
+                print *, cSpeciesName(i), dSiteFraction(iChargedPhaseID,s,c), &
+                      dStoichSublattice(iChargedPhaseID,s) * DLOG(dSiteFraction(iChargedPhaseID,s,c)) &
+                          * dIdealConstant * dTemperature
             end do
+
+            ! k = iConstituentSublattice(iChargedPhaseID,1,m)
+            ! l = iConstituentSublattice(iChargedPhaseID,2,m)
+            ! if ((dSublatticeCharge(iChargedPhaseID,2,l)   == 0D0)) then
+            !     print *, cSpeciesName(i), dSiteFraction(iChargedPhaseID,2,l),  &
+            !               dStoichSublattice(iChargedPhaseID,2) * DLOG(dSiteFraction(iChargedPhaseID,2,l)) &
+            !               * dSiteFraction(iChargedPhaseID,1,k) * dIdealConstant * dTemperature
+            ! end if
 
             ! Sum stoichiometry and add large penalty if this species is vacancies only and a large mole fraction
             dSum = 0D0
