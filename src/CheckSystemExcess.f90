@@ -276,7 +276,6 @@ subroutine CheckSystemExcess
                 j = SIZE(nConstituentSublattice,DIM=2)
                 n = nSublatticePhase(nCountSublattice)
                 k = SIZE(iConstituentSublattice, DIM=3)
-                ! iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 k = iPhaseSublatticeCS(i)
 
                 ! Loop through species in phase to determine which constituents are stable:
@@ -314,24 +313,19 @@ subroutine CheckSystemExcess
                             j = j + 1
                             cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
                             dSublatticeCharge(nCountSublattice,s,j) = dSublatticeChargeCS(nCountSublatticeCS,s,c)
-                            ! iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
                         end if
                     end do
                 end do
 
                 ! Get the constituents that passed on each sublattice
                 j = 0
-                LOOP_findPassed2: do c = 1, SIZE(iConstituentSublatticeCS, DIM=3)
-                    do s = 1, nSublatticePhaseCS(k)
-                        if (iConstituentSublatticeCS(k,s,c) < 1) cycle LOOP_findPassed2
-                    end do
-                    if ((dSublatticeChargeCS(nCountSublatticeCS,2,iConstituentSublatticeCS(k,2,c)) /= 0D0) .AND. &
-                       (iConstituentPass(k,1,iConstituentSublatticeCS(k,1,c)) == 0)) cycle LOOP_findPassed2
-                    if (iConstituentPass(k,2,iConstituentSublatticeCS(k,2,c)) == 0)  cycle LOOP_findPassed2
+                LOOP_findPassed2: do c = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                    if (iSpeciesPass(c) == 0) cycle LOOP_findPassed2
                     ! If not cycled above, then all constituents passed
                     j = j + 1
                     do s = 1, nSublatticePhaseCS(k)
-                        iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                        iConstituentSublattice(nCountSublattice,s,j) = &
+                          iConstituentSublatticeCS(nCountSublatticeCS,s,c - nSpeciesPhaseCS(i-1))
                     end do
                 end do LOOP_findPassed2
 
@@ -347,9 +341,7 @@ subroutine CheckSystemExcess
                     end do
                     do c = 1, nRemove
                         do l = SIZE(iConstituentSublattice,3), 1, -1
-                            if (iConstituentSublattice(nCountSublattice,s,l) == iRemove(c)) then
-                                iConstituentSublattice(nCountSublattice,s,l) = -1
-                            else if (iConstituentSublattice(nCountSublattice,s,l) > iRemove(c)) then
+                            if (iConstituentSublattice(nCountSublattice,s,l) > iRemove(c)) then
                                 iConstituentSublattice(nCountSublattice,s,l) = iConstituentSublattice(nCountSublattice,s,l) - 1
                             end if
                         end do
