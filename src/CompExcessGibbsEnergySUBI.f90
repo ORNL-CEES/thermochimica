@@ -167,12 +167,15 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             end if
         end do
 
-        print *, 'SITE FRACTIONS'
-        print *, dSiteFraction(iSPI,1,1:nConstituentSublattice(iSPI,1))
-        print *, dSiteFraction(iSPI,2,1:nConstituentSublattice(iSPI,2))
+        dStoichSublattice(iSPI,1) = p
+        dStoichSublattice(iSPI,2) = q
+
+        ! print *, 'SITE FRACTIONS'
+        ! print *, dSiteFraction(iSPI,1,1:nConstituentSublattice(iSPI,1))
+        ! print *, dSiteFraction(iSPI,2,1:nConstituentSublattice(iSPI,2))
         ! print *, 'Number of Constituents: ', nConstituentSublattice(iSPI,1:2)
 
-        print *, 'Q: ', q, 'P: ', p
+        ! print *, 'Q: ', q, 'P: ', p
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
@@ -215,7 +218,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dStdGibbsEnergy(j)
                 end if
             end do LOOP_Ideal_Components
-            print *, cSpeciesName(i), ' Reference ', dChemicalPotential(i) * dIdealConstant * dTemperature
+            ! print *, cSpeciesName(i), ' Reference ', dChemicalPotential(i) * dIdealConstant * dTemperature
 
             dEnt = 0D0
             ! Add ideal mixing contribution:
@@ -237,7 +240,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 dEnt = dEnt + p * DLOG(dSiteFraction(iSPI,1,c))
             end if
 
-            print *, cSpeciesName(i), ' Entropy ', dEnt * dIdealConstant * dTemperature
+            ! print *, cSpeciesName(i), ' Entropy ', dEnt * dIdealConstant * dTemperature
             dChemicalPotential(i) = dChemicalPotential(i) + dEnt
 
             ! Sum stoichiometry and add large penalty if this species is vacancies only and a large mole fraction
