@@ -38,7 +38,7 @@
     ! nSublattice               An integer scalar representing the number of sublattices associated with this
     !                            particular phase (used for convenience).
     ! nSublatticePhase          An integer vector representing the number of sublattices for each charged phase.
-    ! iChargedPhaseID           An integer scalar representing the relative index of the charged phase.
+    ! iSPI           An integer scalar representing the relative index of the charged phase.
     ! iParam                    An integer scalar representing the index number of a parameter.
     ! iPhaseSublattice          An integer vector representing the relative index of a charged phase corresponding
     !                            to each solution phase in the system.  Thus, it is equal to zero for a phase
@@ -82,11 +82,11 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     implicit none
 
     integer :: i, j, l, k, k1, l1, k2, l2, m, n, s, c, d
-    integer :: iSolnIndex, nSublattice, iChargedPhaseID, iMixType
+    integer :: iSolnIndex, nSublattice, iSPI, iMixType
     integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
     integer :: iTempParam1, iTempParam2, iExponent, iTempSub, iThirdParam, iTernaryCon
     real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
-    real(8) :: dTempParam1, dTempParam2, KD, dSum, dEnt
+    real(8) :: dTempParam1, dTempParam2, KD, dSum, dEnt, p, q
     real(8), dimension(nMaxSublatticeSys):: dTempVec
 
 
@@ -94,59 +94,85 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     IF_SUBL: if (cSolnPhaseType(iSolnIndex) == 'SUBI') then
 
         ! Define temporary variables for sake of convenience:
-        iChargedPhaseID = iPhaseSublattice(iSolnIndex)
-        nSublattice     = nSublatticePhase(iChargedPhaseID)
+        iSPI = iPhaseSublattice(iSolnIndex)
+        nSublattice     = nSublatticePhase(iSPI)
         iFirst          = nSpeciesPhase(iSolnIndex-1) + 1
         iLast           = nSpeciesPhase(iSolnIndex)
 
         ! Initialize variables:
-        dSiteFraction(iChargedPhaseID,1:nSublattice,1:nMaxConstituentSys) = 0D0
+        dSiteFraction(iSPI,1:nSublattice,1:nMaxConstituentSys) = 0D0
         dChemicalPotential(iFirst:iLast)                                  = 0D0
         dPartialExcessGibbs(iFirst:iLast)                                 = 0D0
         dTempVec                                                          = 0D0
 
-        ! Compute site fractions on each sublattice:
-        LOOP_SiteFraction: do i = iFirst, iLast
-
+        ! Compute site fractions on first sublattice:
+        do i = iFirst, iLast
             ! Relative component index:
             m = i - iFirst + 1
-
-            ! Loop through sublattices:
-            do s = 1, nSublattice
-                ! Store constituent index on sublattice s:
-                c = iConstituentSublattice(iChargedPhaseID,s,m)
-                if (c > 0) dSiteFraction(iChargedPhaseID,s,c) = dSiteFraction(iChargedPhaseID,s,c) + dMolFraction(i)
-            end do
-        end do LOOP_SiteFraction
-
-        ! print *, 'SITE FRACTIONS'
-        ! print *, dSiteFraction(iChargedPhaseID,1,:)
-        ! print *, dSiteFraction(iChargedPhaseID,2,:)
-
-        ! Compute P and Q
-        dStoichSublattice(iChargedPhaseID,1:2) = 0D0
-        ! Q first
-        do i = 1, nConstituentSublattice(iChargedPhaseID,1)
-            dStoichSublattice(iChargedPhaseID,2) = dStoichSublattice(iChargedPhaseID,2) + &
-                dSublatticeCharge(iChargedPhaseID,1,i) * dSiteFraction(iChargedPhaseID,1,i)
+            c = iConstituentSublattice(iSPI,1,m)
+            if (c > 0) dSiteFraction(iSPI,1,c) = dSiteFraction(iSPI,1,c) + dMolFraction(i)
         end do
-        ! Then P
-        do i = 1, nConstituentSublattice(iChargedPhaseID,2)
-            if ((cConstituentNameSUB(iChargedPhaseID,2,i) == 'VA') .OR. &
-                (cConstituentNameSUB(iChargedPhaseID,2,i) == 'Va') .OR. &
-                (cConstituentNameSUB(iChargedPhaseID,2,i) == 'va')) then
-                ! Correct vacancy site fraction
-                dSiteFraction(iChargedPhaseID,2,i) = dSiteFraction(iChargedPhaseID,2,i) / dStoichSublattice(iChargedPhaseID,2)
-                ! Use Q as charge if this constituent is vacancy
-                dStoichSublattice(iChargedPhaseID,1) = dStoichSublattice(iChargedPhaseID,1) + &
-                    dStoichSublattice(iChargedPhaseID,2) * dSiteFraction(iChargedPhaseID,2,i)
+
+        ! Correct first site fraction
+        dTemp = 0D0
+        do i = 1, nConstituentSublattice(iSPI,1)
+            dTemp = dTemp + dSiteFraction(iSPI,1,i)
+        end do
+        do i = 1, nConstituentSublattice(iSPI,1)
+            dSiteFraction(iSPI,1,i) = dSiteFraction(iSPI,1,i) / dTemp
+        end do
+
+        ! Compute Q
+        q = 0D0
+        do i = 1, nConstituentSublattice(iSPI,1)
+            q = q + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,1,i)
+            ! print *, cConstituentNameSUB(iSPI,1,i), dSiteFraction(iSPI,1,i), dSublatticeCharge(iSPI,1,i)
+        end do
+
+        ! Compute site fractions on second sublattice:
+        do i = iFirst, iLast
+            ! Relative component index:
+            m = i - iFirst + 1
+            c = iConstituentSublattice(iSPI,2,m)
+            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+                (dSublatticeCharge(iSPI,2,c) == 0D0)) then
+                ! Vacancy or neutral get scaled by Q
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) / q
             else
-                dStoichSublattice(iChargedPhaseID,1) = dStoichSublattice(iChargedPhaseID,1) - &
-                    dSublatticeCharge(iChargedPhaseID,2,i) * dSiteFraction(iChargedPhaseID,2,i)
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i)
             end if
         end do
 
-        ! print *, 'Q: ', dStoichSublattice(iChargedPhaseID,2), 'P: ', dStoichSublattice(iChargedPhaseID,1)
+        ! Correct first site fraction
+        dTemp = 0D0
+        do i = 1, nConstituentSublattice(iSPI,2)
+            dTemp = dTemp + dSiteFraction(iSPI,2,i)
+        end do
+        do i = 1, nConstituentSublattice(iSPI,2)
+            dSiteFraction(iSPI,2,i) = dSiteFraction(iSPI,2,i) / dTemp
+        end do
+
+        ! Compute P
+        p = 0D0
+        do i = 1, nConstituentSublattice(iSPI,2)
+            if ((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,i) == 'va')) then
+                ! Use Q as charge if this constituent is vacancy
+                p = p + q * dSiteFraction(iSPI,2,i)
+            else
+                p = p - dSublatticeCharge(iSPI,2,i) * dSiteFraction(iSPI,2,i)
+            end if
+        end do
+
+        print *, 'SITE FRACTIONS'
+        print *, dSiteFraction(iSPI,1,1:nConstituentSublattice(iSPI,1))
+        print *, dSiteFraction(iSPI,2,1:nConstituentSublattice(iSPI,2))
+        ! print *, 'Number of Constituents: ', nConstituentSublattice(iSPI,1:2)
+
+        print *, 'Q: ', q, 'P: ', p
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
@@ -165,52 +191,53 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 dTemp = -1D0
 
                 ! Store constituent indices:
-                k2 = iConstituentSublattice(iChargedPhaseID,2,m)
-                l2 = iConstituentSublattice(iChargedPhaseID,2,n)
+                k1 = iConstituentSublattice(iSPI,1,m)
+                l1 = iConstituentSublattice(iSPI,1,n)
+                k2 = iConstituentSublattice(iSPI,2,m)
+                l2 = iConstituentSublattice(iSPI,2,n)
 
                 ! Update the reference molar Gibbs energy:
-                if ((dSublatticeCharge(iChargedPhaseID,2,k2) == 0D0)) then
-                    ! Effectively apply Kronecker-Delta term to pre-factor:
-                    if (k2 == l2)  dTemp = dTemp + 1D0 / dSiteFraction(iChargedPhaseID,2,k2)
-                    dTemp = dTemp + 1D0
-                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
+                if ((dSublatticeCharge(iSPI,2,k2) == 0D0)) then
+                    if (k2 == l2) then
+                        dChemicalPotential(i) = dChemicalPotential(i) + dStdGibbsEnergy(j)
+                    end if
                 else
                     ! Effectively apply Kronecker-Delta term to pre-factor:
-                    if ((k2 == l2) .AND. (k2 > 0))  dTemp = dTemp + 1D0 / dSiteFraction(iChargedPhaseID,2,k2)
-                    ! Store constituent indices:
-                    k1 = iConstituentSublattice(iChargedPhaseID,1,m)
-                    l1 = iConstituentSublattice(iChargedPhaseID,1,n)
+                    if (k2 == l2)  dTemp = dTemp + 1D0 / dSiteFraction(iSPI,2,k2)
 
                     ! Effectively apply Kronecker-Delta term to pre-factor:
-                    if ((k1 == l1) .AND. (k1 > 0))  dTemp = dTemp + 1D0 / dSiteFraction(iChargedPhaseID,1,k1)
-                    if ((cConstituentNameSUB(iChargedPhaseID,2,k2) == 'VA') .OR. &
-                        (cConstituentNameSUB(iChargedPhaseID,2,k2) == 'Va') .OR. &
-                        (cConstituentNameSUB(iChargedPhaseID,2,k2) == 'va')) then
-                        dTemp = dTemp / dStoichSublattice(iChargedPhaseID,2)
+                    if ((k1 == l1) .AND. (k1 > 0))  dTemp = dTemp + 1D0 / dSiteFraction(iSPI,1,k1)
+                    if (l1 == -1) then
+                        dTemp = (dTemp + 1D0) * q * dSiteFraction(iSPI,2,l2)
+                    else
+                        dTemp = dTemp * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2)
                     end if
-                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
+                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dStdGibbsEnergy(j)
                 end if
             end do LOOP_Ideal_Components
-            ! print *, cSpeciesName(i), ' Reference ', dChemicalPotential(i) * dIdealConstant * dTemperature
+            print *, cSpeciesName(i), ' Reference ', dChemicalPotential(i) * dIdealConstant * dTemperature
 
             dEnt = 0D0
             ! Add ideal mixing contribution:
-            c = iConstituentSublattice(iChargedPhaseID,2,m)
-            if ((cConstituentNameSUB(iChargedPhaseID,2,c) == 'VA') .OR. &
-                (cConstituentNameSUB(iChargedPhaseID,2,c) == 'Va') .OR. &
-                (cConstituentNameSUB(iChargedPhaseID,2,c) == 'va')) then
-                dEnt = dEnt + DLOG(dSiteFraction(iChargedPhaseID,2,c))
-                c = iConstituentSublattice(iChargedPhaseID,1,m)
-                dEnt = dEnt + dSiteFraction(iChargedPhaseID,1,c) * DLOG(dSiteFraction(iChargedPhaseID,1,c))
+            c = iConstituentSublattice(iSPI,2,m)
+            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'va')) then
+                ! Vacancy case
+                dEnt = dEnt + DLOG(dSiteFraction(iSPI,2,c))
+                c = iConstituentSublattice(iSPI,1,m)
+                dEnt = dEnt + dSiteFraction(iSPI,1,c) * DLOG(dSiteFraction(iSPI,1,c))
+            else if (dSublatticeCharge(iSPI,2,c) == 0D0) then
+                ! Neutral case
+                dEnt = dEnt + DLOG(dSiteFraction(iSPI,2,c))
             else
-                dEnt = dEnt + dStoichSublattice(iChargedPhaseID,2) * DLOG(dSiteFraction(iChargedPhaseID,2,c))
-                c = iConstituentSublattice(iChargedPhaseID,1,m)
-                if (dSiteFraction(iChargedPhaseID,1,c) > 0) then
-                    dEnt = dEnt + dStoichSublattice(iChargedPhaseID,1) * DLOG(dSiteFraction(iChargedPhaseID,1,c))
-                end if
+                ! Anion case
+                dEnt = dEnt + q * DLOG(dSiteFraction(iSPI,2,c))
+                c = iConstituentSublattice(iSPI,1,m)
+                dEnt = dEnt + p * DLOG(dSiteFraction(iSPI,1,c))
             end if
 
-            ! print *, cSpeciesName(i), ' Entropy ', dEnt * dIdealConstant * dTemperature
+            print *, cSpeciesName(i), ' Entropy ', dEnt * dIdealConstant * dTemperature
             dChemicalPotential(i) = dChemicalPotential(i) + dEnt
 
             ! Sum stoichiometry and add large penalty if this species is vacancies only and a large mole fraction
@@ -221,17 +248,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             if ((dSum == 0D0) .AND. (dMolFraction(i) > 0.9D0)) dChemicalPotential(i) = dChemicalPotential(i) + 1D3
         end do LOOP_Ideal
 
-        ! dTemp = 0D0
-        ! do i = iFirst, iLast
-        !   dTemp = dTemp + dMolesSpecies(i)*dChemicalPotential(i)*dTemperature*dIdealConstant
-        !   print *, cSpeciesName(i), dMolesSpecies(i),dMolesSpecies(i)*dStoichSpecies(i,1),dMolesSpecies(i)*dStoichSpecies(i,2), &
-        !        dChemicalPotential(i)*dTemperature*dIdealConstant
-        ! end do
-        ! print *, dTemp
-
         ! EXCESS TERMS
         ! ------------
-
         ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
         if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) return
 
@@ -262,15 +280,15 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     s = s / 10000
 
                     ! Compute prefactor term:
-                    dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
                     if (k == iSUBLParamData(l,2)) then
-                        dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dFirstParam = dSiteFraction(iSPI,s,c)
                         iFirstParam = c
                         iSubParam   = s
                     else if (k == iSUBLParamData(l,2) + 1) then
-                        dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dSecondParam = dSiteFraction(iSPI,s,c)
                         iSecondParam = c
                     end if
                 end do
@@ -290,18 +308,18 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     s = s / 10000
 
                     ! Compute prefactor term:
-                    dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
                     if (k == iSUBLParamData(l,2) + iTernaryCon) then
-                        dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dFirstParam = dSiteFraction(iSPI,s,c)
                         iFirstParam = c
                         iSubParam   = s
                     else if (k == iSUBLParamData(l,2) + MOD(iTernaryCon + 1, 3)) then
-                        dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dSecondParam = dSiteFraction(iSPI,s,c)
                         iSecondParam = c
                     else if (k == iSUBLParamData(l,2) + MOD(iTernaryCon + 2, 3)) then
-                        dThirdParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dThirdParam = dSiteFraction(iSPI,s,c)
                         iThirdParam = c
                     end if
                 end do
@@ -321,22 +339,22 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     s = s / 10000
 
                     ! Compute prefactor term:
-                    dPreFactor = dPreFactor * dSiteFraction(iChargedPhaseID,s,c)
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the site fractions:
                     if (k == iSUBLParamData(l,2)) then
-                        dFirstParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dFirstParam = dSiteFraction(iSPI,s,c)
                         iFirstParam = c
                         iSubParam   = s
                     else if (k == iSUBLParamData(l,2) + 1) then
-                        dSecondParam = dSiteFraction(iChargedPhaseID,s,c)
+                        dSecondParam = dSiteFraction(iSPI,s,c)
                         iSecondParam = c
                     else if (k == iSUBLParamData(l,4)) then
-                        dFirstParam2 = dSiteFraction(iChargedPhaseID,s,c)
+                        dFirstParam2 = dSiteFraction(iSPI,s,c)
                         iFirstParam2 = c
                         iSubParam2   = s
                     else if (k == iSUBLParamData(l,4) + 1) then
-                        dSecondParam2 = dSiteFraction(iChargedPhaseID,s,c)
+                        dSecondParam2 = dSiteFraction(iSPI,s,c)
                         iSecondParam2 = c
                     end if
                 end do
@@ -390,7 +408,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 ! Loop through sublattices associated with this phase:
                 LOOP_Param_Sub: do s = 1, nSublattice
                     ! Store constituent index corresponding to component i on sublattice s:
-                    c = iConstituentSublattice(iChargedPhaseID,s,m)
+                    c = iConstituentSublattice(iSPI,s,m)
 
                     ! Assign Kronecker-Delta term if this component contains the constituent corresponding
                     ! to the mixing parameter:
@@ -433,7 +451,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                         if (k /= c) cycle LOOP_Param_Const
 
                         ! Include contribution from this site fraction:
-                        dTemp = dTemp + 1D0 / dSiteFraction(iChargedPhaseID,s,c)
+                        dTemp = dTemp + 1D0 / dSiteFraction(iSPI,s,c)
 
                     end do LOOP_Param_Const ! j
                 end do LOOP_Param_Sub       ! s

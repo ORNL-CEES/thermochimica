@@ -53,7 +53,8 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
+    integer :: c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
+    integer :: iFirst, iLast
     integer, dimension(nElementsCS**2) :: iRemove
 
 
@@ -287,7 +288,7 @@ subroutine CheckSystemExcess
                         n = j - nSpeciesPhaseCS(i-1)
 
                         ! On first sublattice check if second sublattice has neutral, don't pass if so
-                        if (dSublatticeChargeCS(nCountSublatticeCS,2,n) /= 0D0) then
+                        if (dSublatticeChargeCS(nCountSublatticeCS,2,iConstituentSublatticeCS(k,2,n)) /= 0D0) then
                             m = iConstituentSublatticeCS(k, 1, n)
                             iConstituentPass(k, 1, m) = 1
                         end if
@@ -319,14 +320,38 @@ subroutine CheckSystemExcess
 
                 ! Get the constituents that passed on each sublattice
                 j = 0
-                LOOP_findPassed2: do c = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
-                    if (iSpeciesPass(c) == 0) cycle LOOP_findPassed2
+                LOOP_findPassed2: do m = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                    c = m - nSpeciesPhaseCS(i-1)
+                    if (iSpeciesPass(m) == 0) cycle LOOP_findPassed2
                     ! If not cycled above, then all constituents passed
                     j = j + 1
                     do s = 1, nSublatticePhaseCS(k)
                         iConstituentSublattice(nCountSublattice,s,j) = &
-                          iConstituentSublatticeCS(nCountSublatticeCS,s,c - nSpeciesPhaseCS(i-1))
+                          iConstituentSublatticeCS(nCountSublatticeCS,s,c)
                     end do
+                    if (dSublatticeChargeCS(k,2,iConstituentSublatticeCS(k,2,c)) == 0D0) then
+                        ! If this is a neutral, then set constituent on first sublattice to -1
+                        ! The goal is to break the code of anyone trying to use the first constituent index of a neutral
+                        ! If this has broken your code, please reconsider why you are trying to use that index
+                        ! If you have decided this is necessary, then you have to redo this phase implementation starting at CheckSystem
+                        iConstituentSublattice(nCountSublattice,1,j) = -1
+                        ! Also, scale neutrals by the charge on the cation sublattice
+                        ! Basically trying to undo the nonsense of how the multiple identical neutrals were stored
+                        ! print *, dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                        iFirst = SUM(nGibbsEqSpecies(1:m-1)) + 1
+                        iLast = SUM(nGibbsEqSpecies(1:m))
+                        do l = iFirst, iLast
+                            ! print *, dGibbsCoeffSpeciesTemp(:,l)
+                            dGibbsCoeffSpeciesTemp(2:8,l) = dGibbsCoeffSpeciesTemp(2:8,l) / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                            dGibbsCoeffSpeciesTemp(10,l)  = dGibbsCoeffSpeciesTemp(10,l)  / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                            dGibbsCoeffSpeciesTemp(12,l)  = dGibbsCoeffSpeciesTemp(12,l)  / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                            ! print *, dGibbsCoeffSpeciesTemp(:,l)
+                        end do
+                        dStoichSpeciesCS(m,:) = dStoichSpeciesCS(m,:)/dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                    end if
                 end do LOOP_findPassed2
 
                 ! Now reduce indices to account for removed constituents
