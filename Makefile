@@ -69,7 +69,9 @@ MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 ## =================
 TC_LIB      = libthermochimica.a
 SHARED_SRC  = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.f90)))
+SHARED_SRCF = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.F90)))
 SHARED_OBJ  = $(SHARED_SRC:.f90=.o)
+SHARED_OBJ += $(SHARED_SRCF:.F90=.o)
 SHARED_LNK  = $(addprefix $(OBJ_DIR)/,$(SHARED_OBJ))
 SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 
@@ -90,7 +92,6 @@ DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
 DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
-
 
 ## =============
 ## WEEKLY TESTS:
@@ -118,6 +119,9 @@ ${BIN_DIR}:
 	$(FC) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
