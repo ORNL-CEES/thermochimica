@@ -106,12 +106,11 @@ subroutine CompThermoData
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
-    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
+    integer                            :: iSublPhaseIndex, iFirst, iLast, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
     integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax
     real(8)                            :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
-    real(8)                            :: dStdEnergyTemp
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
     character(12), dimension(:),     allocatable :: cElementNameTemp
@@ -138,12 +137,13 @@ subroutine CompThermoData
 
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
+        iFirst = nSpeciesPhaseCS(n - 1) + 1
+        dChemicalPotentialTemp = 0D0
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
             iSublPhaseIndex = iPhaseSublatticeCS(n)
-            iFirst = nSpeciesPhaseCS(n - 1) + 1
-            dChemicalPotentialTemp = 0D0
+            iLast = iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
             jj = 0
-            LOOP_SROPairs: do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
+            LOOP_SROPairs: do i = iFirst, iLast
                 l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
@@ -210,7 +210,7 @@ subroutine CompThermoData
                 dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dZa / dCoax
             end do LOOP_SROPairs
 
-            LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
+            LOOP_nSUBGQCS: do i = iFirst, nSpeciesPhaseCS(n)
                 if (iSpeciesPass(i) == 0) cycle LOOP_nSUBGQCS
 
                 j = j + 1   ! New species index
@@ -291,7 +291,8 @@ subroutine CompThermoData
                                        / ((dQx/dZx) + (dQy/dZy))
             end do LOOP_nSUBGQCS
         else
-            LOOP_nSpeciesCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
+            iLast = nSpeciesPhaseCS(n)
+            LOOP_nSpeciesCS: do i = iFirst, iLast
                 l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
@@ -307,7 +308,23 @@ subroutine CompThermoData
                 if (l == 0) l = nGibbsEqSpecies(i)
 
                 l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
+
+                do k = 2, 7
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
+                end do
+
+                ! Compute additional standard molar Gibbs energy terms:
+                do k = 8, 12, 2
+                    if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
+                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
+                    else
+                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) &
+                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
+                    end if
+                end do
+
                 j = j + 1   ! New species index
+                dChemicalPotential(j) = dChemicalPotentialTemp(i)
 
                 cSpeciesName(j)            = cSpeciesNameCS(i)
                 iPhase(j)                  = iPhaseCS(i)
@@ -319,22 +336,6 @@ subroutine CompThermoData
                     if (iElementSystem(k) /= 0) then
                         m = m + 1
                         dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
-                    end if
-                end do
-
-                dStdEnergyTemp = dChemicalPotential(j)
-
-                do k = 2, 7
-                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
-                end do
-
-                ! Compute additional standard molar Gibbs energy terms:
-                do k = 8, 12, 2
-                    if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
-                    else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
                     end if
                 end do
 
@@ -395,8 +396,6 @@ subroutine CompThermoData
                 dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
             end if
         end do
-
-        dStdEnergyTemp = dChemicalPotential(j)
 
         do k = 2, 7
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
