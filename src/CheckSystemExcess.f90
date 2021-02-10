@@ -65,7 +65,6 @@ subroutine CheckSystemExcess
 
     ! Check the mixing parameters:
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
-
         j = nSpeciesPhaseCS(i-1) + 1
         k = nSpeciesPhaseCS(i)
         l = MAXVAL(iSpeciesPass(j:k))
@@ -133,9 +132,7 @@ subroutine CheckSystemExcess
                 end if IF_Param
 
                 nParamPhase(nCounter) = nParam
-
             case ('SUBL', 'SUBLM')
-
                 ! Check if the constituents pass for a phase with a sublattice:
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
@@ -145,16 +142,13 @@ subroutine CheckSystemExcess
                 n = nSublatticePhase(nCountSublattice)
                 dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
-                ! iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
                 k = iPhaseSublatticeCS(i)
 
                 ! Loop through species in phase to determine which constituents are stable:
                 do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
-
                     if (iSpeciesPass(j) > 0) then
                         ! This species has passed.
                         n = j - nSpeciesPhaseCS(i-1)
-
                         ! Loop through sublattices per phase:
                         do s = 1, nSublatticePhaseCS(k)
                             m = iConstituentSublatticeCS(iPhaseSublatticeCS(i), s, n)
@@ -167,19 +161,16 @@ subroutine CheckSystemExcess
 
                 ! Count the number of constituents on each sublattice:
                 do s = 1, nSublatticePhaseCS(k)
-
                     ! Loop through constituents on sublattice s:
                     j = 0
                     do c = 1, nConstituentSublatticeCS(k,s)
                         nConstituentSublattice(nCountSublattice,s) = nConstituentSublattice(nCountSublattice,s) &
                             + iConstituentPass(k, s, c)
-
                         ! Store the correct constituent name:
                         if (iConstituentPass(k,s,c) /= 0) then
                             iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
                             j = j + 1
                             cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
-                            ! iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
                         end if
                     end do
                 end do
@@ -219,28 +210,21 @@ subroutine CheckSystemExcess
 
                 ! Proceed if there are any mixing parameters for this phase:
                 IF_Param_SUBL: if (nParamPhaseCS(i) /= nParamPhaseCS(i-1)) then
-
                     ! Loop through all mixing parameters for this phase:
                     LOOP_Param_SUBL: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
-
                         ! Loop through constituents associated with this parameter:
                         do k = 1, iRegularParamCS(j,1)
-
                             ! Store the constituent index to memory:
                             l = iRegularParamCS(j,1+k)
-
                             ! Loop through sublattices associated with this phase:
                             LOOP_C: do m = 1, nSublatticePhaseCS(iPhaseSublatticeCS(i))
-
                                 ! Store the number of constituents for this sublattice:
                                 n = nConstituentSublatticeCS(iPhaseSublatticeCS(i),m)
-
                                 if (l <= n) then
                                     ! l is the constituent index on sublattice m.
-
                                     if (iConstituentPass(iPhaseSublatticeCS(i),m,l) == 0) then
-
-                                        ! If any of the constituents associated with this parameter did not pass, then
+                                        ! If any of the constituents associated
+                                        ! with this parameter did not pass, then
                                         ! the mixing parameter will not be used.
                                         cycle LOOP_Param_SUBL
                                     else
@@ -251,19 +235,14 @@ subroutine CheckSystemExcess
                                     cycle LOOP_C
                                 end if
                             end do LOOP_C
-
                         end do
-
                         ! The parameter will be considered in the system.
                         nParam          = nParam + 1
                         iParamPassCS(j) = 1
-
                     end do LOOP_Param_SUBL
-
                 end if IF_Param_SUBL
 
                 nParamPhase(nCounter) = nParam
-
             case ('SUBG', 'SUBQ')
                 ! Check if the constituents pass for a phase with a sublattice:
                 nCountSublattice                 = nCountSublattice + 1
@@ -412,7 +391,6 @@ subroutine CheckSystemExcess
                 end do LOOP_excess
 
                 nParamPhase(nCounter) = nParam
-
             case default
                 ! The character string representing input units is not recognized.
                 INFOThermo = 17
@@ -506,7 +484,6 @@ subroutine CheckSystemExcess
             end if
         end if
         nMagParamPhase(nCounter) = nMagParam
-
     end do LOOP_SolnPhases
 
     ! Check to see if the mixing terms need to be reallocated:
