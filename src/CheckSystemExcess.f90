@@ -70,8 +70,7 @@ subroutine CheckSystemExcess
         k = nSpeciesPhaseCS(i)
         l = MAXVAL(iSpeciesPass(j:k))
 
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+        if (iPhaseSublatticeCS(i) > 0) then
             nCountSublatticeCS = nCountSublatticeCS + 1
         end if
 

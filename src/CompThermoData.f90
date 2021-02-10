@@ -562,8 +562,7 @@ subroutine CompThermoData
     nn = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
-        if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
-        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' )) nCounter = nCounter + 1
+        if (iPhaseSublatticeCS(i) > 0) nCounter = nCounter + 1
 
         LOOP_Param: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
 
