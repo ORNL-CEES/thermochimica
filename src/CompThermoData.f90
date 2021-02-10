@@ -143,40 +143,45 @@ subroutine CompThermoData
             iSublPhaseIndex = iPhaseSublatticeCS(n)
             iLast = iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
             jj = 0
-            LOOP_SROPairs: do i = iFirst, iLast
-                l = 0
-                ! Loop through the Gibbs energy equations to figure out which one to use:
-                do k = 1, nGibbsEqSpecies(i)
-                    iCounterGibbsEqn = iCounterGibbsEqn + 1
-                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
-                        l = k
-                    end if
-                end do
+        else
+            iLast = nSpeciesPhaseCS(n)
+        end if
+        LOOP_nSpeciesCS: do i = iFirst, iLast
+            l = 0
+            ! Loop through the Gibbs energy equations to figure out which one to use:
+            do k = 1, nGibbsEqSpecies(i)
+                iCounterGibbsEqn = iCounterGibbsEqn + 1
+                if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                    l = k
+                end if
+            end do
 
-                if (l == 0) l = nGibbsEqSpecies(i)
+            if (l == 0) l = nGibbsEqSpecies(i)
 
-                l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
+            l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
 
-                do k = 2, 7
-                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
-                end do
+            ! Compute default standard molar Gibbs energy terms:
+            do k = 2, 7
+                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
+            end do
 
-                ! Compute additional standard molar Gibbs energy terms:
-                do k = 8, 12, 2
-                    if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
-                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
-                    else
-                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
-                    end if
-                end do
+            ! Compute additional standard molar Gibbs energy terms:
+            do k = 8, 12, 2
+                if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
+                else
+                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) &
+                        *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
+                end if
+            end do
 
+            if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
                 ! Convert chemical potentials to dimensionless units:
                 dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
 
                 do k = 1, nElemOrComp
                     if ((dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k) > 0).AND.(iElementSystem(k) == 0)) then
-                        cycle LOOP_SROPairs
+                        cycle LOOP_nSpeciesCS
                     end if
                 end do
 
@@ -208,8 +213,52 @@ subroutine CompThermoData
                 dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1)
                 dZa = dCoordinationNumberCS(iSublPhaseIndex,iIndex - iFirst + 1,1)
                 dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dZa / dCoax
-            end do LOOP_SROPairs
+            else
+                ! This species will not be considered part of the system if it didn't pass.
+                if (iSpeciesPass(i) == 0) cycle LOOP_nSpeciesCS
 
+                j = j + 1   ! New species index
+                dChemicalPotential(j) = dChemicalPotentialTemp(i)
+
+                cSpeciesName(j)            = cSpeciesNameCS(i)
+                iPhase(j)                  = iPhaseCS(i)
+                iParticlesPerMole(j)       = iParticlesPerMoleCS(i)
+                dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
+
+                m = 0
+                do k = 1, nElemOrComp
+                    if (iElementSystem(k) /= 0) then
+                        m = m + 1
+                        dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
+                    end if
+                end do
+
+                ! Compute the magnetic terms (if applicable):
+                if ((dGibbsMagneticCS(i,1) /= 0D0)) then
+                    if (iPhase(j) == 0) then
+                        call CompGibbsMagnetic(i,j)
+                    else
+                        call CompGibbsMagneticSolnInit(i,j)
+                    end if
+                end if
+
+                ! Convert chemical potentials to dimensionless units:
+                dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
+
+                ! Add pressure dependence term to the chemical potential term:
+                if (iPhaseCS(i) == 1) then
+                    ! For real??? Using the phase name here? I'm going to lose my mind.
+                    ! if (cSolnPhaseNameCS(1) == 'gas_ideal') then
+                    if (cSolnPhaseTypeCS(1) == 'IDMX') then
+                        ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
+                        ! the first solution phase in the data-file.
+                        dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
+                    end if
+                end if
+            end if
+        end do LOOP_nSpeciesCS
+
+        if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
             LOOP_nSUBGQCS: do i = iFirst, nSpeciesPhaseCS(n)
                 if (iSpeciesPass(i) == 0) cycle LOOP_nSUBGQCS
 
@@ -290,79 +339,6 @@ subroutine CompThermoData
                                        + ((dQy * dZbB2Y2) * dChemicalPotentialTemp(iby + iFirst - 1) / (2D0 * dZb * dZy))) &
                                        / ((dQx/dZx) + (dQy/dZy))
             end do LOOP_nSUBGQCS
-        else
-            iLast = nSpeciesPhaseCS(n)
-            LOOP_nSpeciesCS: do i = iFirst, iLast
-                l = 0
-                ! Loop through the Gibbs energy equations to figure out which one to use:
-                do k = 1, nGibbsEqSpecies(i)
-                    iCounterGibbsEqn = iCounterGibbsEqn + 1
-                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
-                        l = k
-                    end if
-                end do
-
-                ! This species will not be considered part of the system if it didn't pass.
-                if (iSpeciesPass(i) == 0) cycle LOOP_nSpeciesCS
-
-                if (l == 0) l = nGibbsEqSpecies(i)
-
-                l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
-
-                do k = 2, 7
-                    dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
-                end do
-
-                ! Compute additional standard molar Gibbs energy terms:
-                do k = 8, 12, 2
-                    if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
-                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
-                    else
-                        dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) + dGibbsCoeffSpeciesTemp(k,l) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
-                    end if
-                end do
-
-                j = j + 1   ! New species index
-                dChemicalPotential(j) = dChemicalPotentialTemp(i)
-
-                cSpeciesName(j)            = cSpeciesNameCS(i)
-                iPhase(j)                  = iPhaseCS(i)
-                iParticlesPerMole(j)       = iParticlesPerMoleCS(i)
-                dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
-
-                m = 0
-                do k = 1, nElemOrComp
-                    if (iElementSystem(k) /= 0) then
-                        m = m + 1
-                        dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
-                    end if
-                end do
-
-                ! Compute the magnetic terms (if applicable):
-                if ((dGibbsMagneticCS(i,1) /= 0D0)) then
-                    if (iPhase(j) == 0) then
-                        call CompGibbsMagnetic(i,j)
-                    else
-                        call CompGibbsMagneticSolnInit(i,j)
-                    end if
-                end if
-
-                ! Convert chemical potentials to dimensionless units:
-                dChemicalPotential(j) = dChemicalPotential(j) * dTemp * DFLOAT(iParticlesPerMoleCS(i))
-
-                ! Add pressure dependence term to the chemical potential term:
-                if (iPhaseCS(i) == 1) then
-                    ! For real??? Using the phase name here? I'm going to lose my mind.
-                    ! if (cSolnPhaseNameCS(1) == 'gas_ideal') then
-                    if (cSolnPhaseTypeCS(1) == 'IDMX') then
-                        ! Note: If an ideal gas is included in a ChemSage data-file, then it is always
-                        ! the first solution phase in the data-file.
-                        dChemicalPotential(j) = dChemicalPotential(j) + dLogP + (0.10945D0 / dIdealConstant)
-                    end if
-                end if
-
-            end do LOOP_nSpeciesCS ! End loop of species (i)
         end if
     end do LOOP_nPhasesCS
 
