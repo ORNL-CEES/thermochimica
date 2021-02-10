@@ -690,7 +690,6 @@ subroutine CompThermoData
 
     ! Compute the atomic fraction of each element in a species:
     do i = 1, nSpecies
-
         ! SUBG phases will be allocated with more species than appear in the data-file
         ! because it'll work with pair fractions rather than species. Therefore, dummy
         ! entries will be created with no stoichiometric values. To avoid dividing by
