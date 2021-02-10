@@ -37,7 +37,7 @@ subroutine ResetReinit
 
     implicit none
 
-    integer::   i, INFO
+    integer :: i, INFO
 
     lReinitAvailable = .FALSE.
     lReinitLoaded = .FALSE.
@@ -45,17 +45,16 @@ subroutine ResetReinit
     ! Initialize variables:
     i = 0
 
-    if (allocated(dMolesPhase_Old)) then
-        ! Deallocate integer arrays from ModuleThermo:
-        deallocate (dMolesPhase_Old,dChemicalPotential_Old,dMolFraction_Old,dElementPotential_Old, STAT = INFO)
-        i = i + INFO
-    end if
-
-    if (allocated(iAssemblage_Old)) then
-        ! Deallocate real arrays from ModuleThermo:
-        deallocate (iAssemblage_Old,STAT = INFO)
-        i = i + INFO
-    end if
+    if (allocated(dMolesPhase_Old)) deallocate(dMolesPhase_Old, STAT = INFO)
+    i = i + INFO
+    if (allocated(dChemicalPotential_Old)) deallocate(dChemicalPotential_Old, STAT = INFO)
+    i = i + INFO
+    if (allocated(dMolFraction_Old)) deallocate(dMolFraction_Old, STAT = INFO)
+    i = i + INFO
+    if (allocated(dElementPotential_Old)) deallocate(dElementPotential_Old, STAT = INFO)
+    i = i + INFO
+    if (allocated(iAssemblage_Old)) deallocate(iAssemblage_Old, STAT = INFO)
+    i = i + INFO
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then
