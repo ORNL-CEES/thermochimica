@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
+    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
@@ -292,22 +292,21 @@ subroutine CompThermoData
             end do LOOP_nSUBGQCS
         else
             LOOP_nSpeciesCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
-                l1 = 0
+                l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
                     iCounterGibbsEqn = iCounterGibbsEqn + 1
-                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
-                        l1 = k
+                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                        l = k
                     end if
                 end do
 
                 ! This species will not be considered part of the system if it didn't pass.
                 if (iSpeciesPass(i) == 0) cycle LOOP_nSpeciesCS
 
-                l2 = l1
-                if (l2 == 0) l2 = nGibbsEqSpecies(i)
+                if (l == 0) l = nGibbsEqSpecies(i)
 
-                l2 = l2 + iCounterGibbsEqn - nGibbsEqSpecies(i)
+                l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
                 j = j + 1   ! New species index
 
                 cSpeciesName(j)            = cSpeciesNameCS(i)
@@ -326,16 +325,16 @@ subroutine CompThermoData
                 dStdEnergyTemp = dChemicalPotential(j)
 
                 do k = 2, 7
-                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
+                    dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
                 end do
 
                 ! Compute additional standard molar Gibbs energy terms:
                 do k = 8, 12, 2
-                    if (dGibbsCoeffSpeciesTemp(k+1,l2) .EQ. 99) then
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dLogT
+                    if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
                     else
-                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) &
-                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l2)
+                        dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) &
+                            *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
                     end if
                 end do
 
@@ -367,22 +366,21 @@ subroutine CompThermoData
     end do LOOP_nPhasesCS
 
     LOOP_nPureConSpeciesCS: do i = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
-        l1 = 0
+        l = 0
         ! Loop through the Gibbs energy equations to figure out which one to use:
         do k = 1, nGibbsEqSpecies(i)
             iCounterGibbsEqn = iCounterGibbsEqn + 1
-            if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
-                l1 = k
+            if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                l = k
             end if
         end do
 
         ! This species will not be considered part of the system.
         if (iSpeciesPass(i) == 0) cycle LOOP_nPureConSpeciesCS
 
-        l2 = l1
-        if (l2 == 0) l2 = nGibbsEqSpecies(i)
+        if (l == 0) l = nGibbsEqSpecies(i)
 
-        l2 = l2 + iCounterGibbsEqn - nGibbsEqSpecies(i)
+        l = l + iCounterGibbsEqn - nGibbsEqSpecies(i)
         j = j + 1   ! New species index
 
         cSpeciesName(j)            = cSpeciesNameCS(i)
@@ -401,30 +399,18 @@ subroutine CompThermoData
         dStdEnergyTemp = dChemicalPotential(j)
 
         do k = 2, 7
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
+            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dGibbsCoeff(k-1)
         end do
 
         ! Compute additional standard molar Gibbs energy terms:
-        if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-        else
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
-                *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-        end if
-
-        if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) * dLogT
-        else
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(10,l2) &
-                * dTemperature**dGibbsCoeffSpeciesTemp(11,l2)
-        end if
-
-        if (dGibbsCoeffSpeciesTemp(13,l2) .EQ. 99) then
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) * dLogT
-        else
-            dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(12,l2) &
-                * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
-        end if
+        do k = 8, 12, 2
+            if (dGibbsCoeffSpeciesTemp(k+1,l) .EQ. 99) then
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) * dLogT
+            else
+                dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l) &
+                    *dTemperature**dGibbsCoeffSpeciesTemp(k+1,l)
+            end if
+        end do
 
         ! Compute the magnetic terms (if applicable):
         if ((dGibbsMagneticCS(i,1) /= 0D0).AND.(iPhase(j) == 0)) then
