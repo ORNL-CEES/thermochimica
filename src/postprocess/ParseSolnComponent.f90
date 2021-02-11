@@ -1,4 +1,4 @@
-subroutine SSParseSolnComponent(iElem, cCompName, iSLen, dMolSum)
+subroutine ParseSolnComponent(iElem, cCompName, iSLen, dMolSum)
   ! return dMolSum, number of moles for element iElem that is in
   ! solution species cCompName
   !
@@ -40,7 +40,7 @@ subroutine SSParseSolnComponent(iElem, cCompName, iSLen, dMolSum)
 !          write(*,*) '     Found ', cChopName, ' dMolSum ', dMolSum, ' = ', dMolesPhase(i), ' * ', dEffStoichSolnPhase(k,iElem)
        end if
     end do
-    
+
 
     return
-end subroutine SSParseSolnComponent
+end subroutine ParseSolnComponent

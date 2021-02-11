@@ -1,4 +1,4 @@
-subroutine SSFindSolnSpecies(cCompName, iLCompName, iElem, dMolSum)
+subroutine FindSolnSpecies(cCompName, iLCompName, iElem, dMolSum)
   ! return dMolSum, number of moles for element iElem that is in
   ! solution species cCompName
   !
@@ -34,7 +34,7 @@ subroutine SSFindSolnSpecies(cCompName, iLCompName, iElem, dMolSum)
     call tokenize(cCompName(1:lenCompName),",",cPhase,25,nwords)
 
     if(nwords <= 0)then
-       write(*,"(A,i5)") "SSFindSolnSpecies: no words found ",nwords
+       write(*,"(A,i5)") "FindSolnSpecies: no words found ",nwords
        stop
     end if
 
@@ -61,6 +61,6 @@ subroutine SSFindSolnSpecies(cCompName, iLCompName, iElem, dMolSum)
 !       write(*,"(A,i5)") " Matched ",nmatch
        ! stop
     end if
-    
+
     return
-end subroutine SSFindSolnSpecies
+end subroutine FindSolnSpecies
