@@ -50,13 +50,16 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
+SRC_SDR     = debug gem module parser postprocess reinit reset setup
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
 WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
+SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
+VPATH				= $(SHARED_DIR)
 
 ## ========
 ## MODULES:
@@ -117,7 +120,7 @@ ${BIN_DIR}:
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
+$(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
