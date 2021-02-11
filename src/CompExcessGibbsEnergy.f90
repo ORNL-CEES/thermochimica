@@ -69,68 +69,68 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
     ! Compute excess terms based on solution phase type:
     select case (cSolnPhaseType(iSolnIndex))
-        case ('IDMX')
+    case ('IDMX')
 
-            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
-            do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75))
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
-            end do
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75))
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
 
-        case ('QKTO')
+    case ('QKTO')
 
-            ! Compute the excess terms for a Quasichemical Kohler-TOop (QKTO) model:
-            call CompExcessGibbsEnergyQKTO(iSolnIndex)
+        ! Compute the excess terms for a Quasichemical Kohler-TOop (QKTO) model:
+        call CompExcessGibbsEnergyQKTO(iSolnIndex)
 
-            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
-            do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dPartialExcessGibbs(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
-            end do
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dPartialExcessGibbs(i)
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
 
-        case ('RKMP','RKMPM')
+    case ('RKMP','RKMPM')
 
-            ! Compute magnetic terms if this is a magnetic phase:
-            if (cSolnPhaseType(iSolnIndex) == 'RKMPM') call CompGibbsMagneticSoln(iSolnIndex)
+        ! Compute magnetic terms if this is a magnetic phase:
+        if (cSolnPhaseType(iSolnIndex) == 'RKMPM') call CompGibbsMagneticSoln(iSolnIndex)
 
-            ! Compute the excess terms for a Redlich-Kister-Muggiano-Polynomial (RKMP) model:
-            call CompExcessGibbsEnergyRKMP(iSolnIndex)
+        ! Compute the excess terms for a Redlich-Kister-Muggiano-Polynomial (RKMP) model:
+        call CompExcessGibbsEnergyRKMP(iSolnIndex)
 
-            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
-            do i = iFirst, iLast
-                dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dMagGibbsEnergy(i) &
-                    + dPartialExcessGibbs(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
-            end do
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dMagGibbsEnergy(i) &
+                + dPartialExcessGibbs(i)
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
 
-        case ('SUBL','SUBLM')
+    case ('SUBL','SUBLM')
 
-            ! Compute the excess terms for a Compound Energy Formalism model:
-            call CompExcessGibbsEnergySUBL(iSolnIndex)
+        ! Compute the excess terms for a Compound Energy Formalism model:
+        call CompExcessGibbsEnergySUBL(iSolnIndex)
 
-            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
-            do i = iFirst, iLast
-                dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i) + dMagGibbsEnergy(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
-            end do
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i) + dMagGibbsEnergy(i)
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
 
-        case ('SUBG','SUBQ')
+    case ('SUBG','SUBQ')
 
-            ! Compute the excess terms for a phase represented by the Modified Quasichemical Model:
-            call CompExcessGibbsEnergySUBG(iSolnIndex)
+        ! Compute the excess terms for a phase represented by the Modified Quasichemical Model:
+        call CompExcessGibbsEnergySUBG(iSolnIndex)
 
-            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
-            do i = iFirst, iLast
-                dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
-                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
-            end do
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
 
-        case default
+    case default
 
-            ! Report an error (solution phase type unsupported).  Note that there is an earlier check when parsing
-            ! the data-file; although this is redundant, it is conservative.
-            INFOThermo = 17
-            return
+        ! Report an error (solution phase type unsupported).  Note that there is an earlier check when parsing
+        ! the data-file; although this is redundant, it is conservative.
+        INFOThermo = 17
+        return
 
     end select
 

@@ -229,43 +229,30 @@ subroutine ParseCSDataBlock
 
         ! Check the type of solution phase to interpret mixing parameters:
         select case (cSolnPhaseTypeCS(i))
-
-            ! Ideal mixture model
-            case ('IDMX')
-                ! Do nothing.
-
-            ! Quasichemical Kohler-Toop model
-            case ('QKTO')
-                call ParseCSDataBlockQKTO(i)
-
-            ! Redlich-Kister-Muggiano-Polynomial model
-            case ('RKMP', 'RKMPM')
-
-                call ParseCSDataBlockRKMP(i)
-
-            ! Compound Energy Formalism (sublattice) model:
-            case ('SUBL', 'SUBLM')
-
-                call ParseCSDataBlockSUBL(i)
-
-            ! Quadruplet quasichemical model:
-            case ('SUBG')
-
-                ! Parse the data-block section for SUBG phases:
-                call ParseCSDataBlockSUBG(i)
-
-            ! Quadruplet quasichemical model:
-            case ('SUBQ')
-
-                ! Parse the data-block section for SUBQ phases:
-                call ParseCSDataBlockSUBG(i)
-
-            case default
-
-                ! The solution phase type is not supported. Report an error.
-                INFO = 17
-                return
-
+        ! Ideal mixture model
+        case ('IDMX')
+            ! Do nothing.
+        ! Quasichemical Kohler-Toop model
+        case ('QKTO')
+            call ParseCSDataBlockQKTO(i)
+        ! Redlich-Kister-Muggiano-Polynomial model
+        case ('RKMP', 'RKMPM')
+            call ParseCSDataBlockRKMP(i)
+        ! Compound Energy Formalism (sublattice) model:
+        case ('SUBL', 'SUBLM')
+            call ParseCSDataBlockSUBL(i)
+        ! Quadruplet quasichemical model:
+        case ('SUBG')
+            ! Parse the data-block section for SUBG phases:
+            call ParseCSDataBlockSUBG(i)
+        ! Quadruplet quasichemical model:
+        case ('SUBQ')
+            ! Parse the data-block section for SUBQ phases:
+            call ParseCSDataBlockSUBG(i)
+        case default
+            ! The solution phase type is not supported. Report an error.
+            INFO = 17
+            return
         end select ! End checking the type of solution phase.
 
         ! Return if an error has been recorded:

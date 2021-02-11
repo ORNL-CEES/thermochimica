@@ -178,14 +178,14 @@ subroutine CheckSystem
                 ! Convert the mass of each element to moles:
                 select case (cInputUnitMass)
                 case ('mass fraction','kilograms','grams','pounds','lbs','g','kg')
-                        ! Convert mass unit to moles:
-                        dElementMass(i) = dElementMass(i) / dAtomicMassCS(j)
-                    case ('mole fraction','atom fraction','atoms','moles','mol','gram-atoms')
-                        ! Do nothing
-                    case default
-                        ! The character string representing input units is not recognized.
-                        INFOThermo = 4
-                        return
+                    ! Convert mass unit to moles:
+                    dElementMass(i) = dElementMass(i) / dAtomicMassCS(j)
+                case ('mole fraction','atom fraction','atoms','moles','mol','gram-atoms')
+                    ! Do nothing
+                case default
+                    ! The character string representing input units is not recognized.
+                    INFOThermo = 4
+                    return
                 end select
                 iElementSystem(j) = i
                 dSum = dSum + dElementMass(i)

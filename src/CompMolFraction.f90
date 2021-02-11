@@ -117,28 +117,22 @@ subroutine CompMolFraction(k)
 
     ! Compute the mole fraction depending on the type of solution phase:
     select case (cSolnPhaseType(k))
-
-        ! Leave this for now until I improve the estimator:
-
-        case ('QKTO','RKMP','RKMPM','SUBL','SUBLM','SUBG','SUBQ')
-
-            ! Perform subminimization:
-            call Subminimization(k,lPhasePass)
-
-        case default
-
-            ! The default case assumes an ideal solution phase.
-            do i = m, n
-                dTemp = 0D0
-                do j = 1, nElements
-                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
-                end do
-                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
-                dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
-                dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
-                dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i) * (dStdGibbsEnergy(i) - dTemp)
+    ! Leave this for now until I improve the estimator:
+    case ('QKTO','RKMP','RKMPM','SUBL','SUBLM','SUBG','SUBQ')
+        ! Perform subminimization:
+        call Subminimization(k,lPhasePass)
+    case default
+        ! The default case assumes an ideal solution phase.
+        do i = m, n
+            dTemp = 0D0
+            do j = 1, nElements
+                dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
             end do
-
+            dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+            dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
+            dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
+            dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i) * (dStdGibbsEnergy(i) - dTemp)
+        end do
     end select
 
 

@@ -112,18 +112,18 @@ subroutine CheckThermoInput
 
     ! Convert termperature to Kelvin:
     select case (cInputUnitTemperature)
-        case ('K')
-            ! Do nothing.
-        case ('C')
-            dTemperature = dTemperature + 273.15D0
-        case ('F')
-            dTemperature = (dTemperature + 459.67D0) * (5D0/9D0)
-        case ('R')
-            dTemperature = dTemperature * (5D0/9D0)
-        case default
-            ! Temperature unit not recognized.
-            INFOThermo = 4
-            return
+    case ('K')
+        ! Do nothing.
+    case ('C')
+        dTemperature = dTemperature + 273.15D0
+    case ('F')
+        dTemperature = (dTemperature + 459.67D0) * (5D0/9D0)
+    case ('R')
+        dTemperature = dTemperature * (5D0/9D0)
+    case default
+        ! Temperature unit not recognized.
+        INFOThermo = 4
+        return
     end select
 
     cInputUnitTemperature = 'K'
@@ -136,20 +136,20 @@ subroutine CheckThermoInput
 
     ! Convert absolute hydrostatic pressure to atm:
     select case (cInputUnitPressure)
-        case ('atm')
-            ! Do nothing.
-        case ('psi')
-            dPressure = dPressure * 0.068045957064D0
-        case ('bar')
-            dPressure = dPressure * 0.98692316931D0
-        case ('Pa')
-            dPressure = dPressure * 0.009869231693D0 * 1D-3
-        case ('kPa')
-            dPressure = dPressure * 0.009869231693D0
-        case default
-            ! Pressure unit not recognized.
-            INFOThermo = 4
-            return
+    case ('atm')
+        ! Do nothing.
+    case ('psi')
+        dPressure = dPressure * 0.068045957064D0
+    case ('bar')
+        dPressure = dPressure * 0.98692316931D0
+    case ('Pa')
+        dPressure = dPressure * 0.009869231693D0 * 1D-3
+    case ('kPa')
+        dPressure = dPressure * 0.009869231693D0
+    case default
+        ! Pressure unit not recognized.
+        INFOThermo = 4
+        return
     end select
 
     cInputUnitPressure = 'atm'
@@ -158,20 +158,20 @@ subroutine CheckThermoInput
     dMassScale = 1D0
     select case (cInputUnitMass)
     case ('mass fraction','mole fraction','atom fraction','gram-atoms','moles','mol','grams','g')
-            ! Assume any fractional mass units are just grams,
-            ! the user will have to set a mass unit if they care.
-            dMassScale = 1D0
-        case ('atoms')
-            ! This seems silly, but here we are.
-            dMassScale = 1D0 / 6.0221409D23
-        case ('kilograms','kg')
-            dMassScale = dMassScale * 1D3
-        case ('pounds','lbs')
-            dMassScale = dMassScale * 4.53592D2
-        case default
-            ! The character string representing input units is not recognized.
-            INFOThermo = 4
-            return
+        ! Assume any fractional mass units are just grams,
+        ! the user will have to set a mass unit if they care.
+        dMassScale = 1D0
+    case ('atoms')
+        ! This seems silly, but here we are.
+        dMassScale = 1D0 / 6.0221409D23
+    case ('kilograms','kg')
+        dMassScale = dMassScale * 1D3
+    case ('pounds','lbs')
+        dMassScale = dMassScale * 4.53592D2
+    case default
+        ! The character string representing input units is not recognized.
+        INFOThermo = 4
+        return
     end select
 
     ! Check that the absolute hydrostatic pressure [atm] is within an acceptable range and real:

@@ -234,31 +234,27 @@ subroutine PrintResultsSolnPhase
         allocate(iTempSpecies(k), dTempSpecies(k))
         nCutOff = k
         select case (cSolnPhaseType(l))
+        case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
+            ! Initialize temporary variables:
+            dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
 
-            case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
+            ! Sort species in phase:
+            call SortPick(k, dTempSpecies, iTempSpecies)
 
-                ! Initialize temporary variables:
-                dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
+            LOOP_CutOffX: do i = 1, k
+                ! Convert relative species index to an absolute index:
+                c = iTempSpecies(i) + iFirst - 1
 
-                ! Sort species in phase:
-                call SortPick(k, dTempSpecies, iTempSpecies)
-
-                LOOP_CutOffX: do i = 1, k
-                    ! Convert relative species index to an absolute index:
-                    c = iTempSpecies(i) + iFirst - 1
-
-                    if (dMolFraction(c) < dCutOff) then
-                        nCutOff = i - 1
-                        exit LOOP_CutOffX
-                    end if
-                end do LOOP_CutOffX
-
-            case default
-                ! The species in this phase will not be sorted.
-                do i = 1, k
-                    iTempSpecies(i) = i
-                end do
-
+                if (dMolFraction(c) < dCutOff) then
+                    nCutOff = i - 1
+                    exit LOOP_CutOffX
+                end if
+            end do LOOP_CutOffX
+        case default
+            ! The species in this phase will not be sorted.
+            do i = 1, k
+                iTempSpecies(i) = i
+            end do
         end select
 
         ! The minimum number of species that will be printed is 2:

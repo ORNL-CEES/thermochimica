@@ -419,127 +419,119 @@ subroutine CompThermoData
                 cRegularParam(n) = cRegularParamCS(j)
 
                 select case (cSolnPhaseTypeCS(i))
-                    case ('QKTO', 'RKMP', 'RKMPM')
+                case ('QKTO', 'RKMP', 'RKMPM')
+                    do k = 1, 6
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                    end do
+                    dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
-                        do k = 1, 6
-                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                    ! Loop through species involved in mixing parameter:
+                    do k = 1, iRegularParamCS(j,1)
+                        m                    = iRegularParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
+                        iRegularParam(n,k+1) = iSpeciesPass(m)
+                    end do
+                    if (iRegularParamCS(j,1) == 3) then
+                        m                    = iRegularParamCS(j,iRegularParamCS(j,1)+2) + nSpeciesPhaseCS(i-1)
+                        iRegularParam(n,iRegularParamCS(j,1)+2) = iSpeciesPass(m)
+                    end if
+                case ('SUBG','SUBQ')
+                    ! Must remove unused constituents from iRegularParam
+                    iSublPhaseIndex = iPhaseSublatticeCS(i)
+                    nRemove = 0
+                    iRemove = 0
+                    do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
+                        do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
+                            if (iConstituentPass(iSublPhaseIndex,k,l) <= 0) then
+                                nRemove = nRemove + 1
+                                iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+                            end if
                         end do
-                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+                    end do
 
-                        ! Loop through species involved in mixing parameter:
-                        do k = 1, iRegularParamCS(j,1)
-                            m                    = iRegularParamCS(j,k+1) + nSpeciesPhaseCS(i-1)
-                            iRegularParam(n,k+1) = iSpeciesPass(m)
+                    do k = 1, nRemove
+                        do l = 2, 5
+                            if (iRegularParam(n,l) > iRemove(k)) then
+                                iRegularParam(n,l) = iRegularParam(n,l) - 1
+                            end if
                         end do
-                        if (iRegularParamCS(j,1) == 3) then
-                            m                    = iRegularParamCS(j,iRegularParamCS(j,1)+2) + nSpeciesPhaseCS(i-1)
-                            iRegularParam(n,iRegularParamCS(j,1)+2) = iSpeciesPass(m)
-                        end if
-
-                    case ('SUBG','SUBQ')
-
-                        ! Must remove unused constituents from iRegularParam
-                        iSublPhaseIndex = iPhaseSublatticeCS(i)
-                        nRemove = 0
-                        iRemove = 0
-                        do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
-                            do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
-                                if (iConstituentPass(iSublPhaseIndex,k,l) <= 0) then
-                                    nRemove = nRemove + 1
-                                    iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
-                                end if
-                            end do
+                        do l = 10, 11
+                            if (iRegularParam(n,l) > iRemove(k)) then
+                                iRegularParam(n,l) = iRegularParam(n,l) - 1
+                            end if
                         end do
+                    end do
 
-                        do k = 1, nRemove
-                            do l = 2, 5
-                                if (iRegularParam(n,l) > iRemove(k)) then
-                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
-                                end if
-                            end do
-                            do l = 10, 11
-                                if (iRegularParam(n,l) > iRemove(k)) then
-                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
-                                end if
-                            end do
-                        end do
+                    ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
+                    do k = 1, 4
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                    end do
+                    dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+                case ('SUBL', 'SUBLM')
+                    do k = 1, 6
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                    end do
+                    dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
-                        ! Note that this is different for SUBG phases than QKTO, RKMP, or SUBL phases:
-                        do k = 1, 4
-                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
-                        end do
-                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+                    ! Loop through constituents involved in mixing parameter:
+                    do k = 1, iRegularParamCS(j,1)
 
-                    case ('SUBL', 'SUBLM')
+                        ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                        ! a continuing count of the constituents.
+                        m = iRegularParamCS(j,k+1)
 
-                        do k = 1, 6
-                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
-                        end do
-                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
-
-                        ! Loop through constituents involved in mixing parameter:
-                        do k = 1, iRegularParamCS(j,1)
-
-                            ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
-                            ! a continuing count of the constituents.
-                            m = iRegularParamCS(j,k+1)
-
-                            ! Figure out the sublattice (l) and constituent (m) indices:
-                            LOOP_SUBL: do s = 1, nSublatticePhaseCS(nCounter)
-                                l = s
-                                if (m > nConstituentSublatticeCS(nCounter,s)) then
-                                    m = m - nConstituentSublatticeCS(nCounter,s)
-                                else
-                                    exit LOOP_SUBL
-                                end if
-
-                            end do LOOP_SUBL
-
-                            ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
-                            ! sublattice l):
-                            iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
-
-                        end do
-
-                        ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
-                        ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
-                        ! may be three constituents mixing where the first constituent is on the first sublattice and
-                        ! the second and third are on the second sublattice.
-
-                        nMixSets = 0
-                        k = 2
-                        LOOP_SUBL_Check: do while (k <= iRegularParamCS(j,1))
-
-                            l = MOD(iRegularParam(n,k), 10000)
-                            l = (iRegularParam(n,k) - l) / 10000
-
-                            iMixLength = 1
-                            iMixStart = 0
-
-                            LOOP_SUBL_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
-                                m = MOD(iRegularParam(n,ii), 10000)
-                                m = (iRegularParam(n,ii) - m) / 10000
-                                if (l == m) then
-                                    iMixLength = iMixLength + 1
-                                    if (ii - k == 1) then
-                                        nMixSets = nMixSets + 1
-                                        iMixStart = k
-                                    end if
-                                else
-                                    exit LOOP_SUBL_MIXING
-                                end if
-                            end do LOOP_SUBL_MIXING
-
-                            if (iMixLength > 1) then
-                                iSUBLParamData(n,nMixSets*2) = iMixStart
-                                iSUBLParamData(n,nMixSets*2+1) = iMixLength
+                        ! Figure out the sublattice (l) and constituent (m) indices:
+                        LOOP_SUBL: do s = 1, nSublatticePhaseCS(nCounter)
+                            l = s
+                            if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                m = m - nConstituentSublatticeCS(nCounter,s)
+                            else
+                                exit LOOP_SUBL
                             end if
 
-                            k = k + iMixLength
-                        end do LOOP_SUBL_Check
+                        end do LOOP_SUBL
 
-                        iSUBLParamData(n,1) = nMixSets
+                        ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                        ! sublattice l):
+                        iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+                    end do
 
+                    ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
+                    ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
+                    ! may be three constituents mixing where the first constituent is on the first sublattice and
+                    ! the second and third are on the second sublattice.
+
+                    nMixSets = 0
+                    k = 2
+                    LOOP_SUBL_Check: do while (k <= iRegularParamCS(j,1))
+                        l = MOD(iRegularParam(n,k), 10000)
+                        l = (iRegularParam(n,k) - l) / 10000
+
+                        iMixLength = 1
+                        iMixStart = 0
+
+                        LOOP_SUBL_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
+                            m = MOD(iRegularParam(n,ii), 10000)
+                            m = (iRegularParam(n,ii) - m) / 10000
+                            if (l == m) then
+                                iMixLength = iMixLength + 1
+                                if (ii - k == 1) then
+                                    nMixSets = nMixSets + 1
+                                    iMixStart = k
+                                end if
+                            else
+                                exit LOOP_SUBL_MIXING
+                            end if
+                        end do LOOP_SUBL_MIXING
+
+                        if (iMixLength > 1) then
+                            iSUBLParamData(n,nMixSets*2) = iMixStart
+                            iSUBLParamData(n,nMixSets*2+1) = iMixLength
+                        end if
+
+                        k = k + iMixLength
+                    end do LOOP_SUBL_Check
+
+                    iSUBLParamData(n,1) = nMixSets
                 end select
             end if IF_ParamPass
         end do LOOP_Param
