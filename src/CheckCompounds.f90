@@ -97,15 +97,15 @@ subroutine CheckCompounds
             dCompoundUnitMass = dCompoundUnitMass + dCompoundStoich(i,iElementSystem(j)) * dAtomicMassCS(j)
         end do
         select case (cInputUnitMass)
-            case ('mass fraction','kilograms','grams','pounds')
-                ! Convert mass unit to moles:
-                dCompoundMass(i) = dCompoundMass(i) / dCompoundUnitMass
-            case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
-                ! Do nothing
-            case default
-                ! The character string representing input units is not recognized.
-                INFOThermo = 4
-                return
+        case ('mass fraction','kilograms','grams','pounds')
+            ! Convert mass unit to moles:
+            dCompoundMass(i) = dCompoundMass(i) / dCompoundUnitMass
+        case ('mole fraction','atom fraction','atoms','moles','gram-atoms')
+            ! Do nothing
+        case default
+            ! The character string representing input units is not recognized.
+            INFOThermo = 4
+            return
         end select
         iElementSystemTemp(i) = i + nElementsPT
     end do
