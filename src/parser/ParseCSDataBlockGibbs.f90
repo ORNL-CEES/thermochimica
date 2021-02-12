@@ -8,7 +8,6 @@
     !> \author  M.H.A. Piro
     !> \date    Apr. 3, 2018
     !> \sa      ParseCSDataBlock.f90
-    !> \todo    Several entries specific to SUBG phases likely need to be updated and may contain errors.
     !
     !
     ! DISCLAIMER

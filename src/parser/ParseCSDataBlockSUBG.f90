@@ -9,10 +9,6 @@
     !> \sa      ParseCSDataFile.f90
     !> \sa      ParseCSDataBlock.f90
     !> \sa      ParseCSDataBlockGibbs.f90
-    !> \todo    There are a number of lines in SUBG phases that I do not yet understand.
-    !!           I've asked some experts and they don't know either, which tells me that
-    !!           they're not important. Once I
-    !!           gain more experience with these models, this will likely become more clear.
     !
     !
     ! DISCLAIMER

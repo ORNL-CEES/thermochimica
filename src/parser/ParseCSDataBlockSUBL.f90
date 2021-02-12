@@ -6,7 +6,6 @@
     !> \brief   Parse the data block section corresponding to a SUBL phase of a ChemSage data-file.
     !> \author  M.H.A. Piro
     !> \date    Dec. 21, 2012
-    !> \todo    Add capability to parse magnetic mixing terms in a SUBLM phase.
     !> \sa      ParseCSDataFile.f90
     !> \sa      ParseCSDataBlock.f90
     !> \sa      ParseCSDataBlockGibbs.f90

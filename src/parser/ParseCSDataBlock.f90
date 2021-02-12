@@ -11,9 +11,6 @@
     !> \sa      ParseCSDataBlockQKTO.f90
     !> \sa      ParseCSDataBlockRKMP.f90
     !> \sa      ParseCSDataBlockSUBL.f90
-    !> \todo    I may have to revisit this source file if SUBG phases should be treated as
-    !!           sublattice phases; this is not yet clear. At this time, it seems unnecessary
-    !!           so I excluded them.
     !
     !
     ! DISCLAIMER
