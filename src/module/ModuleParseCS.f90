@@ -83,7 +83,6 @@ module ModuleParseCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
     integer,        dimension(:),   allocatable :: iMagParamPassCS, nMagParamPhaseCS
     integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iMagneticParamCS
-    integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
     integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iPairIDCS, iChemicalGroupCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMassCS

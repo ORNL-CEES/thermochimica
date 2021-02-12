@@ -190,8 +190,8 @@ subroutine CompThermoData
                 ! This is the same check as in CheckSystemExcess but A = B = ii and X = Y = kk are assured
                 ii = iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1)
                 kk = iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1)
-                iIndex = ii + ((kk - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)) &
+                iIndex = ii + ((kk - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)) &
                             + iFirst - 1
                 if (iSpeciesPass(iIndex) > 0) then
                     nPairsSRO(iSublPhaseIndex,1) = nPairsSRO(iSublPhaseIndex,1) + 1
@@ -287,8 +287,8 @@ subroutine CompThermoData
                 kk = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,3)
                 ll = iPairIDCS(iSublPhaseIndex,i - iFirst + 1,4)
                 ! Anion indices adjusted to start from 1
-                ka = kk - nSublatticeElementsCS(iSublPhaseIndex,1)
-                la = ll - nSublatticeElementsCS(iSublPhaseIndex,1)
+                ka = kk - nConstituentSublatticeCS(iSublPhaseIndex,1)
+                la = ll - nConstituentSublatticeCS(iSublPhaseIndex,1)
 
                 dQx = dSublatticeChargeCS(iSublPhaseIndex,2,ka)
                 dQy = dSublatticeChargeCS(iSublPhaseIndex,2,la)
@@ -298,7 +298,7 @@ subroutine CompThermoData
                 ibx = 0
                 iay = 0
                 iby = 0
-                nA2X2 = nSublatticeElementsCS(iSublPhaseIndex,1) * nSublatticeElementsCS(iSublPhaseIndex,2)
+                nA2X2 = nConstituentSublatticeCS(iSublPhaseIndex,1) * nConstituentSublatticeCS(iSublPhaseIndex,2)
                 do k = 1, nA2X2
                     if   ((iConstituentSublatticeCS(iSublPhaseIndex,1,k) == ii) &
                     .AND. (iConstituentSublatticeCS(iSublPhaseIndex,2,k) == ka)) then
@@ -318,14 +318,14 @@ subroutine CompThermoData
                     end if
                 end do
 
-                ia2x2 = ii + ((ka - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
-                ib2x2 = jj + ((ka - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
-                ia2y2 = ii + ((la - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
-                ib2y2 = jj + ((la - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                        * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2))
+                ia2x2 = ii + ((ka - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
+                ib2x2 = jj + ((ka - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
+                ia2y2 = ii + ((la - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
+                ib2y2 = jj + ((la - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
 
                 dZaA2X2 = dCoordinationNumberCS(iSublPhaseIndex,ia2x2,1)
                 dZbB2X2 = dCoordinationNumberCS(iSublPhaseIndex,ib2x2,1)
@@ -440,10 +440,10 @@ subroutine CompThermoData
                     nRemove = 0
                     iRemove = 0
                     do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
-                        do l = nSublatticeElementsCS(iSublPhaseIndex,k), 1, -1
+                        do l = nConstituentSublatticeCS(iSublPhaseIndex,k), 1, -1
                             if (iConstituentPass(iSublPhaseIndex,k,l) <= 0) then
                                 nRemove = nRemove + 1
-                                iRemove(nRemove) = l + ((k - 1) * nSublatticeElementsCS(iSublPhaseIndex,1))
+                                iRemove(nRemove) = l + ((k - 1) * nConstituentSublatticeCS(iSublPhaseIndex,1))
                             end if
                         end do
                     end do

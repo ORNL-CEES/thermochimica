@@ -103,8 +103,6 @@ subroutine ResetThermoParser
     i = i + INFO
     if (allocated(nSublatticePhaseCS)) deallocate(nSublatticePhaseCS,STAT = INFO)
     i = i + INFO
-    if (allocated(nSublatticeElementsCS)) deallocate(nSublatticeElementsCS,STAT = INFO)
-    i = i + INFO
     if (allocated(dZetaSpeciesCS)) deallocate(dZetaSpeciesCS,STAT = INFO)
     i = i + INFO
     if (allocated(dConstituentCoefficientsCS)) deallocate(dConstituentCoefficientsCS,STAT = INFO)

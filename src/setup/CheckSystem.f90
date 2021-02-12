@@ -283,8 +283,8 @@ subroutine CheckSystem
                     k = iPhaseSublatticeCS(i)
                     iCon1 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),1)
                     iCon2 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),2)
-                    iCon3 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),3) - nSublatticeElementsCS(k,1)
-                    iCon4 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),4) - nSublatticeElementsCS(k,1)
+                    iCon3 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),3) - nConstituentSublatticeCS(k,1)
+                    iCon4 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),4) - nConstituentSublatticeCS(k,1)
                     if (iCon1 > 0) iConstituentPass(k,1,iCon1) = 1
                     if (iCon2 > 0) iConstituentPass(k,1,iCon2) = 1
                     if (iCon3 > 0) iConstituentPass(k,2,iCon3) = 1
@@ -376,8 +376,8 @@ subroutine CheckSystem
                     k = iPhaseSublatticeCS(i)
                     iCon1 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),1)
                     iCon2 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),2)
-                    iCon3 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),3) - nSublatticeElementsCS(k,1)
-                    iCon4 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),4) - nSublatticeElementsCS(k,1)
+                    iCon3 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),3) - nConstituentSublatticeCS(k,1)
+                    iCon4 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),4) - nConstituentSublatticeCS(k,1)
                     if (iCon1 > 0) iConstituentPass(k,1,iCon1) = 1
                     if (iCon2 > 0) iConstituentPass(k,1,iCon2) = 1
                     if (iCon3 > 0) iConstituentPass(k,2,iCon3) = 1
@@ -472,7 +472,7 @@ subroutine CheckSystem
         if (nCountSublattice > 0) then
 
             deallocate(iPhaseSublattice,nSublatticePhase,nConstituentSublattice,dStoichSublattice, &
-                    dSiteFraction,cConstituentNameSUB,iConstituentSublattice,nSublatticeElements, &
+                    dSiteFraction,cConstituentNameSUB,iConstituentSublattice, &
                      nPairsSRO,iPairID,dCoordinationNumber, dZetaSpecies, &
                      dSublatticeCharge,iChemicalGroup,dStoichPairs,cPairName,dConstituentCoefficients, STAT = n)
 
@@ -482,8 +482,7 @@ subroutine CheckSystem
             allocate(dSiteFraction(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
             allocate(cConstituentNameSUB(nCountSublattice,nMaxSublatticeSys,MAX(nMaxConstituentSys,nMaxSpeciesPhase)))
             allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
-            allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
-            j = MAXVAL(nSublatticeElementsCS)
+            j = MAXVAL(nConstituentSublatticeCS)
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
@@ -515,8 +514,7 @@ subroutine CheckSystem
             allocate(dSiteFraction(nCountSublattice,nMaxSublatticeSys,nMaxConstituentSys))
             allocate(cConstituentNameSUB(nCountSublattice,nMaxSublatticeSys,MAX(nMaxConstituentSys,nMaxSpeciesPhase)))
             allocate(iConstituentSublattice(nCountSublattice,nMaxSublatticeSys,nMaxSpeciesPhase))
-            allocate(nSublatticeElements(nCountSublattice,nMaxSublatticeSys))
-            j = MAXVAL(nSublatticeElementsCS)
+            j = MAXVAL(nConstituentSublatticeCS)
             allocate(nPairsSRO(nCountSublattice,2))
             allocate(iPairID(nCountSublattice,nMaxSpeciesPhase,4))
             allocate(dCoordinationNumber(nCountSublattice,nMaxSpeciesPhase,4))
@@ -555,7 +553,6 @@ subroutine CheckSystem
         iConstituentSublattice = 0
         nSublatticePhase       = 0
         nConstituentSublattice = 0
-        nSublatticeElements  = 0
         nPairsSRO            = 0
         iPairID              = 0
         dCoordinationNumber  = 0D0

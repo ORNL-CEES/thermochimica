@@ -151,8 +151,6 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(nConstituentSublattice)) deallocate(nConstituentSublattice, STAT = INFO)
     i = i + INFO
-    if (allocated(nSublatticeElements)) deallocate(nSublatticeElements, STAT = INFO)
-    i = i + INFO
     if (allocated(dZetaSpecies)) deallocate(dZetaSpecies, STAT = INFO)
     i = i + INFO
     if (allocated(dConstituentCoefficients)) deallocate(dConstituentCoefficients, STAT = INFO)

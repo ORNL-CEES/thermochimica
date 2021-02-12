@@ -90,32 +90,32 @@ subroutine ParseCSDataBlockSUBG( i )
     ! This line contains N integers (where N is the number of sublattices)
     ! where each integer represents the number of constituents on the respective
     ! sublattice. There are always two sublattices for SUBG phases.
-    read (1,*,IOSTAT = INFO) nSublatticeElementsCS(nCSCS,1:2)
-    nConstituentSublatticeCS(nCSCS,1:2) = nSublatticeElementsCS(nCSCS,1:2)
+    read (1,*,IOSTAT = INFO) nConstituentSublatticeCS(nCSCS,1:2)
+    nConstituentSublatticeCS(nCSCS,1:2) = nConstituentSublatticeCS(nCSCS,1:2)
     nSublatticePhaseCS(nCSCS) = 2
     nTotalConst = nConstituentSublatticeCS(nCSCS,1)+nConstituentSublatticeCS(nCSCS,2)
     allocate(dStoichConstituentCS(nTotalConst,nElementsCS))
     dStoichConstituentCS = 0D0
 
-    nPairs = nSublatticeElementsCS(nCSCS,1) * nSublatticeElementsCS(nCSCS,2)
+    nPairs = nConstituentSublatticeCS(nCSCS,1) * nConstituentSublatticeCS(nCSCS,2)
 
     ! Read in names of constituents on first sublattice:
-    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
+    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
 
     ! Read in names of constituents on second sublattice: (ignore for now):
-    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
+    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
 
     ! Read in the charge of each constituent on the first sublattice.
-    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
+    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
 
     ! Chemical groups on sublattice 1:
-    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,1,1:nSublatticeElementsCS(nCSCS,1))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
-    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
+    read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
 
     ! Chemical groups on sublattice 2:
-    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,2,1:nSublatticeElementsCS(nCSCS,2))
+    read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
 
     ! This entry appears to represent the IDs matching constituents on the first sublattice to species:
     read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCSCS, 1, 1:nPairs)
@@ -125,29 +125,29 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Set up default pair IDs and coordination numbers
     dCoordinationNumberCS(nCSCS,1:nMaxSpeciesPhaseCS,1:4) = 0D0
-    do y = 1, nSublatticeElementsCS(nCSCS,2)
-        LOOP_sroPairsOuter: do x = 1, nSublatticeElementsCS(nCSCS,2)
+    do y = 1, nConstituentSublatticeCS(nCSCS,2)
+        LOOP_sroPairsOuter: do x = 1, nConstituentSublatticeCS(nCSCS,2)
             if (x == y) then
-                p = (x - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+                p = (x - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             else if (x > y) then
                 cycle LOOP_sroPairsOuter
             else
-                p = (nSublatticeElementsCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-                  * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+                p = (nConstituentSublatticeCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                  * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             end if
-            do k = 1, nSublatticeElementsCS(nCSCS,1)
-                LOOP_sroPairsInner: do j = 1, nSublatticeElementsCS(nCSCS,1)
+            do k = 1, nConstituentSublatticeCS(nCSCS,1)
+                LOOP_sroPairsInner: do j = 1, nConstituentSublatticeCS(nCSCS,1)
                     if (j == k) then
                         l = j
                     else if (j > k) then
                         cycle LOOP_sroPairsInner
                     else
-                        l = nSublatticeElementsCS(nCSCS,1) + j + ((k-2)*(k-1)/2)
+                        l = nConstituentSublatticeCS(nCSCS,1) + j + ((k-2)*(k-1)/2)
                     end if
                     iPairIDCS(nCSCS, l + p, 1) = j
                     iPairIDCS(nCSCS, l + p, 2) = k
-                    iPairIDCS(nCSCS, l + p, 3) = x + nSublatticeElementsCS(nCSCS,1)
-                    iPairIDCS(nCSCS, l + p, 4) = y + nSublatticeElementsCS(nCSCS,1)
+                    iPairIDCS(nCSCS, l + p, 3) = x + nConstituentSublatticeCS(nCSCS,1)
+                    iPairIDCS(nCSCS, l + p, 4) = y + nConstituentSublatticeCS(nCSCS,1)
                     end do LOOP_sroPairsInner
             end do
         end do LOOP_sroPairsOuter
@@ -163,22 +163,22 @@ subroutine ParseCSDataBlockSUBG( i )
     lPairSet = .FALSE.
     LOOP_readPairs: do n = 1, nPairsSROCS(nCSCS,2)
         read (1,*,IOSTAT = INFO) j, k, x, y, dTempVec(1:4)
-        x = x - nSublatticeElementsCS(nCSCS,1)
-        y = y - nSublatticeElementsCS(nCSCS,1)
+        x = x - nConstituentSublatticeCS(nCSCS,1)
+        y = y - nConstituentSublatticeCS(nCSCS,1)
         if (x == y) then
-            p = (x - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (x - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
         else if (x > y) then
             cycle LOOP_readPairs
         else
-            p = (nSublatticeElementsCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-              * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (nConstituentSublatticeCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+              * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
         end if
         if (j == k) then
             l = j
         else if (j > k) then
             cycle LOOP_readPairs
         else
-            l = nSublatticeElementsCS(nCSCS,1) + j + ((k-2)*(k-1)/2)
+            l = nConstituentSublatticeCS(nCSCS,1) + j + ((k-2)*(k-1)/2)
         end if
         dCoordinationNumberCS(nCSCS, l + p, 1) = dTempVec(1)
         dCoordinationNumberCS(nCSCS, l + p, 2) = dTempVec(2)
@@ -199,8 +199,8 @@ subroutine ParseCSDataBlockSUBG( i )
         ! Constituent indices:
         a = iPairIDCS(nCSCS,k,1)
         b = iPairIDCS(nCSCS,k,2)
-        x = iPairIDCS(nCSCS,k,3) - nSublatticeElementsCS(nCSCS,1)
-        y = iPairIDCS(nCSCS,k,4) - nSublatticeElementsCS(nCSCS,1)
+        x = iPairIDCS(nCSCS,k,3) - nConstituentSublatticeCS(nCSCS,1)
+        y = iPairIDCS(nCSCS,k,4) - nConstituentSublatticeCS(nCSCS,1)
 
         ! Constituent charges
         qa = dSublatticeChargeCS(nCSCS,1,a)
@@ -209,7 +209,7 @@ subroutine ParseCSDataBlockSUBG( i )
         qy = dSublatticeChargeCS(nCSCS,2,y)
 
         if ((a /= b) .AND. (x == y)) then
-            p = (x - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (x - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             za = dCoordinationNumberCS(nCSCS, p + a, 1)
             zb = dCoordinationNumberCS(nCSCS, p + b, 1)
 
@@ -218,9 +218,9 @@ subroutine ParseCSDataBlockSUBG( i )
             dCoordinationNumberCS(nCSCS, k, 3) = (qx + qy) / ((qa / za) + (qb / zb))
             dCoordinationNumberCS(nCSCS, k, 4) = (qx + qy) / ((qa / za) + (qb / zb))
         else if ((a == b) .AND. (x /= y)) then
-            p = (x - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (x - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             zx = dCoordinationNumberCS(nCSCS, p + a, 3)
-            p = (y - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (y - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             zy = dCoordinationNumberCS(nCSCS, p + a, 3)
 
             dCoordinationNumberCS(nCSCS, k, 1) = (qa + qb) / ((qx / zx) + (qy / zy))
@@ -229,15 +229,15 @@ subroutine ParseCSDataBlockSUBG( i )
             dCoordinationNumberCS(nCSCS, k, 4) = zy
         else if ((a /= b) .AND. (x /= y)) then
             ! Indices for AA/XY and BB/XY
-            p = (nSublatticeElementsCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-              * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (nConstituentSublatticeCS(nCSCS,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+              * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             iaaxy = a + p
             ibbxy = b + p
             ! Indices for AB/XX and AB/YY
-            l = nSublatticeElementsCS(nCSCS,1) + a + ((b-2)*(b-1)/2)
-            p = (x - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            l = nConstituentSublatticeCS(nCSCS,1) + a + ((b-2)*(b-1)/2)
+            p = (x - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             iabxx = l + p
-            p = (y - 1) * (nSublatticeElementsCS(nCSCS,1) * (nSublatticeElementsCS(nCSCS,1) + 1) / 2)
+            p = (y - 1) * (nConstituentSublatticeCS(nCSCS,1) * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2)
             iabyy = l + p
             ! Coordinations of specific species for the above quadruplets
             za = dCoordinationNumberCS(nCSCS,iaaxy,1)
@@ -278,10 +278,10 @@ subroutine ParseCSDataBlockSUBG( i )
         x = iPairIDCS(nCSCS, j, 3)
         y = iPairIDCS(nCSCS, j, 4)
 
-        xa = x - nSublatticeElementsCS(nCSCS,1)
-        ya = y - nSublatticeElementsCS(nCSCS,1)
+        xa = x - nConstituentSublatticeCS(nCSCS,1)
+        ya = y - nConstituentSublatticeCS(nCSCS,1)
 
-        nA2X2 = nSublatticeElementsCS(nCSCS,1) * nSublatticeElementsCS(nCSCS,2)
+        nA2X2 = nConstituentSublatticeCS(nCSCS,1) * nConstituentSublatticeCS(nCSCS,2)
         do k = 1, nA2X2
             if   ((iConstituentSublatticeCS(nCSCS,1,k) == a) &
             .AND. (iConstituentSublatticeCS(nCSCS,2,k) == xa)) then
@@ -301,22 +301,22 @@ subroutine ParseCSDataBlockSUBG( i )
             end if
         end do
 
-        ia2x2 = a + ((xa - 1) * (nSublatticeElementsCS(nCSCS,1) &
-                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
-        ib2x2 = b + ((xa - 1) * (nSublatticeElementsCS(nCSCS,1) &
-                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
-        ia2y2 = a + ((ya - 1) * (nSublatticeElementsCS(nCSCS,1) &
-                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
-        ib2y2 = b + ((ya - 1) * (nSublatticeElementsCS(nCSCS,1) &
-                                * (nSublatticeElementsCS(nCSCS,1) + 1) / 2))
+        ia2x2 = a + ((xa - 1) * (nConstituentSublatticeCS(nCSCS,1) &
+                                * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
+        ib2x2 = b + ((xa - 1) * (nConstituentSublatticeCS(nCSCS,1) &
+                                * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
+        ia2y2 = a + ((ya - 1) * (nConstituentSublatticeCS(nCSCS,1) &
+                                * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
+        ib2y2 = b + ((ya - 1) * (nConstituentSublatticeCS(nCSCS,1) &
+                                * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
 
         l = j + nSpeciesPhaseCS(i-1)
 
         ! Create quadruplet names
         cSpeciesNameCS(l) = TRIM(cConstituentNameSUBCS(nCSCS,1,a)) // '-' &
                          // TRIM(cConstituentNameSUBCS(nCSCS,1,b)) // '-' &
-                         // TRIM(cConstituentNameSUBCS(nCSCS,2,x - nSublatticeElementsCS(nCSCS,1))) // '-' &
-                         // TRIM(cConstituentNameSUBCS(nCSCS,2,y - nSublatticeElementsCS(nCSCS,1)))
+                         // TRIM(cConstituentNameSUBCS(nCSCS,2,x - nConstituentSublatticeCS(nCSCS,1))) // '-' &
+                         // TRIM(cConstituentNameSUBCS(nCSCS,2,y - nConstituentSublatticeCS(nCSCS,1)))
 
         dCoax = dConstituentCoefficientsCS(nCSCS,iax,1)
         dCobx = dConstituentCoefficientsCS(nCSCS,ibx,1)

@@ -107,14 +107,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
     if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     j = iLast - iFirst + 1
-    nPhaseElements = nSublatticeElements(iSPI,1) + nSublatticeElements(iSPI,2)
+    nPhaseElements = nConstituentSublattice(iSPI,1) + nConstituentSublattice(iSPI,2)
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dFi(nPhaseElements),dNi(nPhaseElements))
-    allocate(dXij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
-    allocate(dNij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
-    allocate(dXsij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
-    allocate(dNsij(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2)))
-    allocate(lAsymmetric1(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
-    allocate(lAsymmetric2(MAX(nSublatticeElements(iSPI,1),nSublatticeElements(iSPI,2))))
+    allocate(dXij(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2)))
+    allocate(dNij(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2)))
+    allocate(dXsij(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2)))
+    allocate(dNsij(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2)))
+    allocate(lAsymmetric1(MAX(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2))))
+    allocate(lAsymmetric2(MAX(nConstituentSublattice(iSPI,1),nConstituentSublattice(iSPI,2))))
 
     ! Initialize variables:
     dXi                               = 0D0
@@ -131,7 +131,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     ! Compute X_i and Y_i
     ! Do cations first:
     dSum = 0D0
-    do i = 1, nSublatticeElements(iSPI,1)
+    do i = 1, nConstituentSublattice(iSPI,1)
         do k = 1, nPairsSRO(iSPI,2)
             l = iFirst + k - 1
             dZa = dCoordinationNumber(iSPI,k,1)
@@ -147,13 +147,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do
         dSum = dSum + dNi(i)
     end do
-    do i = 1, nSublatticeElements(iSPI,1)
+    do i = 1, nConstituentSublattice(iSPI,1)
         dXi(i) = dNi(i) / dSum
     end do
     ! Do anions now:
     dSum = 0D0
-    do i = 1, nSublatticeElements(iSPI,2)
-        j = i + nSublatticeElements(iSPI,1)
+    do i = 1, nConstituentSublattice(iSPI,2)
+        j = i + nConstituentSublattice(iSPI,1)
         do k = 1, nPairsSRO(iSPI,2)
             l = iFirst + k - 1
             dZx = dCoordinationNumber(iSPI,k,3)
@@ -169,18 +169,18 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do
         dSum = dSum + dNi(j)
     end do
-    do i = 1, nSublatticeElements(iSPI,2)
-        j = i + nSublatticeElements(iSPI,1)
+    do i = 1, nConstituentSublattice(iSPI,2)
+        j = i + nConstituentSublattice(iSPI,1)
         dXi(j) = dNi(j) / dSum
     end do
 
     ! Compute X_i/j
     dSumNij = 0D0
     dSumNsij = 0D0
-    do i = 1, nSublatticeElements(iSPI,1)
-        do j = 1, nSublatticeElements(iSPI,2)
+    do i = 1, nConstituentSublattice(iSPI,1)
+        do j = 1, nConstituentSublattice(iSPI,2)
             m = iConstituentSublattice(iSPI,1,i) + &
-            ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+            ((iConstituentSublattice(iSPI,2,j) - 1) * nConstituentSublattice(iSPI,1))
             do k = 1, nPairsSRO(iSPI,2)
                 l = iFirst + k - 1
                 nA = 0
@@ -191,10 +191,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     nA = nA + 1
                 end if
                 nX = 0
-                if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,3))  then
+                if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,3))  then
                     nX = nX + 1
                 end if
-                if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
+                if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
                 dNij(i,j)  = dNij(i,j)  + (dMolFraction(l) * nA * nX)
@@ -205,18 +205,18 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do
     end do
 
-    do i = 1, nSublatticeElements(iSPI,1)
-        do j = 1, nSublatticeElements(iSPI,2)
+    do i = 1, nConstituentSublattice(iSPI,1)
+        do j = 1, nConstituentSublattice(iSPI,2)
             dXij(i,j)  = dNij(i,j)  / dSumNij
             dXsij(i,j) = dNsij(i,j) / dSumNsij
         end do
     end do
 
     ! For updated implementation, calculate F_i
-    do i = 1, nSublatticeElements(iSPI,1)
-        do j = 1, nSublatticeElements(iSPI,2)
+    do i = 1, nConstituentSublattice(iSPI,1)
+        do j = 1, nConstituentSublattice(iSPI,2)
             dFi(i) = dFi(i) + dXsij(i,j)
-            k = j + nSublatticeElements(iSPI,1)
+            k = j + nConstituentSublattice(iSPI,1)
             dFi(k) = dFi(k) + dXsij(i,j)
         end do
     end do
@@ -239,7 +239,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Loop over n_i contributions to entropy
         ! Cations first
-        do i = 1, nSublatticeElements(iSPI,1)
+        do i = 1, nConstituentSublattice(iSPI,1)
             if (i == iPairID(iSPI,k,1))  then
                 dEntropy = dEntropy + (DLOG(dXi(i)) / dZa)
             end if
@@ -248,8 +248,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             end if
         end do
         ! Now anions
-        do i = 1, nSublatticeElements(iSPI,2)
-            j = i + nSublatticeElements(iSPI,1)
+        do i = 1, nConstituentSublattice(iSPI,2)
+            j = i + nConstituentSublattice(iSPI,1)
             if (j == iPairID(iSPI,k,3))  then
                 dEntropy = dEntropy + (DLOG(dXi(j)) / dZx)
             end if
@@ -260,10 +260,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! Loop over n_i/j contributions to entropy
         m = 0
-        do i = 1, nSublatticeElements(iSPI,1)
-            do j = 1, nSublatticeElements(iSPI,2)
+        do i = 1, nConstituentSublattice(iSPI,1)
+            do j = 1, nConstituentSublattice(iSPI,2)
                 m = iConstituentSublattice(iSPI,1,i) + &
-                ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+                ((iConstituentSublattice(iSPI,2,j) - 1) * nConstituentSublattice(iSPI,1))
                 nA = 0
                 if (i == iPairID(iSPI,k,1))  then
                     nA = nA + 1
@@ -272,13 +272,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     nA = nA + 1
                 end if
                 nX = 0
-                if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,3))  then
+                if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,3))  then
                     nX = nX + 1
                 end if
-                if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
+                if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
-                dEntropy = dEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSublatticeElements(iSPI,1)))) &
+                dEntropy = dEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nConstituentSublattice(iSPI,1)))) &
                                     * (nA * nX / dZetaSpecies(iSPI,m)))
             end do
         end do
@@ -289,8 +289,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         kk = iPairID(iSPI,k,3)
         ll = iPairID(iSPI,k,4)
         ! Anion indices adjusted to start from 1
-        ka = kk - nSublatticeElements(iSPI,1)
-        la = ll - nSublatticeElements(iSPI,1)
+        ka = kk - nConstituentSublattice(iSPI,1)
+        la = ll - nConstituentSublattice(iSPI,1)
 
         ! Add n_ij/kl contribution
         iWeight = 1
@@ -331,8 +331,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         b = iRegularParam(abxy,3)              ! Index of B
         xx = iRegularParam(abxy,4)             ! Index of X, unadjusted
         yy = iRegularParam(abxy,5)             ! Index of Y, unadjusted
-        x = xx - nSublatticeElements(iSPI,1)   ! Index of X
-        y = yy - nSublatticeElements(iSPI,1)   ! Index of Y
+        x = xx - nConstituentSublattice(iSPI,1)   ! Index of X
+        y = yy - nConstituentSublattice(iSPI,1)   ! Index of Y
         p = iRegularParam(abxy,6)              ! Exponent 1
         q = iRegularParam(abxy,7)              ! Exponent 2
         r = iRegularParam(abxy,8)              ! Exponent 3
@@ -341,20 +341,20 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         w = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice
 
         if (x == y) then
-            iBlock = (x - 1) * (nSublatticeElements(iSPI,1) &
-                             * (nSublatticeElements(iSPI,1) + 1) / 2)
+            iBlock = (x - 1) * (nConstituentSublattice(iSPI,1) &
+                             * (nConstituentSublattice(iSPI,1) + 1) / 2)
         else if (x > y) then
             cycle LOOP_Param
         else
-            iBlock = (nSublatticeElements(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-                   * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2)
+            iBlock = (nConstituentSublattice(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                   * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2)
         end if
         if (a == b) then
             iBlock = iBlock + a
         else if (a > b) then
             cycle LOOP_Param
         else
-            iBlock = iBlock + nSublatticeElements(iSPI,1) + a + ((b-2)*(b-1)/2)
+            iBlock = iBlock + nConstituentSublattice(iSPI,1) + a + ((b-2)*(b-1)/2)
         end if
         iBlock = iBlock + iFirst - 1
 
@@ -371,7 +371,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             lAsymmetric2(b) = .TRUE.
             ! First make a list of which constituents make asymmetric ternaries
             if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
-                do i = 1, nSublatticeElements(iSPI,1)
+                do i = 1, nConstituentSublattice(iSPI,1)
                     if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
                         lAsymmetric1(i) = .TRUE.
                     else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
@@ -380,14 +380,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
             end if
             ! Now use lists to generate xi and chi
-            do i = 1, nSublatticeElements(iSPI,1)
-                do j = i, nSublatticeElements(iSPI,1)
-                    k = (x - 1) * (nSublatticeElements(iSPI,1) &
-                                    * (nSublatticeElements(iSPI,1) + 1) / 2)
+            do i = 1, nConstituentSublattice(iSPI,1)
+                do j = i, nConstituentSublattice(iSPI,1)
+                    k = (x - 1) * (nConstituentSublattice(iSPI,1) &
+                                    * (nConstituentSublattice(iSPI,1) + 1) / 2)
                     if (i == j) then
                         k = k + i
                     else
-                        k = k + nSublatticeElements(iSPI,1) + i + ((j-2)*(j-1)/2)
+                        k = k + nConstituentSublattice(iSPI,1) + i + ((j-2)*(j-1)/2)
                     end if
                     iQuad = k + iFirst - 1
                     if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
@@ -422,7 +422,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             lAsymmetric2(y) = .TRUE.
             ! First make a list of which constituents make asymmetric ternaries
             if (iChemicalGroup(iSPI,2,x) /= iChemicalGroup(iSPI,2,y)) then
-                do i = 1, nSublatticeElements(iSPI,2)
+                do i = 1, nConstituentSublattice(iSPI,2)
                     if (iChemicalGroup(iSPI,2,i) == iChemicalGroup(iSPI,2,x)) then
                         lAsymmetric1(i) = .TRUE.
                     else if (iChemicalGroup(iSPI,2,i) == iChemicalGroup(iSPI,2,y)) then
@@ -431,15 +431,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
             end if
             ! Now use lists to generate xi and chi
-            do i = 1, nSublatticeElements(iSPI,2)
-                do j = i, nSublatticeElements(iSPI,2)
+            do i = 1, nConstituentSublattice(iSPI,2)
+                do j = i, nConstituentSublattice(iSPI,2)
                     k = a
                     if (i == j) then
-                        k = k + (i - 1) * (nSublatticeElements(iSPI,1) &
-                                        * (nSublatticeElements(iSPI,1) + 1) / 2)
+                        k = k + (i - 1) * (nConstituentSublattice(iSPI,1) &
+                                        * (nConstituentSublattice(iSPI,1) + 1) / 2)
                     else
-                        k = k + (nSublatticeElements(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-                              * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2)
+                        k = k + (nConstituentSublattice(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                              * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2)
                     end if
                     iQuad = k + iFirst - 1
                     if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
@@ -453,7 +453,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     end if
                 end do
                 ! Below is xi with counting of x /= y quads
-                ii = i + nSublatticeElements(iSPI,1)
+                ii = i + nConstituentSublattice(iSPI,1)
                 do k = 1, nPairsSRO(iSPI,2)
                     l = k + iFirst - 1
                     if (lAsymmetric1(i)) then
@@ -527,8 +527,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dXtot = dXsij(a,x) + dXsij(b,y)
             dGex = dExcessGibbsParam(abxy) * dXsij(a,x)**(1D0+p) * dXsij(b,y)**(1D0+q) / dXtot**(1D0+p+q)
             dDgexBase = - dGex / dSumNsij
-            LOOP_Bder: do i = 1, nSublatticeElements(iSPI,1)
-                do j = 1, nSublatticeElements(iSPI,2)
+            LOOP_Bder: do i = 1, nConstituentSublattice(iSPI,1)
+                do j = 1, nConstituentSublattice(iSPI,2)
                     dDgex = dDgexBase
                     if ((i == a) .AND. (j == x)) then
                         ! the if below is just to prove that there are numerical issues with this mixing scheme
@@ -538,7 +538,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     else if ((i == b) .AND. (j == y)) then
                         dDgex = dDgex + dGex*(dNsij(a,x) - dNsij(b,y)*p + dNsij(a,x)*q) / (dNsij(b,y) * (dNsij(b,y) + dNsij(a,x)))
                     end if
-                    m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nSublatticeElements(iSPI,1))
+                    m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nConstituentSublattice(iSPI,1))
                     do k = 1, nPairsSRO(iSPI,2)
                         l = iFirst + k - 1
                         nA = 0
@@ -549,10 +549,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                             nA = nA + 1
                         end if
                         nX = 0
-                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,3))  then
+                        if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,3))  then
                             nX = nX + 1
                         end if
-                        if ((j + nSublatticeElements(iSPI,1)) == iPairID(iSPI,k,4))  then
+                        if ((j + nConstituentSublattice(iSPI,1)) == iPairID(iSPI,k,4))  then
                             nX = nX + 1
                         end if
                         ! Add derivative contribution
@@ -575,14 +575,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! If A = B add g^ex contribution to quads AC/XY
         if ((a == b) .AND. (x /= y)) then
-            LOOP_AC1: do c = 1, nSublatticeElements(iSPI,1)
+            LOOP_AC1: do c = 1, nConstituentSublattice(iSPI,1)
                 if (c == a) cycle LOOP_AC1
                 e = MIN(a,c)
                 f = MAX(a,c)
                 ia = MINLOC((/a,c/),1)
-                iQuad = (nSublatticeElements(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-                      * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                      +  nSublatticeElements(iSPI,1) + e + ((f-2)*(f-1)/2)
+                iQuad = (nConstituentSublattice(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                      * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2) &
+                      +  nConstituentSublattice(iSPI,1) + e + ((f-2)*(f-1)/2)
                 iQuad = iQuad + iFirst - 1
                 ! if (cRegularParam(abxy) /= 'B') then
                     dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
@@ -594,14 +594,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         ! If X = Y add g^ex contribution to quads AB/XZ
         if ((a /= b) .AND. (x == y)) then
-            LOOP_XZ1: do z = 1, nSublatticeElements(iSPI,2)
+            LOOP_XZ1: do z = 1, nConstituentSublattice(iSPI,2)
                 if (z == x) cycle LOOP_XZ1
                 e = MIN(x,z)
                 f = MAX(x,z)
                 ix = MINLOC((/x,z/),1) + 2
-                iQuad = (nSublatticeElements(iSPI,2) + (e - 1) + ((f-2)*(f-1)/2)) &
-                      * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                      +  nSublatticeElements(iSPI,1) + a + ((b-2)*(b-1)/2)
+                iQuad = (nConstituentSublattice(iSPI,2) + (e - 1) + ((f-2)*(f-1)/2)) &
+                      * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2) &
+                      +  nConstituentSublattice(iSPI,1) + a + ((b-2)*(b-1)/2)
                 iQuad = iQuad + iFirst - 1
                 dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + ((dGex / 4) &
                                            * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,3) &
@@ -614,8 +614,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             iQuad2 = ijkl + iFirst - 1
             i = iPairID(iSPI,ijkl,1)
             j = iPairID(iSPI,ijkl,2)
-            k = iPairID(iSPI,ijkl,3) - nSublatticeElements(iSPI,1)
-            l = iPairID(iSPI,ijkl,4) - nSublatticeElements(iSPI,1)
+            k = iPairID(iSPI,ijkl,3) - nConstituentSublattice(iSPI,1)
+            l = iPairID(iSPI,ijkl,4) - nConstituentSublattice(iSPI,1)
 
             dTernaryFactorDG = 0D0
             if (d > 0) then
@@ -629,7 +629,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     dTernaryFactorDG = dTernaryFactorDG + (nA * nX) / (4D0 * dYdk)
 
                     dTernarySum2 = 0D0
-                    do e = 1, nSublatticeElements(iSPI,1)
+                    do e = 1, nConstituentSublattice(iSPI,1)
                         nA = 0
                         if (i == e) nA = nA + 1
                         if (j == e) nA = nA + 1
@@ -656,7 +656,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     dTernaryFactorDG = dTernaryFactorDG + (nA * nX) / (4D0 * dYdk)
 
                     dTernarySum1 = 0D0
-                    do e = 1, nSublatticeElements(iSPI,1)
+                    do e = 1, nConstituentSublattice(iSPI,1)
                         nA = 0
                         if (i == e) nA = nA + 1
                         if (j == e) nA = nA + 1
@@ -685,7 +685,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
                     dTernarySum1 = 0D0
                     dTernarySum2 = 0D0
-                    do e = 1, nSublatticeElements(iSPI,1)
+                    do e = 1, nConstituentSublattice(iSPI,1)
                         nA = 0
                         if (i == e) nA = nA + 1
                         if (j == e) nA = nA + 1
@@ -720,7 +720,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Q-type terms
             else if (cRegularParam(abxy) == 'Q') then
                 dDgex = 0D0
-                do ii = 1, nSublatticeElements(iSPI,1)
+                do ii = 1, nConstituentSublattice(iSPI,1)
                     ! Below is xi with counting of x /= y quads
                     if (lAsymmetric1(ii)) then
                         if (ii == i .AND. x == k) dDgex = dDgex + dDgexBase / 4 + dGex * p / (4 * dXi1)
@@ -743,14 +743,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
             ! If A = B add dg^ex contribution from quads AC/XY to IJ/KL
             if ((a == b) .AND. (x /= y)) then
-                LOOP_AC2: do c = 1, nSublatticeElements(iSPI,1)
+                LOOP_AC2: do c = 1, nConstituentSublattice(iSPI,1)
                     if (c == a) cycle LOOP_AC2
                     e = MIN(a,c)
                     f = MAX(a,c)
                     ia = MINLOC((/a,c/),1)
-                    iQuad = (nSublatticeElements(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
-                          * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                          +  nSublatticeElements(iSPI,1) + e + ((f-2)*(f-1)/2)
+                    iQuad = (nConstituentSublattice(iSPI,2) + (x - 1) + ((y-2)*(y-1)/2)) &
+                          * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2) &
+                          +  nConstituentSublattice(iSPI,1) + e + ((f-2)*(f-1)/2)
                     iQuad = iQuad + iFirst - 1
                     dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + ((dMolFraction(iQuad) * dDgex / 4) &
                                               * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,1) &
@@ -760,14 +760,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! If X = Y add dg^ex contribution from quads AB/XZ to IJ/KL
             if ((a /= b) .AND. (x == y)) then
                 ! if (.NOT.((l == x).AND.(k == x))) cycle LOOP_ijkl
-                LOOP_XZ2: do z = 1, nSublatticeElements(iSPI,2)
+                LOOP_XZ2: do z = 1, nConstituentSublattice(iSPI,2)
                     if (z == x) cycle LOOP_XZ2
                     e = MIN(x,z)
                     f = MAX(x,z)
                     ix = MINLOC((/x,z/),1) + 2
-                    iQuad = (nSublatticeElements(iSPI,2) + (e - 1) + ((f-2)*(f-1)/2)) &
-                          * (nSublatticeElements(iSPI,1) * (nSublatticeElements(iSPI,1) + 1) / 2) &
-                          +  nSublatticeElements(iSPI,1) + a + ((b-2)*(b-1)/2)
+                    iQuad = (nConstituentSublattice(iSPI,2) + (e - 1) + ((f-2)*(f-1)/2)) &
+                          * (nConstituentSublattice(iSPI,1) * (nConstituentSublattice(iSPI,1) + 1) / 2) &
+                          +  nConstituentSublattice(iSPI,1) + a + ((b-2)*(b-1)/2)
                     iQuad = iQuad + iFirst - 1
                     dPartialExcessGibbs(iQuad2) = dPartialExcessGibbs(iQuad2) + ((dMolFraction(iQuad) * dDgex / 4) &
                                               * (dCoordinationNumber(iSPI,iBlock - iFirst + 1,3) &

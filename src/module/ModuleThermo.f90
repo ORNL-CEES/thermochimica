@@ -92,7 +92,6 @@ module ModuleThermo
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO, iMagneticParam
     integer,       dimension(:,:), allocatable::  iSUBLParamData
-    integer,       dimension(:,:), allocatable::  nSublatticeElements
     integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iPairID
     integer,       dimension(:,:,:),allocatable:: iChemicalGroup
 

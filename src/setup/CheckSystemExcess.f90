@@ -251,14 +251,14 @@ subroutine CheckSystemExcess
             nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
             do j = 1, nSublatticePhase(nCountSublattice)
                 m = 0
-                do k = 1, nSublatticeElementsCS(nCountSublatticeCS,j)
+                do k = 1, nConstituentSublatticeCS(nCountSublatticeCS,j)
                     if (iConstituentPass(nCountSublatticeCS,j,k) /= 0) then
                         m = m + 1
                         dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
                         iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
                     end if
                 end do
-                nSublatticeElements(nCountSublattice,j) = m
+                nConstituentSublattice(nCountSublattice,j) = m
             end do
 
             m = 0
@@ -282,20 +282,20 @@ subroutine CheckSystemExcess
                 ! Find indices of constituents in quadruplet
                 pa = iPairIDCS(nCountSublattice,k,1)
                 pb = iPairIDCS(nCountSublattice,k,2)
-                px = iPairIDCS(nCountSublattice,k,3) - nSublatticeElementsCS(nCountSublatticeCS,1)
-                py = iPairIDCS(nCountSublattice,k,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                px = iPairIDCS(nCountSublattice,k,3) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+                py = iPairIDCS(nCountSublattice,k,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
                 ! Find index of quadruplet
                 if (px == py) then
-                    p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                 * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    p = (px - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                 * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
                 else
-                    p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
-                      * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    p = (nConstituentSublatticeCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                      * (nConstituentSublatticeCS(nCountSublatticeCS,1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
                 end if
                 if (pa == pb) then
                     l = pa
                 else
-                    l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    l = nConstituentSublatticeCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
                 end if
                 iIndex = p + l + nSpeciesPhaseCS(i - 1)
                 ! Make sure this quadruplet is still part of the system, if so save data
@@ -311,10 +311,10 @@ subroutine CheckSystemExcess
             nRemove = 0
             iRemove = 0
             do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
-                do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                do l = nConstituentSublatticeCS(nCountSublatticeCS,j), 1, -1
                     if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
                         nRemove = nRemove + 1
-                        iRemove(nRemove) = l + ((j - 1) * nSublatticeElementsCS(nCountSublatticeCS,1))
+                        iRemove(nRemove) = l + ((j - 1) * nConstituentSublatticeCS(nCountSublatticeCS,1))
                     end if
                 end do
             end do
@@ -333,7 +333,7 @@ subroutine CheckSystemExcess
             do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
                 nRemove = 0
                 iRemove = 0
-                do l = nSublatticeElementsCS(nCountSublatticeCS,j), 1, -1
+                do l = nConstituentSublatticeCS(nCountSublatticeCS,j), 1, -1
                     if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
                         nRemove = nRemove + 1
                         iRemove(nRemove) = l
@@ -353,8 +353,8 @@ subroutine CheckSystemExcess
             LOOP_excess: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                 pa = iRegularParamCS(j,2)
                 pb = iRegularParamCS(j,3)
-                px = iRegularParamCS(j,4) - nSublatticeElementsCS(nCountSublatticeCS,1)
-                py = iRegularParamCS(j,5) - nSublatticeElementsCS(nCountSublatticeCS,1)
+                px = iRegularParamCS(j,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+                py = iRegularParamCS(j,5) - nConstituentSublatticeCS(nCountSublatticeCS,1)
                 pe = iRegularParamCS(j,10)
                 pf = iRegularParamCS(j,11)
 
@@ -367,21 +367,21 @@ subroutine CheckSystemExcess
                 ! Making a guess at how to handle this for the other entry
                 ! lRemoved = .TRUE.
                 if (pf > 0) then
-                    pf = pf - nSublatticeElementsCS(nCountSublatticeCS,1)
+                    pf = pf - nConstituentSublatticeCS(nCountSublatticeCS,1)
                     if (iConstituentPass(nCountSublatticeCS,2,pf) == 0) cycle LOOP_excess
                 end if
 
                 if (px == py) then
-                    p = (px - 1) * (nSublatticeElementsCS(nCountSublatticeCS,1) &
-                                 * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    p = (px - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
+                                 * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
                 else
-                    p = (nSublatticeElementsCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
-                      * (nSublatticeElementsCS(nCountSublatticeCS,1) * (nSublatticeElementsCS(nCountSublatticeCS,1) + 1) / 2)
+                    p = (nConstituentSublatticeCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                      * (nConstituentSublatticeCS(nCountSublatticeCS,1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
                 end if
                 if (pa == pb) then
                     l = pa
                 else
-                    l = nSublatticeElementsCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                    l = nConstituentSublatticeCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
                 end if
                 iIndex = p + l + nSpeciesPhaseCS(i - 1)
                 if (iSpeciesPass(iIndex) > 0) then
