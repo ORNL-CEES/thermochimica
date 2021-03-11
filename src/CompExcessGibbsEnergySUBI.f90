@@ -110,7 +110,15 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             ! Relative component index:
             m = i - iFirst + 1
             c = iConstituentSublattice(iSPI,1,m)
-            if (c > 0) dSiteFraction(iSPI,1,c) = dSiteFraction(iSPI,1,c) + dMolFraction(i)
+            d = iConstituentSublattice(iSPI,2,m)
+            if ((cConstituentNameSUB(iSPI,2,d) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,d) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,d) == 'va')) then
+                dTemp = 1D0
+            else
+                dTemp = -dSublatticeCharge(iSPI,2,d)
+            end if
+            if (c > 0) dSiteFraction(iSPI,1,c) = dSiteFraction(iSPI,1,c) + dMolFraction(i) * dTemp
         end do
 
         ! Correct first site fraction
@@ -139,13 +147,15 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 ! Vacancy or neutral get scaled by Q
-                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) / q
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) 
             else
-                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i)
+                d = iConstituentSublattice(iSPI,1,m)
+                dTemp = dSublatticeCharge(iSPI,1,d)
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) * dTemp
             end if
         end do
 
-        ! Correct first site fraction
+        ! Correct second site fraction
         dTemp = 0D0
         do i = 1, nConstituentSublattice(iSPI,2)
             dTemp = dTemp + dSiteFraction(iSPI,2,i)
