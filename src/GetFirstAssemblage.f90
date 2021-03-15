@@ -89,7 +89,7 @@ subroutine GetFirstAssemblage
     ! species with a positive standard Gibbs energy.  The MASK feature is utilized
     ! to ensure that pure species with a positive standard Gibbs energy are considered.
 
-    iAssemblage = MINLOC(dTempArr, DIM = 1, MASK = dTempArr /= 0D0)
+    iAssemblage = MINLOC(dTempArr, DIM = 1, MASK = iAtomFractionSpecies /= 0)
 
     ! Establish the first adjustment to the element potentials:
     do i = 1, nElements
