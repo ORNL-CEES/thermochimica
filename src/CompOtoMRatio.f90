@@ -68,10 +68,9 @@ subroutine CompOtoMRatio(cPhaseIn, lcPhaseIn, dOtoMRatio, INFO)
     character(*)  :: cPhaseIn
     integer       :: lcPhaseIn
     real(8)       :: dOtoMRatio
-    character(15) :: cPhaseInLen
+    character(25) :: cPhaseInLen
 
-    cPhaseInLen = cPhaseIn(1:min(15,lcPhaseIn))
-!    cPhaseInLen = cPhaseIn(1:min(15,len(cPhaseIn)))
+    cPhaseInLen = cPhaseIn(1:min(25,lcPhaseIn))
 
 
     ! Initialize variables:

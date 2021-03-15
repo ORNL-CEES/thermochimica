@@ -6,3 +6,5 @@ doc/html/
 doc/latex/
 doc/test/
 test/doc/
+# ignore outputs
+*.out

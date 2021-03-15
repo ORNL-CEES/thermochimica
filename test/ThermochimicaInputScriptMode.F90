@@ -19,7 +19,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program ThermochimicaInputFileMode
+program ThermochimicaInputScriptMode
 
   USE ModuleThermoIO
   USE ModuleThermo
@@ -27,6 +27,8 @@ program ThermochimicaInputFileMode
 
   implicit none
   character(1024) :: cInputFile
+  real(8) :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
+  integer :: i, nT, j, nP
 
   ! Read input argument to get filename
   call get_command_argument(1, cInputFile)
@@ -36,21 +38,48 @@ program ThermochimicaInputFileMode
   endif
 
   ! Call input parser
-  call ParseInput(cInputFile)
-
+  call ParseInput(cInputFile,dTempLow,dTempHigh,dDeltaT,dPressLow,dPressHigh,dDeltaP)
   ! Parse the ChemSage data-file:
   call ParseCSDataFile(cThermoFileName)
 
-  ! Call Thermochimica:
-  call Thermochimica
+  if ((dTempHigh == dTempLow) .OR. (dDeltaT == 0)) then
+    nT = 0
+  else
+    nT = CEILING(DABS(dTempHigh-dTempLow)/DABS(dDeltaT))
+  end if
 
-  ! Perform post-processing of results:
-  if (iPrintResultsMode > 0)  call PrintResults
+  if ((dPressHigh == dPressLow) .OR. (dDeltaP == 0)) then
+    nP = 0
+  else
+    nP = CEILING(DABS(dPressHigh-dPressLow)/DABS(dDeltaP))
+  end if
 
-  ! Reset Thermochimica:
-  call ResetThermo
+  do i = 0, nT
+    dTemperature = dTempLow + i*dDeltaT
+    if ((dTempHigh > dTempLow) .AND. (dTemperature > dTempHigh)) dTemperature = dTempHigh
+    if ((dTempHigh < dTempLow) .AND. (dTemperature < dTempHigh)) dTemperature = dTempHigh
 
-  ! Call the debugger:
-  call ThermoDebug
+    do j = 0, nP
+      dPressure = dPressLow + j*dDeltaP
+      if ((dPressHigh > dPressLow) .AND. (dPressure > dPressHigh)) dPressure = dPressHigh
+      if ((dPressHigh < dPressLow) .AND. (dPressure < dPressHigh)) dPressure = dPressHigh
 
-end program ThermochimicaInputFileMode
+      ! Call Thermochimica:
+      call Thermochimica
+
+      if (lReinitRequested) call SaveReinitData
+
+      ! Perform post-processing of results:
+      if (iPrintResultsMode > 0)  call PrintResults
+
+      ! Reset Thermochimica:
+      call ResetThermo
+
+      ! Call the debugger:
+      call ThermoDebug
+    end do
+  end do
+
+  call ResetThermoAll
+
+end program ThermochimicaInputScriptMode
