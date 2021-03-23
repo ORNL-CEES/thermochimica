@@ -16,7 +16,7 @@
     !
     !   Date            Programmer      Description of change
     !   ----            ----------      ---------------------
-    !   01/19/2021      M. POschmann     Original code
+    !   01/19/2021      M. Poschmann     Original code
     !
     !
     ! Purpose:
@@ -85,9 +85,11 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: iSolnIndex, nSublattice, iSPI, iMixType
     integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
     integer :: iTempParam1, iTempParam2, iExponent, iTempSub, iThirdParam, iTernaryCon
-    real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
-    real(8) :: dTempParam1, dTempParam2, KD, dSum, dEnt, p, q
-    real(8), dimension(nMaxSublatticeSys):: dTempVec
+    real(8) :: dTemp, dTempNC, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
+    real(8) :: dTempParam1, dTempParam2, KD, dSum, dEnt, p, q, kc1, kc2, lc1, lc2, dgref, dgideal, dydn
+    real(8), dimension(nMaxSublatticeSys) :: dTempVec
+    real(8), dimension(:), allocatable :: dgdc1, dgdc2, muc1, muc2
+    real(8), dimension(:,:), allocatable :: dSiteFractionNoCharge
 
 
     ! Only proceed if the correct phase type is selected:
@@ -99,14 +101,24 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         iFirst          = nSpeciesPhase(iSolnIndex-1) + 1
         iLast           = nSpeciesPhase(iSolnIndex)
 
+        allocate(dgdc1(nConstituentSublattice(iSPI,1)),dgdc2(nConstituentSublattice(iSPI,2)))
+        allocate(muc1(nConstituentSublattice(iSPI,1)),muc2(nConstituentSublattice(iSPI,2)))
+        allocate(dSiteFractionNoCharge(nSublattice,nMaxConstituentSys))
+
         ! Initialize variables:
         dSiteFraction(iSPI,1:nSublattice,1:nMaxConstituentSys) = 0D0
-        dChemicalPotential(iFirst:iLast)                                  = 0D0
-        dPartialExcessGibbs(iFirst:iLast)                                 = 0D0
-        dTempVec                                                          = 0D0
+        dSiteFractionNoCharge                                  = 0D0
+        dChemicalPotential(iFirst:iLast)                       = 0D0
+        dPartialExcessGibbs(iFirst:iLast)                      = 0D0
+        dTempVec                                               = 0D0
+        dgdc1                                                  = 0D0
+        dgdc2                                                  = 0D0
+        muc1                                                   = 0D0
+        muc2                                                   = 0D0
 
         ! Compute site fractions on first sublattice:
         do i = iFirst, iLast
+            print *, cSpeciesName(i), dMolFraction(i)
             ! Relative component index:
             m = i - iFirst + 1
             c = iConstituentSublattice(iSPI,1,m)
@@ -118,7 +130,9 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             else
                 dTemp = -dSublatticeCharge(iSPI,2,d)
             end if
-            if (c > 0) dSiteFraction(iSPI,1,c) = dSiteFraction(iSPI,1,c) + dMolFraction(i) * dTemp
+            if (c > 0) then
+                dSiteFraction(iSPI,1,c) = dSiteFraction(iSPI,1,c) + dMolFraction(i) * dTemp
+            end if
         end do
 
         ! Correct first site fraction
@@ -128,13 +142,14 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         end do
         do i = 1, nConstituentSublattice(iSPI,1)
             dSiteFraction(iSPI,1,i) = dSiteFraction(iSPI,1,i) / dTemp
+            print *, cConstituentNameSUB(iSPI,1,i), dSiteFraction(iSPI,1,i)
         end do
+        dTempVec(1) = dTemp
 
         ! Compute Q
         q = 0D0
         do i = 1, nConstituentSublattice(iSPI,1)
             q = q + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,1,i)
-            ! print *, cConstituentNameSUB(iSPI,1,i), dSiteFraction(iSPI,1,i), dSublatticeCharge(iSPI,1,i)
         end do
 
         ! Compute site fractions on second sublattice:
@@ -147,7 +162,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 ! Vacancy or neutral get scaled by Q
-                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) 
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i)
             else
                 d = iConstituentSublattice(iSPI,1,m)
                 dTemp = dSublatticeCharge(iSPI,1,d)
@@ -162,7 +177,40 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         end do
         do i = 1, nConstituentSublattice(iSPI,2)
             dSiteFraction(iSPI,2,i) = dSiteFraction(iSPI,2,i) / dTemp
+            print *, cConstituentNameSUB(iSPI,2,i), dSiteFraction(iSPI,2,i)
         end do
+        dTempVec(2) = dTemp
+        print *, dTempVec
+
+        ! Correct the mole fractions of phase components by the site fractions of the constituents
+        dSum = 0D0
+        LOOP_CorrectX: do i = iFirst, iLast
+            dTemp = 1D0
+            m = i - iFirst + 1
+
+            c = iConstituentSublattice(iSPI,2,m)
+            d = iConstituentSublattice(iSPI,1,m)
+            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+                (dSublatticeCharge(iSPI,2,c) == 0D0)) then
+                if (d > 0) dTemp = dTemp * dSiteFraction(iSPI,1,d) !/ dTempVec(s)
+                if (c > 0) dTemp = dTemp * dSiteFraction(iSPI,2,c) !/ dTempVec(s)
+            else
+                if (d > 0) dTemp = dTemp * dSiteFraction(iSPI,1,d) / dSublatticeCharge(iSPI,1,d) !/ dTempVec(s)
+                if (c > 0) dTemp = dTemp * dSiteFraction(iSPI,2,c) !/ (-dSublatticeCharge(iSPI,2,c)) !/ dTempVec(s)
+            end if
+
+            dMolFraction(i)  = dTemp
+            dSum = dSum + dTemp
+        end do LOOP_CorrectX
+
+        do i = iFirst, iLast
+            dMolFraction(i)  = dMolFraction(i) / dSum
+            print *, cSpeciesName(i), dMolFraction(i)
+        end do
+        ! print *, ' '
+        ! call EXIT
 
         ! Compute P
         p = 0D0
@@ -189,82 +237,223 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
+        dgref = 0D0
+        do j = iFirst, iLast
+            ! Relative species index:
+            n = j - iFirst + 1
+
+            ! Store constituent indices:
+            l1 = iConstituentSublattice(iSPI,1,n)
+            l2 = iConstituentSublattice(iSPI,2,n)
+
+            lc1 = 1D0
+            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+                (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
+                lc2 = 1D0
+            else
+                if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
+                lc2 = -dSublatticeCharge(iSPI,2,l2)
+            end if
+
+            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+                ! cation / vacancy
+                dgref = dgref + q * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+            else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
+                ! neutral
+                dgref = dgref + q * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+            else
+                ! cation / anion
+                dgref = dgref + dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+            end if
+        end do
+
+        dgideal = 0D0
+        do i = 1, nConstituentSublattice(iSPI,1)
+            dgideal = dgideal + p * dSiteFraction(iSPI,1,i) * DLOG(dSiteFraction(iSPI,1,i))
+        end do
+        do i = 1, nConstituentSublattice(iSPI,2)
+            dgideal = dgideal + q * dSiteFraction(iSPI,2,i) * DLOG(dSiteFraction(iSPI,2,i))
+        end do
+
+        do i = 1, nConstituentSublattice(iSPI,1)
+            lc1 = dSublatticeCharge(iSPI,1,i)
+            ! Reference
+            do j = iFirst, iLast
+                ! Relative species index:
+                n = j - iFirst + 1
+
+                ! Store constituent indices:
+                l1 = iConstituentSublattice(iSPI,1,n)
+                l2 = iConstituentSublattice(iSPI,2,n)
+
+                ! lc1 = 1D0
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+                    (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
+                    lc2 = 1D0
+                else
+                    ! if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
+                    lc2 = -dSublatticeCharge(iSPI,2,l2)
+                end if
+
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+                    ! cation / vacancy
+                    if (i == l1) dgdc1(i) = dgdc1(i) + q * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                    dgdc1(i) = dgdc1(i) + lc1 * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
+                    ! neutral
+                    dgdc1(i) = dgdc1(i) + lc1 * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                else
+                    ! cation / anion
+                    if (i == l1) dgdc1(i) = dgdc1(i) + dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                end if
+            end do
+            ! Entropy
+            do j = 1, nConstituentSublattice(iSPI,2)
+                dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,2,j) * DLOG(dSiteFraction(iSPI,2,j))
+                if ((cConstituentNameSUB(iSPI,2,j) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,j) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,j) == 'va')) then
+                    ! cation / vacancy
+                    dgdc1(i) = dgdc1(i) + (1 + DLOG(dSiteFraction(iSPI,1,i))) * q * dSiteFraction(iSPI,2,j)
+                    dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,2,j) &
+                                        * dSiteFraction(iSPI,1,i)*DLOG(dSiteFraction(iSPI,1,i))
+                else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
+                    ! neutral
+                else
+                    ! cation / anion
+                    dgdc1(i) = dgdc1(i) + (1+DLOG(dSiteFraction(iSPI,1,i)))*(-dSublatticeCharge(iSPI,2,j))*dSiteFraction(iSPI,2,j)
+                end if
+            end do
+        end do
+
+        do i = 1, nConstituentSublattice(iSPI,1)
+            muc1(i) = dgdc1(i)
+            do j = 1, nConstituentSublattice(iSPI,1)
+                muc1(i) = muc1(i) - dSiteFraction(iSPI,1,j) * dgdc1(j)
+            end do
+        end do
+
+        do i = 1, nConstituentSublattice(iSPI,2)
+            do j = iFirst, iLast
+                ! Relative species index:
+                n = j - iFirst + 1
+
+                ! Store constituent indices:
+                l1 = iConstituentSublattice(iSPI,1,n)
+                l2 = iConstituentSublattice(iSPI,2,n)
+
+                lc1 = 1D0
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+                    (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
+                    lc2 = 1D0
+                else
+                    if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
+                    lc2 = -dSublatticeCharge(iSPI,2,l2)
+                end if
+
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+                    ! cation / vacancy
+                    if (i == l2) dgdc2(i) = dgdc2(i) + q * dSiteFraction(iSPI,1,l1) * dStdGibbsEnergy(j)
+                else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
+                    ! neutral
+                    if (i == l2) dgdc2(i) = dgdc2(i) + q * dStdGibbsEnergy(j)
+                else
+                    ! cation / anion
+                    if (i == l2) dgdc2(i) = dgdc2(i) + dSiteFraction(iSPI,1,l1) * dStdGibbsEnergy(j)
+                end if
+            end do
+            ! Entropy
+            do j = 1, nConstituentSublattice(iSPI,1)
+                dgdc2(i) = dgdc2(i) + (1 + DLOG(dSiteFraction(iSPI,2,i))) * q
+                if ((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
+                    (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                    (cConstituentNameSUB(iSPI,2,i) == 'va')) then
+                    ! cation / vacancy
+                    dgdc2(i) = dgdc2(i) + q * dSiteFraction(iSPI,1,j) * DLOG(dSiteFraction(iSPI,1,j))
+                else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
+                    ! neutral
+                else
+                    ! cation / anion
+                    dgdc2(i) = dgdc2(i) + (-dSublatticeCharge(iSPI,2,i)) * dSiteFraction(iSPI,1,j) * DLOG(dSiteFraction(iSPI,1,j))
+                end if
+            end do
+        end do
+
+        do i = 1, nConstituentSublattice(iSPI,2)
+            muc2(i) = dgdc2(i) + dgref + dgideal
+            do j = 1, nConstituentSublattice(iSPI,2)
+                muc2(i) = muc2(i) - dSiteFraction(iSPI,2,j) * dgdc2(j)
+            end do
+        end do
+
+        print *, 'ref ', dgref*dTemperature*dIdealConstant
+        print *, 'ideal', dgideal*dTemperature*dIdealConstant
+        print *, 'dgdc1 ', dgdc1*dTemperature*dIdealConstant
+        print *, 'dgdc2 ', dgdc2*dTemperature*dIdealConstant
+        print *, 'mu1 ', muc1*dTemperature*dIdealConstant
+        print *, 'mu2 ', muc2*dTemperature*dIdealConstant
 
         ! Compute the chemical potential for each phase component assuming ideal mixing:
         LOOP_Ideal: do i = iFirst, iLast
             ! Relative species index:
             m = i - iFirst + 1
+            k1 = iConstituentSublattice(iSPI,1,m)
+            k2 = iConstituentSublattice(iSPI,2,m)
 
-            ! Loop through components:
-            LOOP_Ideal_Components: do j = iFirst, iLast
-                ! Relative species index:
-                n = j - iFirst + 1
-
-                ! Compute pre-factor term:
-                dTemp = -1D0
-
-                ! Store constituent indices:
-                k1 = iConstituentSublattice(iSPI,1,m)
-                l1 = iConstituentSublattice(iSPI,1,n)
-                k2 = iConstituentSublattice(iSPI,2,m)
-                l2 = iConstituentSublattice(iSPI,2,n)
-
-                ! Update the reference molar Gibbs energy:
-                if ((dSublatticeCharge(iSPI,2,k2) == 0D0)) then
-                    if (k2 == l2) then
-                        dChemicalPotential(i) = dChemicalPotential(i) + dStdGibbsEnergy(j)
-                    end if
-                else
-                    ! Effectively apply Kronecker-Delta term to pre-factor:
-                    if (k2 == l2)  dTemp = dTemp + 1D0 / dSiteFraction(iSPI,2,k2)
-
-                    ! Effectively apply Kronecker-Delta term to pre-factor:
-                    if ((k1 == l1) .AND. (k1 > 0))  dTemp = dTemp + 1D0 / dSiteFraction(iSPI,1,k1)
-                    if (l1 == -1) then
-                        dTemp = (dTemp + 1D0) * q * dSiteFraction(iSPI,2,l2)
-                    else
-                        dTemp = dTemp * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2)
-                    end if
-                    dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dStdGibbsEnergy(j)
-                end if
-            end do LOOP_Ideal_Components
-            ! print *, cSpeciesName(i), ' Reference ', dChemicalPotential(i) * dIdealConstant * dTemperature
-
-            dEnt = 0D0
-            ! Add ideal mixing contribution:
-            c = iConstituentSublattice(iSPI,2,m)
-            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'va')) then
-                ! Vacancy case
-                dEnt = dEnt + DLOG(dSiteFraction(iSPI,2,c))
-                c = iConstituentSublattice(iSPI,1,m)
-                dEnt = dEnt + dSiteFraction(iSPI,1,c) * DLOG(dSiteFraction(iSPI,1,c))
-            else if (dSublatticeCharge(iSPI,2,c) == 0D0) then
-                ! Neutral case
-                dEnt = dEnt + DLOG(dSiteFraction(iSPI,2,c))
+            kc1 = 1D0
+            if ((cConstituentNameSUB(iSPI,2,k2) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,k2) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,k2) == 'va') .OR. &
+                (dSublatticeCharge(iSPI,2,k2) == 0D0)) then
+                kc2 = 1D0
+                ! dChemicalPotential(i) = dChemicalPotential(i) + muc2(k2) / q
             else
-                ! Anion case
-                dEnt = dEnt + q * DLOG(dSiteFraction(iSPI,2,c))
-                c = iConstituentSublattice(iSPI,1,m)
-                dEnt = dEnt + p * DLOG(dSiteFraction(iSPI,1,c))
+                if (k1 > 0) kc1 = dSublatticeCharge(iSPI,1,k1)
+                kc2 = -dSublatticeCharge(iSPI,2,k2)
+                ! dChemicalPotential(i) = dChemicalPotential(i) + muc2(k2)
             end if
+            ! kc2 = 1D0
 
-            ! print *, cSpeciesName(i), ' Entropy ', dEnt * dIdealConstant * dTemperature
-            dChemicalPotential(i) = dChemicalPotential(i) + dEnt
+            dChemicalPotential(i) = (dgref + dgideal) * (kc1 / (dTempVec(2)*dTempVec(2)))
+            ! if (k1 > 0) dChemicalPotential(i) = dChemicalPotential(i) + (dgref + dgideal) * (kc2 / dTempVec(1))
 
-            ! Sum stoichiometry and add large penalty if this species is vacancies only and a large mole fraction
-            dSum = 0D0
-            do j = 1, nElements
-                dSum = dSum + ABS(dStoichSpecies(i,j))
+            ! cation / anion or vacancy
+            do j = 1, nConstituentSublattice(iSPI,1)
+                if (k1 > 0) then
+                    dChemicalPotential(i) = dChemicalPotential(i) - kc2 * dSiteFraction(iSPI,1,j) * dgdc1(j) / dTempVec(1)
+                    if (j == k1) dChemicalPotential(i) = dChemicalPotential(i) + kc2 * dgdc1(j) / dTempVec(1)
+                end if
             end do
-            if ((dSum == 0D0) .AND. (dMolFraction(i) > 0.9D0)) dChemicalPotential(i) = dChemicalPotential(i) + 1D3
+
+            do j = 1, nConstituentSublattice(iSPI,2)
+                dChemicalPotential(i) = dChemicalPotential(i) - kc1 * dSiteFraction(iSPI,2,j) * dgdc2(j) / dTempVec(2)
+                if (j == k2) dChemicalPotential(i) = dChemicalPotential(i) + kc1 * dgdc2(j) / dTempVec(2)
+            end do
+
+            print *, cSpeciesName(i), ' Chemical Potential ', dChemicalPotential(i) * dIdealConstant * dTemperature
         end do LOOP_Ideal
+        print *, cSpeciesName(iFirst), ' - ', cSpeciesName(iFirst+1), &
+              (dChemicalPotential(iFirst) - dChemicalPotential(iFirst+1))* dIdealConstant * dTemperature
+        print *, cSpeciesName(iFirst+2), ' - ', cSpeciesName(iFirst+3), &
+              (dChemicalPotential(iFirst+2) - dChemicalPotential(iFirst+3))* dIdealConstant * dTemperature
+        print *, ' '
 
         ! EXCESS TERMS
         ! ------------
         ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
-        if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) return
+        ! if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) return
 
         ! Loop through parameters:
         LOOP_Param: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
@@ -492,6 +681,9 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
         end do LOOP_Param                   ! l
 
+        deallocate(dgdc1,dgdc2)
+        deallocate(muc1,muc2)
+        deallocate(dSiteFractionNoCharge)
     end if IF_SUBL
 
     return
