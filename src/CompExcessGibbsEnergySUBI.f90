@@ -85,8 +85,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: iSolnIndex, nSublattice, iSPI
     integer :: iFirst, iLast
     real(8) :: dSub1Total, dSub2Total
-    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, dgref, dgideal, natom, yva, dMol
-    real(8), dimension(:), allocatable :: dgdc1, dgdc2, muc1, muc2, dMolDerivatives
+    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, dgref, dgideal, natom, yva, dMol, dMolAtoms
+    real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
 
 
     ! Only proceed if the correct phase type is selected:
@@ -99,7 +99,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         iLast           = nSpeciesPhase(iSolnIndex)
 
         allocate(dgdc1(nConstituentSublattice(iSPI,1)),dgdc2(nConstituentSublattice(iSPI,2)))
-        allocate(muc1(nConstituentSublattice(iSPI,1)),muc2(nConstituentSublattice(iSPI,2)))
         allocate(dMolDerivatives(iLast - iFirst + 1))
 
         ! Initialize variables:
@@ -108,8 +107,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         dPartialExcessGibbs(iFirst:iLast)                      = 0D0
         dgdc1                                                  = 0D0
         dgdc2                                                  = 0D0
-        muc1                                                   = 0D0
-        muc2                                                   = 0D0
         dMolDerivatives                                        = 0D0
 
         ! Compute site fractions on first sublattice:
@@ -275,8 +272,21 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             dSum = dSum + dMolFraction(i)
         end do LOOP_CorrectX
 
+        ! Normalize mole fractions and compute number of mole atoms per mole (yes that makes sense, don't think about it)
+        dMolAtoms = 0D0
         do i = iFirst, iLast
             dMolFraction(i)  = dMolFraction(i) / dSum
+            m = i - iFirst + 1
+            d = iConstituentSublattice(iSPI,1,m)
+            c = iConstituentSublattice(iSPI,2,m)
+            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
+                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+                (dSublatticeCharge(iSPI,2,c) == 0D0)) then
+                dMolAtoms = dMolAtoms + dMolFraction(i)
+            else
+                dMolAtoms = dMolAtoms + dMolFraction(i) * (dSublatticeCharge(iSPI,1,d) - dSublatticeCharge(iSPI,2,c))
+            end if
         end do
 
         dStoichSublattice(iSPI,1) = p
@@ -381,13 +391,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             end do
         end do
 
-        do i = 1, nConstituentSublattice(iSPI,1)
-            muc1(i) = dgdc1(i)
-            do j = 1, nConstituentSublattice(iSPI,1)
-                muc1(i) = muc1(i) - dSiteFraction(iSPI,1,j) * dgdc1(j)
-            end do
-        end do
-
         do i = 1, nConstituentSublattice(iSPI,2)
             do j = iFirst, iLast
                 ! Relative species index:
@@ -438,14 +441,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             end do
         end do
 
-        do i = 1, nConstituentSublattice(iSPI,2)
-            muc2(i) = dgdc2(i) + dgref + dgideal
-            do j = 1, nConstituentSublattice(iSPI,2)
-                muc2(i) = muc2(i) - dSiteFraction(iSPI,2,j) * dgdc2(j)
-            end do
-        end do
-
         ! Compute the chemical potential for each phase component assuming ideal mixing:
+        print *, dgref*dIdealConstant*dTemperature, dgideal*dIdealConstant*dTemperature
         LOOP_Ideal: do i = iFirst, iLast
             ! Relative species index:
             m = i - iFirst + 1
@@ -457,14 +454,14 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 (cConstituentNameSUB(iSPI,2,k2) == 'Va') .OR. &
                 (cConstituentNameSUB(iSPI,2,k2) == 'va')) then
                 kc2 = 1D0
-                natom = 1D0 / dMol + dMolDerivatives(m)
+                natom = 1D0 / dMol + dMolDerivatives(m) * dMolAtoms
             else if (dSublatticeCharge(iSPI,2,k2) == 0D0) then
                 kc2 = 1D0
-                natom = 1D0 / dMol + dMolDerivatives(m)
+                natom = 1D0 / dMol  + dMolDerivatives(m) * dMolAtoms
             else
                 if (k1 > 0) kc1 = dSublatticeCharge(iSPI,1,k1)
                 kc2 = -dSublatticeCharge(iSPI,2,k2)
-                natom = (kc1 + kc2) / dMol + dMolDerivatives(m)
+                natom = (kc1 + kc2) / dMol + dMolDerivatives(m) * dMolAtoms
             end if
 
             dChemicalPotential(i) = (dgref + dgideal) * natom
@@ -472,18 +469,21 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             do j = 1, nConstituentSublattice(iSPI,1)
                 ! cation / (anion or vacancy)
                 if (k1 > 0) then
-                    dChemicalPotential(i) = dChemicalPotential(i) - kc2 * dSiteFraction(iSPI,1,j) * dgdc1(j) / dSub1Total
-                    if (j == k1) dChemicalPotential(i) = dChemicalPotential(i) + kc2 * dgdc1(j) / dSub1Total
+                    dChemicalPotential(i) = dChemicalPotential(i) &
+                                          - kc2 * dSiteFraction(iSPI,1,j) * dgdc1(j) / dSub1Total / dMol * dMolAtoms
+                    if (j == k1) dChemicalPotential(i) = dChemicalPotential(i) + kc2 * dgdc1(j) / dSub1Total / dMol * dMolAtoms
                 end if
             end do
 
             do j = 1, nConstituentSublattice(iSPI,2)
-                dChemicalPotential(i) = dChemicalPotential(i) - kc1 * dSiteFraction(iSPI,2,j) * dgdc2(j) / dSub2Total
-                if (j == k2) dChemicalPotential(i) = dChemicalPotential(i) + kc1 * dgdc2(j) / dSub2Total
+                dChemicalPotential(i) = dChemicalPotential(i) &
+                                      - kc1 * dSiteFraction(iSPI,2,j) * dgdc2(j) / dSub2Total / dMol * dMolAtoms
+                if (j == k2) dChemicalPotential(i) = dChemicalPotential(i) + kc1 * dgdc2(j) / dSub2Total / dMol * dMolAtoms
             end do
 
-            dChemicalPotential(i) = dChemicalPotential(i)
+            print *, cSpeciesName(i), dChemicalPotential(i)*dIdealConstant*dTemperature
         end do LOOP_Ideal
+        print *, ' '
 
         ! EXCESS TERMS
         ! ------------
@@ -496,7 +496,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         end do LOOP_Param                   ! l
 
         deallocate(dgdc1,dgdc2)
-        deallocate(muc1,muc2)
         deallocate(dMolDerivatives)
     end if IF_SUBL
 
