@@ -85,7 +85,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: iSolnIndex, nSublattice, iSPI
     integer :: iFirst, iLast
     real(8) :: dSub1Total, dSub2Total, dydn
-    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, dgref, dgideal, natom, yva, dMol, dMolAtoms
+    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, gref, gideal, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
 
 
@@ -294,7 +294,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
-        dgref = 0D0
+        gref = 0D0
         do j = iFirst, iLast
             ! Relative species index:
             n = j - iFirst + 1
@@ -318,22 +318,22 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                 (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
                 ! cation / vacancy
-                dgref = dgref + q * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                gref = gref + q * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
             else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
                 ! neutral
-                dgref = dgref + q * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                gref = gref + q * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
             else
                 ! cation / anion
-                dgref = dgref + dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
+                gref = gref + dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
             end if
         end do
 
-        dgideal = 0D0
+        gideal = 0D0
         do i = 1, nConstituentSublattice(iSPI,1)
-            dgideal = dgideal + p * dSiteFraction(iSPI,1,i) * DLOG(dSiteFraction(iSPI,1,i))
+            gideal = gideal + p * dSiteFraction(iSPI,1,i) * DLOG(dSiteFraction(iSPI,1,i))
         end do
         do i = 1, nConstituentSublattice(iSPI,2)
-            dgideal = dgideal + q * dSiteFraction(iSPI,2,i) * DLOG(dSiteFraction(iSPI,2,i))
+            gideal = gideal + q * dSiteFraction(iSPI,2,i) * DLOG(dSiteFraction(iSPI,2,i))
         end do
 
         do i = 1, nConstituentSublattice(iSPI,1)
@@ -463,7 +463,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 natom = (kc1 + kc2) / dMol + dMolDerivatives(m) * dMolAtoms
             end if
 
-            dChemicalPotential(i) = (dgref + dgideal) * natom
+            dChemicalPotential(i) = (gref + gideal) * natom
 
             do j = 1, nConstituentSublattice(iSPI,1)
                 ! cation / (anion or vacancy)
