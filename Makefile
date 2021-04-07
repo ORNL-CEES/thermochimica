@@ -61,7 +61,7 @@ DATA_DIR    = $(CURR_DIR)/data/
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o
+MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o CalculateCompositionSUBG.o
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
