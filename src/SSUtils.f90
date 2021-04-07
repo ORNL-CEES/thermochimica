@@ -512,6 +512,7 @@ subroutine getChemicalPotential(i, value, ierr)
 end subroutine getChemicalPotential
 
 subroutine getElementPotential(i, value, ierr)
+  USE ModuleThermoIO
   USE ModuleThermo
   implicit none
 
@@ -531,7 +532,7 @@ subroutine getElementPotential(i, value, ierr)
      enddo
 
   else
-     value=dElementPotential(i)
+     value=dElementPotential(i)*dTemperature*dIdealConstant
   endif
 
   return
