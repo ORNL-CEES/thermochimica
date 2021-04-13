@@ -699,8 +699,76 @@ subroutine CompThermoData
                         iSUBLParamData(n,1) = nMixSets
 
                     case ('SUBI')
-                        print *, 'Excess mixing for SUBI not implemented!'
-                        
+                      ! Compute mixing terms L
+                      do k = 1, 6
+                          dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                      end do
+
+                      dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+
+                      do k = 1, iRegularParamCS(j,1)
+
+                          ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                          ! a continuing count of the constituents.
+                          m = iRegularParamCS(j,k+1)
+
+                          ! Figure out the sublattice (l) and constituent (m) indices:
+                          LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
+                              l = s
+                              if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                  m = m - nConstituentSublatticeCS(nCounter,s)
+                              else
+                                  exit LOOP_SUBI
+                              end if
+
+                          end do LOOP_SUBI
+
+                          ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                          ! sublattice l):
+                          iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+
+                      end do
+                          ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
+                        ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
+                        ! may be three constituents mixing where the first constituent is on the first sublattice and
+                        ! the second and third are on the second sublattice.
+                        nMixSets = 0
+                        k = 2
+                        LOOP_SUBI_Check: do while (k <= iRegularParamCS(j,1))
+
+                            l = MOD(iRegularParam(n,k), 10000)
+                            l = (iRegularParam(n,k) - l) / 10000
+
+                            iMixLength = 1
+                            iMixStart = 0
+
+                            LOOP_SUBI_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
+
+                                m = MOD(iRegularParam(n,ii), 10000)
+                                m = (iRegularParam(n,ii) - m) / 10000
+
+                                if (l == m) then
+                                    iMixLength = iMixLength + 1
+                                    if (ii - k == 1) then
+                                        nMixSets = nMixSets + 1
+                                        iMixStart = k
+                                    end if
+                                else
+                                    exit LOOP_SUBI_MIXING
+                                end if
+                            end do LOOP_SUBI_MIXING
+
+                            if (iMixLength > 1) then
+                                iSUBIParamData(n,nMixSets*2) = iMixStart
+                                iSUBIParamData(n,nMixSets*2+1) = iMixLength
+
+                            end if
+
+                            k = k + iMixLength
+                        end do LOOP_SUBI_Check
+
+                        iSUBIParamData(n,1) = nMixSets
+
                 end select
             end if IF_ParamPass
         end do LOOP_Param

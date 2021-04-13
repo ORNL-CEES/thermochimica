@@ -81,13 +81,21 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, l, k1, l1, k2, l2, m, n, c, d
-    integer :: iSolnIndex, nSublattice, iSPI
-    integer :: iFirst, iLast
+    integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
+    integer :: iSolnIndex, nSublattice, iSPI, iExponent , iMixTypeVa , iMixTypeBi, iMixTypeAni, iMixType
+    integer :: iFirst, iLast, iFirstParam, iSecondParam, iSubParam, iFirstParam2, iSecondParam2, iSubParam2
     real(8) :: dSub1Total, dSub2Total, dydn
-    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, gref, gideal, natom, yva, dMol, dMolAtoms
+    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
+    real(8) :: dTemp, dPreFactor, dFirstParam, dSecondParam, dFirstParam2, dSecondParam2, dThirdParam
+    real(8) :: y1, y2, y3
+    character(8) :: cDummyBi
 
+print*,""
+print*,""
+print*,"                          CompExcessGibbsEnergySUBI.f90"
+print*,""
+print*,""
 
     ! Only proceed if the correct phase type is selected:
     IF_SUBL: if (cSolnPhaseType(iSolnIndex) == 'SUBI') then
@@ -98,6 +106,9 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         iFirst          = nSpeciesPhase(iSolnIndex-1) + 1
         iLast           = nSpeciesPhase(iSolnIndex)
 
+        !if (dgdc1 > 0) deallocate(dgdc1)
+        !if (dgdc2 > 0) deallocate(dgdc2)
+        !if (dMolDerivatives > 0) deallocate(dMolDerivatives)
         allocate(dgdc1(nConstituentSublattice(iSPI,1)),dgdc2(nConstituentSublattice(iSPI,2)))
         allocate(dMolDerivatives(iLast - iFirst + 1))
 
@@ -115,9 +126,10 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             m = i - iFirst + 1
             c = iConstituentSublattice(iSPI,1,m)
             d = iConstituentSublattice(iSPI,2,m)
-            if ((cConstituentNameSUB(iSPI,2,d) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,d) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,d) == 'va')) then
+!print*,"c = iConstituentSublattice(iSPI,1,m)",c
+!print*,"d = iConstituentSublattice(iSPI,2,m)",d
+!print*,""
+            if (cConstituentNameSUB(iSPI,2,d) == 'Va') then
                 lc2 = 1D0
             else
                 lc2 = -dSublatticeCharge(iSPI,2,d)
@@ -147,9 +159,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             ! Relative component index:
             m = i - iFirst + 1
             c = iConstituentSublattice(iSPI,2,m)
-            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+            if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 ! Vacancy or neutral get scaled by Q
                 dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i)
@@ -161,23 +171,20 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
         ! Correct second site fraction
         dSub2Total = 0D0
+        yva = 0D0
         do i = 1, nConstituentSublattice(iSPI,2)
             dSub2Total = dSub2Total + dSiteFraction(iSPI,2,i)
         end do
         do i = 1, nConstituentSublattice(iSPI,2)
             dSiteFraction(iSPI,2,i) = dSiteFraction(iSPI,2,i) / dSub2Total
             ! find site fraction of vacancies
-            if ((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,i) == 'va')) yva = dSiteFraction(iSPI,2,i)
+            if (cConstituentNameSUB(iSPI,2,i) == 'Va') yva = dSiteFraction(iSPI,2,i)
         end do
 
         ! Compute P
         p = 0D0
         do i = 1, nConstituentSublattice(iSPI,2)
-            if ((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,i) == 'va')) then
+            if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
                 ! Use Q as charge if this constituent is vacancy
                 p = p + q * dSiteFraction(iSPI,2,i)
             else
@@ -197,18 +204,14 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
             lc1 = 1D0
             if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+            if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
                 lc2 = 1D0
             else
                 lc2 = -dSublatticeCharge(iSPI,2,l2)
             end if
 
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+            if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
                 ! cation / vacancy
                 dMolDerivatives(n) = -dSub2Total * lc1
                 do i = 1, nConstituentSublattice(iSPI,1)
@@ -216,20 +219,16 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end do
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
-                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                        (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                        (cConstituentNameSUB(iSPI,2,i) == 'va') .OR. &
-                        (dSublatticeCharge(iSPI,2,i) == 0D0))) &
+                    if (.NOT.(cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                        (dSublatticeCharge(iSPI,2,i) == 0D0)) &
                     dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
                 end do
             else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
                 ! neutral
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
-                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                        (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                        (cConstituentNameSUB(iSPI,2,i) == 'va') .OR. &
-                        (dSublatticeCharge(iSPI,2,i) == 0D0))) &
+                    if (.NOT.(cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                        (dSublatticeCharge(iSPI,2,i) == 0D0)) &
                     dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
                 end do
             else
@@ -240,9 +239,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end do
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
-                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,i) == 'va') .OR. &
+                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
                     (dSublatticeCharge(iSPI,2,i) == 0D0))) &
                     dMolDerivatives(n) = dMolDerivatives(n)+dSub1Total*lc1*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
                 end do
@@ -255,20 +252,22 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         LOOP_CorrectX: do i = iFirst, iLast
             dMolFraction(i) = 1D0
             m = i - iFirst + 1
-
+!print*,"i",i
             c = iConstituentSublattice(iSPI,2,m)
             d = iConstituentSublattice(iSPI,1,m)
-            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+            if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d)
+!print*,"dMolFraction(i) - d",dMolFraction(i)
                 if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+!print*,"dMolFraction(i) - c",dMolFraction(i)
             else
                 if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d) / dSublatticeCharge(iSPI,1,d)
+!print*,"dMolFraction(i) - d",dMolFraction(i)
                 if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+!print*,"dMolFraction(i) - c",dMolFraction(i)
             end if
-
+!print*,""
             dSum = dSum + dMolFraction(i)
         end do LOOP_CorrectX
 
@@ -276,21 +275,255 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         dMolAtoms = 0D0
         do i = iFirst, iLast
             dMolFraction(i)  = dMolFraction(i) / dSum
+!print*,"i",i
+!print*,"dMolFraction(i) - normalized",dMolFraction(i)
+!print*,""
             m = i - iFirst + 1
             d = iConstituentSublattice(iSPI,1,m)
             c = iConstituentSublattice(iSPI,2,m)
-            if ((cConstituentNameSUB(iSPI,2,c) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,c) == 'va') .OR. &
+            if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 dMolAtoms = dMolAtoms + dMolFraction(i)
             else
                 dMolAtoms = dMolAtoms + dMolFraction(i) * (dSublatticeCharge(iSPI,1,d) - dSublatticeCharge(iSPI,2,c))
             end if
         end do
-
+!print*,"dMolAtoms",dMolAtoms
+!print*,""
         dStoichSublattice(iSPI,1) = p
         dStoichSublattice(iSPI,2) = q
+
+        ! EXCESS TERMS
+        ! ------------
+        gexcess = 0D0
+
+        ! Loop through parameters:
+        LOOP_Param: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
+          ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
+          if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) exit LOOP_Param
+          ! Reinitialize temporary variable:
+            dPreFactor = 1D0
+            iFirstParam = 0
+            iSecondParam = 0
+            iFirstParam2 = 0
+            iSecondParam2 = 0
+
+            iMixType = 0
+
+          ! Store the number of constituents involved in this parameter:
+          n = iRegularParam(l,1)
+
+          ! Determine the mixing parameter type
+          if ((iSUBIParamData(l,1) == 1) .AND. (iSUBIParamData(l,3) == 2)) then
+                iMixType = 2
+
+            ! Loop through constituents associated with this parameter:
+            do k = 2, n + 1
+
+              ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
+
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
+                    ! Store the first and second site fractions:
+                    if (k == iSUBIParamData(l,2)) then
+                        dFirstParam = dSiteFraction(iSPI,s,c)
+                        iFirstParam = c
+                        iSubParam   = s
+                    else if (k == iSUBIParamData(l,2) + 1) then
+                        dSecondParam = dSiteFraction(iSPI,s,c)
+                        iSecondParam = c
+                    end if
+            end do
+
+            ! Multiply prefactor term by excess Gibbs energy parameter:
+            iExponent = iRegularParam(l,n+2)
+            gexcess = gexcess + dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+
+          else
+
+            print *, 'Unrecognized excess mixing term in SUBL phase ', cSolnPhaseName(iSolnIndex)
+            INFOThermo = 36
+            return
+
+          end if
+        end do LOOP_Param
+
+
+
+
+
+        ! Derived Excess Mixing Terms
+        ! ---------------------------
+
+        ! Loop through parameters:
+        LOOP_Param_Derivatives: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
+          ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
+          if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) exit LOOP_Param_Derivatives
+
+print*,""
+print*,""
+print*,"l",l
+print*,""
+print*,""
+
+          ! Reinitialize temporary variable:
+            dPreFactor = 1D0
+            iFirstParam = 0
+            iSecondParam = 0
+            iFirstParam2 = 0
+            iSecondParam2 = 0
+
+            !iMixTypeVa = 0
+            !iMixTypeBi = 0
+            !iMixTypeAni = 0
+
+            y1 = 0D0
+            y2 = 0D0
+            y3 = 0D0
+
+          ! Store the number of constituents involved in this parameter:
+          n = iRegularParam(l,1)
+
+          ! Determine the mixing parameter type
+          ! This is Case -> L_Ci:Aj,Dk where Dk is a vacancy, neutral or anion
+          if ((iSUBIParamData(l,1) == 1) .AND. (iSUBIParamData(l,3) == 2)) then
+
+            ! Loop through constituents associated with this parameter:
+            do k = 2, n + 1
+
+              iMixTypeVa = 0
+              iMixTypeBi = 0
+              iMixTypeAni = 0
+
+              ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
+
+                    ! Establishing the site fractions for this scenario
+                    if (cConstituentNameSUB(iSPI,s,c) == 'Va') then
+                        ! vacancy
+                        y3 = dSiteFraction(iSPI,s,c)
+                        iMixTypeVa = 2
+                    else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
+                        ! neutral
+                        y3 = dSiteFraction(iSPI,s,c)
+                        iMixTypeBi = 2
+                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                    else if (dSublatticeCharge(iSPI,s,c) < 0D0) then
+                      if (y2 /= 0D0) then
+                        y3 = dSiteFraction(iSPI,s,c)
+                        iMixTypeAni = 2
+                      end if
+                        ! anion
+                        y2 = dSiteFraction(iSPI,s,c)
+                    else
+                        ! cation
+                        y1 = dSiteFraction(iSPI,s,c)
+                    end if
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
+                    ! Store the first and second site fractions:
+                    if (k == iSUBIParamData(l,2)) then
+                        dFirstParam = dSiteFraction(iSPI,s,c)
+                        iFirstParam = c
+                        iSubParam   = s
+                    else if (k == iSUBIParamData(l,2) + 1) then
+                        dSecondParam = dSiteFraction(iSPI,s,c)
+                        iSecondParam = c
+                    end if
+                    iExponent = iRegularParam(l,n+2)
+            end do
+!print*,"y1",y1
+!print*,"y2",y2
+!print*,"y3",y3
+!print*,"dFirstParam",dFirstParam
+!print*,"dSecondParam",dSecondParam
+!print*,"iMixTypeVa",iMixTypeVa
+!print*,"iMixTypeBi",iMixTypeBi
+!print*,"iMixTypeAni",iMixTypeAni
+!print*,""
+                    ! Chemical potential with respect to the first sublattice
+                    do i = 1, nConstituentSublattice(iSPI,1)
+                      dgdc1(i) = dgdc1(i) + y2 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+!        print*,"dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+!        print*,""
+                    end do
+
+                    ! Chemical potential with respect to the second sublattice
+                    do i = 1, nConstituentSublattice(iSPI,2)
+                      do j = iFirst, iLast
+                         ! Relative species index:
+                         n = j - iFirst + 1
+
+!print*,"iExponent", iExponent
+!print*,"i", i
+!print*,""
+                         ! Store constituent indices:
+                         l1 = iConstituentSublattice(iSPI,1,n)
+                         l2 = iConstituentSublattice(iSPI,2,n)
+!print*,"cConstituentNameSUB(iSPI,2,l2)",cConstituentNameSUB(iSPI,2,l2)
+!print*,"dSublatticeCharge(iSPI,2,l2)",dSublatticeCharge(iSPI,2,l2)
+!print*,""
+                      if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .AND. &
+                            (iMixTypeVa == 2) .AND. &
+                            (i == l2)) then
+                            ! cation / vacancy
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+!print*,"Va 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                                        iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
+!print*,"Va 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+!print*,""
+
+                        else if ((dSublatticeCharge(iSPI,2,l2) == 0D0) .AND. &
+                                (iMixTypeBi == 2) .AND. &
+                                (cConstituentNameSUB(iSPI,2,l2) == cDummyBi) .AND. &
+                                (i == l2))then
+                            ! neutral
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+!print*,"Bi 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                                         iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
+!print*,"Bi 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+!print*,""
+
+                        else if ((dSublatticeCharge(iSPI,2,l2) < 0D0) .AND. &
+                                (cConstituentNameSUB(iSPI,2,l2) /= 'Va') .AND. &
+                                (i == l2)) then
+                            ! cation / anion
+                              dgdc2(i) = dgdc2(i) + y1 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+!print*,"An 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                                        iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (1)
+!print*,"An 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+!print*,""
+                            if ((iMixTypeAni == 2)) then
+                              ! If D_k is an anion
+                                dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+                                dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                                           iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
+                            end if
+                        end if
+                      end do
+                  end do
+          else
+
+            print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
+            INFOThermo = 36
+            return
+
+          end if
+
+
+!print*,"nParamPhase(iSolnIndex)",nParamPhase(iSolnIndex)
+
+end do LOOP_Param_Derivatives
 
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
@@ -304,9 +537,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             l2 = iConstituentSublattice(iSPI,2,n)
 
             lc1 = 1D0
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+            if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
                 lc2 = 1D0
             else
@@ -314,9 +545,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 lc2 = -dSublatticeCharge(iSPI,2,l2)
             end if
 
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+            if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
                 ! cation / vacancy
                 gref = gref + q * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
             else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
@@ -336,29 +565,27 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             gideal = gideal + q * dSiteFraction(iSPI,2,i) * DLOG(dSiteFraction(iSPI,2,i))
         end do
 
+!print*,"gref+gideal:", (gref+gideal)*dIdealConstant * dTemperature/p
+!print*,"gref+gideal+gexcess:", (gref+gideal+gexcess)*dIdealConstant * dTemperature/p
+
         do i = 1, nConstituentSublattice(iSPI,1)
             lc1 = dSublatticeCharge(iSPI,1,i)
             ! Reference
             do j = iFirst, iLast
                 ! Relative species index:
                 n = j - iFirst + 1
-
                 ! Store constituent indices:
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
 
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                     (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
                     lc2 = 1D0
                 else
                     lc2 = -dSublatticeCharge(iSPI,2,l2)
                 end if
 
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+                if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
                     ! cation / vacancy
                     if (i == l1) dgdc1(i) = dgdc1(i) + q * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
                     dgdc1(i) = dgdc1(i) + lc1 * dSiteFraction(iSPI,1,l1) * dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
@@ -369,7 +596,9 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     ! cation / anion
                     if (i == l1) dgdc1(i) = dgdc1(i) + dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
                 end if
+
             end do
+
             ! Entropy
             do j = 1, nConstituentSublattice(iSPI,1)
                 dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * yva &
@@ -377,9 +606,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             end do
             do j = 1, nConstituentSublattice(iSPI,2)
                 dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,2,j) * DLOG(dSiteFraction(iSPI,2,j))
-                if ((cConstituentNameSUB(iSPI,2,j) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,j) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,j) == 'va')) then
+                if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
                     ! cation / vacancy
                     dgdc1(i) = dgdc1(i) + (1 + DLOG(dSiteFraction(iSPI,1,i))) * q * dSiteFraction(iSPI,2,j)
                 else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
@@ -401,9 +628,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 l2 = iConstituentSublattice(iSPI,2,n)
 
                 lc1 = 1D0
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
+                if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                     (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
                     lc2 = 1D0
                 else
@@ -411,9 +636,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     lc2 = -dSublatticeCharge(iSPI,2,l2)
                 end if
 
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
+                if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
                     ! cation / vacancy
                     if (i == l2) dgdc2(i) = dgdc2(i) + q * dSiteFraction(iSPI,1,l1) * dStdGibbsEnergy(j)
                 else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
@@ -427,9 +650,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             ! Entropy
             dgdc2(i) = dgdc2(i) + (1 + DLOG(dSiteFraction(iSPI,2,i))) * q
             do j = 1, nConstituentSublattice(iSPI,1)
-                if ((cConstituentNameSUB(iSPI,2,i) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,i) == 'va')) then
+                if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
                     ! cation / vacancy
                     dgdc2(i) = dgdc2(i) + q * dSiteFraction(iSPI,1,j) * DLOG(dSiteFraction(iSPI,1,j))
                 else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
@@ -440,7 +661,10 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end if
             end do
         end do
-
+print*,"After All"
+print*,"dgdc1(:)",dgdc1(:)*dIdealConstant * dTemperature
+print*,"dgdc2(:)",dgdc2(:)*dIdealConstant * dTemperature
+print*,""
         ! Compute the chemical potential for each phase component assuming ideal mixing:
         LOOP_Ideal: do i = iFirst, iLast
             ! Relative species index:
@@ -449,21 +673,22 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             k2 = iConstituentSublattice(iSPI,2,m)
 
             kc1 = 1D0
-            if ((cConstituentNameSUB(iSPI,2,k2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,k2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,k2) == 'va')) then
+            ! cation / vacancy
+            if (cConstituentNameSUB(iSPI,2,k2) == 'Va') then
                 kc2 = 1D0
                 natom = 1D0 / dMol + dMolDerivatives(m) * dMolAtoms
+            ! neutral
             else if (dSublatticeCharge(iSPI,2,k2) == 0D0) then
                 kc2 = 1D0
                 natom = 1D0 / dMol + dMolDerivatives(m) * dMolAtoms
+            ! cation / anion
             else
                 if (k1 > 0) kc1 = dSublatticeCharge(iSPI,1,k1)
                 kc2 = -dSublatticeCharge(iSPI,2,k2)
                 natom = (kc1 + kc2) / dMol + dMolDerivatives(m) * dMolAtoms
             end if
 
-            dChemicalPotential(i) = (gref + gideal) * natom
+            dChemicalPotential(i) = (gref + gideal + gexcess) * natom
 
             do j = 1, nConstituentSublattice(iSPI,1)
                 ! cation / (anion or vacancy)
@@ -480,16 +705,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 dChemicalPotential(i) = dChemicalPotential(i) + dydn * dgdc2(j) * dMolAtoms / dMol
             end do
         end do LOOP_Ideal
-
-        ! EXCESS TERMS
-        ! ------------
-        ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
-        ! if (nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0) return
-
-        ! Loop through parameters:
-        LOOP_Param: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
-
-        end do LOOP_Param                   ! l
 
         deallocate(dgdc1,dgdc2)
         deallocate(dMolDerivatives)
