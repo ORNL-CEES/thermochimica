@@ -93,6 +93,21 @@ subroutine SetStandardUnits
 end subroutine SetStandardUnits
 
 
+subroutine SetModelicaUnits
+
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+
+  implicit none
+
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'Pa'
+  cInputUnitMass        = 'moles'
+
+  return
+
+end subroutine SetModelicaUnits
+
+
 
 subroutine SetUnits(cTemperature, cPressure, cMass)
 
