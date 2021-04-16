@@ -5,7 +5,7 @@ subroutine ParseMSTDB
 
     implicit none
 
-    cThermoFileName = DATA_DIRECTORY // 'MSAX+F2.dat'
+    cThermoFileName = DATA_DIRECTORY // 'MSAX+CationVacancies.dat'
 
     call ParseCSDataFile(cThermoFileName)
 
