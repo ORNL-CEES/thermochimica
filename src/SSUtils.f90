@@ -1,13 +1,14 @@
-subroutine SetThermoFileName(cFileName)
+subroutine SetThermoFileName(cFileName,lcFileName)
 
   USE ModuleThermoIO, ONLY: cThermoFileName
 
   implicit none
 
-  character(120), intent(in)::  cFileName
+  character(*), intent(in)::  cFileName
+  integer, intent(in) :: lcFileName
   character(120) :: cFileNameLen
 
-  cFileNameLen = cFileName(1:120)
+  cFileNameLen = cFileName(1:min(120,lcFileName))
   cThermoFileName       = trim(cFileNameLen)
 
   return
@@ -299,13 +300,7 @@ subroutine SSParseCSDataFile
 
     implicit none
 
-!    write(0,*) 'iReadFile ', iReadFile, cThermoFileName
-
-    if( iReadFile == 0 )then
-       iReadFile = 1
-       call ParseCSDataFile(cThermoFileName)
-       write(0,*) 'Read file for Thermochimica: ', cThermoFileName
-    end if
+    call ParseCSDataFile(cThermoFileName)
 
     return
 
