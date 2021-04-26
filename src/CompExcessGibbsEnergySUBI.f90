@@ -303,17 +303,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             l1 = iConstituentSublattice(iSPI,1,n)
             l2 = iConstituentSublattice(iSPI,2,n)
 
-            lc1 = 1D0
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
-                (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
-                lc2 = 1D0
-            else
-                if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
-                lc2 = -dSublatticeCharge(iSPI,2,l2)
-            end if
-
             if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
                 (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
                 (cConstituentNameSUB(iSPI,2,l2) == 'va')) then
@@ -346,15 +335,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 ! Store constituent indices:
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
-
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
-                    (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
-                    lc2 = 1D0
-                else
-                    lc2 = -dSublatticeCharge(iSPI,2,l2)
-                end if
 
                 if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
                     (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
@@ -400,17 +380,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 ! Store constituent indices:
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
-
-                lc1 = 1D0
-                if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'va') .OR. &
-                    (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
-                    lc2 = 1D0
-                else
-                    if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
-                    lc2 = -dSublatticeCharge(iSPI,2,l2)
-                end if
 
                 if ((cConstituentNameSUB(iSPI,2,l2) == 'VA') .OR. &
                     (cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
