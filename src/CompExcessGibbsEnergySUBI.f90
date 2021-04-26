@@ -371,6 +371,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end if
             end do
             ! Entropy
+            dgdc1(i) = dgdc1(i) + (1 + DLOG(dSiteFraction(iSPI,1,i))) * p
             do j = 1, nConstituentSublattice(iSPI,1)
                 dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * yva &
                                     * dSiteFraction(iSPI,1,j)*DLOG(dSiteFraction(iSPI,1,j))
