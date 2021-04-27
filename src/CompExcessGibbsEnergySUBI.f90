@@ -358,17 +358,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             end do
             do j = 1, nConstituentSublattice(iSPI,2)
                 dgdc1(i) = dgdc1(i) + dSublatticeCharge(iSPI,1,i) * dSiteFraction(iSPI,2,j) * DLOG(dSiteFraction(iSPI,2,j))
-                if ((cConstituentNameSUB(iSPI,2,j) == 'VA') .OR. &
-                    (cConstituentNameSUB(iSPI,2,j) == 'Va') .OR. &
-                    (cConstituentNameSUB(iSPI,2,j) == 'va')) then
-                    ! cation / vacancy
-                    dgdc1(i) = dgdc1(i) + (1 + DLOG(dSiteFraction(iSPI,1,i))) * q * dSiteFraction(iSPI,2,j)
-                else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
-                    ! neutral
-                else
-                    ! cation / anion
-                    dgdc1(i) = dgdc1(i) + (1+DLOG(dSiteFraction(iSPI,1,i)))*(-dSublatticeCharge(iSPI,2,j))*dSiteFraction(iSPI,2,j)
-                end if
             end do
         end do
 
