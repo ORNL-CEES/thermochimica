@@ -356,7 +356,6 @@ print*,""
             ! Excess Gibbs energy equation for L_Ci:Aj,Dk case
             gexcess = gexcess + dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
 
-
             ! Determine the mixing parameter type: L_Ci,Cj:(Va or Ak)
           else if ((iSUBIParamData(l,1) == 1) .AND. &
                    (iSUBIParamData(l,2) == 2) .AND. &
@@ -492,9 +491,9 @@ print*,""
 
 
 
-
-        ! Derived Excess Mixing Terms
-        ! ---------------------------
+        !---------------------------------------------------------------
+        !                      DERIVED EXCESS TERMS
+        ! --------------------------------------------------------------
 
         ! Loop through parameters:
         LOOP_Param_Derivatives: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
@@ -523,8 +522,6 @@ print*,""
             cDummyCi = ' '
             cDummyCj = ' '
 
-
-
           ! Store the number of constituents involved in this parameter:
           n = iRegularParam(l,1)
 
@@ -540,114 +537,98 @@ print*,""
                     s = iRegularParam(l,k) - c
                     s = s / 10000
 
-                    ! Establishing the site fractions for this scenario
-                    if (cConstituentNameSUB(iSPI,s,c) == 'Va') then
-                        ! vacancy
-                        y3 = dSiteFraction(iSPI,s,c)
-                        iMixTypeVa = 1
-                    else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
-                        ! neutral
-                        y3 = dSiteFraction(iSPI,s,c)
-                        iMixTypeBi = 1
-                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
-                    else if ((dSublatticeCharge(iSPI,s,c) < 0D0) .AND. &
-                             (cConstituentNameSUB(iSPI,s,c) /= 'Va')) then
-                      if (y2 /= 0D0) then
-                        y3 = dSiteFraction(iSPI,s,c)
-                        iMixTypeAni = 1
-                        cDummyAj = cConstituentNameSUB(iSPI,s,c)
-                      end if
-                        ! anion
-                        y2 = dSiteFraction(iSPI,s,c)
-                        cDummyAi = cConstituentNameSUB(iSPI,s,c)
-                    else
-                        ! cation
+                    ! Establishing the site fractions for the L_Ci:Aj,Dk cases
+                    if (k == iSUBIParamData(l,2) - 1) then
                         y1 = dSiteFraction(iSPI,s,c)
                         cDummyCi = cConstituentNameSUB(iSPI,s,c)
-                    end if
-                    ! Compute prefactor term:
-                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2)) then
+                    else if (k == iSUBIParamData(l,2)) then
                         dFirstParam = dSiteFraction(iSPI,s,c)
+                        y2 = dSiteFraction(iSPI,s,c)
+                        cDummyAi = cConstituentNameSUB(iSPI,s,c)
+
                     else if (k == iSUBIParamData(l,2) + 1) then
+                      ! Determining if Dl equals a vacancy, neutral or anion
+                      if (cConstituentNameSUB(iSPI,s,c) == 'Va') then
+                        ! vacancy case
+                        iMixTypeVa = 1
+                      else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
+                        ! neutral case
+                        iMixTypeBi = 1
+                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                      else if ((dSublatticeCharge(iSPI,s,c) < 0D0) .AND. &
+                               (cConstituentNameSUB(iSPI,s,c) /= 'Va')) then
+                        ! anion case
+                        iMixTypeAni = 1
+                        cDummyAj = cConstituentNameSUB(iSPI,s,c)
+
+                      end if
                         dSecondParam = dSiteFraction(iSPI,s,c)
+                        y3 = dSiteFraction(iSPI,s,c)
+
                     end if
+                    ! L term exponent value
                     iExponent = iRegularParam(l,n+2)
             end do
 
                     ! Chemical potential with respect to the first sublattice
                     do i = 1, nConstituentSublattice(iSPI,1)
                       if (cDummyCi == cConstituentNameSUB(iSPI,1,i)) then
-!print*,"cConstituentNameSUB(iSPI,1,i)  ",cConstituentNameSUB(iSPI,1,i)
-!print*,"dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
                         dgdc1(i) = dgdc1(i) + y2 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
-!print*,"dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
-!print*,""
                       end if
                     end do
 
-                    ! Chemical potential with respect to the second sublattice
-                    do i = 1, nConstituentSublattice(iSPI,2)
+                  ! Chemical potential with respect to the second sublattice
+                  do i = 1, nConstituentSublattice(iSPI,2)
                       do j = iFirst, iLast
                          ! Relative species index:
                          n = j - iFirst + 1
 
-!print*,""
-!print*,"i", i,"    n",n,"    j",j
-
                          ! Store constituent indices:
                          l1 = iConstituentSublattice(iSPI,1,n)
                          l2 = iConstituentSublattice(iSPI,2,n)
-!print*,"l1",l1,"     l2",l2
-!print*,"cConstituentNameSUB(iSPI,2,l2)",cConstituentNameSUB(iSPI,2,l2)
-!print*,"cConstituentNameSUB(iSPI,1,n)",cConstituentNameSUB(iSPI,1,n)
 
-                      if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .AND. &
-                          (cConstituentNameSUB(iSPI,1,n) == cDummyCi) .AND. &
-                            (iMixTypeVa == 1) .AND. &
-                            (i == l2)) then
-                            ! cation / vacancy
-!print*,"Va 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
-                              dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
-!print*,"Va 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
-                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
-                                        iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
-!print*,"Va 3 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                      ! Solves issue wit l1 = -1 when calling cConstituentNameSUB(iSPI,1,l1)
+                      if (l1 == -1) then
 
-                        else if ((dSublatticeCharge(iSPI,2,l2) == 0D0) .AND. &
-                                (iMixTypeBi == 1) .AND. &
-                                (cConstituentNameSUB(iSPI,2,l2) == cDummyBi) .AND. &
-                                (i == l2)) then
-!print*,"Bi 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
-                            ! neutral
+                        if ((i == l2) .AND. &
+                           (cConstituentNameSUB(iSPI,2,l2) == cDummyBi) .AND. &
+                           (iMixTypeBi == 1)) then
+                              ! neutral
                               dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
-!print*,"Bi 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+
                               dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                          iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
-!print*,"Bi 3 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                        end if
 
-                        else if ((dSublatticeCharge(iSPI,2,l2) < 0D0) .AND. &
-                                (cConstituentNameSUB(iSPI,2,l2) /= 'Va') .AND. &
-                                (i == l2)) then
-!print*,"An 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+                      else if ((i == l2) .AND. &
+                           (cConstituentNameSUB(iSPI,2,l2) == 'Va') .AND. &
+                           (cConstituentNameSUB(iSPI,1,n) == cDummyCi) .AND. &
+                           (iMixTypeVa == 1)) then
+                              ! cation / vacancy
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
+
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                                        iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
+
+                      else if ((i == l2) .AND. &
+                           (dSublatticeCharge(iSPI,2,l2) < 0D0) .AND. &
+                           (cConstituentNameSUB(iSPI,2,l2) /= 'Va')) then
                               ! cation / anion
-                              if (cConstituentNameSUB(iSPI,1,l1) == cDummyCi) then
+                            if (cConstituentNameSUB(iSPI,1,l1) == cDummyCi) then
+                              dgdc2(i) = dgdc2(i) + y1 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
 
-                               dgdc2(i) = dgdc2(i) + y1 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
-!print*,"An 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
-                               dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
+                              dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                         iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (1)
-!print*,"An 3 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+
                                  if ((iMixTypeAni == 1)) then
                                    ! If D_k is an anion
                                    dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
                                    dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                             iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
                                  end if
-                               end if
-                        end if
+                              end if
+                      end if
                       end do
                   end do
 
@@ -695,10 +676,14 @@ print*,""
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
 
+                if (l1 == -1) then
+                  ! do nothing on purpose... solves issue wit l1 = -1 when
+                  ! calling cConstituentNameSUB(iSPI,1,l1)
+
                 ! Derivative with respect to Ci
-                if ((i == l1) .AND. &
-                    (cDummyCi == cConstituentNameSUB(iSPI,1,n)) .AND. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va')) then
+                else if ((i == l1) .AND. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .AND. &
+                    (cConstituentNameSUB(iSPI,1,l1) == cDummyCi)) then
 
                     dgdc1(i) = dgdc1(i) + q * y2 * y3**2 * dExcessGibbsParam(l) * &
                               (dFirstParam - dSecondParam)**(iExponent)
@@ -711,8 +696,8 @@ print*,""
 
                 ! Derivative with respect to Cj
                 else if ((i == l1) .AND. &
-                    (cDummyCj == cConstituentNameSUB(iSPI,1,n)) .AND. &
-                    (cConstituentNameSUB(iSPI,2,l2) == 'Va')) then
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va') .AND. &
+                    (cConstituentNameSUB(iSPI,1,l1) == cDummyCj)) then
 
                     dgdc1(i) = dgdc1(i) + q * y1 * y3**2 * dExcessGibbsParam(l) * &
                               (dFirstParam - dSecondParam)**(iExponent)
@@ -735,6 +720,8 @@ print*,""
                 end if
             end do
 
+          ! Determine the mixing parameter type
+          ! This is Case -> L_Ci,Cj:Ak
           else if (iMixType(l) == 3) then
 
             ! Loop through constituents associated with this parameter:
@@ -776,32 +763,33 @@ print*,""
                 ! Store constituent indices:
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
-!print*,"cDummyCi",cDummyCi
-!print*,"cDummyCj",cDummyCj
-!print*,"cConstituentNameSUB(iSPI,1,n)",cConstituentNameSUB(iSPI,1,n)
-!print*,"i",i,"       n",n
-                ! Derivative with respect to Ci
-                if ((i == l1) .AND. &
-                    (cDummyCi == cConstituentNameSUB(iSPI,1,n)) .AND. &
-                    (dSublatticeCharge(iSPI,2,l2) < 0D0)) then
-!print*,"Ci 1 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+
+                if (l1 == -1) then
+                    ! do nothing on purpose... solves issue wit l1 = -1 when
+                    ! calling cConstituentNameSUB(iSPI,1,l1)
+
+              ! Derivative with respect to Ci
+              else if ((i == l1) .AND. &
+                    (cConstituentNameSUB(iSPI,1,l1) == cDummyCi) .AND. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va')) then
+
                     dgdc1(i) = dgdc1(i) + y2 * y3 * dExcessGibbsParam(l) * &
                               (dFirstParam - dSecondParam)**(iExponent)
-!print*,"Ci 2 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+
                     dgdc1(i) = dgdc1(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                iExponent * (dFirstParam - dSecondParam)**(iExponent - 1) * (1)
-!print*,"Ci 3 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+
                 ! Derivative with respect to Cj
                 else if ((i == l1) .AND. &
-                    (cDummyCj == cConstituentNameSUB(iSPI,1,n)) .AND. &
-                    (dSublatticeCharge(iSPI,2,l2) < 0D0)) then
-!print*,"Cj 1 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+                    (cConstituentNameSUB(iSPI,1,l1) == cDummyCj) .AND. &
+                    (cConstituentNameSUB(iSPI,2,l2) == 'Va')) then
+
                     dgdc1(i) = dgdc1(i) + y1 * y3 * dExcessGibbsParam(l) * &
                               (dFirstParam - dSecondParam)**(iExponent)
-!print*,"Cj 2 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+
                     dgdc1(i) = dgdc1(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                iExponent * (dFirstParam - dSecondParam)**(iExponent - 1) * (-1)
-!print*,"Cj 3 - dgdc1(i)",dgdc1(i)*dIdealConstant * dTemperature
+
                 end if
               end do
             end do
@@ -810,10 +798,10 @@ print*,""
             do i = 1, nConstituentSublattice(iSPI,2)
                 if ((dSublatticeCharge(iSPI,2,i) < 0D0) .AND. &
                     (cConstituentNameSUB(iSPI,2,i) /= 'Va')) then
-!print*,"Ak 1 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+
                   dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * &
                             (dFirstParam - dSecondParam)**(iExponent)
-!print*,"Ak 2 - dgdc2(i)",dgdc2(i)*dIdealConstant * dTemperature
+
                 end if
             end do
 
@@ -891,7 +879,6 @@ print*,""
                 l1 = iConstituentSublattice(iSPI,1,n)
                 l2 = iConstituentSublattice(iSPI,2,n)
 
-                ! Derivative with respect to Ci
                 if (l1 == -1) then
                   ! do nothing on purpose... solves issue wit l1 = -1 when
                   ! calling cConstituentNameSUB(iSPI,1,l1)
@@ -916,7 +903,6 @@ print*,""
                       dgdc1(i) = dgdc1(i) + y2 * y3 * y4 * dExcessGibbsParam(iExponent * 2) * &
                                  (dThirdParam - dFourthParam)**(iExponent)
                     end if
-
 
                 ! Derivative with respect to Cj
                 else if ((i == l1) .AND. &
