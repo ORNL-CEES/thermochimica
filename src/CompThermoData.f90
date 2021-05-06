@@ -136,6 +136,11 @@ subroutine CompThermoData
     dLogT            = DLOG(dTemperature)              ! ln(T)
     dLogP            = DLOG(dPressure)                 ! ln(P)
 
+print*,""
+print*,""
+print*,"                         CompThermoData.f90"
+print*,""
+print*,""
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
@@ -734,24 +739,41 @@ subroutine CompThermoData
                         ! the second and third are on the second sublattice.
                         nMixSets = 0
                         k = 2
-                        LOOP_SUBI_Check: do while (k <= iRegularParamCS(j,1))
 
+                        LOOP_SUBI_Check: do while (k <= iRegularParamCS(j,1))
+!print*,"k",k
+!print*,"iRegularParamCS(j,1)",iRegularParamCS(j,1)
                             l = MOD(iRegularParam(n,k), 10000)
                             l = (iRegularParam(n,k) - l) / 10000
+!print*,"l",l
+!print*,""
 
                             iMixLength = 1
                             iMixStart = 0
 
                             LOOP_SUBI_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
-
+!print*,"k + 1", k + 1
+!print*,"iRegularParamCS(j,1) + 1",iRegularParamCS(j,1) + 1
+!print*,"ii",ii
                                 m = MOD(iRegularParam(n,ii), 10000)
                                 m = (iRegularParam(n,ii) - m) / 10000
-
+!print*,""
+!print*,"m", m
+!print*,"l",l
+!print*,""
                                 if (l == m) then
                                     iMixLength = iMixLength + 1
+!print*,""
+!print*,"iMixLength",iMixLength
+!print*,"ii - k",ii - k
+!print*,""
                                     if (ii - k == 1) then
                                         nMixSets = nMixSets + 1
                                         iMixStart = k
+!print*,""
+!print*,"nMixSets",nMixSets
+!print*,"iMixStart",iMixStart
+!print*,""
                                     end if
                                 else
                                     exit LOOP_SUBI_MIXING
@@ -762,6 +784,16 @@ subroutine CompThermoData
                                 iSUBIParamData(n,nMixSets*2) = iMixStart
                                 iSUBIParamData(n,nMixSets*2+1) = iMixLength
 
+!print*,"iSUBIParamData",iSUBIParamData(n,:)
+                            end if
+
+                            ! Create difference in binary L_Ci:Va,Bj mixing parameter type
+                            if (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,3), 10000)) == 'Va') then
+                              iSUBIParamData(n,4) = 1
+
+                            ! Create difference in ternary mixing parameter type
+                            else if (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,4), 10000)) == 'Va') then
+                              iSUBIParamData(n,7) = 1
                             end if
 
                             k = k + iMixLength
@@ -769,6 +801,12 @@ subroutine CompThermoData
 
                         iSUBIParamData(n,1) = nMixSets
 
+print*,"iSUBIParamData(n,:)",iSUBIParamData(n,:)
+!print*,"iRegularParamCS(n,:)",iRegularParamCS(n,:)
+!print*,"iRegularParam(n,:)",iRegularParam(n,:)
+!print*,"cConstituentNameSUB(iPhaseSublattice(i),2,:)",cConstituentNameSUB(iPhaseSublattice(i),2,:)
+!print*,"iConstituentSublattice(iPhaseSublattice(i),1,:)",iConstituentSublattice(iPhaseSublattice(i),1,:)
+!print*,""
                 end select
             end if IF_ParamPass
         end do LOOP_Param
