@@ -774,12 +774,12 @@ print*,""
                             ! Create difference in binary L_Ci:Va,Bj mixing parameter type
                             if ((iRegularParam(n,1) == 3) .AND. &
                                 (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,3), 10000)) == 'Va')) then
-                                iSUBIParamData(n,4) = 1
+                                iSUBIParamData(n,7) = 0
 
                             ! Create difference in ternary mixing parameter type
                             else if ((iRegularParam(n,1) == 4) .AND. &
                                 (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,4), 10000)) == 'Va')) then
-                                iSUBIParamData(n,6) = 1
+                                iSUBIParamData(n,7) = 0
                             end if
 
                             k = k + iMixLength
@@ -793,7 +793,7 @@ print*,""
                         !print*,"cConstituentNameSUB(iPhaseSublattice(i),2,:)",cConstituentNameSUB(iPhaseSublattice(i),2,:)
                         !print*,"iConstituentSublattice(iPhaseSublattice(i),1,:)",iConstituentSublattice(iPhaseSublattice(i),1,:)
                         !print*,""
-                        
+
                 end select
             end if IF_ParamPass
         end do LOOP_Param
