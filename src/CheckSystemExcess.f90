@@ -341,14 +341,12 @@ subroutine CheckSystemExcess
                         iFirst = SUM(nGibbsEqSpecies(1:m-1)) + 1
                         iLast = SUM(nGibbsEqSpecies(1:m))
                         do l = iFirst, iLast
-                            ! print *, dGibbsCoeffSpeciesTemp(:,l)
                             dGibbsCoeffSpeciesTemp(2:8,l) = dGibbsCoeffSpeciesTemp(2:8,l) / &
                                     dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
                             dGibbsCoeffSpeciesTemp(10,l)  = dGibbsCoeffSpeciesTemp(10,l)  / &
                                     dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
                             dGibbsCoeffSpeciesTemp(12,l)  = dGibbsCoeffSpeciesTemp(12,l)  / &
                                     dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
-                            ! print *, dGibbsCoeffSpeciesTemp(:,l)
                         end do
                         dStoichSpeciesCS(m,:) = dStoichSpeciesCS(m,:)/dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
                     end if
