@@ -1157,12 +1157,12 @@ print*,""
                         print*,"dgdc1(i) Ci - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
-                            dgdc1(i) = dgdc1(i) + q * y2 * (y3**2) * y4 * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) + gexcess / y1
                             print*,"dgdc1(i) Ci - 1",dgdc1(i)*dIdealConstant * dTemperature
                             ! adding a negative charge works for some random reason idk why...
-                            dgdc1(i) = dgdc1(i) + (-chargeCi) * y1 * y2 * (y3**2) * y4 * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) + gexcess * chargeCi / q
                             print*,"dgdc1(i) Ci - 2",dgdc1(i)*dIdealConstant * dTemperature
-                            dgdc1(i) = dgdc1(i) + q * y1 * y2 * (y3**2) * y4 * (2D0 / 3D0 * y3) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) + q * dPreFactor * y3 * dExcessGibbsParam(l) * 2D0 / 3D0
                             print*,"dgdc1(i) Ci - 3",dgdc1(i)*dIdealConstant * dTemperature
 
                         else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 1) then
@@ -1194,11 +1194,11 @@ print*,""
                         print*,"dgdc1(i) Cj - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
-                            dgdc1(i) = dgdc1(i) + q * y1 * (y3**2) * y4 * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) + gexcess / y2
                             print*,"dgdc1(i) Cj - 1",dgdc1(i)*dIdealConstant * dTemperature
-                            dgdc1(i) = dgdc1(i) + chargeCj * y1 * y2 * (y3**2) * y4 * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) + gexcess * chargeCj / q
                             print*,"dgdc1(i) Cj - 2",dgdc1(i)*dIdealConstant * dTemperature
-                            dgdc1(i) = dgdc1(i) + q * y1 * y2 * (y3**2) * y4 * (-1D0 / 3D0 * y3) * dExcessGibbsParam(l)
+                            dgdc1(i) = dgdc1(i) - q * dPreFactor * y3 * dExcessGibbsParam(l) / 3D0
                             print*,"dgdc1(i) Cj - 3",dgdc1(i)*dIdealConstant * dTemperature
 
                         else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 1) then
@@ -1225,6 +1225,9 @@ print*,""
 
                         end if
                         print*,""
+                    ! Derivative with respect to Ck with k != i or j
+                    else
+                        dgdc1(i) = dgdc1(i) + gexcess * dSublatticeCharge(iSPI,1,i) / q
                     end if
                 end do
 
@@ -1235,9 +1238,9 @@ print*,""
                         print*,"dgdc2(i) Bk - 0",dgdc2(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
-                            dgdc2(i) = dgdc2(i) + q * y1 * y2 * (y3**2) * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc2(i) = dgdc2(i) + gexcess / y4
                             print*,"dgdc2(i) Bk - 1",dgdc2(i)*dIdealConstant * dTemperature
-                            dgdc2(i) = dgdc2(i) + q * y1 * y2 * (y3**2) * y4 * (-1D0 / 3D0) * dExcessGibbsParam(l)
+                            dgdc2(i) = dgdc2(i) - q * dPreFactor * dExcessGibbsParam(l) / 3D0
                             print*,"dgdc2(i) Bk - 2",dgdc2(i)*dIdealConstant * dTemperature
 
                         else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 1) then
@@ -1265,9 +1268,9 @@ print*,""
                         print*,"dgdc2(i) Va - 0",dgdc2(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
-                            dgdc2(i) = dgdc2(i) + q * y1 * y2 * (2D0*y3) * y4 * (y1 * y3 + f) * dExcessGibbsParam(l)
+                            dgdc2(i) = dgdc2(i) + gexcess * 3D0 / y3
                             print*,"dgdc2(i) Va - 1",dgdc2(i)*dIdealConstant * dTemperature
-                            dgdc2(i) = dgdc2(i) + q * y1 * y2 * (y3**2) * y4 * (y1 - (y1+y2) / 3D0) * dExcessGibbsParam(l)
+                            dgdc2(i) = dgdc2(i) - q * dPreFactor * dExcessGibbsParam(l) * (1D0 - y4) / (3D0 * y3)
                             print*,"dgdc2(i) Va - 2",dgdc2(i)*dIdealConstant * dTemperature
 
                         else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 1) then
