@@ -1,4 +1,4 @@
-    
+
     !-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompExcessGibbsEnergySUBI.f90
@@ -82,6 +82,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     implicit none
 
     integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
+    integer :: iCi, iCj, iBi
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
     integer :: iMixTypeVa , iMixTypeBi, iMixTypeAni
     integer :: iFirst, iLast, iFirstParam, iSecondParam, iFirstParam2, iSecondParam2
@@ -355,7 +356,7 @@ print*,""
                 ! Excess Gibbs energy equation for L_Ci:Aj,Dk case
                 gexcess = gexcess + dPreFactor * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
 
-              ! Determine the mixing parameter type: L_Ci,Cj:(Va or Ak)
+            ! Determine the mixing parameter type: L_Ci,Cj:(Va or Ak)
             else if ((iSUBIParamData(l,1) == 1) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
                      (iSUBIParamData(l,3) == 2)) then
@@ -567,7 +568,7 @@ print*,""
                 else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 2) then
                     ! In factsage 8 - y4 is positive and Factsage 6.2 y4 is negative
                     gexcess = gexcess + q * dPreFactor * (y4 + f) * dExcessGibbsParam(l)
-                else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 3) then
+                else
                     print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
                     INFOThermo = 36
                     return
@@ -1126,23 +1127,23 @@ print*,""
                     if (k == iSUBIParamData(l,2)) then
                         ! Cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2) + 1) then
                         ! Cation - Cj
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyCj = cConstituentNameSUB(iSPI,s,c)
+                        iCj = c
                         chargeCj = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2) + 2) then
                         ! Vacancy
                         y3 = dSiteFraction(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else
                         ! Neutral - Bk
                         y4 = dSiteFraction(iSPI,s,c)
-                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                        iBi = c
                     end if
                 end do
 
@@ -1151,7 +1152,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,1)
 
                     ! Derivative with respect to Ci
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
+                    if (i == iCi) then
                         print*,"l",l
                         print*,"dgdc1(i) Ci - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
@@ -1188,8 +1189,8 @@ print*,""
                         end if
                         print*,""
 
-                        ! Derivative with respect to Cj
-                    else if (cConstituentNameSUB(iSPI,1,i) == cDummyCj) then
+                    ! Derivative with respect to Cj
+                    else if (i == iCj) then
                         print*,"dgdc1(i) Cj - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
@@ -1230,7 +1231,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,2)
 
                     ! Derivative with respect to Bk
-                    if (cConstituentNameSUB(iSPI,2,i) == cDummyBi) then
+                    if (i == iBi) then
                         print*,"dgdc2(i) Bk - 0",dgdc2(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
@@ -1251,7 +1252,7 @@ print*,""
                             dgdc2(i) = dgdc2(i) + q * y1 * y2 * (y3**2) * y4 * (2D0 / 3D0) * dExcessGibbsParam(l)
                             print*,"dgdc2(i) Bk - 6",dgdc2(i)*dIdealConstant * dTemperature
 
-                        else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 3) then
+                        else
                             print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
                             INFOThermo = 36
                             return
@@ -1281,7 +1282,7 @@ print*,""
                             dgdc2(i) = dgdc2(i) + q * y1 * y2 * (y3**2) * y4 * (-(y1+y2) / 3D0) * dExcessGibbsParam(l)
                             print*,"dgdc2(i) Va - 6",dgdc2(i)*dIdealConstant * dTemperature
 
-                        else if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 3) then
+                        else
                             print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
                             INFOThermo = 36
                             return
