@@ -136,7 +136,7 @@ subroutine ResetThermo
 
     if (allocated(dExcessGibbsParam)) then
         ! Deallocate excess mixing parameter data
-        deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData, STAT = INFO)
+        deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData,iSUBIParamData, STAT = INFO)
         i = i + INFO
     end if
 

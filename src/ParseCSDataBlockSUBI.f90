@@ -77,8 +77,8 @@ subroutine ParseCSDataBlockSUBI(i)
 
     implicit none
 
-    integer                   :: i, j, k, n, s, iDummy
-
+    integer                   :: i, j, k, n, s, iDummy, v
+    character(8)              :: cDummy
 
     ! Initialize variables:
     n = 0
@@ -104,6 +104,20 @@ subroutine ParseCSDataBlockSUBI(i)
     ! Read in the name of each constituent for each sublattice:
     do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
         read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
+    end do
+
+    ! Convert Va, va, Va, and vA cases to Va
+    do v = 1, nConstituentSublatticeCS(nCountSublatticeCS,2)
+      cDummy = cConstituentNameSUBCS(nCountSublatticeCS,2,v)
+
+      if ((cDummy == 'VA') .OR. &
+          (cDummy == 'va') .OR. &
+          (cDummy == 'Va') .OR. &
+          (cDummy == 'vA')) then
+
+          cConstituentNameSUBCS(nCountSublatticeCS,2,v) = 'Va'
+
+      end if
     end do
 
     ! Record an error if necessary:
@@ -148,6 +162,7 @@ subroutine ParseCSDataBlockSUBI(i)
 
         ! Read in the list of constituent indices involved in this parameter:
         j = iRegularParamCS(nParamCS,1)
+
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS,2:j+2)
 
         ! Read in the mixing parameter:
@@ -175,6 +190,7 @@ subroutine ParseCSDataBlockSUBI(i)
             read (1,*,IOSTAT = INFO) dRegularParamCS(nParamCS,1:6)
 
         end do
+
     end do LOOP_ExcessMixingSUBI
 
     ! Report an error and return if necessary:
