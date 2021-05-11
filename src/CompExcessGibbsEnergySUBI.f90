@@ -665,41 +665,45 @@ print*,""
                     end if
                 end do
 
-                ! Chemical potential with respect to the second sublattice
-                do i = 1, nConstituentSublattice(iSPI,2)
+                ! Avoiding a situation with 0^(-1)
+                if ((yAi - yDi) /= 0D0) then
 
-                    if ((i == iBi) .AND. &
-                        (iMixTypeBi == 1)) then
-                        ! neutral
-                        dgdc2(i) = dgdc2(i) + yCi * yAi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
+                    ! Chemical potential with respect to the second sublattice
+                    do i = 1, nConstituentSublattice(iSPI,2)
 
-                        dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
-                                   iExponent * (yAi - yDi)**(iExponent-1) * (-1)
-
-                    else if ((cConstituentNameSUB(iSPI,2,i) == 'Va') .AND. &
-                        (iMixTypeVa == 1)) then
-                        ! cation / vacancy
-                        dgdc2(i) = dgdc2(i) + yCi * yAi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
-
-                        dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
-                                   iExponent * (yAi - yDi)**(iExponent-1) * (-1)
-
-                    else if (i == iAi) then
-                        ! cation / anion
-                        dgdc2(i) = dgdc2(i) + yCi * yDi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
-
-                        dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
-                                   iExponent * (yAi - yDi)**(iExponent-1) * (1)
-
-                        if ((iMixTypeAni == 1)) then
-                            ! If D_k is an anion
+                        if ((i == iBi) .AND. &
+                            (iMixTypeBi == 1)) then
+                            ! neutral
                             dgdc2(i) = dgdc2(i) + yCi * yAi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
 
                             dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
-                                       iExponent * (yAi - yDi)**(iExponent-1) * (-1)
+                                       iExponent * (yAi - yDi)**(iExponent - 1) * (-1)
+
+                        else if ((cConstituentNameSUB(iSPI,2,i) == 'Va') .AND. &
+                            (iMixTypeVa == 1)) then
+                            ! cation / vacancy
+                            dgdc2(i) = dgdc2(i) + yCi * yAi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
+
+                            dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
+                                       iExponent * (yAi - yDi)**(iExponent - 1) * (-1)
+
+                        else if (i == iAi) then
+                            ! cation / anion
+                            dgdc2(i) = dgdc2(i) + yCi * yDi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
+
+                            dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
+                                       iExponent * (yAi - yDi)**(iExponent - 1) * (1)
+
+                            if ((iMixTypeAni == 1)) then
+                                ! If D_k is an anion
+                                dgdc2(i) = dgdc2(i) + yCi * yAi * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
+
+                                dgdc2(i) = dgdc2(i) + yCi * yAi * yDi * dExcessGibbsParam(l) * &
+                                           iExponent * (yAi - yDi)**(iExponent - 1) * (-1)
+                            end if
                         end if
-                    end if
-                end do
+                    end do
+                end if
 
             ! Determine the mixing parameter type
             ! This is Case -> L_Ci,Cj:Va
@@ -732,33 +736,37 @@ print*,""
                     iExponent = iRegularParam(l,n+2)
                 end do
 
-                ! First sublattice - Cation:vacancy contributions
-                do i = 1, nConstituentSublattice(iSPI,1)
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi - yCj) /= 0) then
 
-                    ! Derivative with respect to Ci
-                    if (i == iCi) then
-                        dgdc1(i) = dgdc1(i) + q * yCj * yva**2 * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                    ! First sublattice - Cation:vacancy contributions
+                    do i = 1, nConstituentSublattice(iSPI,1)
 
-                        dgdc1(i) = dgdc1(i) + chargeCi * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                        ! Derivative with respect to Ci
+                        if (i == iCi) then
+                            dgdc1(i) = dgdc1(i) + q * yCj * yva**2 * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
 
-                        dgdc1(i) = dgdc1(i) + q * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
+                            dgdc1(i) = dgdc1(i) + chargeCi * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
+
+                            dgdc1(i) = dgdc1(i) + q * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
                                    iExponent * (yCi - yCj)**(iExponent - 1) * (1)
 
-                    ! Derivative with respect to Cj
-                    else if (i == iCj) then
-                        dgdc1(i) = dgdc1(i) + q * yCi * yva**2 * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                        ! Derivative with respect to Cj
+                        else if (i == iCj) then
+                            dgdc1(i) = dgdc1(i) + q * yCi * yva**2 * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
 
-                        dgdc1(i) = dgdc1(i) + chargeCj * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                            dgdc1(i) = dgdc1(i) + chargeCj * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
 
-                        dgdc1(i) = dgdc1(i) + q * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
-                                   iExponent * (yCi - yCj)**(iExponent - 1) * (-1)
+                            dgdc1(i) = dgdc1(i) + q * yCi * yCj * yva**2 * dExcessGibbsParam(l) * &
+                                       iExponent * (yCi - yCj)**(iExponent - 1) * (-1)
 
-                    end if
-                end do
+                        end if
+                    end do
+                end if
 
                 ! Second sublattice - Cation:vacancy contributions
                 do i = 1, nConstituentSublattice(iSPI,2)
@@ -767,6 +775,7 @@ print*,""
                                   (yCi - yCj)**(iExponent)
                     end if
                 end do
+
 
             ! Determine the mixing parameter type
             ! This is Case -> L_Ci,Cj:Ak
@@ -798,29 +807,33 @@ print*,""
                         iExponent = iRegularParam(l,n+2)
                 end do
 
-                ! First sublattice - Cation:vacancy contributions
-                do i = 1, nConstituentSublattice(iSPI,1)
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi - yCj) /= 0) then
 
-                    ! Derivative with respect to Ci
-                    if (i == iCi) then
+                    ! First sublattice - Cation:vacancy contributions
+                    do i = 1, nConstituentSublattice(iSPI,1)
 
-                        dgdc1(i) = dgdc1(i) + yCj * yAi * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                        ! Derivative with respect to Ci
+                        if (i == iCi) then
 
-                        dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * dExcessGibbsParam(l) * &
-                                   iExponent * (yCi - yCj)**(iExponent - 1) * (1)
+                            dgdc1(i) = dgdc1(i) + yCj * yAi * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
 
-                    ! Derivative with respect to Cj
-                    else if (i == iCj) then
+                            dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * dExcessGibbsParam(l) * &
+                                       iExponent * (yCi - yCj)**(iExponent - 1) * (1)
 
-                        dgdc1(i) = dgdc1(i) + yCi * yAi * dExcessGibbsParam(l) * &
-                                  (yCi - yCj)**(iExponent)
+                        ! Derivative with respect to Cj
+                        else if (i == iCj) then
 
-                        dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * dExcessGibbsParam(l) * &
-                                   iExponent * (yCi - yCj)**(iExponent - 1) * (-1)
+                            dgdc1(i) = dgdc1(i) + yCi * yAi * dExcessGibbsParam(l) * &
+                                      (yCi - yCj)**(iExponent)
 
-                    end if
-                end do
+                            dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * dExcessGibbsParam(l) * &
+                                       iExponent * (yCi - yCj)**(iExponent - 1) * (-1)
+
+                        end if
+                    end do
+                end if
 
                 ! Second sublattice - Cation:vacancy contributions
                 do i = 1, nConstituentSublattice(iSPI,2)
@@ -863,51 +876,45 @@ print*,""
                     iExponent = iRegularParam(l,n+2)
                 end do
 
-                ! First sublattice
-                do i = 1, nConstituentSublattice(iSPI,1)
-                    if ((i == iCi) .AND. &
-                        ((yCi * yva - yBi) /= 0D0)) then
-                        ! cation - Ci
-                        dgdc1(i) = dgdc1(i) + q * yva * yBi * dExcessGibbsParam(l) * &
-                                  (yCi * yva - yBi)**(iExponent)
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi * yva - yBi) /= 0) then
 
-                        dgdc1(i) = dgdc1(i) + chargeCi * yCi * yva * yBi * dExcessGibbsParam(l) * &
-                                  (yCi * yva - yBi)**(iExponent)
+                    ! First sublattice
+                    do i = 1, nConstituentSublattice(iSPI,1)
+                        if (i == iCi) then
+                            ! cation - Ci
+                            dgdc1(i) = dgdc1(i) + q * yva * yBi * dExcessGibbsParam(l) * &
+                                      (yCi * yva - yBi)**(iExponent)
 
-                        dgdc1(i) = dgdc1(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * yva * &
-                                   iExponent * (yCi * yva - yBi)**(iExponent - 1)
+                            dgdc1(i) = dgdc1(i) + chargeCi * yCi * yva * yBi * dExcessGibbsParam(l) * &
+                                      (yCi * yva - yBi)**(iExponent)
 
-                    else
-                        dgdc1(i) = dgdc1(i) + 0D0
+                            dgdc1(i) = dgdc1(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * yva * &
+                                       iExponent * (yCi * yva - yBi)**(iExponent - 1)
 
-                    end if
-                end do
+                        end if
+                    end do
 
-                ! Second sublattice
-                do i = 1, nConstituentSublattice(iSPI,2)
-                    if ((cConstituentNameSUB(iSPI,2,i) == 'Va') .AND. &
-                       ((yCi * yva - yBi) /= 0D0)) then
-                        ! vacancy contributions
-                        dgdc2(i) = dgdc2(i) + q * yCi * yBi * dExcessGibbsParam(l) * &
-                                  (yCi * yva - yBi)**(iExponent)
+                    ! Second sublattice
+                    do i = 1, nConstituentSublattice(iSPI,2)
+                        if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
+                            ! vacancy contributions
+                            dgdc2(i) = dgdc2(i) + q * yCi * yBi * dExcessGibbsParam(l) * &
+                                      (yCi * yva - yBi)**(iExponent)
 
-                        dgdc2(i) = dgdc2(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * yCi * &
-                                   iExponent * (yCi * yva - yBi)**(iExponent - 1)
+                            dgdc2(i) = dgdc2(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * yCi * &
+                                       iExponent * (yCi * yva - yBi)**(iExponent - 1)
 
-                    else if ((i == iBi) .AND. &
-                            ((yCi * yva - yBi) /= 0D0)) then
-                        ! neutral contributions
-                        dgdc2(i) = dgdc2(i) + q * yCi * yva * dExcessGibbsParam(l) * &
-                                  (yCi * yva - yBi)**(iExponent)
+                        else if (i == iBi) then
+                            ! neutral contributions
+                            dgdc2(i) = dgdc2(i) + q * yCi * yva * dExcessGibbsParam(l) * &
+                                      (yCi * yva - yBi)**(iExponent)
 
-                        dgdc2(i) = dgdc2(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * (-1) * &
-                                   iExponent * (yCi * yva - yBi)**(iExponent - 1)
-
-                    else
-                        dgdc2(i) = dgdc2(i) + 0D0
-
-                    end if
-                end do
+                            dgdc2(i) = dgdc2(i) + q * yCi * yva * yBi * dExcessGibbsParam(l) * (-1) * &
+                                       iExponent * (yCi * yva - yBi)**(iExponent - 1)
+                        end if
+                    end do
+                end if
 
             ! Determine the mixing parameter type
             ! This is Case -> L_Ci,Cj:Ak,Dl
@@ -942,16 +949,13 @@ print*,""
                         if (cConstituentNameSUB(iSPI,s,c) == 'Va') then
                             ! Vacancy - Va
                             iMixTypeVa = 1
-
                         else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
                             ! Nuetral
                             iBi = c
                             iMixTypeBi = 1
-
                         else
                             ! Anion - Aj
                             iMixTypeAni = 1
-
                         end if
 
                         ! Dl
@@ -963,113 +967,63 @@ print*,""
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 iExponent = iRegularParam(l,n+2)
 
-                do i = 1, nConstituentSublattice(iSPI,1)
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi - yCj) /= 0) then
 
-                    ! Derivative with respect to Ci
-                    if (i == iCi) then
+                    do i = 1, nConstituentSublattice(iSPI,1)
 
-                        if (((iExponent * 2) + 1) <= l) then
-                            ! Part 1 of derivation
-                            dgdc1(i) = dgdc1(i) + yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                      (yCi - yCj)**(iExponent)
-                            ! Part 3 of derivation
-                            dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                       1 * iExponent * (yCi - yCj)**(iExponent - 1)
+                        ! Derivative with respect to Ci
+                        if (i == iCi) then
+
+                            if (((iExponent * 2) + 1) <= l) then
+                                ! Part 1 of derivation
+                                dgdc1(i) = dgdc1(i) + yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                          (yCi - yCj)**(iExponent)
+                                ! Part 3 of derivation
+                                dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                           1 * iExponent * (yCi - yCj)**(iExponent - 1)
+                            end if
+
+                            if ((iExponent >= 1) .AND. &
+                                (iExponent * 2 <= l)) then
+                                ! Part 2 of derivation
+                                dgdc1(i) = dgdc1(i) + yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                          (yAi - yDi)**(iExponent)
+                            end if
+
+                        ! Derivative with respect to Cj
+                        else if (i == iCj) then
+
+                            if (((iExponent * 2) + 1) <= l) then
+                                ! Part 1 of derivation
+                                dgdc1(i) = dgdc1(i) + yCi * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                          (yCi - yCj)**(iExponent)
+                                ! Part 3 of derivation
+                                dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                          (-1) * iExponent * (yCi - yCj)**(iExponent - 1)
+                            end if
+
+                            if ((iExponent >= 1) .AND. &
+                                (iExponent * 2 <= l)) then
+                                ! Part 2 of derivation
+                                dgdc1(i) = dgdc1(i) + yCi * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                          (yAi - yDi)**(iExponent)
+                            end if
                         end if
+                    end do
+                end if
 
-                        if ((iExponent >= 1) .AND. &
-                            (iExponent * 2 <= l)) then
-                            ! Part 2 of derivation
-                            dgdc1(i) = dgdc1(i) + yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (yAi - yDi)**(iExponent)
-                        end if
+                ! Avoiding a situation with 0^(-1)
+                if ((yAi - yDi) /= 0) then
 
-                    ! Derivative with respect to Cj
-                  else if (i == iCj) then
+                    ! Chemical potential with respect to the second sublattice
+                    do i = 1, nConstituentSublattice(iSPI,2)
 
-                        if (((iExponent * 2) + 1) <= l) then
-                            ! Part 1 of derivation
-                            dgdc1(i) = dgdc1(i) + yCi * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                      (yCi - yCj)**(iExponent)
-                            ! Part 3 of derivation
-                            dgdc1(i) = dgdc1(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                     (-1) * iExponent * (yCi - yCj)**(iExponent - 1)
-                        end if
-
-                        if ((iExponent >= 1) .AND. &
-                            (iExponent * 2 <= l)) then
-                            ! Part 2 of derivation
-                            dgdc1(i) = dgdc1(i) + yCi * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (yAi - yDi)**(iExponent)
-                        end if
-                    end if
-                end do
-
-                ! Chemical potential with respect to the second sublattice
-                do i = 1, nConstituentSublattice(iSPI,2)
-
-                    !! When Dl = Al or Bl - Cases untested... %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                    ! If Dl is and neutral:
-                    if ((i == iBi) .AND. &
-                        (iMixTypeBi == 1)) then
-                        ! neutral
-                        if (((iExponent * 2) + 1) <= l) then
-                            ! Part 1 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                      (yCi - yCj)**(iExponent)
-                        end if
-
-                        if ((iExponent >= 1) .AND. &
-                            (iExponent * 2 <= l)) then
-                            ! Part 2 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam(iExponent * 2) * &
-                                      (yAi - yDi)**(iExponent)
-                            ! Part 3 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (-1) * iExponent * (yAi - yDi)**(iExponent - 1)
-                        end if
-
-                        ! If Dl is and vacancy:
-                    else if ((cConstituentNameSUB(iSPI,2,i) == 'Va') .AND. &
-                        (iMixTypeVa == 1)) then
-                        ! cation / vacancy
-                        if (((iExponent * 2) + 1) <= l) then
-                            ! Part 1 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                      (yCi - yCj)**(iExponent)
-                        end if
-
-                        if ((iExponent >= 1) .AND. &
-                            (iExponent * 2 <= l)) then
-                            ! Part 2 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam(iExponent * 2) * &
-                                      (yAi - yDi)**(iExponent)
-                            ! Part 3 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (-1) * iExponent * (yAi - yDi)**(iExponent - 1)
-                        end if
-
-                    else if (i == iAi) then
-                        ! cation / anion
-                        if (((iExponent * 2) + 1) <= l) then
-                            ! Part 1 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
-                                      (yCi - yCj)**(iExponent)
-                        end if
-
-                        if ((iExponent >= 1) .AND. &
-                            (iExponent * 2 <= l)) then
-                            ! Part 2 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (yAi - yDi)**(iExponent)
-                              ! Part 3 of derivation
-                            dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
-                                      (1) * iExponent * (yAi - yDi)**(iExponent - 1)
-                        end if
-
-                        ! If Dl is and anion:
-                        if (iMixTypeAni == 1) then
-                            ! cation / anion
+                        !! When Dl = Al or Bl - Cases untested... %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        ! If Dl is and neutral:
+                        if ((i == iBi) .AND. &
+                            (iMixTypeBi == 1)) then
+                            ! neutral
                             if (((iExponent * 2) + 1) <= l) then
                                 ! Part 1 of derivation
                                 dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam((iExponent * 2) + 1) * &
@@ -1085,9 +1039,67 @@ print*,""
                                 dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
                                           (-1) * iExponent * (yAi - yDi)**(iExponent - 1)
                             end if
+
+                        ! If Dl is and vacancy:
+                        else if ((cConstituentNameSUB(iSPI,2,i) == 'Va') .AND. &
+                            (iMixTypeVa == 1)) then
+                            ! cation / vacancy
+                            if (((iExponent * 2) + 1) <= l) then
+                                ! Part 1 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                          (yCi - yCj)**(iExponent)
+                            end if
+
+                            if ((iExponent >= 1) .AND. &
+                                (iExponent * 2 <= l)) then
+                                ! Part 2 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam(iExponent * 2) * &
+                                          (yAi - yDi)**(iExponent)
+                                ! Part 3 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                          (-1) * iExponent * (yAi - yDi)**(iExponent - 1)
+                            end if
+
+                        else if (i == iAi) then
+                            ! cation / anion
+                            if (((iExponent * 2) + 1) <= l) then
+                                ! Part 1 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yDi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                          (yCi - yCj)**(iExponent)
+                            end if
+
+                            if ((iExponent >= 1) .AND. &
+                                (iExponent * 2 <= l)) then
+                                ! Part 2 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                          (yAi - yDi)**(iExponent)
+                                ! Part 3 of derivation
+                                dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                          (1) * iExponent * (yAi - yDi)**(iExponent - 1)
+                            end if
+
+                            ! If Dl is and anion:
+                            if (iMixTypeAni == 1) then
+                                ! cation / anion
+                                if (((iExponent * 2) + 1) <= l) then
+                                    ! Part 1 of derivation
+                                    dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam((iExponent * 2) + 1) * &
+                                              (yCi - yCj)**(iExponent)
+                                end if
+
+                                if ((iExponent >= 1) .AND. &
+                                    (iExponent * 2 <= l)) then
+                                    ! Part 2 of derivation
+                                    dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * dExcessGibbsParam(iExponent * 2) * &
+                                              (yAi - yDi)**(iExponent)
+                                    ! Part 3 of derivation
+                                    dgdc2(i) = dgdc2(i) + yCi * yCj * yAi * yDi * dExcessGibbsParam(iExponent * 2) * &
+                                              (-1) * iExponent * (yAi - yDi)**(iExponent - 1)
+                                end if
+                            end if
                         end if
-                    end if
-                end do
+                    end do
+                end if
             !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             ! Not properly working
             ! Determine the mixing parameter type
