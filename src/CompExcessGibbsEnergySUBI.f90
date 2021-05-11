@@ -92,7 +92,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
     real(8) :: dPreFactor, dFirstParam, dSecondParam, dThirdParam, dFourthParam
     real(8) :: y1, y2, y3, y4, f, chargeCi, chargeCj
-    character(8) :: cDummyBi, cDummyCi, cDummyCj, cDummyAi, cDummyAj
 
 print*,""
 print*,""
@@ -611,11 +610,11 @@ print*,""
             iMixTypeBi = 0
             iMixTypeAni = 0
 
-            cDummyAi = ' '
-            cDummyAj = ' '
-            cDummyBi = ' '
-            cDummyCi = ' '
-            cDummyCj = ' '
+            iAi = 0
+            iAj = 0
+            iBi = 0
+            iCi = 0
+            iCj = 0
 
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
@@ -634,13 +633,13 @@ print*,""
                     if (k == iSUBIParamData(l,2) - 1) then
                         ! cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
 
                     else if (k == iSUBIParamData(l,2)) then
                         ! anion - Aj
                         dFirstParam = dSiteFraction(iSPI,s,c)
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyAi = cConstituentNameSUB(iSPI,s,c)
+                        iAi = c
 
                     else
                       ! Determining if Dl equals a vacancy, neutral or anion
@@ -650,11 +649,10 @@ print*,""
                       else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
                         ! neutral case
                         iMixTypeBi = 1
-                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                        iBi = c
                       else
                         ! anion case
                         iMixTypeAni = 1
-                        cDummyAj = cConstituentNameSUB(iSPI,s,c)
 
                       end if
                         dSecondParam = dSiteFraction(iSPI,s,c)
@@ -667,7 +665,7 @@ print*,""
 
                 ! Chemical potential with respect to the first sublattice
                 do i = 1, nConstituentSublattice(iSPI,1)
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
+                    if (i == iCi) then
                         dgdc1(i) = dgdc1(i) + y2 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
                     end if
                 end do
@@ -675,7 +673,7 @@ print*,""
                 ! Chemical potential with respect to the second sublattice
                 do i = 1, nConstituentSublattice(iSPI,2)
 
-                    if ((cConstituentNameSUB(iSPI,2,i) == cDummyBi) .AND. &
+                    if ((i == iBi) .AND. &
                         (iMixTypeBi == 1)) then
                         ! neutral
                         dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
@@ -691,7 +689,7 @@ print*,""
                         dgdc2(i) = dgdc2(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                    iExponent * (dFirstParam - dSecondParam)**(iExponent-1) * (-1)
 
-                    else if (cConstituentNameSUB(iSPI,2,i) == cDummyAi) then
+                    else if (i == iAi) then
                         ! cation / anion
                         dgdc2(i) = dgdc2(i) + y1 * y3 * dExcessGibbsParam(l) * (dFirstParam - dSecondParam)**(iExponent)
 
@@ -723,14 +721,14 @@ print*,""
                         dFirstParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2) + 1) then
                         dSecondParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Cj
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyCj = cConstituentNameSUB(iSPI,s,c)
+                        iCj = c
                         chargeCj = dSublatticeCharge(iSPI,s,c)
 
                     else
@@ -745,8 +743,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,1)
 
                     ! Derivative with respect to Ci
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
-
+                    if (i == iCi) then
                         dgdc1(i) = dgdc1(i) + q * y2 * yva**2 * dExcessGibbsParam(l) * &
                                   (dFirstParam - dSecondParam)**(iExponent)
 
@@ -757,8 +754,7 @@ print*,""
                                    iExponent * (dFirstParam - dSecondParam)**(iExponent - 1) * (1)
 
                     ! Derivative with respect to Cj
-                  else if (cConstituentNameSUB(iSPI,1,i) == cDummyCj) then
-
+                    else if (i == iCj) then
                         dgdc1(i) = dgdc1(i) + q * y1 * yva**2 * dExcessGibbsParam(l) * &
                                   (dFirstParam - dSecondParam)**(iExponent)
 
@@ -794,18 +790,18 @@ print*,""
                         dFirstParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
 
                     else if (k == iSUBIParamData(l,2) + 1) then
                         dSecondParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Cj
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyCj = cConstituentNameSUB(iSPI,s,c)
+                        iCj = c
 
                     else
                         ! Anion - Ak
                         y3 = dSiteFraction(iSPI,s,c)
-                        cDummyAi = cConstituentNameSUB(iSPI,s,c)
+                        iAi = c
 
                     end if
                         iExponent = iRegularParam(l,n+2)
@@ -815,7 +811,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,1)
 
                     ! Derivative with respect to Ci
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
+                    if (i == iCi) then
 
                         dgdc1(i) = dgdc1(i) + y2 * y3 * dExcessGibbsParam(l) * &
                                   (dFirstParam - dSecondParam)**(iExponent)
@@ -824,19 +820,20 @@ print*,""
                                    iExponent * (dFirstParam - dSecondParam)**(iExponent - 1) * (1)
 
                     ! Derivative with respect to Cj
-                    else if (cConstituentNameSUB(iSPI,1,i) == cDummyCj) then
+                    else if (i == iCj) then
 
                         dgdc1(i) = dgdc1(i) + y1 * y3 * dExcessGibbsParam(l) * &
                                   (dFirstParam - dSecondParam)**(iExponent)
 
                         dgdc1(i) = dgdc1(i) + y1 * y2 * y3 * dExcessGibbsParam(l) * &
                                    iExponent * (dFirstParam - dSecondParam)**(iExponent - 1) * (-1)
+
                     end if
                 end do
 
                 ! Second sublattice - Cation:vacancy contributions
                 do i = 1, nConstituentSublattice(iSPI,2)
-                    if (cConstituentNameSUB(iSPI,2,i) == cDummyAi) then
+                    if (i == iAi) then
                         dgdc2(i) = dgdc2(i) + y1 * y2 * dExcessGibbsParam(l) * &
                                   (dFirstParam - dSecondParam)**(iExponent)
 
@@ -859,7 +856,7 @@ print*,""
                         ! cation - Ci
                         dFirstParam = dSiteFraction(iSPI,s,c)
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2)) then
@@ -871,7 +868,7 @@ print*,""
                         ! neutral - Bj
                         dThirdParam = dSiteFraction(iSPI,s,c)
                         y3 = dSiteFraction(iSPI,s,c)
-                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                        iBi = c
 
                     end if
                     ! Multiply prefactor term by excess Gibbs energy parameter:
@@ -880,7 +877,7 @@ print*,""
 
                 ! First sublattice
                 do i = 1, nConstituentSublattice(iSPI,1)
-                    if ((cConstituentNameSUB(iSPI,1,i) == cDummyCi) .AND. &
+                    if ((i == iCi) .AND. &
                         ((dFirstParam * dSecondParam - dThirdParam) /= 0D0)) then
                         ! cation - Ci
                         dgdc1(i) = dgdc1(i) + q * yva * y3 * dExcessGibbsParam(l) * &
@@ -909,7 +906,7 @@ print*,""
                         dgdc2(i) = dgdc2(i) + q * y1 * yva * y3 * dExcessGibbsParam(l) * y1 * &
                                    iExponent * (dFirstParam * dSecondParam - dThirdParam)**(iExponent - 1)
 
-                    else if ((cConstituentNameSUB(iSPI,2,i) == cDummyBi) .AND. &
+                    else if ((i == iBi) .AND. &
                             ((dFirstParam * dSecondParam - dThirdParam) /= 0D0)) then
                         ! neutral contributions
                         dgdc2(i) = dgdc2(i) + q * y1 * yva * dExcessGibbsParam(l) * &
@@ -942,19 +939,19 @@ print*,""
                         dFirstParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
 
                     else if (k == iSUBIParamData(l,2) + 1) then
                         dSecondParam = dSiteFraction(iSPI,s,c)
                         ! Cation - Cj
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyCj = cConstituentNameSUB(iSPI,s,c)
+                        iCj = c
 
                     else if (k == iSUBIParamData(l,2) + 2) then
                         dThirdParam = dSiteFraction(iSPI,s,c)
                         ! Anion - Ai
                         y3 = dSiteFraction(iSPI,s,c)
-                        cDummyAi = cConstituentNameSUB(iSPI,s,c)
+                        iAi = c
 
                     else
                         dFourthParam = dSiteFraction(iSPI,s,c)
@@ -966,13 +963,12 @@ print*,""
                         else if (dSublatticeCharge(iSPI,s,c) == 0D0) then
                             ! Nuetral
                             y4 = dSiteFraction(iSPI,s,c)
-                            cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                            iBi = c
                             iMixTypeBi = 1
 
                         else
                             ! Anion - Aj
                             y4 = dSiteFraction(iSPI,s,c)
-                            cDummyAj = cConstituentNameSUB(iSPI,s,c)
                             iMixTypeAni = 1
 
                         end if
@@ -985,7 +981,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,1)
 
                     ! Derivative with respect to Ci
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
+                    if (i == iCi) then
 
                         if (((iExponent * 2) + 1) <= l) then
                             ! Part 1 of derivation
@@ -1004,7 +1000,7 @@ print*,""
                         end if
 
                     ! Derivative with respect to Cj
-                    else if (cConstituentNameSUB(iSPI,1,i) == cDummyCj) then
+                  else if (i == iCj) then
 
                         if (((iExponent * 2) + 1) <= l) then
                             ! Part 1 of derivation
@@ -1029,7 +1025,7 @@ print*,""
 
                     !! When Dl = Al or Bl - Cases untested... %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                     ! If Dl is and neutral:
-                    if ((cConstituentNameSUB(iSPI,2,i) == cDummyBi) .AND. &
+                    if ((i == iBi) .AND. &
                         (iMixTypeBi == 1)) then
                         ! neutral
                         if (((iExponent * 2) + 1) <= l) then
@@ -1068,7 +1064,7 @@ print*,""
                                       (-1) * iExponent * (dThirdParam - dFourthParam)**(iExponent - 1)
                         end if
 
-                    else if ((cConstituentNameSUB(iSPI,2,i) == cDummyAi)) then
+                    else if (i == iAi) then
                         ! cation / anion
                         if (((iExponent * 2) + 1) <= l) then
                             ! Part 1 of derivation
@@ -1122,13 +1118,13 @@ print*,""
                     if (k == iSUBIParamData(l,2)) then
                         ! Cation - Ci
                         y1 = dSiteFraction(iSPI,s,c)
-                        cDummyCi = cConstituentNameSUB(iSPI,s,c)
+                        iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2) + 1) then
                         ! Cation - Cj
                         y2 = dSiteFraction(iSPI,s,c)
-                        cDummyCj = cConstituentNameSUB(iSPI,s,c)
+                        iCj = c
                         chargeCj = dSublatticeCharge(iSPI,s,c)
 
                     else if (k == iSUBIParamData(l,2) + 2) then
@@ -1138,7 +1134,8 @@ print*,""
                     else if (k == iSUBIParamData(l,2) + 3) then
                         ! Neutral - Bk
                         y4 = dSiteFraction(iSPI,s,c)
-                        cDummyBi = cConstituentNameSUB(iSPI,s,c)
+                        iBi = c
+
                     end if
                 end do
 
@@ -1147,7 +1144,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,1)
 
                     ! Derivative with respect to Ci
-                    if (cConstituentNameSUB(iSPI,1,i) == cDummyCi) then
+                    if (i == iCi) then
                         print*,"l",l
                         print*,"dgdc1(i) Ci - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
@@ -1185,7 +1182,7 @@ print*,""
                         print*,""
 
                         ! Derivative with respect to Cj
-                    else if (cConstituentNameSUB(iSPI,1,i) == cDummyCj) then
+                    else if (i == iCj) then
                         print*,"dgdc1(i) Cj - 0",dgdc1(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
@@ -1226,7 +1223,7 @@ print*,""
                 do i = 1, nConstituentSublattice(iSPI,2)
 
                     ! Derivative with respect to Bk
-                    if (cConstituentNameSUB(iSPI,2,i) == cDummyBi) then
+                    if (i == iBi) then
                         print*,"dgdc2(i) Bk - 0",dgdc2(i)*dIdealConstant * dTemperature
                         ! Chemical potential equation for L_Ci,Cj:Va,Bk case
                         if (iRegularParam(l,(iRegularParam(l,1) + 2)) == 0) then
