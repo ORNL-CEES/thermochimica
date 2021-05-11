@@ -768,18 +768,20 @@ print*,""
                                 iSUBIParamData(n,nMixSets*2) = iMixStart
                                 iSUBIParamData(n,nMixSets*2+1) = iMixLength
 
-                            !print*,"iSUBIParamData - before",iSUBIParamData(n,:)
                             end if
+
+                            !print*,"n",n
+                            !print*,"iSUBIParamData - before",iSUBIParamData(n,:)
 
                             ! Create difference in binary L_Ci:Va,Bj mixing parameter type
                             if ((iRegularParam(n,1) == 3) .AND. &
                                 (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,3), 10000)) == 'Va')) then
-                                iSUBIParamData(n,7) = 0
+                                iSUBIParamData(n,6) = 1
 
                             ! Create difference in ternary mixing parameter type
                             else if ((iRegularParam(n,1) == 4) .AND. &
                                 (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,4), 10000)) == 'Va')) then
-                                iSUBIParamData(n,7) = 0
+                                iSUBIParamData(n,6) = 1
                             end if
 
                             k = k + iMixLength
