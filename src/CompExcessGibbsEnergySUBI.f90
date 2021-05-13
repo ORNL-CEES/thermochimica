@@ -489,6 +489,12 @@ print*,""
 
                                 dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
 
+                           else
+                                !&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+                                ! Not yet tested
+                                ! If there are additional cations that are not i or j
+                                dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+
                             end if
                         end do
                     end if
@@ -593,6 +599,12 @@ print*,""
                             dgdc1(i) = dgdc1(i) + gex * chargeCi / q
 
                             dgdc1(i) = dgdc1(i) + gex * iExponent * yva / (yCi * yva - yBi)
+
+                        else
+                            !&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+                            ! Not yet tested
+                            ! If there are additional cations that are not i
+                            dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
 
                         end if
                     end do
@@ -888,6 +900,12 @@ print*,""
 
                         end if
                         print*,""
+
+                    else
+                      !&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+                      ! Not yet tested
+                      ! If there are additional cations that are not i or j
+                      dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
                     end if
                 end do
 
