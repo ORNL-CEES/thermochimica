@@ -15,13 +15,11 @@
     !> \param       nParam              The number of mixing parameters in the system.
     !> \param       nParamPhase         The number of mixing parameters in each solution phase.
     !> \param       nMaxParam           The maximum number of parameters that are allowed.
-    !> \param       nDummySpecies       The number of dummy species that have been added to a ChemSage
-    !!                                   data-file from FactSage.
-    !> \param       nConPhases          The number of pure condensed phases predicted to be stable at
-    !!                                   equilibrium.
+    !> \param       nDummySpecies       The number of dummy species that have been added to a ChemSage data-file from FactSage.
+    !> \param       nConPhases          The number of pure condensed phases predicted to be stable at equilibrium.
+    !> \param       nConPhasesSys       The number of pure condensed phases in the system (not necessarily stable at equilibrium).
     !> \param       nSolnPhases         The number of solution phases predicted to be stable at equilibrium.
-    !> \param       nSolnPhasesSys      The number of solution phases in the system (not necessarily stable at
-    !!                                   equilibrium).
+    !> \param       nSolnPhasesSys      The number of solution phases in the system (not necessarily stable at equilibrium).
     !> \param       iTolNum             The number of numerical tolerances (used only for allocation purposes).
     !> \param       dSpeciesTotalAtoms  The total number of atoms per formula mass of a species.
     !> \param       iPhase              An integer vector representing the phase type (0: pure condensed phase;
@@ -36,9 +34,8 @@
     !!                                   models.  The first coefficient represents the number of components in
     !!                                   the sub-system and the other coefficients represent the indices of
     !!                                   components in the sub-system.
-    !> \param       iterHistoryLevel    An integer matrix representing all of the indices of phases that
-    !!                                   contribute to the equilibrium phase assemblage at each stage in the
-    !!                                   iteration history during Leveling.
+    !> \param       iterHistoryLevel    An integer matrix representing all of the indices of phases that contribute to the
+    !!                                   equilibrium phase assemblage at each stage in the iteration history during Leveling.
     !> \param       dIdealConstant      The ideal gas constant.
     !> \param       dChemicalPotential  A double real vector representing the chemical potential of each
     !!                                   species.  To be precise, this is defined as the difference between
@@ -84,7 +81,7 @@ module ModuleThermo
     SAVE
 
     integer::                                     nElements, nSpecies, nParam, nMaxParam, nDummySpecies, nElemOrComp, nMagParam
-    integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints
+    integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints, nConPhasesSys
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118, nMaxCompounds = 50
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
