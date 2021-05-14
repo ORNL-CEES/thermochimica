@@ -82,15 +82,13 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     implicit none
 
     integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
-    integer :: iCi, iCj, iBi, iAi, iAj, iDi
+    integer :: iCi, iCj, iBi, iBj, iAi, iAj, iDi
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
-    integer :: iMixTypeVa , iMixTypeBi, iMixTypeAni
     integer :: iFirst, iLast
-    integer, dimension(:), allocatable:: iMixType
     real(8) :: dSub1Total, dSub2Total, dydn
     real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
-    real(8) :: dPreFactor, f, chargeCi, chargeCj, yCi, yCj, yAi, yAj, yBi, yDi, gex
+    real(8) :: dPreFactor, f, chargeCi, chargeCj, yCi, yCj, yAi, yAj, yBi, yBj, yDi, gex
 
 print*,""
 print*,""
@@ -110,10 +108,8 @@ print*,""
         if (allocated(dgdc1)) deallocate(dgdc1)
         if (allocated(dgdc2)) deallocate(dgdc2)
         if (allocated(dMolDerivatives)) deallocate(dMolDerivatives)
-        if (allocated(iMixType)) deallocate(iMixType)
         allocate(dgdc1(nConstituentSublattice(iSPI,1)),dgdc2(nConstituentSublattice(iSPI,2)))
         allocate(dMolDerivatives(iLast - iFirst + 1))
-        allocate(iMixType(nParamPhase(iSolnIndex)))
 
         ! Initialize variables:
         dSiteFraction(iSPI,1:nSublattice,1:nMaxConstituentSys) = 0D0
@@ -122,7 +118,6 @@ print*,""
         dgdc1                                                  = 0D0
         dgdc2                                                  = 0D0
         dMolDerivatives                                        = 0D0
-        iMixType                                               = 0
 
         ! Compute site fractions on first sublattice:
         do i = iFirst, iLast
@@ -311,13 +306,10 @@ print*,""
             chargeCi = 0D0
             chargeCj = 0D0
 
-            iMixTypeVa = 0
-            iMixTypeBi = 0
-            iMixTypeAni = 0
-
             iAi = 0
             iAj = 0
             iBi = 0
+            iBj = 0
             iCi = 0
             iCj = 0
             iDi = 0
@@ -327,6 +319,7 @@ print*,""
             yAi = 0D0
             yAj = 0D0
             yBi = 0D0
+            yBj = 0D0
             yDi = 0D0
 
             gex = 0D0
@@ -334,11 +327,84 @@ print*,""
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
 
+            ! Determine the mixing parameter type: L_Ci,Cj:Ak
+            if ((iSUBIParamData(l,1) == 3) .AND. &
+                (iSUBIParamData(l,2) == 2) .AND. &
+                (iSUBIParamData(l,5) == 1)) then
+
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
+
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
+                    ! Store the first and second site fractions:
+                    if (k == iSUBIParamData(l,2)) then
+                        ! cation - Ci
+                        yCi = dSiteFraction(iSPI,s,c)
+                        iCi = c
+                        chargeCi = dSublatticeCharge(iSPI,s,c)
+
+                    else if (k == iSUBIParamData(l,2)+1) then
+                        ! cation - Cj
+                        yCj = dSiteFraction(iSPI,s,c)
+                        iCj = c
+                        chargeCj = dSublatticeCharge(iSPI,s,c)
+
+                    else
+                        ! anion - Ak
+                        yAi =  dSiteFraction(iSPI,s,c)
+                        iAi = c
+
+                    end if
+                end do
+
+                ! Multiply prefactor term by excess Gibbs energy parameter:
+                iExponent = iRegularParam(l,n+2)
+                ! Excess Gibbs energy equation for L_Ci,Cj:Ak case
+                gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
+                ! Total Excess Gibbs Energy
+                gexcess = gexcess + gex
+
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi - yCj) /= 0) then
+
+                    ! First sublattice - Cation:vacancy contributions
+                    do i = 1, nConstituentSublattice(iSPI,1)
+
+                        ! Derivative with respect to Ci
+                        if (i == iCi) then
+                            dgdc1(i) = dgdc1(i) + gex / yCi
+
+                            dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
+
+                        ! Derivative with respect to Cj
+                        else if (i == iCj) then
+                            dgdc1(i) = dgdc1(i) + gex / yCj
+
+                            dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
+
+                        end if
+                    end do
+                end if
+
+                ! Second sublattice - Cation:vacancy contributions
+                do i = 1, nConstituentSublattice(iSPI,2)
+                    if (i == iAi) then
+                        dgdc2(i) = dgdc2(i) + gex / yAi
+
+                    end if
+                end do
+
+
             ! Determine the mixing parameter type: L_Ci:Aj,Dk
-            if ((iSUBIParamData(l,1) == 1) .AND. &
-                (iSUBIParamData(l,2) == 3) .AND. &
-                (iSUBIParamData(l,3) == 2) .AND. &
-                (iSUBIParamData(l,6) == 0)) then
+            else if ((iSUBIParamData(l,1) == 3) .AND. &
+                     (iSUBIParamData(l,2) == 1) .AND. &
+                     (iSUBIParamData(l,6) == 1)) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -351,12 +417,12 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Establishing the site fractions for the L_Ci:Aj,Dk cases
-                    if (k == iSUBIParamData(l,2) - 1) then
+                    if (k == iSUBIParamData(l,2) + 1) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
 
-                    else if (k == iSUBIParamData(l,2)) then
+                    else if (k == iSUBIParamData(l,2) + 2) then
                         ! anion - Aj
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
@@ -387,6 +453,7 @@ print*,""
 
                 ! Avoiding a situation with 0^(-1)
                 if ((yAi - yDi) /= 0D0) then
+                    ! Chemical potential with respect to the second sublattice
                     do i = 1, nConstituentSublattice(iSPI,2)
                         if (i == iAi) then
                             ! cation / anion
@@ -405,10 +472,10 @@ print*,""
                 end if
 
 
-            ! Determine the mixing parameter type: L_Ci,Cj:(Va or Ak)
-            else if ((iSUBIParamData(l,1) == 1) .AND. &
+            ! Determine the mixing parameter type: L_Ci,Cj:Va
+            else if ((iSUBIParamData(l,1) == 3) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,3) == 2)) then
+                     (iSUBIParamData(l,4) == 1)) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -418,7 +485,7 @@ print*,""
                     s = s / 10000
 
                     ! Store the first and second site fractions:
-                    if (k-1 == iSUBIParamData(l,1)) then
+                    if (k == iSUBIParamData(l,2)) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
@@ -434,122 +501,68 @@ print*,""
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    !Determine if the last mixing constituent is a vacancy or anion
-                    else if ((cConstituentNameSUB(iSPI,s,c) == 'Va') .AND. &
-                             (k == n + 1)) then
-                        ! Defines the mixing case type: L_Ci,Cj:Va
-                        iMixType(l) = 2
+                    else
                         ! Vacancy
                         yva = dSiteFraction(iSPI,s,c)
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)**2
-
-                    else
-                        ! Defines the mixing case type: L_Ci,Cj:Ak
-                        iMixType(l) = 3
-                        ! anion - Ak
-                        yAi =  dSiteFraction(iSPI,s,c)
-                        iAi = c
-                        ! Compute prefactor term:
-                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     end if
                 end do
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 iExponent = iRegularParam(l,n+2)
-
                 ! Excess Gibbs energy equation for L_Ci,Cj:Va case
-                if (iMixType(l) == 2) then
-                    gex = q * dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
-                    ! Total Excess Gibbs Energy
-                    gexcess = gexcess + gex
+                gex = q * dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
+                ! Total Excess Gibbs Energy
+                gexcess = gexcess + gex
 
-                    ! Derived Excess Equations for Mixing Case 2: L_Ci,Cj:Va
+                ! Derived Excess Equations for Mixing Case 2: L_Ci,Cj:Va
+                ! Avoiding a situation with 0^(-1)
+                if ((yCi - yCj) /= 0) then
                     ! Chemical potential with respect to the first sublattice
-                    ! Avoiding a situation with 0^(-1)
-                    if ((yCi - yCj) /= 0) then
+                    do i = 1, nConstituentSublattice(iSPI,1)
 
-                        ! First sublattice - Cation:vacancy contributions
-                        do i = 1, nConstituentSublattice(iSPI,1)
+                        ! Derivative with respect to Ci
+                        if (i == iCi) then
+                            dgdc1(i) = dgdc1(i) + gex / yCi
 
-                            ! Derivative with respect to Ci
-                            if (i == iCi) then
-                                dgdc1(i) = dgdc1(i) + gex / yCi
+                            dgdc1(i) = dgdc1(i) + gex * chargeCi / q
 
-                                dgdc1(i) = dgdc1(i) + gex * chargeCi / q
+                            dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
 
-                                dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
+                        ! Derivative with respect to Cj
+                        else if (i == iCj) then
+                            dgdc1(i) = dgdc1(i) + gex / yCj
 
-                            ! Derivative with respect to Cj
-                            else if (i == iCj) then
-                                dgdc1(i) = dgdc1(i) + gex / yCj
+                            dgdc1(i) = dgdc1(i) + gex * chargeCj / q
 
-                                dgdc1(i) = dgdc1(i) + gex * chargeCj / q
+                            dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
 
-                                dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
-
-                           else
-                                !&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-                                ! Not yet tested
-                                ! If there are additional cations that are not i or j
-                                dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
-
-                            end if
-                        end do
-                    end if
-
-                    ! Second sublattice - Cation:vacancy contributions
-                    do i = 1, nConstituentSublattice(iSPI,2)
-                        if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
-                            dgdc2(i) = dgdc2(i) + 2 * gex / yva
-
-                        end if
-                    end do
-
-                ! Excess Gibbs energy equation for L_Ci,Cj:Ak case
-                else if (iMixType(l) == 3) then
-                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
-                    ! Total Excess Gibbs Energy
-                    gexcess = gexcess + gex
-
-                    ! Avoiding a situation with 0^(-1)
-                    if ((yCi - yCj) /= 0) then
-
-                        ! First sublattice - Cation:vacancy contributions
-                        do i = 1, nConstituentSublattice(iSPI,1)
-
-                            ! Derivative with respect to Ci
-                            if (i == iCi) then
-                                dgdc1(i) = dgdc1(i) + gex / yCi
-
-                                dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
-
-                            ! Derivative with respect to Cj
-                            else if (i == iCj) then
-                                dgdc1(i) = dgdc1(i) + gex / yCj
-
-                                dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
-
-                            end if
-                        end do
-                    end if
-
-                    ! Second sublattice - Cation:vacancy contributions
-                    do i = 1, nConstituentSublattice(iSPI,2)
-                        if (i == iAi) then
-                            dgdc2(i) = dgdc2(i) + gex / yAi
+                       else
+                            !&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+                            ! Not yet tested
+                            ! If there are additional cations that are not i or j
+                            dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
 
                         end if
                     end do
                 end if
 
+                ! Second sublattice - Cation:vacancy contributions
+                do i = 1, nConstituentSublattice(iSPI,2)
+                    if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
+                        dgdc2(i) = dgdc2(i) + 2 * gex / yva
+
+                    end if
+                end do
+
 
             ! Determine the mixing parameter type: L_Ci:Va,Bj
-            else if ((iSUBIParamData(l,1) == 1) .AND. &
-                     (iSUBIParamData(l,2) == 3) .AND. &
-                     (iSUBIParamData(l,3) == 2) .AND. &
-                     (iSUBIParamData(l,6) == 1)) then
+            else if ((iSUBIParamData(l,1) == 3) .AND. &
+                     (iSUBIParamData(l,2) == 1) .AND. &
+                     (iSUBIParamData(l,3) == 1) .AND. &
+                     (iSUBIParamData(l,4) == 1)) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -562,13 +575,13 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2) - 1) then
+                    if (k == iSUBIParamData(l,2) + 1) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2)) then
+                    else if (k == iSUBIParamData(l,2) + 2) then
                         ! vacancy - Va
                         yva = dSiteFraction(iSPI,s,c)
 
@@ -628,17 +641,82 @@ print*,""
                 end if
 
 
+            ! Determine the mixing parameter type: L_Ci:Bj,Bk
+            else if ((iSUBIParamData(l,1) == 3) .AND. &
+                     (iSUBIParamData(l,2) == 1) .AND. &
+                     (iSUBIParamData(l,3) == 2)) then
+
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
+
+                    ! Store the first and second site fractions:
+                    if (k == iSUBIParamData(l,2) + 1) then
+                        ! cation - Ci
+                        yCi = dSiteFraction(iSPI,s,c)
+                        iCi = c
+                        chargeCi = dSublatticeCharge(iSPI,s,c)
+
+                    else if (k == iSUBIParamData(l,2) + 2) then
+                        ! nuetral - Bj
+                        yBi = dSiteFraction(iSPI,s,c)
+                        iBi = c
+                        ! Compute prefactor term:
+                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
+                    else
+                        ! nuetral - Bk
+                        yBj = dSiteFraction(iSPI,s,c)
+                        iBj = c
+                        ! Compute prefactor term:
+                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
+                    end if
+                end do
+
+                ! Multiply prefactor term by excess Gibbs energy parameter:
+                iExponent = iRegularParam(l,n+2)
+                ! Excess Gibbs energy equation for L_Ci:Bj,Bk case
+                gex = q * dPreFactor * dExcessGibbsParam(l) * (yCi*yBi - yBj)**(iExponent)
+                ! Total Excess Gibbs Energy
+                gexcess = gexcess + gex
+
+                ! Derived Excess Equations for Mixing Case 1: L_Ci:Aj,Dk
+                ! Chemical potential with respect to the first sublattice
+                do i = 1, nConstituentSublattice(iSPI,1)
+                    dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+
+                end do
+
+                ! Avoiding a situation with 0^(-1)
+                if ((yBi - yBj) /= 0D0) then
+                    do i = 1, nConstituentSublattice(iSPI,2)
+                        if (i == iBi) then
+                            ! cation / anion
+                            dgdc2(i) = dgdc2(i) + gex / yBi
+
+                            dgdc2(i) = dgdc2(i) + gex * iExponent / (yBi - yBj)
+
+                        else if (i == iBj) then
+                            ! Dl - anion, vacancy or neutral
+                            dgdc2(i) = dgdc2(i) + gex / yBj
+
+                            dgdc2(i) = dgdc2(i) + gex * iExponent * (-1) / (yBi - yBj)
+
+                        end if
+                    end do
+                end if
+
+
+
             ! Begining of ternary mixing cases
             ! Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
-            else if ((iSUBIParamData(l,1) == 2) .AND. &
+            else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,3) == 2) .AND. &
-                     (iSUBIParamData(l,4) == 4) .AND. &
-                     (iSUBIParamData(l,5) == 2) .AND. &
-                     (iSUBIParamData(l,6) == 0)) then
-
-                ! Defines the mixing case type: L_Ci,Cj:Ak,Dl
-                iMixType(l) = 11
+                     (iSUBIParamData(l,6) == 1)) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -670,6 +748,7 @@ print*,""
                         ! Dl
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
+
                     end if
                 end do
 
@@ -751,12 +830,10 @@ print*,""
             !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             ! Not properly working...
             ! Determine the mixing parameter type: L_Ci,Cj:Va,Bk
-            else if ((iSUBIParamData(l,1) == 2) .AND. &
+            else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,3) == 2) .AND. &
-                     (iSUBIParamData(l,4) == 4) .AND. &
-                     (iSUBIParamData(l,5) == 2) .AND. &
-                     (iSUBIParamData(l,6) == 1)) then
+                     (iSUBIParamData(l,3) == 1) .AND. &
+                     (iSUBIParamData(l,4) == 1)) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -772,6 +849,7 @@ print*,""
                         chargeCi = dSublatticeCharge(iSPI,s,c)
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
                     else if (k == iSUBIParamData(l,2) + 1) then
                         ! Cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
@@ -779,17 +857,20 @@ print*,""
                         chargeCj = dSublatticeCharge(iSPI,s,c)
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
                     else if (k == iSUBIParamData(l,2) + 2) then
                         ! Vacancy
                         yva = dSiteFraction(iSPI,s,c)
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)**2
-                    else if (k == iSUBIParamData(l,2) + 3) then
+
+                    else
                         ! Neutral - Bk
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+
                     end if
                 end do
 
@@ -979,18 +1060,15 @@ print*,""
                     end if
                 end do
 
-
-
-
             else
                 print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
                 INFOThermo = 36
                 return
+
             end if
 
-            !print*,"iMixType(l)",iMixType(l)
             !print*,"gexcess:", (gexcess)*dIdealConstant * dTemperature
-            !print*,"l",l
+            print*,"l",l
             !print*,"gextest(l)",gextest(l)
             !print*,"-------------------------"
             !print*,""
@@ -1157,7 +1235,6 @@ print*,""
 
         deallocate(dgdc1,dgdc2)
         deallocate(dMolDerivatives)
-        deallocate(iMixType)
     end if IF_SUBL
 
     return

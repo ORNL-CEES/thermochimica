@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
+    integer                            :: i, j, k, l, m, n, s, c, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
@@ -704,97 +704,74 @@ print*,""
                         iSUBLParamData(n,1) = nMixSets
 
                     case ('SUBI')
-                      ! Compute mixing terms L
-                      do k = 1, 6
-                          dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
-                      end do
+                        ! Compute mixing terms L
+                        do k = 1, 6
+                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                        end do
 
-                      dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
-                      do k = 1, iRegularParamCS(j,1)
+                        do k = 1, iRegularParamCS(j,1)
 
-                          ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
-                          ! a continuing count of the constituents.
-                          m = iRegularParamCS(j,k+1)
+                            ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                            ! a continuing count of the constituents.
+                            m = iRegularParamCS(j,k+1)
 
-                          ! Figure out the sublattice (l) and constituent (m) indices:
-                          LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
-                              l = s
-                              if (m > nConstituentSublatticeCS(nCounter,s)) then
-                                  m = m - nConstituentSublatticeCS(nCounter,s)
-                              else
-                                  exit LOOP_SUBI
-                              end if
+                            ! Figure out the sublattice (l) and constituent (m) indices:
+                            LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
+                                l = s
+                                if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                    m = m - nConstituentSublatticeCS(nCounter,s)
+                                else
+                                    exit LOOP_SUBI
+                                end if
 
-                          end do LOOP_SUBI
+                            end do LOOP_SUBI
 
-                          ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
-                          ! sublattice l):
-                          iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+                            ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                            ! sublattice l):
+                            iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
 
-                      end do
-                          ! Loop through constituents involved in mixing parameter to see if they need to be shuffled.
-                        ! ChemSage files do not order the constituents based on which ones mix.  For instance, there
-                        ! may be three constituents mixing where the first constituent is on the first sublattice and
-                        ! the second and third are on the second sublattice.
-                        nMixSets = 0
-                        k = 2
+                        end do
 
-                        LOOP_SUBI_Check: do while (k <= iRegularParamCS(j,1))
-                            l = MOD(iRegularParam(n,k), 10000)
-                            l = (iRegularParam(n,k) - l) / 10000
+                            iSUBIParamData(n,:) = 0
 
-                            iMixLength = 1
-                            iMixStart = 0
+                            ! LOOP_SUBI_CASES: Sets up a loop to distinguish the various SUBI case types
+                            LOOP_SUBI_CASES: do k = 2,iRegularParam(n,1) + 1
+                                s = 0
+                                c = 0
 
-                            LOOP_SUBI_MIXING: do ii = k + 1, iRegularParamCS(j,1) + 1
-                                m = MOD(iRegularParam(n,ii), 10000)
-                                m = (iRegularParam(n,ii) - m) / 10000
+                                ! Number of parameters in mixing case
+                                iSUBIParamData(n,1) = iRegularParam(n,1)
 
-                                if (l == m) then
-                                    iMixLength = iMixLength + 1
+                                ! Determine constituent and sublattice indices:
+                                c = MOD(iRegularParam(n,k), 10000)
+                                s = iRegularParam(n,k) - c
+                                s = s / 10000
 
-                                    if (ii - k == 1) then
-                                        nMixSets = nMixSets + 1
-                                        iMixStart = k
+                                ! Cation
+                                if (dSublatticeCharge(iPhaseSublattice(i),s,c) > 0) then
+                                    iSUBIParamData(n,2) = iSUBIParamData(n,2) + 1
+                                ! Nuetral
+                                else if (dSublatticeCharge(iPhaseSublattice(i),s,c) == 0) then
+                                    iSUBIParamData(n,3) = iSUBIParamData(n,3) + 1
+                                ! Vacancy
+                                else if (cConstituentNameSUB(iPhaseSublattice(i),s,c) == 'Va') then
+                                    iSUBIParamData(n,4) = iSUBIParamData(n,4) + 1
+                                ! Anion
+                                else
+                                    iSUBIParamData(n,5) = iSUBIParamData(n,5) + 1
+                                    ! Checking for cases with Dl
+                                    if ((iSUBIParamData(n,5) > 0) .AND. &
+                                        ((iSUBIParamData(n,1) - iSUBIParamData(n,2)) > 1)) then
+                                        ! if Dl present
+                                        iSUBIParamData(n,6) = 1
 
                                     end if
-                                else
-                                    exit LOOP_SUBI_MIXING
                                 end if
-                            end do LOOP_SUBI_MIXING
 
-                            if (iMixLength > 1) then
-                                iSUBIParamData(n,nMixSets*2) = iMixStart
-                                iSUBIParamData(n,nMixSets*2+1) = iMixLength
+                            end do LOOP_SUBI_CASES
 
-                            end if
-
-                            !print*,"n",n
-                            !print*,"iSUBIParamData - before",iSUBIParamData(n,:)
-
-                            ! Create difference in binary L_Ci:Va,Bj mixing parameter type
-                            if ((iRegularParam(n,1) == 3) .AND. &
-                                (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,3), 10000)) == 'Va')) then
-                                iSUBIParamData(n,6) = 1
-
-                            ! Create difference in ternary mixing parameter type
-                            else if ((iRegularParam(n,1) == 4) .AND. &
-                                (cConstituentNameSUB(iPhaseSublattice(i), 2, MOD(iRegularParam(n,4), 10000)) == 'Va')) then
-                                iSUBIParamData(n,6) = 1
-                            end if
-
-                            k = k + iMixLength
-                        end do LOOP_SUBI_Check
-
-                        iSUBIParamData(n,1) = nMixSets
-
-                        !print*,"iSUBIParamData(n,:) - after",iSUBIParamData(n,:)
-                        !print*,"iRegularParamCS(n,:)",iRegularParamCS(n,:)
-                        !print*,"iRegularParam(n,:)",iRegularParam(n,:)
-                        !print*,"cConstituentNameSUB(iPhaseSublattice(i),2,:)",cConstituentNameSUB(iPhaseSublattice(i),2,:)
-                        !print*,"iConstituentSublattice(iPhaseSublattice(i),1,:)",iConstituentSublattice(iPhaseSublattice(i),1,:)
-                        !print*,""
 
                 end select
             end if IF_ParamPass
