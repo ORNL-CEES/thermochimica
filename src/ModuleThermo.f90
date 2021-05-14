@@ -41,10 +41,9 @@
     !!                                   species will be considered in the system.
     !> \param       dStoichSpecies      A matrix of size nSpecies by nElements representing the stoichiometry coefficients for
     !!                                   each element in each species.
-    !> \param       iRegularParam       An integer matrix representing information pertient to regular solution
-    !!                                   models.  The first coefficient represents the number of components in
-    !!                                   the sub-system and the other coefficients represent the indices of
-    !!                                   components in the sub-system.
+    !> \param       iRegularParam       An integer matrix representing information pertient to regular solution models. The first
+    !!                                   coefficient represents the number of components in the sub-system and the other
+    !!                                   coefficients represent the indices of components in the sub-system.
     !> \param       iterHistoryLevel    An integer matrix representing all of the indices of phases that contribute to the
     !!                                   equilibrium phase assemblage at each stage in the iteration history during Leveling.
     !> \param       dIdealConstant      The ideal gas constant.
@@ -65,22 +64,19 @@
     !!                                   the system.
     !> \param       dLevel              A double real vector of length nElements representing the adjustment applied to the
     !!                                   element potentials.
-    !> \param       dAtomFractionSpecies  A double real matrix representing tha atom fraction of each element in
-    !!                                   each species.
-    !> \param       dTolerance          A double real vector representing numerical tolerances (defined in
-    !!                                   InitThermo.f90).
+    !> \param       dAtomFractionSpecies  A double real matrix representing tha atom fraction of each element in each species.
+    !> \param       dTolerance          A double real vector representing numerical tolerances (defined in InitThermo.f90).
     !> \param       cElementName        A character vector of length nElements representing the names of elements in the system.
     !> \param       cSpeciesName        A character vector of length nSpecies representing the name of each species in short-form.
     !> \param       cSolnPhaseName      A character vector of length nSolnPhasesSys representing the name of each solution phase.
     !> \param       cSolnPhaseType      A character vector of length nSolnPhasesSys representing the type of each solution phase.
-    !> \param       nCountSublattice    An integer scalar representing the number of sublattice phases (e.g., the
-    !!                                   Compound Energy Formalism, aqueous, etc.).
+    !> \param       nCountSublattice    An integer scalar representing the number of sublattice phases (e.g., Compound Energy
+    !!                                   Formalism, aqueous, MQM, etc.).
     !> \param       iPhaseSublattice    An integer vector representing the sublattice # for each soluton phase.
-    !> \param       dSiteFraction       A double real array with 3 dimensions representing the site fractions
-    !!                                   on each sublattice for each ionic phase.  The first dimension corresponds
-    !!                                   to the ionic phase index, the second dimension corresponds to the
-    !!                                   sublattice index and the third dimension corresponds to the constituent
-    !!                                   index.
+    !> \param       dSiteFraction       A double real array with 3 dimensions representing the site fractions on each sublattice
+    !!                                   for each ionic phase.  The first dimension corresponds to the ionic phase index, the
+    !!                                   second dimension corresponds to the sublattice index and the third dimension corresponds
+    !!                                   to the constituent index.
     !
     !-------------------------------------------------------------------------------------------------------------
 
