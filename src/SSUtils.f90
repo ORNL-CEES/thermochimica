@@ -93,6 +93,21 @@ subroutine SetStandardUnits
 end subroutine SetStandardUnits
 
 
+subroutine SetModelicaUnits
+
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+
+  implicit none
+
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'Pa'
+  cInputUnitMass        = 'moles'
+
+  return
+
+end subroutine SetModelicaUnits
+
+
 
 subroutine SetUnits(cTemperature, cPressure, cMass)
 
@@ -512,6 +527,7 @@ subroutine getChemicalPotential(i, value, ierr)
 end subroutine getChemicalPotential
 
 subroutine getElementPotential(i, value, ierr)
+  USE ModuleThermoIO
   USE ModuleThermo
   implicit none
 
@@ -531,7 +547,7 @@ subroutine getElementPotential(i, value, ierr)
      enddo
 
   else
-     value=dElementPotential(i)
+     value=dElementPotential(i)*dTemperature*dIdealConstant
   endif
 
   return
