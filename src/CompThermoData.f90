@@ -712,7 +712,6 @@ print*,""
                         dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
                         do k = 1, iRegularParamCS(j,1)
-
                             ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
                             ! a continuing count of the constituents.
                             m = iRegularParamCS(j,k+1)
@@ -731,48 +730,43 @@ print*,""
                             ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
                             ! sublattice l):
                             iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
-
                         end do
 
-                            iSUBIParamData(n,:) = 0
+                        iSUBIParamData(n,:) = 0
 
-                            ! LOOP_SUBI_CASES: Sets up a loop to distinguish the various SUBI case types
-                            LOOP_SUBI_CASES: do k = 2,iRegularParam(n,1) + 1
-                                s = 0
-                                c = 0
+                        ! LOOP_SUBI_CASES: Sets up a loop to distinguish the various SUBI case types
+                        LOOP_SUBI_CASES: do k = 2,iRegularParam(n,1) + 1
+                            s = 0
+                            c = 0
 
-                                ! Number of parameters in mixing case
-                                iSUBIParamData(n,1) = iRegularParam(n,1)
+                            ! Number of parameters in mixing case
+                            iSUBIParamData(n,1) = iRegularParam(n,1)
 
-                                ! Determine constituent and sublattice indices:
-                                c = MOD(iRegularParam(n,k), 10000)
-                                s = iRegularParam(n,k) - c
-                                s = s / 10000
+                            ! Determine constituent and sublattice indices:
+                            c = MOD(iRegularParam(n,k), 10000)
+                            s = iRegularParam(n,k) - c
+                            s = s / 10000
 
-                                ! Cation
-                                if (dSublatticeCharge(iPhaseSublattice(i),s,c) > 0) then
-                                    iSUBIParamData(n,2) = iSUBIParamData(n,2) + 1
-                                ! Nuetral
-                                else if (dSublatticeCharge(iPhaseSublattice(i),s,c) == 0) then
-                                    iSUBIParamData(n,3) = iSUBIParamData(n,3) + 1
-                                ! Vacancy
-                                else if (cConstituentNameSUB(iPhaseSublattice(i),s,c) == 'Va') then
-                                    iSUBIParamData(n,4) = iSUBIParamData(n,4) + 1
-                                ! Anion
-                                else
-                                    iSUBIParamData(n,5) = iSUBIParamData(n,5) + 1
-                                    ! Checking for cases with Dl
-                                    if ((iSUBIParamData(n,5) > 0) .AND. &
-                                        ((iSUBIParamData(n,1) - iSUBIParamData(n,2)) > 1)) then
-                                        ! if Dl present
-                                        iSUBIParamData(n,6) = 1
-
-                                    end if
+                            ! Cation
+                            if (dSublatticeCharge(iPhaseSublattice(i),s,c) > 0) then
+                                iSUBIParamData(n,2) = iSUBIParamData(n,2) + 1
+                            ! Nuetral
+                            else if (dSublatticeCharge(iPhaseSublattice(i),s,c) == 0) then
+                                iSUBIParamData(n,3) = iSUBIParamData(n,3) + 1
+                            ! Vacancy
+                            else if (cConstituentNameSUB(iPhaseSublattice(i),s,c) == 'Va') then
+                                iSUBIParamData(n,4) = iSUBIParamData(n,4) + 1
+                            ! Anion
+                            else
+                                iSUBIParamData(n,5) = iSUBIParamData(n,5) + 1
+                                ! Checking for cases with Dl
+                                if ((iSUBIParamData(n,5) > 0) .AND. &
+                                    ((iSUBIParamData(n,1) - iSUBIParamData(n,2)) > 1)) then
+                                    ! if Dl present
+                                    iSUBIParamData(n,6) = 1
                                 end if
-
-                            end do LOOP_SUBI_CASES
-
-
+                            end if
+                        end do LOOP_SUBI_CASES
                 end select
             end if IF_ParamPass
         end do LOOP_Param
