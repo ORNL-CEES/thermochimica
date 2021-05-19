@@ -759,7 +759,7 @@ print*,""
                 v = yCk + f
             end if
 
-            ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Va case
+            ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Al case
             gex = dPreFactor * v * dExcessGibbsParam(l)
             ! Total Excess Gibbs Energy
             gexcess = gexcess + gex
@@ -818,47 +818,72 @@ print*,""
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                        print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
-                        print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
-
                     else if (k == iSUBIParamData(l,2) + 2) then
                         ! Anion - Aj
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
-                        print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
-                        print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
-
                     else if (k == iSUBIParamData(l,2) + 3) then
                         ! Dk
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
-                        print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
-                        print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
-
                     else if (k == iSUBIParamData(l,2) + 4) then
                         ! Dl
                         yDj = dSiteFraction(iSPI,s,c)
                         iDj = c
-                        print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
-                        print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
-
                     end if
                 end do
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 iExponent = iRegularParam(l,n+2)
-
+                ! Calculate f and v
                 f = (1D0 - yAi - yDi - yDj)/3D0
-                ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Va case
-                gex = dPreFactor * ((yAi + f) + (yDi + f) + (yDj + f)) * dExcessGibbsParam(l)
-                !gex = dPreFactor * dExcessGibbsParam(l)
+                if (iRegularParam(l,n+2) == 0) then
+                    v = yAi + f
+                else if (iRegularParam(l,n+2) == 1) then
+                    v = yDi + f
+                else if (iRegularParam(l,n+2) == 2) then
+                    v = yDj + f
+                end if
 
+                ! Excess Gibbs energy equation for L_Ci:Aj,Dk,Dl case
+                gex = dPreFactor * v * dExcessGibbsParam(l)
                 ! Total Excess Gibbs Energy
                 gexcess = gexcess + gex
+                ! First Sublattice
+                do i = 1, nConstituentSublattice(iSPI, 1)
+                    ! Derivative with respect to C
+                    if (i == iCi) then
+                        ! prefactor part
+                        dgdc1(i) = dgdc1(i) + gex / yCi
+                    end if
+                end do
 
-                
-
-                print*,"Mixing term 7 not yet implemented."
+                ! Second Sublattice
+                do i = 1, nConstituentSublattice(iSPI,2)
+                  ! Derivative with respect to Bk
+                    if (i == iAi) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yAi
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + gex / v
+                    else if (i == iDi) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yDi
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + gex / v
+                    else if (i == iDj) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yDj
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + gex / v
+                    end if
+                end do
 
             ! Case 8: Determine the mixing parameter type: L_Ci,Cj,Ck:Va
             else if ((iSUBIParamData(l,1) == 4) .AND. &
@@ -1183,7 +1208,8 @@ print*,""
         end do LOOP_Param
         !print*,"gextest(:)",gextest(:)*dIdealConstant * dTemperature
         !print*,"Sum(gextest(:))",Sum(gextest)*dIdealConstant * dTemperature
-        !print*,"iSUBIParamData(l,2)",iSUBIParamData(l,2) - 1
+
+        !print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
         !print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
 
 
