@@ -334,7 +334,7 @@ print*,""
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
 
-            ! Determine the mixing parameter type: L_Ci,Cj:Ak
+            ! Case 1: Determine the mixing parameter type: L_Ci,Cj:Ak
             if ((iSUBIParamData(l,1) == 3) .AND. &
                 (iSUBIParamData(l,2) == 2) .AND. &
                 (iSUBIParamData(l,5) == 1)) then
@@ -407,8 +407,7 @@ print*,""
                     end if
                 end do
 
-
-            ! Determine the mixing parameter type: L_Ci:Aj,Dk
+            ! Case 2: Determine the mixing parameter type: L_Ci:Aj,Dk
             else if ((iSUBIParamData(l,1) == 3) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,6) == 1)) then
@@ -478,8 +477,7 @@ print*,""
                     end do
                 end if
 
-
-            ! Determine the mixing parameter type: L_Ci,Cj:Va
+            ! Case 3: Determine the mixing parameter type: L_Ci,Cj:Va
             else if ((iSUBIParamData(l,1) == 3) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
                      (iSUBIParamData(l,4) == 1)) then
@@ -564,8 +562,7 @@ print*,""
                     end if
                 end do
 
-
-            ! Determine the mixing parameter type: L_Ci:Va,Bj
+            ! Case 4: Determine the mixing parameter type: L_Ci:Va,Bj
             else if ((iSUBIParamData(l,1) == 3) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 1) .AND. &
@@ -647,8 +644,8 @@ print*,""
                     end do
                 end if
 
-
-            ! Determine the mixing parameter type: L_Ci:Bj,Bk
+            ! Begining of ternary mixing cases
+            ! Case 5: Determine the mixing parameter type: L_Ci:Bj,Bk
             else if ((iSUBIParamData(l,1) == 3) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 2)) then
@@ -717,14 +714,92 @@ print*,""
                     end do
                 end if
 
-            ! Determine the mixing parameter type: L_Ci,Cj,Ck:Al
+            ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 3) .AND. &
                      (iSUBIParamData(l,5) == 1)) then
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
 
-                print*,"Mixing term 6 not yet implemented."
+                    ! Compute prefactor term:
+                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-            ! Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
+                    if (k == iSUBIParamData(l,2) - 1) then
+                        ! Cation - Ci
+                        yCi = dSiteFraction(iSPI,s,c)
+                        iCi = c
+                    else if (k == iSUBIParamData(l,2)) then
+                        ! Cation - Cj
+                        yCj = dSiteFraction(iSPI,s,c)
+                        iCj = c
+                    else if (k == iSUBIParamData(l,2) + 1) then
+                        ! Cation - Ck
+                        yCk = dSiteFraction(iSPI,s,c)
+                        iCk = c
+                    else if (k == iSUBIParamData(l,2) + 2) then
+                        ! Anion - Al
+                        yAi = dSiteFraction(iSPI,s,c)
+                        iAi = c
+                    end if
+                end do
+
+            ! Multiply prefactor term by excess Gibbs energy parameter:
+            iExponent = iRegularParam(l,n+2)
+            ! Calculate f and v
+            f = (1D0 - yCi - yCj - yCk)/3D0
+            if (iRegularParam(l,n+2) == 0) then
+                v = yCi + f
+            else if (iRegularParam(l,n+2) == 1) then
+                v = yCj + f
+            else if (iRegularParam(l,n+2) == 2) then
+                v = yCk + f
+            end if
+
+            ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Va case
+            gex = dPreFactor * v * dExcessGibbsParam(l)
+            ! Total Excess Gibbs Energy
+            gexcess = gexcess + gex
+
+            do i = 1, nConstituentSublattice(iSPI, 1)
+                ! Derivative with respect to C
+                if (i == iCi) then
+                    ! prefactor part
+                    dgdc1(i) = dgdc1(i) + gex / yCi
+                    ! f part
+                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                    ! other v part
+                    if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + gex / v
+                ! Derivative with respect to Cj
+                else if (i == iCj) then
+                    ! prefactor part
+                    dgdc1(i) = dgdc1(i) + gex / yCj
+                    ! f part
+                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                    ! other v part
+                    if (iRegularParam(l,n+2) == 1) dgdc1(i) = dgdc1(i) + gex / v
+                else if (i == iCk) then
+                    ! prefactor part
+                    dgdc1(i) = dgdc1(i) + gex / yCk
+                    ! f part
+                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                    ! other v part
+                    if (iRegularParam(l,n+2) == 2) dgdc1(i) = dgdc1(i) + gex / v
+                end if
+            end do
+
+            do i = 1, nConstituentSublattice(iSPI,2)
+              ! Derivative with respect to Bk
+                if (i == iAi) then
+                    ! prefactor part
+                    dgdc2(i) = dgdc2(i) + gex / yAi
+                end if
+            end do
+
+            ! Case 7: Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,6) == 1)) then
@@ -760,7 +835,7 @@ print*,""
                         print*,"cConstituentNameSUB(iSPI,s,c)",cConstituentNameSUB(iSPI,s,c)
                         print*,"dSiteFraction(iSPI,s,c)",dSiteFraction(iSPI,s,c)
 
-                    else
+                    else if (k == iSUBIParamData(l,2) + 4) then
                         ! Dl
                         yDj = dSiteFraction(iSPI,s,c)
                         iDj = c
@@ -781,33 +856,11 @@ print*,""
                 ! Total Excess Gibbs Energy
                 gexcess = gexcess + gex
 
-                ! First sublattice
-                do i = 1, nConstituentSublattice(iSPI,1)
-                    ! Derivative with respect to Ci
-                    if (i == iCi) then
-                        dgdc1(i) = dgdc1(i) + gex / yCi
-
-                    end if
-                end do
-
-                ! First sublattice
-                do i = 1, nConstituentSublattice(iSPI,2)
-                    ! Derivative with respect to Ci
-                    if (i == iAi) then
-                        dgdc2(i) = dgdc2(i) + gex / yAi
-
-                    else if (i == iDi) then
-                        dgdc2(i) = dgdc2(i) + gex / yDi
-
-                    else if (i == iDj) then
-                        dgdc2(i) = dgdc2(i) + gex / yDj
-
-                    end if
-                end do
+                
 
                 print*,"Mixing term 7 not yet implemented."
 
-            ! Determine the mixing parameter type: L_Ci,Cj,Ck:Va
+            ! Case 8: Determine the mixing parameter type: L_Ci,Cj,Ck:Va
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 3) .AND. &
                      (iSUBIParamData(l,4) == 1)) then
@@ -895,7 +948,7 @@ print*,""
                 end do
 
 
-            ! Determine the mixing parameter type: L_Ci:Va,Bj,Bk
+            ! Case 9: Determine the mixing parameter type: L_Ci:Va,Bj,Bk
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 2) .AND. &
@@ -903,7 +956,7 @@ print*,""
 
                 print*,"Mixing term 9 not yet implemented."
 
-            ! Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
+            ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 2) .AND. &
@@ -913,8 +966,7 @@ print*,""
 
 
 
-            ! Begining of ternary mixing cases
-            ! Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
+            ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
                      (iSUBIParamData(l,6) == 1)) then
@@ -1025,12 +1077,7 @@ print*,""
                     end do
                 end if
 
-
-
-
-            !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            ! Not properly working...
-            ! Determine the mixing parameter type: L_Ci,Cj:Va,Bk
+            ! Case 12: Determine the mixing parameter type: L_Ci,Cj:Va,Bk
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 2) .AND. &
                      (iSUBIParamData(l,3) == 1) .AND. &
