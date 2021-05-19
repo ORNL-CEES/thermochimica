@@ -1016,7 +1016,7 @@ print*,""
                         ! prefactor part
                         dgdc2(i) = dgdc2(i) + gex / yBi
                         ! f part
-                        dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
                         ! other v part
                         if (iRegularParam(l,n+2) == 2) dgdc1(i) = dgdc1(i) + gex / v
                     ! Derivative with respect to Va
@@ -1024,7 +1024,7 @@ print*,""
                         ! prefactor part
                         dgdc2(i) = dgdc2(i) + gex * 2 / yva
                         ! f part
-                        dgdc1(i) = dgdc1(i) - (yCi + yCj) * gex / (3D0 * v)
+                        dgdc2(i) = dgdc2(i) - (yCi + yCj) * gex / (3D0 * v)
                         ! other v part
                         if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + yCi * gex / v
                         if (iRegularParam(l,n+2) == 1) dgdc1(i) = dgdc1(i) + yCj * gex / v
