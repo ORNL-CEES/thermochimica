@@ -901,77 +901,77 @@ print*,""
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                        chargeCi = dSublatticeCharge(iSPI,s,c)
-                        ! Compute prefactor term:
-                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
-
                     else if (k == iSUBIParamData(l,2)) then
                         ! Cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-                        chargeCj = dSublatticeCharge(iSPI,s,c)
-                        ! Compute prefactor term:
-                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
-
                     else if (k == iSUBIParamData(l,2) + 1) then
                         ! Cation - Ck
                         yCk = dSiteFraction(iSPI,s,c)
                         iCk = c
-                        chargeCk = dSublatticeCharge(iSPI,s,c)
-                        ! Compute prefactor term:
-                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
-
-                    else
-                        ! Vacancy
-                        yva = dSiteFraction(iSPI,s,c)
-                        ! Compute prefactor term:
-                        dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)**3
-
                     end if
                 end do
+                ! Compute prefactor term:
+                dPreFactor = yCi * yCj * yCk * yva**3
+                ! Multiply prefactor term by excess Gibbs energy parameter:
+                iExponent = iRegularParam(l,n+2)
+                ! Calculate f and v
+                f = (1D0 - yva * yCi - yva * yCj - yva * yCk)/3D0
+                if (iRegularParam(l,n+2) == 0) then
+                    v = yva * yCi + f
+                else if (iRegularParam(l,n+2) == 1) then
+                    v = yva * yCj + f
+                else if (iRegularParam(l,n+2) == 2) then
+                    v = yva * yCk + f
+                end if
 
-                f = (1D0 - yCi * yva - yCj * yva - yCk * yva)/3D0
-                ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Va case
-                gex = q * dPreFactor * ((yCi * yva + f) + (yCj * yva + f) + (yCk * yva + f)) * dExcessGibbsParam(l)
-
+                ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Al case
+                gex = q * dPreFactor * v * dExcessGibbsParam(l)
                 ! Total Excess Gibbs Energy
                 gexcess = gexcess + gex
 
-                ! First sublattice
-                do i = 1, nConstituentSublattice(iSPI,1)
-                    ! Derivative with respect to Ci
+                do i = 1, nConstituentSublattice(iSPI, 1)
+                    ! Q part:
+                    dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+                    ! Derivative with respect to C
                     if (i == iCi) then
+                        ! prefactor part
                         dgdc1(i) = dgdc1(i) + gex / yCi
-
-                        dgdc1(i) = dgdc1(i) + gex * chargeCi / q
-
+                        ! f part
+                        dgdc1(i) = dgdc1(i) - yva * gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + yva * gex / v
                     ! Derivative with respect to Cj
                     else if (i == iCj) then
+                        ! prefactor part
                         dgdc1(i) = dgdc1(i) + gex / yCj
-
-                        dgdc1(i) = dgdc1(i) + gex * chargeCj / q
-
-                    ! Derivative with respect to Ck
+                        ! f part
+                        dgdc1(i) = dgdc1(i) - yva * gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 1) dgdc1(i) = dgdc1(i) + yva * gex / v
                     else if (i == iCk) then
+                        ! prefactor part
                         dgdc1(i) = dgdc1(i) + gex / yCk
-
-                        dgdc1(i) = dgdc1(i) + gex * chargeCk / q
-
-                    else
-                        dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
-
+                        ! f part
+                        dgdc1(i) = dgdc1(i) - yva * gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 2) dgdc1(i) = dgdc1(i) + yva * gex / v
                     end if
                 end do
 
-                ! Second sublattice
                 do i = 1, nConstituentSublattice(iSPI,2)
+                    ! Derivative with respect to Va
                     if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
-                        ! vacancy contributions
-                        dgdc2(i) = dgdc2(i) + gex * 3 / yva
-
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex * 3D0 / yva
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - (yCi + yCj + yCk) * gex / (3D0 * v)
+                        ! other v parts
+                        if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + yCi * gex / v
+                        if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + yCj * gex / v
+                        if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + yCk * gex / v
                     end if
                 end do
-
 
             ! Case 9: Determine the mixing parameter type: L_Ci:Va,Bj,Bk
             else if ((iSUBIParamData(l,1) == 4) .AND. &
