@@ -978,8 +978,89 @@ print*,""
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 2) .AND. &
                      (iSUBIParamData(l,4) == 1)) then
+                !
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
 
-                print*,"Mixing term 9 not yet implemented."
+                    if (k == iSUBIParamData(l,2) + 1) then
+                        ! Cation - Ci
+                        yCi = dSiteFraction(iSPI,s,c)
+                        iCi = c
+                    else if (k == iSUBIParamData(l,2) + 2) then
+                        ! vacancy
+                        yva = dSiteFraction(iSPI,s,c)
+                    else if (k == iSUBIParamData(l,2) + 3) then
+                        ! neutral - Bi
+                        yBi = dSiteFraction(iSPI,s,c)
+                        iBi = c
+                    else if (k == iSUBIParamData(l,2) + 4) then
+                        ! Neutral - Bj
+                        yBj = dSiteFraction(iSPI,s,c)
+                        iBj = c
+                    end if
+                end do
+
+                ! Compute prefactor term:
+                dPreFactor = yCi * yva * yBi * yBj
+                ! Calculate f and v
+                f = (1D0 - yCi * yva - yBi - yBj)/3D0
+                if (iRegularParam(l,n+2) == 0) then
+                    v = yCi * yva + f
+                else if (iRegularParam(l,n+2) == 1) then
+                    v = yBi + f
+                else if (iRegularParam(l,n+2) == 2) then
+                    v = yBj + f
+                end if
+                ! Excess Gibbs energy equation for L_Ci:Va,Bj,Bk case
+                gex = q * dPreFactor * v * dExcessGibbsParam(l)
+                ! Total Excess Gibbs Energy
+                gexcess = gexcess + gex
+
+                do i = 1, nConstituentSublattice(iSPI, 1)
+                    ! Q part:
+                    dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+                    ! Derivative with respect to Ci
+                    if (i == iCi) then
+                        ! prefactor part
+                        dgdc1(i) = dgdc1(i) + gex / yCi
+                        ! f part
+                        dgdc1(i) = dgdc1(i) - yva * gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + yva * gex / v
+                    end if
+                end do
+
+                do i = 1, nConstituentSublattice(iSPI,2)
+                    ! Derivative with respect to Bk
+                    if (i == iBi) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yBi
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + gex / v
+                    ! Derivative with respect to Bl
+                    else if (i == iBj) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yBj
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + gex / v
+                    ! Derivative with respect to Va
+                    else if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex * 2 / yva
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - yCi * gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + yCi * gex / v
+                    end if
+                end do
 
             ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
