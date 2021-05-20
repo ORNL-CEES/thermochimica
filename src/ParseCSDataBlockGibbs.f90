@@ -84,7 +84,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     real(8),dimension(15) :: dTempVec
     real(8),parameter     :: dGibbsDummy = 1D6
     character(5)          :: cDummy
-    character(25)         :: cSpeciesNameDummy
+    character(30)         :: cSpeciesNameDummy
 
 
     ! Initialize variables:
@@ -94,7 +94,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
 
     ! Entry 3: Read name of constituent species:
     read (1,100,IOSTAT = INFO) cSpeciesNameCS(j)
-    100 FORMAT (A25)
+    100 FORMAT (A30)
 
     ! Check to see if there is more than one particle per constituent formula mass.
     k = SCAN(cSpeciesNameCS(j), ':', back = .TRUE.)
