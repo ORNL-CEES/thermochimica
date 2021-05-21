@@ -82,14 +82,14 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     implicit none
 
     integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
-    integer :: iCi, iCj, iCk, iBi, iBj, iAi, iAj, iDi, iDj
+    integer :: iCi, iCj, iCk, iBi, iBj, iBk, iAi, iAj, iDi, iDj
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
     integer :: iFirst, iLast
     real(8) :: dSub1Total, dSub2Total, dydn
     real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
     real(8) :: dPreFactor, v, f, chargeCi, chargeCj, chargeCk
-    real(8) :: yCi, yCj, yCk, yAi, yAj, yBi, yBj, yDi, yDj, gex
+    real(8) :: yCi, yCj, yCk, yAi, yAj, yBi, yBj, yBk, yDi, yDj, gex
 
 print*,""
 print*,""
@@ -313,6 +313,7 @@ print*,""
             iAj = 0
             iBi = 0
             iBj = 0
+            iBk = 0
             iCi = 0
             iCj = 0
             iCk = 0
@@ -326,6 +327,7 @@ print*,""
             yAj = 0D0
             yBi = 0D0
             yBj = 0D0
+            yBk = 0D0
             yDi = 0D0
             yDj = 0D0
 
@@ -978,7 +980,7 @@ print*,""
                      (iSUBIParamData(l,2) == 1) .AND. &
                      (iSUBIParamData(l,3) == 2) .AND. &
                      (iSUBIParamData(l,4) == 1)) then
-                !
+
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
                     ! Determine constituent and sublattice indices:
@@ -1065,12 +1067,78 @@ print*,""
             ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
                      (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,3) == 2) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+                     (iSUBIParamData(l,3) == 3)) then
 
-                print*,"Mixing term 10 not yet implemented."
+                ! Loop through constituents associated with this parameter:
+                do k = 2, n + 1
+                    ! Determine constituent and sublattice indices:
+                    c = MOD(iRegularParam(l,k), 10000)
+                    s = iRegularParam(l,k) - c
+                    s = s / 10000
 
+                    if (k == iSUBIParamData(l,2) + 2) then
+                        ! neutral - Bj
+                        yBi = dSiteFraction(iSPI,s,c)
+                        iBi = c
+                    else if (k == iSUBIParamData(l,2) + 3) then
+                        ! neutral - Bk
+                        yBj = dSiteFraction(iSPI,s,c)
+                        iBj = c
+                    else if (k == iSUBIParamData(l,2) + 4) then
+                        ! neutral - Bl
+                        yBk = dSiteFraction(iSPI,s,c)
+                        iBk = c
+                    end if
+                end do
 
+                ! Compute prefactor term:
+                dPreFactor = yBi * yBj * yBk
+                ! Calculate f and v
+                f = (1D0 - yBi - yBj - yBk)/3D0
+                if (iRegularParam(l,n+2) == 0) then
+                    v = yBi + f
+                else if (iRegularParam(l,n+2) == 1) then
+                    v = yBj + f
+                else if (iRegularParam(l,n+2) == 2) then
+                    v = yBk + f
+                end if
+                ! Excess Gibbs energy equation for L_Ci:Va,Bj,Bk case
+                gex = q * dPreFactor * v * dExcessGibbsParam(l)
+                ! Total Excess Gibbs Energy
+                gexcess = gexcess + gex
+
+                do i = 1, nConstituentSublattice(iSPI, 1)
+                    ! Q part:
+                    dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+                end do
+
+                do i = 1, nConstituentSublattice(iSPI,2)
+                    ! Derivative with respect to Bk
+                    if (i == iBi) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yBi
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + gex / v
+                    ! Derivative with respect to Bl
+                    else if (i == iBj) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yBj
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + gex / v
+                    ! Derivative with respect to Va
+                    else if (i == iBk) then
+                        ! prefactor part
+                        dgdc2(i) = dgdc2(i) + gex / yBk
+                        ! f part
+                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+                        ! other v part
+                        if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + gex / v
+                    end if
+                end do
 
             ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
             else if ((iSUBIParamData(l,1) == 4) .AND. &
