@@ -1160,38 +1160,34 @@ print*,""
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-
                     else if (k == iSUBIParamData(l,2) + 1) then
                         ! cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-
                     else if (k == iSUBIParamData(l,2) + 2) then
                         ! anion - Ak
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
-
-                    else
+                    else if (k == iSUBIParamData(l,2) + 3) then
                         ! Dl
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
-
                     end if
                 end do
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 iExponent = iRegularParam(l,n+2)
                 ! Excess Gibbs energy equation for L_Ci,Cj:Ak,Dl case
+                ! Dealing with the reciprocals
                 ! Part 1 of equation:
-                if (((iExponent * 2) + 1) <= l) then
-                    gex = dPreFactor * dExcessGibbsParam((iExponent * 2) + 1) * (yCi - yCj)**(iExponent)
+                if (MOD(iExponent,2) == 0) then
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
                 end if
                 ! Part 2 of equation:
-                if ((iExponent >= 1) .AND. &
-                   (iExponent * 2 <= l)) then
-                    gex = dPreFactor * dExcessGibbsParam(iExponent * 2) * (yAi - yDi)**(iExponent)
-
+                if (MOD(iExponent,2) == 1) then
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
                 end if
+
                 ! Total Excess Gibbs Energy
                 gexcess = gexcess + gex
 
@@ -1200,22 +1196,18 @@ print*,""
                     do i = 1, nConstituentSublattice(iSPI,1)
                         ! Derivative with respect to Ci
                         if (i == iCi) then
-
                             dgdc1(i) = dgdc1(i) + gex / yCi
-
-                            if (((iExponent * 2) + 1) <= l) then
+                            ! Dealing with the reciprocals
+                            if (MOD(iExponent,2) == 0) then
                                 dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
-
                             end if
 
                         ! Derivative with respect to Cj
                         else if (i == iCj) then
-
                             dgdc1(i) = dgdc1(i) + gex / yCj
-
-                            if (((iExponent * 2) + 1) <= l) then
+                            ! Dealing with the reciprocals
+                            if (MOD(iExponent,2) == 0) then
                                 dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
-
                             end if
                         end if
                     end do
@@ -1226,26 +1218,21 @@ print*,""
 
                     ! Chemical potential with respect to the second sublattice
                     do i = 1, nConstituentSublattice(iSPI,2)
-
                         !! When Dl = Al or Bl - Cases untested... %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                         if (i == iAi) then
                             ! anion - Ak
                             dgdc2(i) = dgdc2(i) + gex / yAi
-
-                            if ((iExponent >= 1) .AND. &
-                                (iExponent * 2 <= l)) then
+                            ! Dealing with the reciprocals
+                            if (MOD(iExponent,2) == 1) then
                                 dgdc2(i) = dgdc2(i) + gex * iExponent / (yAi - yDi)
-
                             end if
 
                         else if (i == iDi) then
                             ! Dl
                             dgdc2(i) = dgdc2(i) + gex / yDi
-
-                            if ((iExponent >= 1) .AND. &
-                                (iExponent * 2 <= l)) then
+                            ! Dealing with the reciprocals
+                            if (MOD(iExponent,2) == 1) then
                                 dgdc2(i) = dgdc2(i) + gex * iExponent * (-1) / (yAi - yDi)
-
                             end if
                         end if
                     end do
@@ -1350,7 +1337,7 @@ print*,""
             end if
 
             !print*,"gexcess:", (gexcess)*dIdealConstant * dTemperature
-            print*,"l",l
+            !print*,"l",l
             !print*,"gextest(l)",gextest(l)
             !print*,"-------------------------"
             !print*,""
@@ -1394,11 +1381,11 @@ print*,""
             gideal = gideal + q * dSiteFraction(iSPI,2,i) * DLOG(dSiteFraction(iSPI,2,i))
         end do
 
-        print*,"p",p,"   q",q
-        print*,"gexcess 02",gexcess*dIdealConstant * dTemperature
-        print*,"gref+gideal:", (gref+gideal)*dIdealConstant * dTemperature
-        print*,"gref+gideal+gexcess:", (gref+gideal+gexcess)*dIdealConstant * dTemperature
-        print*,""
+        !print*,"p",p,"   q",q
+        !print*,"gexcess 02",gexcess*dIdealConstant * dTemperature
+        !print*,"gref+gideal:", (gref+gideal)*dIdealConstant * dTemperature
+        !print*,"gref+gideal+gexcess:", (gref+gideal+gexcess)*dIdealConstant * dTemperature
+        !print*,""
 
         ! For Sublattice Number 1
         do i = 1, nConstituentSublattice(iSPI,1)
@@ -1471,10 +1458,10 @@ print*,""
                 end if
             end do
         end do
-        print*,"After All"
-        print*,"dgdc1(:)",dgdc1(:)*dIdealConstant * dTemperature
-        print*,"dgdc2(:)",dgdc2(:)*dIdealConstant * dTemperature
-        print*,""
+        !print*,"After All"
+        !print*,"dgdc1(:)",dgdc1(:)*dIdealConstant * dTemperature
+        !print*,"dgdc2(:)",dgdc2(:)*dIdealConstant * dTemperature
+        !print*,""
         ! Compute the chemical potential for each phase component assuming ideal mixing:
         LOOP_Ideal: do i = iFirst, iLast
             ! Relative species index:
