@@ -983,6 +983,8 @@ print*,""
     !Some mixing cases require three interaction parameters to be created
     ! if the term is L_0
     !If one mixing term create three mixing terms
+    print*,"nParamPhase",nParamPhase
+    print*,"iMaxSUBI",iMaxSUBI
     LOOP_SolnPhases2: do i = 1, nSolnPhasesSysCS
         LOOP_Param2: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
             IF_ParamPass2: if (iParamPassCS(j) /= 0) then
@@ -1062,19 +1064,20 @@ print*,""
                                     iRegularParam((n+3):(iIndex1),:) = iDummyRegularParam((n+1):(iIndex2),:)
                                     iSUBIParamData((n+3):(iIndex1),:) = iDummySUBIParamData((n+1):(iIndex2),:)
                                     dExcessGibbsParam((n+3):(iIndex1)) = dDummyExcessGibbsParam((n+1):(iIndex2))
+                                    ! Updates nParamPhase(i) and nParamPhaseCS(i) to include new
+                                    ! mixing parameter values
+                                    nParamPhase(i) = iIndex1
+                                    nParamPhaseCS(i) = iIndex1
                                 else
                                     ! Keeps nParamPhase(i) as original value
-                                    iIndex1 = iMaxSUBI
+                                    nParamPhase(i) = iMaxSUBI
+                                    nParamPhaseCS(i) = iMaxSUBI
                                 end if
                             end if
                         end if
                 end select
             end if IF_ParamPass2
         end do LOOP_Param2
-        ! Updates nParamPhase(i) and nParamPhaseCS(i) to include new
-        ! mixing parameter values
-        nParamPhase(i) = iIndex1
-        nParamPhaseCS(i) = iIndex1
     end do LOOP_SolnPhases2
 
     ! Update the phase index vector (iPhase):
