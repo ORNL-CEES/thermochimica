@@ -224,6 +224,24 @@ subroutine SetElementMass(iAtom, dMass)
 
 end subroutine SetElementMass
 
+subroutine GetElementMass(iAtom, dMass)
+
+  USE ModuleThermoIO, ONLY: dElementMass
+
+  implicit none
+
+  integer, intent(in)::  iAtom
+  real(8), intent(out)::  dMass
+
+  dMass = 0D0
+  if (iAtom > 0 .AND. iAtom <= 118) then
+      dMass =  dElementMass(iAtom)
+  end if
+
+  return
+
+end subroutine GetElementMass
+
 subroutine CheckINFOThermo(dbginfo)
 
   USE ModuleThermoIO, ONLY: INFOThermo
