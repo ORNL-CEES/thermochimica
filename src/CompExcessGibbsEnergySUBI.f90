@@ -293,7 +293,6 @@ print*,""
         !             EXCESS TERMS - With Derived Excess Terms
         ! --------------------------------------------------------------
         gexcess = 0D0
-
         ! Loop through parameters:
         LOOP_Param: do l = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
             ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
@@ -1102,7 +1101,7 @@ print*,""
                 else if (iRegularParam(l,n+2) == 2) then
                     v = yBk + f
                 end if
-                ! Excess Gibbs energy equation for L_Ci:Va,Bj,Bk case
+                ! Excess Gibbs energy equation for L_Ci:Bj,Bk,Bl case
                 gex = q * dPreFactor * v * dExcessGibbsParam(l)
                 ! Total Excess Gibbs Energy
                 gexcess = gexcess + gex

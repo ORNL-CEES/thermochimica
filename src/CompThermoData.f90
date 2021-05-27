@@ -105,17 +105,20 @@ subroutine CompThermoData
     implicit none
 
     integer                            :: i, j, k, l, m, n, s, c, iCounterGibbsEqn, nCounter, l1, l2, nn
+    integer                            :: x, iCount1, iCount2, iIndex1, iIndex2, iMaxSUBI, iPassSUBI, iMix
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
     integer, dimension(nElementsCS**2) :: iRemove
+    integer, dimension(:), allocatable :: iDummySUBIMixType
+    integer, dimension(:,:), allocatable :: iDummyRegularParam, iDummySUBIParamData
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax
     real(8)                            :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
     real(8)                            :: dStdEnergyTemp
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
     character(12), dimension(:),     allocatable :: cElementNameTemp
-    real(8),       dimension(:),     allocatable :: dMolesElementTemp
+    real(8),       dimension(:),     allocatable :: dMolesElementTemp, dDummyExcessGibbsParam
     real(8),       dimension(:,:),   allocatable :: dAtomFractionSpeciesTemp, dStoichSpeciesTemp
     real(8),       dimension(:,:,:), allocatable :: dStoichPairsTemp
 
@@ -135,6 +138,15 @@ subroutine CompThermoData
     dGibbsCoeff(6)   = 1D0 / dTemperature              ! F
     dLogT            = DLOG(dTemperature)              ! ln(T)
     dLogP            = DLOG(dPressure)                 ! ln(P)
+
+    ! Establishing Array to distinguish SUBI Mixing Case Types
+    ! Dummy array is required to reduce the iSUBIMixType array
+    ! to the required size
+    if (allocated(iSUBIMixType)) deallocate(iSUBIMixType)
+    if (allocated(iDummySUBIMixType)) deallocate(iDummySUBIMixType)
+    allocate(iSUBIMixType(1000),iDummySUBIMixType(1000))
+    iSUBIMixType = 0
+    iDummySUBIMixType = 0
 
 print*,""
 print*,""
@@ -563,6 +575,7 @@ print*,""
     end do LOOP_nPureConSpeciesCS ! End loop of species (i)
 
     ! Update all the excess properties:
+    iMaxSUBI = 0
     n = 0
     nn = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
@@ -704,6 +717,8 @@ print*,""
                         iSUBLParamData(n,1) = nMixSets
 
                     case ('SUBI')
+                        ! Counts the number of interaction parameters for SUBI
+                        iMaxSUBI = iMaxSUBI + 1
                         ! Compute mixing terms L
                         do k = 1, 6
                             dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
@@ -765,6 +780,94 @@ print*,""
                                     ! if Dl present
                                     iSUBIParamData(n,6) = 1
                                 end if
+                            end if
+
+                            ! Case 1: Determine the mixing parameter type: L_Ci,Cj:Ak
+                            if ((iSUBIParamData(n,1) == 3) .AND. &
+                                (iSUBIParamData(n,2) == 2) .AND. &
+                                (iSUBIParamData(n,5) == 1)) then
+
+                                iSUBIMixType(n) = 1
+
+                            ! Case 2: Determine the mixing parameter type: L_Ci:Aj,Dk
+                            else if ((iSUBIParamData(n,1) == 3) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,6) == 1)) then
+
+                                iSUBIMixType(n) = 2
+
+                            ! Case 3: Determine the mixing parameter type: L_Ci,Cj:Va
+                            else if ((iSUBIParamData(n,1) == 3) .AND. &
+                                     (iSUBIParamData(n,2) == 2) .AND. &
+                                     (iSUBIParamData(n,4) == 1)) then
+
+                                iSUBIMixType(n) = 3
+
+                            ! Case 4: Determine the mixing parameter type: L_Ci:Va,Bj
+                            else if ((iSUBIParamData(n,1) == 3) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,3) == 1) .AND. &
+                                     (iSUBIParamData(n,4) == 1)) then
+
+                                iSUBIMixType(n) = 4
+
+                            ! Case 5: Determine the mixing parameter type: L_Ci:Bj,Bk
+                            else if ((iSUBIParamData(n,1) == 3) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,3) == 2)) then
+
+                                iSUBIMixType(n) = 5
+
+                            ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 3) .AND. &
+                                     (iSUBIParamData(n,5) == 1)) then
+
+                                iSUBIMixType(n) = 6
+
+                            ! Case 7: Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,6) == 1)) then
+
+                                iSUBIMixType(n) = 7
+
+                            ! Case 8: Determine the mixing parameter type: L_Ci,Cj,Ck:Va
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 3) .AND. &
+                                     (iSUBIParamData(n,4) == 1)) then
+
+                                iSUBIMixType(n) = 8
+
+                            ! Case 9: Determine the mixing parameter type: L_Ci:Va,Bj,Bk
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,3) == 2) .AND. &
+                                     (iSUBIParamData(n,4) == 1)) then
+
+                                iSUBIMixType(n) = 9
+
+                            ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 1) .AND. &
+                                     (iSUBIParamData(n,3) == 3)) then
+
+                                iSUBIMixType(n) = 10
+
+                            ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 2) .AND. &
+                                     (iSUBIParamData(n,6) == 1)) then
+
+                                iSUBIMixType(n) = 11
+
+                            ! Case 12: Determine the mixing parameter type: L_Ci,Cj:Va,Bk
+                            else if ((iSUBIParamData(n,1) == 4) .AND. &
+                                     (iSUBIParamData(n,2) == 2) .AND. &
+                                     (iSUBIParamData(n,3) == 1) .AND. &
+                                     (iSUBIParamData(n,4) == 1)) then
+
+                                iSUBIMixType(n) = 12
                             end if
                         end do LOOP_SUBI_CASES
                 end select
@@ -862,6 +965,117 @@ print*,""
             end if IF_MagParamPass
         end do LOOP_MagParam
     end do LOOP_SolnPhases
+
+    ! Decreases array size of iSUBIMixType from 1000 to the required amount.
+    iMix = 0
+    do iMix = 1,1000
+        if (iSUBIMixType(iMix) == 0) exit
+    end do
+    iDummySUBIMixType(1:iMix) = iSUBIMixType(1:iMix)
+    if (allocated(iSUBIMixType)) deallocate(iSUBIMixType)
+    allocate(iSUBIMixType(iMix-1))
+    iSUBIMixType(1:(iMix-1)) = iDummySUBIMixType(1:(iMix-1))
+
+    ! Required indexing to create the below arrays
+    n = 0
+    iCount1 = 0
+    iCount2 = -2
+    !Some mixing cases require three interaction parameters to be created
+    ! if the term is L_0
+    !If one mixing term create three mixing terms
+    LOOP_SolnPhases2: do i = 1, nSolnPhasesSysCS
+        LOOP_Param2: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
+            IF_ParamPass2: if (iParamPassCS(j) /= 0) then
+                n = n + 1
+                select case (cSolnPhaseTypeCS(i))
+                    case ('SUBI')
+                        iPassSUBI = 0
+                        ! Mixing Parameter Cases that require this modification
+                        if ((iSUBIMixType(n) == 6) .OR. &
+                            (iSUBIMixType(n) == 7) .OR. &
+                            (iSUBIMixType(n) == 8) .OR. &
+                            (iSUBIMixType(n) == 9) .OR. &
+                            (iSUBIMixType(n) == 10) .OR. &
+                            (iSUBIMixType(n) == 12))then
+                            ! Checking for single mixing term
+                            ! If only L_0 then iSUBI = 1
+                            if (iRegularParam(n,iRegularParam(n,1) + 2) == 0) then
+                                ! The order of these conditions is required to avoid errors
+                                if (n == iMaxSUBI) then
+                                    iPassSUBI = 1
+                                else if (iRegularParam(n+1,iRegularParam(n+1,1) + 2) == 0) then
+                                    iPassSUBI = 1
+                                end if
+
+                                ! When the correct conditions are met, the appropriate arrays
+                                ! will be alterred to add the additional mixing parameters
+                                if (iPassSUBI == 1) then
+                                    ! Save iRegularParam, Resize, Reallocate
+                                    if (allocated(iDummyRegularParam)) deallocate(iDummyRegularParam)
+                                    if (allocated(iDummySUBIParamData)) deallocate(iDummySUBIParamData)
+                                    if (allocated(dDummyExcessGibbsParam)) deallocate(dDummyExcessGibbsParam)
+
+                                    allocate(iDummyRegularParam(SIZE(iRegularParam,1),SIZE(iRegularParam,2)))
+                                    allocate(iDummySUBIParamData(SIZE(iSUBIParamData,1),SIZE(iSUBIParamData)))
+                                    allocate(dDummyExcessGibbsParam(SIZE(dExcessGibbsParam,1)))
+                                    ! Dummy arrays temporarly hold the values while the actual arrays
+                                    ! are re-sized
+                                    iDummyRegularParam = iRegularParam
+                                    iDummySUBIParamData = iSUBIParamData
+                                    dDummyExcessGibbsParam = dExcessGibbsParam
+
+                                    deallocate(iRegularParam, iSUBIParamData, dExcessGibbsParam)
+                                    ! Resizes the actual arrays
+                                    allocate(iRegularParam(SIZE(iDummyRegularParam,1)+2,SIZE(iDummyRegularParam,2)))
+                                    allocate(iSUBIParamData(SIZE(iDummySUBIParamData,1)+2,SIZE(iDummySUBIParamData,2)))
+                                    allocate(dExcessGibbsParam(SIZE(dDummyExcessGibbsParam,1)+2))
+
+                                    iRegularParam = 0
+                                    iSUBIParamData = 0
+                                    dExcessGibbsParam = 0
+                                    ! Copies data from Dummy array to the actual array that is
+                                    ! prior to the mixing parameter being altered
+                                    iRegularParam(1:n,:) = iDummyRegularParam(1:n,:)
+                                    iSUBIParamData(1:n,:) = iDummySUBIParamData(1:n,:)
+                                    dExcessGibbsParam(1:n) = dDummyExcessGibbsParam(1:n)
+                                    ! Copies in new mixing parameter data
+                                    do x = 0, 2
+                                        ! Adds two new terms to the iRegularParam array
+                                        iRegularParam((n+x),:) = iRegularParam(n,:)
+                                        iRegularParam((n+x),6) = x
+
+                                        ! Adds two new terms to the iSUBIParamData array
+                                        iSUBIParamData((n+x),:) = iSUBIParamData(n,:)
+
+                                        ! Adds two new terms to the dExcessGibbsParam array
+                                        dExcessGibbsParam(n+x) = dExcessGibbsParam(n)
+                                    end do
+
+                                    iCount1 = iCount1 + 2
+                                    iCount2 = iCount2 + 2
+                                    iIndex1 = 0
+                                    iIndex2 = 0
+                                    iIndex1 = iMaxSUBI + iCount1
+                                    iIndex2 = iMaxSUBI + iCount2
+                                    ! Copies data from Dummy array to the actual array that is
+                                    ! after the mixing parameter being altered
+                                    iRegularParam((n+3):(iIndex1),:) = iDummyRegularParam((n+1):(iIndex2),:)
+                                    iSUBIParamData((n+3):(iIndex1),:) = iDummySUBIParamData((n+1):(iIndex2),:)
+                                    dExcessGibbsParam((n+3):(iIndex1)) = dDummyExcessGibbsParam((n+1):(iIndex2))
+                                else
+                                    ! Keeps nParamPhase(i) as original value
+                                    iIndex1 = iMaxSUBI
+                                end if
+                            end if
+                        end if
+                end select
+            end if IF_ParamPass2
+        end do LOOP_Param2
+        ! Updates nParamPhase(i) and nParamPhaseCS(i) to include new
+        ! mixing parameter values
+        nParamPhase(i) = iIndex1
+        nParamPhaseCS(i) = iIndex1
+    end do LOOP_SolnPhases2
 
     ! Update the phase index vector (iPhase):
     do i = 1, nSolnPhasesSys
