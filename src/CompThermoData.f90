@@ -125,7 +125,7 @@ subroutine CompThermoData
     nDummySpecies    = 0
     nCounter         = 0
     dTemp            = 1D0 / (dIdealConstant * dTemperature)
-    if (allocated(iSUBIMixType)) iSUBIMixType = 0
+    iSUBIMixType     = 0
 
     ! Compute Gibbs energy coefficients:
     dGibbsCoeff(1)   = 1D0                             ! A
