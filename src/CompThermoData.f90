@@ -125,6 +125,7 @@ subroutine CompThermoData
     nDummySpecies    = 0
     nCounter         = 0
     dTemp            = 1D0 / (dIdealConstant * dTemperature)
+    if (allocated(iSUBIMixType)) iSUBIMixType = 0
 
     ! Compute Gibbs energy coefficients:
     dGibbsCoeff(1)   = 1D0                             ! A
@@ -575,7 +576,6 @@ subroutine CompThermoData
                 ! Convert the excess Gibbs energy parameters to dimensionless units:
                 iRegularParam(n,1:nParamMax*2+3) = iRegularParamCS(j,1:nParamMax*2+3)
                 cRegularParam(n) = cRegularParamCS(j)
-                iSUBIMixType(n) = iSUBIMixTypeCS(j)
 
                 select case (cSolnPhaseTypeCS(i))
                     case ('QKTO', 'RKMP', 'RKMPM')
@@ -700,6 +700,8 @@ subroutine CompThermoData
                         iSUBLParamData(n,1) = nMixSets
 
                     case ('SUBI')
+                        ! Populating iSUBIMixType from parsed CS data
+                        iSUBIMixType(n) = iSUBIMixTypeCS(j)
                         ! Compute mixing terms L
                         do k = 1, 6
                             dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
