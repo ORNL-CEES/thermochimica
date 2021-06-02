@@ -81,9 +81,9 @@ module ModuleParseCS
     integer,        parameter                   :: nGibbsCoeff = 13, nMaxGibbsEqs = 6, nParamMax = 4
     integer,        dimension(:),   allocatable :: nSpeciesPhaseCS, nGibbsEqSpecies, iPhaseCS, iParticlesPerMoleCS
     integer,        dimension(:),   allocatable :: nParamPhaseCS, iParamPassCS, nSublatticePhaseCS, iPhaseSublatticeCS
-    integer,        dimension(:),   allocatable :: iMagParamPassCS, nMagParamPhaseCS
+    integer,        dimension(:),   allocatable :: iMagParamPassCS, nMagParamPhaseCS, iSUBIMixTypeCS
     integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iMagneticParamCS
-    integer,        dimension(:,:), allocatable :: nSublatticeElementsCS
+    integer,        dimension(:,:), allocatable :: nSublatticeElementsCS, iSUBIParamDataCS
     integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iPairIDCS, iChemicalGroupCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMassCS

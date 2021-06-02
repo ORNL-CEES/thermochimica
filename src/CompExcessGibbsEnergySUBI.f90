@@ -336,9 +336,7 @@ print*,""
             n = iRegularParam(l,1)
 
             ! Case 1: Determine the mixing parameter type: L_Ci,Cj:Ak
-            if ((iSUBIParamData(l,1) == 3) .AND. &
-                (iSUBIParamData(l,2) == 2) .AND. &
-                (iSUBIParamData(l,5) == 1)) then
+            if (iSUBIMixType(l) == 1) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -351,19 +349,19 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2)) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2)+1) then
+                    else if (k == 3) then
                         ! cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
                         chargeCj = dSublatticeCharge(iSPI,s,c)
 
-                    else
+                    else if (k == 4) then
                         ! anion - Ak
                         yAi =  dSiteFraction(iSPI,s,c)
                         iAi = c
@@ -409,9 +407,7 @@ print*,""
                 end do
 
             ! Case 2: Determine the mixing parameter type: L_Ci:Aj,Dk
-            else if ((iSUBIParamData(l,1) == 3) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,6) == 1)) then
+            else if (iSUBIMixType(l) == 2) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -424,17 +420,17 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Establishing the site fractions for the L_Ci:Aj,Dk cases
-                    if (k == iSUBIParamData(l,2) + 1) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
 
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 3) then
                         ! anion - Aj
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
 
-                    else
+                    else if (k == 4) then
                         ! Dl - anion, vacancy or neutral
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
@@ -479,9 +475,7 @@ print*,""
                 end if
 
             ! Case 3: Determine the mixing parameter type: L_Ci,Cj:Va
-            else if ((iSUBIParamData(l,1) == 3) .AND. &
-                     (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+            else if (iSUBIMixType(l) == 3) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -491,7 +485,7 @@ print*,""
                     s = s / 10000
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2)) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
@@ -499,7 +493,7 @@ print*,""
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2)+1) then
+                    else if (k == 3) then
                         ! cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
@@ -507,7 +501,7 @@ print*,""
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    else
+                    else if (k == 4) then
                         ! Vacancy
                         yva = dSiteFraction(iSPI,s,c)
                         ! Compute prefactor term:
@@ -564,10 +558,7 @@ print*,""
                 end do
 
             ! Case 4: Determine the mixing parameter type: L_Ci:Va,Bj
-            else if ((iSUBIParamData(l,1) == 3) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,3) == 1) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+            else if (iSUBIMixType(l) == 4) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -580,17 +571,17 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2) + 1) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 3) then
                         ! vacancy - Va
                         yva = dSiteFraction(iSPI,s,c)
 
-                    else
+                    else if (k == 4) then
                         ! nuetral - Bj
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
@@ -647,9 +638,7 @@ print*,""
 
             ! Begining of ternary mixing cases
             ! Case 5: Determine the mixing parameter type: L_Ci:Bj,Bk
-            else if ((iSUBIParamData(l,1) == 3) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,3) == 2)) then
+            else if (iSUBIMixType(l) == 5) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -659,20 +648,20 @@ print*,""
                     s = s / 10000
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2) + 1) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
                         chargeCi = dSublatticeCharge(iSPI,s,c)
 
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 3) then
                         ! nuetral - Bj
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
                         ! Compute prefactor term:
                         dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    else
+                    else if (k == 4) then
                         ! nuetral - Bk
                         yBj = dSiteFraction(iSPI,s,c)
                         iBj = c
@@ -716,9 +705,7 @@ print*,""
                 end if
 
             ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 3) .AND. &
-                     (iSUBIParamData(l,5) == 1)) then
+            else if (iSUBIMixType(l) == 6) then
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
                     ! Determine constituent and sublattice indices:
@@ -729,19 +716,19 @@ print*,""
                     ! Compute prefactor term:
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    if (k == iSUBIParamData(l,2) - 1) then
+                    if (k == 2) then
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2)) then
+                    else if (k == 3) then
                         ! Cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-                    else if (k == iSUBIParamData(l,2) + 1) then
+                    else if (k == 4) then
                         ! Cation - Ck
                         yCk = dSiteFraction(iSPI,s,c)
                         iCk = c
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 5) then
                         ! Anion - Al
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
@@ -801,9 +788,7 @@ print*,""
             end do
 
             ! Case 7: Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,6) == 1)) then
+            else if (iSUBIMixType(l) == 7) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -815,19 +800,19 @@ print*,""
                     ! Compute prefactor term:
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
-                    if (k == iSUBIParamData(l,2) + 1) then
+                    if (k == 2) then
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 3) then
                         ! Anion - Aj
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else if (k == 4) then
                         ! Dk
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
-                    else if (k == iSUBIParamData(l,2) + 4) then
+                    else if (k == 5) then
                         ! Dl
                         yDj = dSiteFraction(iSPI,s,c)
                         iDj = c
@@ -887,9 +872,7 @@ print*,""
                 end do
 
             ! Case 8: Determine the mixing parameter type: L_Ci,Cj,Ck:Va
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 3) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+            else if (iSUBIMixType(l) == 8) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -898,15 +881,15 @@ print*,""
                     s = iRegularParam(l,k) - c
                     s = s / 10000
 
-                    if (k == iSUBIParamData(l,2) - 1) then
+                    if (k == 2) then
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2)) then
+                    else if (k == 3) then
                         ! Cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-                    else if (k == iSUBIParamData(l,2) + 1) then
+                    else if (k == 4) then
                         ! Cation - Ck
                         yCk = dSiteFraction(iSPI,s,c)
                         iCk = c
@@ -975,10 +958,7 @@ print*,""
                 end do
 
             ! Case 9: Determine the mixing parameter type: L_Ci:Va,Bj,Bk
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,3) == 2) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+            else if (iSUBIMixType(l) == 9) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -987,18 +967,18 @@ print*,""
                     s = iRegularParam(l,k) - c
                     s = s / 10000
 
-                    if (k == iSUBIParamData(l,2) + 1) then
+                    if (k == 2) then
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 3) then
                         ! vacancy
                         yva = dSiteFraction(iSPI,s,c)
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else if (k == 4) then
                         ! neutral - Bi
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
-                    else if (k == iSUBIParamData(l,2) + 4) then
+                    else if (k == 5) then
                         ! Neutral - Bj
                         yBj = dSiteFraction(iSPI,s,c)
                         iBj = c
@@ -1064,9 +1044,7 @@ print*,""
                 end do
 
             ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 1) .AND. &
-                     (iSUBIParamData(l,3) == 3)) then
+          else if (iSUBIMixType(l) == 10) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -1075,15 +1053,15 @@ print*,""
                     s = iRegularParam(l,k) - c
                     s = s / 10000
 
-                    if (k == iSUBIParamData(l,2) + 2) then
+                    if (k == 3) then
                         ! neutral - Bj
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else if (k == 4) then
                         ! neutral - Bk
                         yBj = dSiteFraction(iSPI,s,c)
                         iBj = c
-                    else if (k == iSUBIParamData(l,2) + 4) then
+                    else if (k == 5) then
                         ! neutral - Bl
                         yBk = dSiteFraction(iSPI,s,c)
                         iBk = c
@@ -1140,9 +1118,7 @@ print*,""
                 end do
 
             ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,6) == 1)) then
+            else if (iSUBIMixType(l) == 11) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -1155,19 +1131,19 @@ print*,""
                     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
 
                     ! Store the first and second site fractions:
-                    if (k == iSUBIParamData(l,2)) then
+                    if (k == 2) then
                         ! cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2) + 1) then
+                    else if (k == 3) then
                         ! cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 4) then
                         ! anion - Ak
                         yAi = dSiteFraction(iSPI,s,c)
                         iAi = c
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else if (k == 5) then
                         ! Dl
                         yDi = dSiteFraction(iSPI,s,c)
                         iDi = c
@@ -1238,10 +1214,7 @@ print*,""
                 end if
 
             ! Case 12: Determine the mixing parameter type: L_Ci,Cj:Va,Bk
-            else if ((iSUBIParamData(l,1) == 4) .AND. &
-                     (iSUBIParamData(l,2) == 2) .AND. &
-                     (iSUBIParamData(l,3) == 1) .AND. &
-                     (iSUBIParamData(l,4) == 1)) then
+            else if (iSUBIMixType(l) == 12) then
 
                 ! Loop through constituents associated with this parameter:
                 do k = 2, n + 1
@@ -1250,18 +1223,18 @@ print*,""
                     s = iRegularParam(l,k) - c
                     s = s / 10000
 
-                    if (k == iSUBIParamData(l,2)) then
+                    if (k == 2) then
                         ! Cation - Ci
                         yCi = dSiteFraction(iSPI,s,c)
                         iCi = c
-                    else if (k == iSUBIParamData(l,2) + 1) then
+                    else if (k == 3) then
                         ! Cation - Cj
                         yCj = dSiteFraction(iSPI,s,c)
                         iCj = c
-                    else if (k == iSUBIParamData(l,2) + 2) then
+                    else if (k == 4) then
                         ! Vacancy
                         yva = dSiteFraction(iSPI,s,c)
-                    else if (k == iSUBIParamData(l,2) + 3) then
+                    else if (k == 5) then
                         ! Neutral - Bk
                         yBi = dSiteFraction(iSPI,s,c)
                         iBi = c
