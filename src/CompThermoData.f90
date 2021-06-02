@@ -958,8 +958,6 @@ subroutine CompThermoData
         end if
     end do LOOP_EID_Phase
 
-    deallocate(iSUBIMixTypeCS)
-
     return
 
 end subroutine CompThermoData

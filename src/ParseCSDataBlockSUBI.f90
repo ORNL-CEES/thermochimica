@@ -357,10 +357,6 @@ iSUBIParamDataCS = 0
 
     end do LOOP_ExcessMixingSUBI
 
-    print*,"  iSUBIMixTypeCS",  iSUBIMixTypeCS(1:30)
-
-    deallocate(iSUBIParamDataCS)
-
     ! Report an error and return if necessary:
     if (INFO /= 0) then
         INFO = 2400 + i
