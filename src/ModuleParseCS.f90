@@ -74,7 +74,7 @@ module ModuleParseCS
 
     SAVE
 
-    integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO
+    integer                                     :: nElementsCS, nSpeciesCS, nSolnPhasesSysCS, INFO, iMiscSUBI
     integer                                     :: nParamCS, nCountSublatticeCS, nMaxSpeciesPhaseCS, nMagParamCS
     integer,        parameter                   :: nSolnPhasesSysMax = 100, nMaxSublatticeCS = 5
     integer,        parameter                   :: nSolnTypeSupport = 9

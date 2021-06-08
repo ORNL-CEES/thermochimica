@@ -80,12 +80,17 @@ subroutine ParseCSDataBlockSUBI(i)
     integer                   :: c, i, j, k, n, s, v, iDummy, iSubLat
     logical                   :: lTripleTerm
     character(8)              :: cDummy
+    ! Counter to determine if there are two or more SUBI
+    ! phases present for a miscibility gap.
+    iMiscSUBI = iMiscSUBI + 1
 
-if (allocated(iSUBIMixTypeCS)) deallocate(iSUBIMixTypeCS)
-if (allocated(iSUBIParamDataCS)) deallocate(iSUBIParamDataCS)
-allocate(iSUBIMixTypeCS(1000),iSUBIParamDataCS(1000,6))
-iSUBIMixTypeCS = 0
-iSUBIParamDataCS = 0
+    if (iMiscSUBI == 1) then
+        if (allocated(iSUBIMixTypeCS)) deallocate(iSUBIMixTypeCS)
+        if (allocated(iSUBIParamDataCS)) deallocate(iSUBIParamDataCS)
+        allocate(iSUBIMixTypeCS(1000),iSUBIParamDataCS(1000,6))
+        iSUBIMixTypeCS = 0
+        iSUBIParamDataCS = 0
+    end if
 
     ! Initialize variables:
     n = 0

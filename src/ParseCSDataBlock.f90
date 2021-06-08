@@ -87,6 +87,7 @@ subroutine ParseCSDataBlock
     nParamPhaseCS       = 0
     nMagParamPhaseCS    = 0
     dGibbsMagneticCS    = 0D0
+    iMiscSUBI           = 0
 
     ! Loop through all solution phases:
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
