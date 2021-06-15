@@ -15,6 +15,9 @@ subroutine HeatCapacity(dHeatCapacity)
     dTStepSize = 1e-2
     dGibbsEnergies = 0D0
 
+    lReinitRequested = .TRUE.
+    if(lReinitRequested) call SaveReinitData
+
     do j=-1,1
         dTemperature = dtemp0 + j*dTStepSize
         call ResetThermo
