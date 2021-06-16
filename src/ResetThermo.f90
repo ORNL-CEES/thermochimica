@@ -65,7 +65,7 @@ subroutine ResetThermo
     if (allocated(dChemicalPotential)) then
         ! Deallocate real arrays from ModuleThermo:
         deallocate (dChemicalPotential,dExcessGibbsParam,dMolesElement,dAtomFractionSpecies, &
-        dStdGibbsEnergy,nMagParamPhase,iMagneticParam,dMagneticParam,STAT = INFO)
+        dStdGibbsEnergy,nMagParamPhase,iMagneticParam,dMagneticParam,dStdHeatCapacity,STAT = INFO)
         i = i + INFO
     end if
 
