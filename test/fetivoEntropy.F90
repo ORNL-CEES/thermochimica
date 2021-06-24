@@ -7,7 +7,6 @@ program fetivoEntropy
 
     implicit none
 
-    integer :: j,k
     integer   ::  nConPhasesIn, nSolnPhasesIn
     integer, allocatable   :: iAssemblageIn(:)
     real(8), allocatable   ::  dMolesPhaseIn(:), dMolFractionIn(:)
@@ -22,7 +21,7 @@ program fetivoEntropy
     ! Specify values:
     dPressure              = 1D0
     dTemperature           = 2000D0
-    dElementMass(8)        = 1.25D0         ! O
+    dElementMass(8)        = 1.35D0         ! O
     dElementMass(26)       = 1D0            ! Fe
 
     ! Specify output mode:
@@ -37,15 +36,6 @@ program fetivoEntropy
     ! Perform post-processing of results:
     if (iPrintResultsMode > 0)  call PrintResults
 
-    do k = 1, nSolnPhasesSys
-      if (cSolnPhaseName(k) == 'SlagBsoln') then
-        do j = nSpeciesPhase(k-1)+1, nSpeciesPhase(k)
-          print *, j, cSpeciesName(j)
-          print *, dStoichSpecies(j,:)
-          ! print *, dStdGibbsEnergy(j)
-        end do
-      end if
-    end do
 
     allocate(iAssemblageIn(nElements),dMolesPhaseIn(nElements),dMolFractionIn(nSpecies))
 

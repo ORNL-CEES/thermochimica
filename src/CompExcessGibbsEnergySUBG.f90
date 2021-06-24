@@ -320,7 +320,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         if (lConverged) print *, 'Configurational Entropy Contribution to Chemical Potential of ', TRIM(cSpeciesName(l)), &
                                     ': ', dEntropy*dIdealConstant*dTemperature
-        dTotalEntropy = dTotalEntropy + dEntropy*dMolFraction(l)*dIdealConstant*dTemperature
+        dTotalEntropy = dTotalEntropy + dEntropy*dMolesSpecies(l)*dIdealConstant*dTemperature
 
         ! Calculate chemical potential of quadruplet
         dChemicalPotential(l) = dRef + dEntropy
