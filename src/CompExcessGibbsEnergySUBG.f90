@@ -81,7 +81,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
-    real(8) :: dTernarySum1, dTernarySum2
+    real(8) :: dTernarySum1, dTernarySum2, dTotalEntropy
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dFi
     real(8), allocatable, dimension(:,:) :: dXij, dNij, dXsij, dNsij
     ! X_ij/kl corresponds to dMolFraction
@@ -225,6 +225,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
     ! ---------------------------------------------------------------
 
+    dTotalEntropy = 0D0
     do k = 1, nPairsSRO(iSPI,2)
         ! Calculate entropic contributions to chemical potentials
         dEntropy = 0D0
@@ -317,9 +318,14 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
         dRef = dStdGibbsEnergy(l)
 
+        if (lConverged) print *, 'Configurational Entropy Contribution to Chemical Potential of ', TRIM(cSpeciesName(l)), &
+                                    ': ', dEntropy*dIdealConstant*dTemperature
+        dTotalEntropy = dTotalEntropy + dEntropy*dMolFraction(l)*dIdealConstant*dTemperature
+
         ! Calculate chemical potential of quadruplet
         dChemicalPotential(l) = dRef + dEntropy
     end do
+    if (lConverged) print *, 'Total Configurational Entropy: ', dTotalEntropy
 
     ! Loop through excess mixing parameters:
     LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
