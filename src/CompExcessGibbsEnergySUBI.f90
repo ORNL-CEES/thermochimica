@@ -91,11 +91,11 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     real(8) :: dPreFactor, v, f, chargeCi, chargeCj, chargeCk
     real(8) :: yCi, yCj, yCk, yAi, yAj, yBi, yBj, yBk, yDi, yDj, gex
 
-print*,""
-print*,""
-print*,"                          CompExcessGibbsEnergySUBI.f90"
-print*,""
-print*,""
+! print*,""
+! print*,""
+! print*,"                          CompExcessGibbsEnergySUBI.f90"
+! print*,""
+! print*,""
 
     ! Only proceed if the correct phase type is selected:
     IF_SUBL: if (cSolnPhaseType(iSolnIndex) == 'SUBI') then
@@ -157,9 +157,12 @@ print*,""
             ! Relative component index:
             m = i - iFirst + 1
             c = iConstituentSublattice(iSPI,2,m)
-            if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (dSublatticeCharge(iSPI,2,c) == 0D0)) then
-                ! Vacancy or neutral get scaled by Q
+            if (cConstituentNameSUB(iSPI,2,c) == 'Va') then
+                ! Vacancy gets scaled by Q
+                d = iConstituentSublattice(iSPI,1,m)
+                dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i) * dSublatticeCharge(iSPI,1,d) / q
+            else if (dSublatticeCharge(iSPI,2,c) == 0D0) then
+                ! Neutral counts as 1
                 dSiteFraction(iSPI,2,c) = dSiteFraction(iSPI,2,c) + dMolFraction(i)
             else
                 d = iConstituentSublattice(iSPI,1,m)
