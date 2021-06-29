@@ -203,6 +203,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             l1 = iConstituentSublattice(iSPI,1,n)
             l2 = iConstituentSublattice(iSPI,2,n)
 
+            ! Allocating the correct constituent charges
             lc1 = 1D0
             if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
             if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
@@ -220,17 +221,19 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end do
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
-                    if (.NOT.(cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                        (dSublatticeCharge(iSPI,2,i) == 0D0)) &
-                    dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                        (dSublatticeCharge(iSPI,2,i) == 0D0))) then
+                        dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    end if
                 end do
             else if (dSublatticeCharge(iSPI,2,l2) == 0D0) then
                 ! neutral
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
-                    if (.NOT.(cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                        (dSublatticeCharge(iSPI,2,i) == 0D0)) &
-                    dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
+                        (dSublatticeCharge(iSPI,2,i) == 0D0))) then
+                        dMolDerivatives(n) = dMolDerivatives(n) + dSub1Total*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    end if
                 end do
             else
                 ! cation / anion
@@ -241,8 +244,10 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 do i = 1, nConstituentSublattice(iSPI,2)
                     ! Only include anions (not neutrals or vacancies)
                     if (.NOT.((cConstituentNameSUB(iSPI,2,i) == 'Va') .OR. &
-                    (dSublatticeCharge(iSPI,2,i) == 0D0))) &
-                    dMolDerivatives(n) = dMolDerivatives(n)+dSub1Total*lc1*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    (dSublatticeCharge(iSPI,2,i) == 0D0))) then
+                        dMolDerivatives(n) = dMolDerivatives(n) &
+                        + dSub1Total*lc1*dSiteFraction(iSPI,2,i)*(-dSublatticeCharge(iSPI,2,i))
+                    end if
                 end do
             end if
             dMolDerivatives(n) = dMolDerivatives(n) / (dSub1Total*dSub2Total*dMol**2)
@@ -1425,7 +1430,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
                     ! cation / vacancy
                     dgdc2(i) = dgdc2(i) + q * dSiteFraction(iSPI,1,j) * DLOG(dSiteFraction(iSPI,1,j))
-                else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
+                else if (dSublatticeCharge(iSPI,2,i) == 0D0) then
                     ! neutral
                 else
                     ! cation / anion
