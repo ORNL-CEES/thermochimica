@@ -8,14 +8,14 @@ subroutine HeatCapacity(dHeatCapacity)
     integer   :: j
     real(8), dimension(3) :: dGibbsEnergies
     real(8), intent(out)  :: dHeatCapacity
-    real(8)               :: dTStepSize
+    real(8)               :: dTStepSize, dSecondDer
     real(8)               :: dtemp0
 
     dtemp0 = dTemperature
-    dTStepSize = 1e-2
+    dTStepSize = 5e-1
     dGibbsEnergies = 0D0
 
-    lReinitRequested = .TRUE.
+    lReinitRequested = .FALSE.
     if(lReinitRequested) call SaveReinitData
 
     do j=-1,1
@@ -25,7 +25,13 @@ subroutine HeatCapacity(dHeatCapacity)
         dGibbsEnergies(j+2) = dGibbsEnergySys
     end do
 
-    ! Heat capacity from 3-point stencil 2nd derivative of G
-    dHeatCapacity = -dtemp0*(dGibbsEnergies(1)+dGibbsEnergies(3)-2D0*dGibbsEnergies(2))/dTStepSize**2
+    ! Second derivative from  3-point stencil
+    dSecondDer = (dGibbsEnergies(1)+dGibbsEnergies(3)-2D0*dGibbsEnergies(2))/dTStepSize**2
+    ! Second derivative from  5-point stencil
+    ! dSecondDer = (-dGibbsEnergies(1)-dGibbsEnergies(5)-30D0*dGibbsEnergies(3)+16*dGibbsEnergies(2)+16*dGibbsEnergies(4)) &
+    !               / (12*dTStepSize**2)
+
+    ! Heat capacity from 2nd derivative of G
+    dHeatCapacity = -dtemp0*dSecondDer
 
 end subroutine HeatCapacity
