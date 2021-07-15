@@ -1514,53 +1514,35 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             do j = 1, nConstituentSublattice(iSPI,2)
               ! print*,"j",j
               if (cConstituentNameSUB(iSPI,2,k2) == 'Va') then
+                  dydn = -dSiteFraction(iSPI,2,j)*(dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
                   ! cation / vacancy
                   if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
                       ! vacancy
-                      dydn = ((dSub2Total * q) - dSub3Total) * ((dSub1Total * q * cc1) + ((-cc1 + q) * dSub3Total)) &
-                      / (dSub1Total * (dSub2Total**2) * (q**3))
-
+                      dydn = dydn + (dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
                   else
                       ! neutral or anion
-                      dydn = (-1D0) * dSiteFraction(iSPI,2,j) * ((dSub1Total * q * cc1) + ((-cc1 + q) * dSub3Total)) &
-                      / (dSub1Total * dSub2Total * (q**2))
-
                   end if
 
               else if (dSublatticeCharge(iSPI,2,k2) == 0D0) then
+                  dydn = -dSiteFraction(iSPI,2,j) / dSub2Total
                   ! neutral
                   if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
                       ! vacancy
-                      dydn = -dSub3Total / ((dSub2Total**2) * q)
-
                   else
                       ! neutral or anion
-                      dydn = -dSiteFraction(iSPI,2,j) / dSub2Total
                       if (j == k2) dydn = dydn + 1 / dSub2Total
-
                   end if
 
               else
+                  dydn = -dSiteFraction(iSPI,2,j) * (cc1 / dSub2Total + kc2*yva*(q-cc1)/(dSub1Total*q))
                   ! cation / anion
                   if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
-                      ! cation / vacancy
-                      dydn = (-1D0) * dSub3Total * ((dSub1Total * (q**2) * cc1) + (kc2) * ((-cc1 + q) &
-                      * (-dSub2Total * q + dSub3Total))) / (dSub1Total * (dSub2Total**2) * (q**3))
-
+                      dydn = dydn + dSiteFraction(iSPI,2,j) * kc2*(q-cc1)/(dSub1Total*q)
                   else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
                       ! neutral
-                      dydn = (-1D0) * dSiteFraction(iSPI,2,j) * ((dSub1Total * (q**2) * cc1) + (kc2) * ((-cc1 + q) &
-                      * (dSub3Total))) / (dSub1Total * dSub2Total * q**2)
-
                   else
                       ! cation / anion
-                      dydn = (-1D0) * dSiteFraction(iSPI,2,j) * (kc2) * (-cc1 + q) * (dSub3Total) &
-                      / (dSub1Total * dSub2Total * q**2)
-
-                      dydn = dydn + (-1D0) * (cc1 * dSiteFraction(iSPI,2,j)) / dSub2Total
-
                       if (j == k2) dydn = dydn + cc1 / dSub2Total
-
                   end if
 
               end if
