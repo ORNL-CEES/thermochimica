@@ -85,7 +85,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: iCi, iCj, iCk, iBi, iBj, iBk, iAi, iAj, iDi, iDj
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
     integer :: iFirst, iLast
-    real(8) :: dSub1Total, dSub2Total, dSub3Total, dydn, dTemp1, dTemp2
+    real(8) :: dSub1Total, dSub2Total, dydn, dTemp1, dTemp2
     real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, cc1, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms, dTest
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
     real(8) :: dPreFactor, v, f, chargeCi, chargeCj, chargeCk
@@ -206,21 +206,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 p = p - dSublatticeCharge(iSPI,2,i) * dSiteFraction(iSPI,2,i)
             end if
         end do
-
-        ! Calculate dSub3Total
-        dSub3Total = 0D0
-        do j = 1,(iLast-iFirst + 1)
-
-            ! Store constituent indices:
-            l1 = iConstituentSublattice(iSPI,1,j)
-            l2 = iConstituentSublattice(iSPI,2,j)
-
-            if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
-              dSub3Total = dSub3Total + dMolFraction(j) * dSublatticeCharge(iSPI,1,l1)
-            end if
-        end do
-        ! print*,"dSub3Total",dSub3Total
-        ! print*,""
 
         ! Compute number of moles and its derivatives
         dMol = (p + (q * (1D0 - yva)))
