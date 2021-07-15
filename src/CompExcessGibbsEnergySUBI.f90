@@ -1497,40 +1497,37 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             dTest = 0D0
 
             do j = 1, nConstituentSublattice(iSPI,2)
-              ! print*,"j",j
-              if (cConstituentNameSUB(iSPI,2,k2) == 'Va') then
-                  dydn = -dSiteFraction(iSPI,2,j)*(dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
-                  ! cation / vacancy
-                  if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
-                      ! vacancy
-                      dydn = dydn + (dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
-                  else
-                      ! neutral or anion
-                  end if
-
-              else if (dSublatticeCharge(iSPI,2,k2) == 0D0) then
-                  dydn = -dSiteFraction(iSPI,2,j) / dSub2Total
-                  ! neutral
-                  if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
-                      ! vacancy
-                  else
-                      ! neutral or anion
-                      if (j == k2) dydn = dydn + 1 / dSub2Total
-                  end if
-
-              else
-                  dydn = -dSiteFraction(iSPI,2,j) * (cc1 / dSub2Total + kc2*yva*(q-cc1)/(dSub1Total*q))
-                  ! cation / anion
-                  if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
-                      dydn = dydn + dSiteFraction(iSPI,2,j) * kc2*(q-cc1)/(dSub1Total*q)
-                  else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
-                      ! neutral
-                  else
-                      ! cation / anion
-                      if (j == k2) dydn = dydn + cc1 / dSub2Total
-                  end if
-
-              end if
+                ! print*,"j",j
+                ! cation / vacancy
+                if (cConstituentNameSUB(iSPI,2,k2) == 'Va') then
+                    dydn = -dSiteFraction(iSPI,2,j)*(dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
+                    if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
+                        ! vacancy
+                        dydn = dydn + (dSub1Total*cc1+(q-cc1)*dSub2Total*yva)/(dSub1Total*dSub2Total*q)
+                    else
+                        ! neutral or anion
+                    end if
+                ! neutral
+                else if (dSublatticeCharge(iSPI,2,k2) == 0D0) then
+                    dydn = -dSiteFraction(iSPI,2,j) / dSub2Total
+                    if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
+                        ! vacancy
+                    else
+                        ! neutral or anion
+                        if (j == k2) dydn = dydn + 1 / dSub2Total
+                    end if
+                ! cation / anion
+                else
+                    dydn = -dSiteFraction(iSPI,2,j) * (cc1 / dSub2Total + kc2*yva*(q-cc1)/(dSub1Total*q))
+                    if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
+                        dydn = dydn + dSiteFraction(iSPI,2,j) * kc2*(q-cc1)/(dSub1Total*q)
+                    else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
+                        ! neutral
+                    else
+                        ! cation / anion
+                        if (j == k2) dydn = dydn + cc1 / dSub2Total
+                    end if
+                end if
                 ! print*,"dydn - Anion Sublattice:   ",dydn
                 dChemicalPotential(i) = dChemicalPotential(i) + dydn * dgdc2(j) * dMolAtoms / dMol
             end do
