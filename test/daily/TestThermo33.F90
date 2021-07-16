@@ -54,9 +54,9 @@ program TestThermo33
 
     ! Check results:
     if (INFOThermo == 0) then
-        if ((DABS(dMolFraction(1) - 6.9028D-11)/6.903D-11 < 1D-3).AND. &
-        (DABS(dMolFraction(2) - 0.5758)/0.5758 < 1D-3).AND. &
-        (DABS(dGibbsEnergySys - (3.220D6))/(3.220D6) < 1D-3))  then
+        if ((DABS(dMolFraction(1) - 0.75306881663786374)/0.75306881663786374 < 1D-3).AND. &
+        (DABS(dMolFraction(9) - 3.0917444033201544D-002)/3.0917444033201544D-002 < 1D-3).AND. &
+        (DABS(dGibbsEnergySys - (3.06480D+06))/(3.06480D+06) < 1D-3))  then
             ! The test passed:
             print *, 'TestThermo33: PASS'
             ! Reset Thermochimica:

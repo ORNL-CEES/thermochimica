@@ -98,7 +98,7 @@ subroutine CompMolFraction(k)
     implicit none
 
     integer :: i, j, k, m, n
-    real(8) :: dTemp, dDrivingForceTemp
+    real(8) :: dTemp, dDrivingForceTemp, dSum
     logical :: lPhasePass
 
 
@@ -128,6 +128,7 @@ subroutine CompMolFraction(k)
         case default
 
             ! The default case assumes an ideal solution phase.
+            dSum = 0D0
             do i = m, n
                 dTemp = 0D0
                 do j = 1, nElements
@@ -136,7 +137,16 @@ subroutine CompMolFraction(k)
                 dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
                 dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i))
                 dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
-                dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i) * (dStdGibbsEnergy(i) - dTemp)
+                dSum = dSum + dMolFraction(i)
+            end do
+            do i = m, n
+                dTemp = 0D0
+                do j = 1, nElements
+                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
+                end do
+                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+                dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i)/dSum * &
+                (dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i)/dSum, 1D-75)) - dTemp)
             end do
 
     end select
