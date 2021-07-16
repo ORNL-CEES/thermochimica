@@ -36,7 +36,7 @@ subroutine PostProcess
 
     implicit none
 
-    integer :: i
+    integer :: i, j
 
 
     ! Initiate variables:
@@ -51,7 +51,14 @@ subroutine PostProcess
 
     ! Write the moles of condensed phases to corresponding species
     do i = 1, nConPhases
-        dMolesSpecies(iAssemblage(i)) = dMolesPhase(i)
+        do while ((dMolesPhase(i) == 0D0) .AND. (nConPhases > 0))
+            do j = i + 1, nConPhases
+                iAssemblage(j - 1) = iAssemblage(j)
+            end do
+            iAssemblage(nConPhases) = 0
+            nConPhases = nConPhases - 1
+        end do
+        if (dMolesPhase(i) > 0D0) dMolesSpecies(iAssemblage(i)) = dMolesPhase(i)
     end do
 
     ! Compute the integral Gibbs energy of the system:
