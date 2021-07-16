@@ -77,8 +77,20 @@ subroutine ParseCSDataBlockSUBI(i)
 
     implicit none
 
-    integer                   :: i, j, k, n, s, iDummy, v
+    integer                   :: c, i, j, k, n, s, v, iDummy, iSubLat
+    logical                   :: lTripleTerm
     character(8)              :: cDummy
+    ! Counter to determine if there are two or more SUBI
+    ! phases present for a miscibility gap.
+    iMiscSUBI = iMiscSUBI + 1
+
+    if (iMiscSUBI == 1) then
+        if (allocated(iSUBIMixTypeCS)) deallocate(iSUBIMixTypeCS)
+        if (allocated(iSUBIParamDataCS)) deallocate(iSUBIParamDataCS)
+        allocate(iSUBIMixTypeCS(1000),iSUBIParamDataCS(1000,6))
+        iSUBIMixTypeCS = 0
+        iSUBIParamDataCS = 0
+    end if
 
     ! Initialize variables:
     n = 0
@@ -150,7 +162,6 @@ subroutine ParseCSDataBlockSUBI(i)
 
     ! Loop through excess mixing parameters:
     LOOP_ExcessMixingSUBI: do
-
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
@@ -174,9 +185,154 @@ subroutine ParseCSDataBlockSUBI(i)
         ! Correct the indexing scheme (order of mixing) for the first parameter:
         iRegularParamCS(nParamCS, j+2) = 0
 
+        LOOP_Mixing_Cases: do k = 2,iRegularParamCS(nParamCS,1) + 1
+
+            ! Number of parameters in mixing case
+            iSUBIParamDataCS(nParamCS,1) = iRegularParamCS(nParamCS,1)
+
+            iSubLat = iRegularParamCS(nParamCS,k) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+
+            if (iSubLat <= 0) then
+                s = 1
+                c = iRegularParamCS(nParamCS,k)
+            else
+                s = 2
+                c = iSubLat
+            end if
+
+            ! Distinguishing between SUBI mixing Case types 1 through 12
+            ! Cation
+            if (dSublatticeChargeCS(nCountSublatticeCS,s,c) > 0) then
+                iSUBIParamDataCS(nParamCS,2) = iSUBIParamDataCS(nParamCS,2) + 1
+            ! Nuetral
+            else if (dSublatticeChargeCS(nCountSublatticeCS,s,c) == 0) then
+                iSUBIParamDataCS(nParamCS,3) = iSUBIParamDataCS(nParamCS,3) + 1
+            ! Vacancy
+            else if (cConstituentNameSUBCS(nCountSublatticeCS,s,c) == 'Va') then
+                iSUBIParamDataCS(nParamCS,4) = iSUBIParamDataCS(nParamCS,4) + 1
+            ! Anion
+            else
+                iSUBIParamDataCS(nParamCS,5) = iSUBIParamDataCS(nParamCS,5) + 1
+                ! Checking for cases with Dl
+                if ((iSUBIParamDataCS(nParamCS,5) > 0) .AND. &
+                    ((iSUBIParamDataCS(nParamCS,1) - iSUBIParamDataCS(nParamCS,2)) > 1)) then
+                    ! if Dl present
+                    iSUBIParamDataCS(nParamCS,6) = 1
+                end if
+            end if
+
+        end do LOOP_Mixing_Cases
+
+        ! Case 1: Determine the mixing parameter type: L_Ci,Cj:Ak
+        if ((iSUBIParamDataCS(nParamCS,1) == 3) .AND. &
+            (iSUBIParamDataCS(nParamCS,2) == 2) .AND. &
+            (iSUBIParamDataCS(nParamCS,5) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 1
+
+        ! Case 2: Determine the mixing parameter type: L_Ci:Aj,Dk
+        else if ((iSUBIParamDataCS(nParamCS,1) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,6) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 2
+
+        ! Case 3: Determine the mixing parameter type: L_Ci,Cj:Va
+        else if ((iSUBIParamDataCS(nParamCS,1) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 2) .AND. &
+                 (iSUBIParamDataCS(nParamCS,4) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 3
+
+        ! Case 4: Determine the mixing parameter type: L_Ci:Va,Bj
+        else if ((iSUBIParamDataCS(nParamCS,1) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,3) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,4) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 4
+
+        ! Case 5: Determine the mixing parameter type: L_Ci:Bj,Bk
+        else if ((iSUBIParamDataCS(nParamCS,1) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,3) == 2)) then
+
+            iSUBIMixTypeCS(nParamCS) = 5
+
+        ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,5) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 6
+
+        ! Case 7: Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,6) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 7
+
+        ! Case 8: Determine the mixing parameter type: L_Ci,Cj,Ck:Va
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 3) .AND. &
+                 (iSUBIParamDataCS(nParamCS,4) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 8
+
+        ! Case 9: Determine the mixing parameter type: L_Ci:Va,Bj,Bk
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,3) == 2) .AND. &
+                 (iSUBIParamDataCS(nParamCS,4) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 9
+
+        ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,3) == 3)) then
+
+            iSUBIMixTypeCS(nParamCS) = 10
+
+        ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 2) .AND. &
+                 (iSUBIParamDataCS(nParamCS,6) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 11
+
+        ! Case 12: Determine the mixing parameter type: L_Ci,Cj:Va,Bk
+        else if ((iSUBIParamDataCS(nParamCS,1) == 4) .AND. &
+                 (iSUBIParamDataCS(nParamCS,2) == 2) .AND. &
+                 (iSUBIParamDataCS(nParamCS,3) == 1) .AND. &
+                 (iSUBIParamDataCS(nParamCS,4) == 1)) then
+
+            iSUBIMixTypeCS(nParamCS) = 12
+        end if
+
+        ! lTripleTerm is false unless the specified conditions are met
+        lTripleTerm = .false.
+        !Some mixing cases require three interaction parameters to be created
+        ! if the term is L_0
+        !If one mixing term create three mixing terms
+        if (n == 1) then
+            if ((iSUBIMixTypeCS(nParamCS) == 6) .OR. &
+                (iSUBIMixTypeCS(nParamCS) == 7) .OR. &
+                (iSUBIMixTypeCS(nParamCS) == 8) .OR. &
+                (iSUBIMixTypeCS(nParamCS) == 9) .OR. &
+                (iSUBIMixTypeCS(nParamCS) == 10) .OR. &
+                (iSUBIMixTypeCS(nParamCS) == 12))then
+
+                ! Adds 2 mixing terms
+                n = 3
+                ! If lTripleTerm is true then interaction parameters will be added
+                lTripleTerm = .true.
+            end if
+        end if
+
         ! Loop through number of mixing terms per component array:
         do k = 2, n
-
             ! Update counter of the number of parameters:
             nParamCS = nParamCS + 1
 
@@ -185,6 +341,12 @@ subroutine ParseCSDataBlockSUBI(i)
 
             ! Correct the indexing scheme (order of mixing parameter):
             iRegularParamCS(nParamCS, j+2) = k - 1
+
+            ! Duplicate SUBI mixing type for the same case
+            iSUBIMixTypeCS(nParamCS) = iSUBIMixTypeCS(nParamCS - 1)
+
+            ! Re-read in mixing parameters
+            if (lTripleTerm) backspace(UNIT = 1)
 
             ! Read mixing terms:
             read (1,*,IOSTAT = INFO) dRegularParamCS(nParamCS,1:6)

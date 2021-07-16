@@ -91,11 +91,11 @@ module ModuleThermo
     integer::                                     nConPhases, nSolnPhases, nSolnPhasesSys, nChargedConstraints, nConPhasesSys
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118, nMaxCompounds = 50
-    integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole
+    integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole, iSUBIMixType
     integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass, nMagParamPhase
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO, iMagneticParam
-    integer,       dimension(:,:), allocatable::  iSUBLParamData, iSUBIParamData
+    integer,       dimension(:,:), allocatable::  iSUBLParamData
     integer,       dimension(:,:), allocatable::  nSublatticeElements
     integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iPairID
     integer,       dimension(:,:,:),allocatable:: iChemicalGroup

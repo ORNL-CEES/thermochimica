@@ -53,7 +53,8 @@ subroutine ResetThermoParser
     if (allocated(nSpeciesPhaseCS)) then
         deallocate (nSpeciesPhaseCS,nGibbsEqSpecies,iPhaseCS,iParticlesPerMoleCS,nParamPhaseCS, &
             iParamPassCS,dStoichSpeciesCS,iRegularParamCS,cRegularParamCS, &
-            nMagParamPhaseCS,iMagneticParamCS,dMagneticParamCS,iMagParamPassCS,STAT = INFO)
+            nMagParamPhaseCS,iMagneticParamCS,dMagneticParamCS,iMagParamPassCS, &
+            iSUBIMixTypeCS,iSUBIParamDataCS, STAT = INFO)
         i = i + INFO
     end if
 
