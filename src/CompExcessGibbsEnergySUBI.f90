@@ -406,7 +406,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     else if (k == 4) then
                         ! Dl - anion, vacancy or neutral
                         yDi = dSiteFraction(iSPI,s,c)
-                        iDi = 
+                        iDi = c
                     end if
                 end do
 
