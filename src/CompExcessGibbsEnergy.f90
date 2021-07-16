@@ -125,6 +125,17 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
             end do
 
+        case ('SUBI')
+
+            ! Compute the excess terms for a phase represented by the Ionic Liquid Model:
+            call CompExcessGibbsEnergySUBI(iSolnIndex)
+
+            ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+            do i = iFirst, iLast
+                dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            end do
+
         case default
 
             ! Report an error (solution phase type unsupported).  Note that there is an earlier check when parsing

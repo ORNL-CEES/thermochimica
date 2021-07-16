@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
+    integer                            :: i, j, k, l, m, n, s, c, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer                            :: iMixStart, iMixLength, nMixSets
@@ -136,6 +136,11 @@ subroutine CompThermoData
     dLogT            = DLOG(dTemperature)              ! ln(T)
     dLogP            = DLOG(dPressure)                 ! ln(P)
 
+print*,""
+print*,""
+print*,"                         CompThermoData.f90"
+print*,""
+print*,""
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
@@ -563,7 +568,8 @@ subroutine CompThermoData
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
-        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' )) nCounter = nCounter + 1
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' ) &
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBI')) nCounter = nCounter + 1
 
         LOOP_Param: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
 
@@ -697,6 +703,70 @@ subroutine CompThermoData
 
                         iSUBLParamData(n,1) = nMixSets
 
+                    case ('SUBI')
+                        ! Compute mixing terms L
+                        do k = 1, 6
+                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                        end do
+
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+
+                        do k = 1, iRegularParamCS(j,1)
+                            ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                            ! a continuing count of the constituents.
+                            m = iRegularParamCS(j,k+1)
+
+                            ! Figure out the sublattice (l) and constituent (m) indices:
+                            LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
+                                l = s
+                                if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                    m = m - nConstituentSublatticeCS(nCounter,s)
+                                else
+                                    exit LOOP_SUBI
+                                end if
+
+                            end do LOOP_SUBI
+
+                            ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                            ! sublattice l):
+                            iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+                        end do
+
+                        iSUBIParamData(n,:) = 0
+
+                        ! LOOP_SUBI_CASES: Sets up a loop to distinguish the various SUBI case types
+                        LOOP_SUBI_CASES: do k = 2,iRegularParam(n,1) + 1
+                            s = 0
+                            c = 0
+
+                            ! Number of parameters in mixing case
+                            iSUBIParamData(n,1) = iRegularParam(n,1)
+
+                            ! Determine constituent and sublattice indices:
+                            c = MOD(iRegularParam(n,k), 10000)
+                            s = iRegularParam(n,k) - c
+                            s = s / 10000
+
+                            ! Cation
+                            if (dSublatticeCharge(iPhaseSublattice(i),s,c) > 0) then
+                                iSUBIParamData(n,2) = iSUBIParamData(n,2) + 1
+                            ! Neutral
+                            else if (dSublatticeCharge(iPhaseSublattice(i),s,c) == 0) then
+                                iSUBIParamData(n,3) = iSUBIParamData(n,3) + 1
+                            ! Vacancy
+                            else if (cConstituentNameSUB(iPhaseSublattice(i),s,c) == 'Va') then
+                                iSUBIParamData(n,4) = iSUBIParamData(n,4) + 1
+                            ! Anion
+                            else
+                                iSUBIParamData(n,5) = iSUBIParamData(n,5) + 1
+                                ! Checking for cases with Dl
+                                if ((iSUBIParamData(n,5) > 0) .AND. &
+                                    ((iSUBIParamData(n,1) - iSUBIParamData(n,2)) > 1)) then
+                                    ! if Dl present
+                                    iSUBIParamData(n,6) = 1
+                                end if
+                            end if
+                        end do LOOP_SUBI_CASES
                 end select
             end if IF_ParamPass
         end do LOOP_Param

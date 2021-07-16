@@ -2,10 +2,10 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ParseCSDataBlockSUBL.f90
+    !> \file    ParseCSDataBlockSUBI.f90
     !> \brief   Parse the data block section corresponding to a SUBL phase of a ChemSage data-file.
-    !> \author  M.H.A. Piro
-    !> \date    Dec. 21, 2012
+    !> \author  M. Poschmann
+    !> \date    Jan. 19, 2021
     !> \todo    Add capability to parse magnetic mixing terms in a SUBLM phase.
     !> \sa      ParseCSDataFile.f90
     !> \sa      ParseCSDataBlock.f90
@@ -25,18 +25,14 @@
     !
     !   Date            Programmer      Description of change
     !   ----            ----------      ---------------------
-    !   12/21/2012      M.H.A. Piro     Original code
-    !   02/05/2013      M.H.A. Piro     Fixed bug in parsing constituent indices with multiple lines and
-    !                                    constituent names on multiple lines.
-    !   02/14/2013      M.H.A. Piro     Fixed bug in parsing multiple lines for mixing parameters (happy
-    !                                    valentine's day).
+    !   01/19/2021      M. POschmann     Original code
     !
     !
     ! Purpose:
     ! ========
     !
     !> \details The purpose of this subroutine is to parse the "data block" section of a ChemSage data-file
-    !! containing a "SUBL" phase (Compound Energy Formalism).
+    !! containing a "SUBI" phase (Ionic Liquid Model).
     !!
     !!
     !! The coefficients for the standard molar Gibbs energy equations for pure species originate from a ChemSage
@@ -75,20 +71,20 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine ParseCSDataBlockSUBL(i)
+subroutine ParseCSDataBlockSUBI(i)
 
     USE ModuleParseCS
 
     implicit none
 
-    integer                   :: i, j, k, n, s
-
+    integer                   :: i, j, k, n, s, iDummy, v
+    character(8)              :: cDummy
 
     ! Initialize variables:
     n = 0
 
-    ! Read in the number of sublattices per phase:
-    read (1,*,IOSTAT = INFO) nSublatticePhaseCS(nCountSublatticeCS)
+    ! Two sublattices per phase:
+    nSublatticePhaseCS(nCountSublatticeCS) = 2
 
     ! Report an error if the number of sublattices is out of range:
     if ((nSublatticePhaseCS(nCountSublatticeCS) > nMaxSublatticeCS).OR. &
@@ -97,16 +93,32 @@ subroutine ParseCSDataBlockSUBL(i)
         return
     end if
 
-    ! Read in the stoichiometry coefficients for each sublattice:
-    read (1,*,IOSTAT = INFO) dStoichSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
-
     ! Read in the number of constituents for each sublattice:
     read (1,*,IOSTAT = INFO) nConstituentSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
+    ! Copy to nSublatticeElementsCS to use the charge array
+    ! NOTE: This is bad, these two arrays should be the same thing, but got implemented
+    ! separately for different models
+    nSublatticeElementsCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS)) = &
+      nConstituentSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
 
     ! Read in the name of each constituent for each sublattice:
-    LOOP_SUBL_CONST_NAME: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+    do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
         read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
-    end do LOOP_SUBL_CONST_NAME
+    end do
+
+    ! Convert Va, va, Va, and vA cases to Va
+    do v = 1, nConstituentSublatticeCS(nCountSublatticeCS,2)
+      cDummy = cConstituentNameSUBCS(nCountSublatticeCS,2,v)
+
+      if ((cDummy == 'VA') .OR. &
+          (cDummy == 'va') .OR. &
+          (cDummy == 'Va') .OR. &
+          (cDummy == 'vA')) then
+
+          cConstituentNameSUBCS(nCountSublatticeCS,2,v) = 'Va'
+
+      end if
+    end do
 
     ! Record an error if necessary:
     if (INFO /= 0) then
@@ -114,15 +126,21 @@ subroutine ParseCSDataBlockSUBL(i)
         return
     end if
 
-    ! Read in the constituent indices for each component on each sublattice:
-    LOOP_SUBL_CONST_ID: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+    ! I think this is # of sublattices (always 2), but need that earlier and no reason to overwrite
+    read (1,*,IOSTAT = INFO) iDummy
 
+    ! Read charges of constituents
+    do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+        read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
+    end do
+
+    ! Read in the constituent indices for each component on each sublattice:
+    do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
         ! Number of components for this phase:
         n = nSpeciesPhaseCS(i) - nSpeciesPhaseCS(i-1)
 
         read (1,*,IOSTAT = INFO) iConstituentSublatticeCS(nCountSublatticeCS, s, 1:n)
-
-    end do LOOP_SUBL_CONST_ID
+    end do
 
     ! Record an error and return if necessary:
     if (INFO /= 0) then
@@ -130,66 +148,21 @@ subroutine ParseCSDataBlockSUBL(i)
         return
     end if
 
-    ! SUBLM phases include magnetic mixing terms right before non-ideal mixing terms.
-    ! The end of the list of mixing terms is indicated by a "0".
-    if (cSolnPhaseTypeCS(i) == 'SUBLM') then! call ParseCSMagneticMixing(i)
-        LOOP_MagneticMixingSUBL: do
-
-            ! Read in number of constituents involved in parameter:
-            read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,1)
-
-            ! The end of the section of mixing terms is labelled "0".
-            if (iMagneticParamCS(nMagParamCS+1,1) == 0) exit LOOP_MagneticMixingSUBL
-
-            ! Update counter of the number of parameters:
-            nMagParamCS = nMagParamCS + 1
-
-            ! Read in the list of constituent indices involved in this parameter:
-            j = iMagneticParamCS(nMagParamCS,1)
-            read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS,2:j+2)
-
-            ! Read in the mixing parameter:
-            read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
-
-            ! Store number of mixing parameters per component array:
-            n = iMagneticParamCS(nMagParamCS, j+2)
-
-            ! Correct the indexing scheme (order of mixing) for the first parameter:
-            iMagneticParamCS(nMagParamCS, j+2) = 0
-
-            ! Loop through number of mixing terms per component array:
-            do k = 2, n
-
-                ! Update counter of the number of parameters:
-                nMagParamCS = nMagParamCS + 1
-
-                ! Add additional terms:
-                iMagneticParamCS(nMagParamCS,1:nParamMax*2+1) = iMagneticParamCS(nMagParamCS-1,1:nParamMax*2+1)
-
-                ! Correct the indexing scheme (order of mixing parameter):
-                iMagneticParamCS(nMagParamCS, j+2) = k - 1
-
-                ! Read mixing terms:
-                read (1,*,IOSTAT = INFO) dMagneticParamCS(nMagParamCS,1:2)
-
-            end do
-        end do LOOP_MagneticMixingSUBL
-    end if
-
     ! Loop through excess mixing parameters:
-    LOOP_ExcessMixingSUBL: do
+    LOOP_ExcessMixingSUBI: do
 
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
         ! The end of the section of mixing terms is labelled "0".
-        if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingSUBL
+        if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingSUBI
 
         ! Update counter of the number of parameters:
         nParamCS = nParamCS + 1
 
         ! Read in the list of constituent indices involved in this parameter:
         j = iRegularParamCS(nParamCS,1)
+
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS,2:j+2)
 
         ! Read in the mixing parameter:
@@ -202,7 +175,7 @@ subroutine ParseCSDataBlockSUBL(i)
         iRegularParamCS(nParamCS, j+2) = 0
 
         ! Loop through number of mixing terms per component array:
-        LOOP_ParamArray: do k = 2, n
+        do k = 2, n
 
             ! Update counter of the number of parameters:
             nParamCS = nParamCS + 1
@@ -216,8 +189,9 @@ subroutine ParseCSDataBlockSUBL(i)
             ! Read mixing terms:
             read (1,*,IOSTAT = INFO) dRegularParamCS(nParamCS,1:6)
 
-        end do LOOP_ParamArray
-    end do LOOP_ExcessMixingSUBL
+        end do
+
+    end do LOOP_ExcessMixingSUBI
 
     ! Report an error and return if necessary:
     if (INFO /= 0) then
@@ -227,4 +201,4 @@ subroutine ParseCSDataBlockSUBL(i)
 
     return
 
-end subroutine ParseCSDataBlockSUBL
+end subroutine ParseCSDataBlockSUBI

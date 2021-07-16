@@ -53,7 +53,8 @@ subroutine CheckSystemExcess
 
     implicit none
 
-    integer::  c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
+    integer :: c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
+    integer :: iFirst, iLast
     integer, dimension(nElementsCS**2) :: iRemove
 
 
@@ -71,7 +72,8 @@ subroutine CheckSystemExcess
         l = MAXVAL(iSpeciesPass(j:k))
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBI')) then
             nCountSublatticeCS = nCountSublatticeCS + 1
         end if
 
@@ -262,6 +264,157 @@ subroutine CheckSystemExcess
                     end do LOOP_Param_SUBL
 
                 end if IF_Param_SUBL
+
+                nParamPhase(nCounter) = nParam
+
+            case ('SUBI')
+
+                ! Check if the constituents pass for a phase with a sublattice:
+                nCountSublattice                 = nCountSublattice + 1
+                iPhaseSublattice(nCounter)       = nCountSublattice
+
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                j = SIZE(nConstituentSublattice,DIM=2)
+                n = nSublatticePhase(nCountSublattice)
+                k = SIZE(iConstituentSublattice, DIM=3)
+                k = iPhaseSublatticeCS(i)
+
+                ! Loop through species in phase to determine which constituents are stable:
+                ! Identical to SUBL doesn't work because a passed species might have 0 stoichiometry of a constituent
+                do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+
+                    if (iSpeciesPass(j) > 0) then
+                        ! This species has passed.
+                        n = j - nSpeciesPhaseCS(i-1)
+
+                        ! On first sublattice check if second sublattice has neutral, don't pass if so
+                        if (dSublatticeChargeCS(nCountSublatticeCS,2,iConstituentSublatticeCS(k,2,n)) /= 0D0) then
+                            m = iConstituentSublatticeCS(k, 1, n)
+                            iConstituentPass(k, 1, m) = 1
+                        end if
+                        m = iConstituentSublatticeCS(k, 2, n)
+                        iConstituentPass(k, 2, m) = 1
+                    else
+                        ! This phase did not pass.
+                    end if
+                end do
+
+                ! Count the number of constituents on each sublattice:
+                do s = 1, nSublatticePhaseCS(k)
+
+                    ! Loop through constituents on sublattice s:
+                    j = 0
+                    do c = 1, nConstituentSublatticeCS(k,s)
+                        nConstituentSublattice(nCountSublattice,s) = nConstituentSublattice(nCountSublattice,s) &
+                            + iConstituentPass(k, s, c)
+
+                        ! Store the correct constituent name:
+                        if (iConstituentPass(k,s,c) /= 0) then
+                            iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
+                            j = j + 1
+                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
+                            dSublatticeCharge(nCountSublattice,s,j) = dSublatticeChargeCS(nCountSublatticeCS,s,c)
+                        end if
+                    end do
+                end do
+
+                ! Get the constituents that passed on each sublattice
+                j = 0
+                LOOP_findPassed2: do m = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                    c = m - nSpeciesPhaseCS(i-1)
+                    if (iSpeciesPass(m) == 0) cycle LOOP_findPassed2
+                    ! If not cycled above, then all constituents passed
+                    j = j + 1
+                    do s = 1, nSublatticePhaseCS(k)
+                        iConstituentSublattice(nCountSublattice,s,j) = &
+                          iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                    end do
+                    if (dSublatticeChargeCS(k,2,iConstituentSublatticeCS(k,2,c)) == 0D0) then
+                        ! If this is a neutral, then set constituent on first sublattice to -1
+                        ! The goal is to break the code of anyone trying to use the first constituent index of a neutral
+                        ! If this has broken your code, please reconsider why you are trying to use that index
+                        ! If you have decided this is necessary, then you have to redo this phase implementation starting at CheckSystem
+                        iConstituentSublattice(nCountSublattice,1,j) = -1
+                        ! Also, scale neutrals by the charge on the cation sublattice
+                        ! Basically trying to undo the nonsense of how the multiple identical neutrals were stored
+                        ! print *, dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                        iFirst = SUM(nGibbsEqSpecies(1:m-1)) + 1
+                        iLast = SUM(nGibbsEqSpecies(1:m))
+                        do l = iFirst, iLast
+                            dGibbsCoeffSpeciesTemp(2:8,l) = dGibbsCoeffSpeciesTemp(2:8,l) / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                            dGibbsCoeffSpeciesTemp(10,l)  = dGibbsCoeffSpeciesTemp(10,l)  / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                            dGibbsCoeffSpeciesTemp(12,l)  = dGibbsCoeffSpeciesTemp(12,l)  / &
+                                    dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                        end do
+                        dStoichSpeciesCS(m,:) = dStoichSpeciesCS(m,:)/dSublatticeChargeCS(k,1,iConstituentSublatticeCS(k,1,c))
+                    end if
+                end do LOOP_findPassed2
+
+                ! Now reduce indices to account for removed constituents
+                do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+                    nRemove = 0
+                    iRemove = 0
+                    do c = nConstituentSublatticeCS(k,s), 1, -1
+                        if (iConstituentPass(k,s,c) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = c
+                        end if
+                    end do
+                    do c = 1, nRemove
+                        do l = SIZE(iConstituentSublattice,3), 1, -1
+                            if (iConstituentSublattice(nCountSublattice,s,l) > iRemove(c)) then
+                                iConstituentSublattice(nCountSublattice,s,l) = iConstituentSublattice(nCountSublattice,s,l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
+                ! Proceed if there are any mixing parameters for this phase:
+                if (nParamPhaseCS(i) /= nParamPhaseCS(i-1)) then
+
+                    ! Loop through all mixing parameters for this phase:
+                    LOOP_Param_SUBI: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
+
+                        ! Loop through constituents associated with this parameter:
+                        do k = 1, iRegularParamCS(j,1)
+
+                            ! Store the constituent index to memory:
+                            l = iRegularParamCS(j,1+k)
+
+                            ! Loop through sublattices associated with this phase:
+                            LOOP_C2: do m = 1, nSublatticePhaseCS(iPhaseSublatticeCS(i))
+
+                                ! Store the number of constituents for this sublattice:
+                                n = nConstituentSublatticeCS(iPhaseSublatticeCS(i),m)
+
+                                if (l <= n) then
+                                    ! l is the constituent index on sublattice m.
+
+                                    if (iConstituentPass(iPhaseSublatticeCS(i),m,l) == 0) then
+
+                                        ! If any of the constituents associated with this parameter did not pass, then
+                                        ! the mixing parameter will not be used.
+                                        cycle LOOP_Param_SUBI
+                                    else
+                                        exit LOOP_C2
+                                    end if
+                                else
+                                    l = l - n
+                                    cycle LOOP_C2
+                                end if
+                            end do LOOP_C2
+
+                        end do
+
+                        ! The parameter will be considered in the system.
+                        nParam          = nParam + 1
+                        iParamPassCS(j) = 1
+
+                    end do LOOP_Param_SUBI
+
+                end if
 
                 nParamPhase(nCounter) = nParam
 
@@ -514,16 +667,18 @@ subroutine CheckSystemExcess
     if (allocated(dExcessGibbsParam)) then
         i = SIZE(dExcessGibbsParam)
         if (i /= nParam) then
-            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData, STAT = n)
+            deallocate(iRegularParam,dExcessGibbsParam,cRegularParam,iSUBLParamData,iSUBIParamData, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
             allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam),iSUBLParamData(nParam,7))
+            allocate(iSUBIParamData(nParam,7))
         end if
     else
         ! Allocate memory for excess parameters:
         allocate(iRegularParam(nParam,nParamMax*2+3),dExcessGibbsParam(nParam),cRegularParam(nParam),iSUBLParamData(nParam,7))
+        allocate(iSUBIParamData(nParam,7))
     end if
 
     ! Same as above, for magnetic mixing:
