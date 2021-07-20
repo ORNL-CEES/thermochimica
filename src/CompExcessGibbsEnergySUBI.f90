@@ -224,13 +224,14 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             c = iConstituentSublattice(iSPI,2,m)
             d = iConstituentSublattice(iSPI,1,m)
 
-            if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
-                (dSublatticeCharge(iSPI,2,c) == 0D0)) then
-                if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d)
-                if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+            if (cConstituentNameSUB(iSPI,2,c) == 'Va') then
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d) * q
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+            else if (dSublatticeCharge(iSPI,2,c) == 0D0) then
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c) * q
             else
-                if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d) / dSublatticeCharge(iSPI,1,d)
-                if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d)
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
             end if
             dSum = dSum + dMolFraction(i)
         end do LOOP_CorrectX
