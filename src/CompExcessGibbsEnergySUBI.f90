@@ -198,14 +198,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             l2 = iConstituentSublattice(iSPI,2,n)
 
             ! Allocating the correct constituent charges
-            lc1 = 1D0
             if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
-            if ((cConstituentNameSUB(iSPI,2,l2) == 'Va') .OR. &
-                (dSublatticeCharge(iSPI,2,l2) == 0D0)) then
-                lc2 = 1D0
-            else
-                lc2 = -dSublatticeCharge(iSPI,2,l2)
-            end if
+            lc2 = -dSublatticeCharge(iSPI,2,l2)
 
             if (cConstituentNameSUB(iSPI,2,l2) == 'Va') then
                 ! cation / vacancy
@@ -233,14 +227,10 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             if ((cConstituentNameSUB(iSPI,2,c) == 'Va') .OR. &
                 (dSublatticeCharge(iSPI,2,c) == 0D0)) then
                 if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d)
-
                 if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
-
             else
                 if (d > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d) / dSublatticeCharge(iSPI,1,d)
-
                 if (c > 0) dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
-
             end if
             dSum = dSum + dMolFraction(i)
         end do LOOP_CorrectX
@@ -1233,8 +1223,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                         if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + yCj * gex / v
                     end if
                 end do
-
-
             else
                 print *, 'Unrecognized excess mixing term in SUBI phase ', cSolnPhaseName(iSolnIndex)
                 INFOThermo = 36
@@ -1296,7 +1284,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     ! cation / anion
                     if (i == l1) dgdc1(i) = dgdc1(i) + dSiteFraction(iSPI,2,l2) * dStdGibbsEnergy(j)
                 end if
-
             end do
 
             ! Entropy
