@@ -1,13 +1,14 @@
-subroutine SetThermoFileName(cFileName)
+subroutine SetThermoFileName(cFileName,lcFileName)
 
   USE ModuleThermoIO, ONLY: cThermoFileName
 
   implicit none
 
-  character(120), intent(in)::  cFileName
+  character(*), intent(in)::  cFileName
+  integer, intent(in) :: lcFileName
   character(120) :: cFileNameLen
 
-  cFileNameLen = cFileName(1:120)
+  cFileNameLen = cFileName(1:min(120,lcFileName))
   cThermoFileName       = trim(cFileNameLen)
 
   return
@@ -91,6 +92,21 @@ subroutine SetStandardUnits
   return
 
 end subroutine SetStandardUnits
+
+
+subroutine SetModelicaUnits
+
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+
+  implicit none
+
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'Pa'
+  cInputUnitMass        = 'moles'
+
+  return
+
+end subroutine SetModelicaUnits
 
 
 
@@ -208,6 +224,24 @@ subroutine SetElementMass(iAtom, dMass)
 
 end subroutine SetElementMass
 
+subroutine GetElementMass(iAtom, dMass)
+
+  USE ModuleThermoIO, ONLY: dElementMass
+
+  implicit none
+
+  integer, intent(in)::  iAtom
+  real(8), intent(out)::  dMass
+
+  dMass = 0D0
+  if (iAtom > 0 .AND. iAtom <= 118) then
+      dMass =  dElementMass(iAtom)
+  end if
+
+  return
+
+end subroutine GetElementMass
+
 subroutine CheckINFOThermo(dbginfo)
 
   USE ModuleThermoIO, ONLY: INFOThermo
@@ -284,13 +318,7 @@ subroutine SSParseCSDataFile
 
     implicit none
 
-!    write(0,*) 'iReadFile ', iReadFile, cThermoFileName
-
-    if( iReadFile == 0 )then
-       iReadFile = 1
-       call ParseCSDataFile(cThermoFileName)
-       write(0,*) 'Read file for Thermochimica: ', cThermoFileName
-    end if
+    call ParseCSDataFile(cThermoFileName)
 
     return
 
@@ -512,6 +540,7 @@ subroutine getChemicalPotential(i, value, ierr)
 end subroutine getChemicalPotential
 
 subroutine getElementPotential(i, value, ierr)
+  USE ModuleThermoIO
   USE ModuleThermo
   implicit none
 
@@ -531,7 +560,7 @@ subroutine getElementPotential(i, value, ierr)
      enddo
 
   else
-     value=dElementPotential(i)
+     value=dElementPotential(i)*dTemperature*dIdealConstant
   endif
 
   return

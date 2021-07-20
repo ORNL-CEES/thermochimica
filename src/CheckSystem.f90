@@ -251,6 +251,7 @@ subroutine CheckSystem
             do j = 1, nElementsCS
                 if (iElementSystem(j) == i) cycle LOOP_checkElements
             end do
+            dElementMass(i) = 0D0
             print *, "WARNING: Element ", cElementNamePT(i), " not in database and therefore omitted from calculation"
         end if
     end do LOOP_checkElements

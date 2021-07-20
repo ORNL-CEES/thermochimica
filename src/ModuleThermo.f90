@@ -112,7 +112,7 @@ module ModuleThermo
     real(8),      dimension(:,:,:),allocatable::  dConstituentCoefficients
 
     character(12), dimension(:),   allocatable::  cElementName
-    character(30), dimension(:),   allocatable::  cSpeciesName
+    character(25), dimension(:),   allocatable::  cSpeciesName
     character(8),  dimension(:),   allocatable::  cSolnPhaseType
     character(25), dimension(:),   allocatable::  cSolnPhaseName
     character(8),  dimension(:,:,:),allocatable:: cConstituentNameSUB
