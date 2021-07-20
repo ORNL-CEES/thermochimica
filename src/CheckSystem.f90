@@ -270,7 +270,6 @@ subroutine CheckSystem
             ! Loop through species in solution phases:
             m = 0
             LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
-                if (SUM(DABS(dStoichSpeciesCS(j,1:nElemOrComp))) == 0) cycle LOOP_SpeciesInSolnPhase
                 do k = 1, nElemOrComp
                     if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                         ! This species should not be considered
@@ -357,6 +356,7 @@ subroutine CheckSystem
             end do
             nSpecies        = nSpecies + 1
             iSpeciesPass(j) = 1
+            if (iPhaseCS(j) == 0) nConPhasesSys = nConPhasesSys + 1
         end do LOOP_PureConPhases
     else
         ! The system has not changed.
@@ -398,6 +398,9 @@ subroutine CheckSystem
         k = nSpeciesCS
         iSpeciesPass(j:k) = 1
 
+        do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
+            if (iPhaseCS(j) == 0) nConPhasesSys = nConPhasesSys + 1
+        end do
     end if IF_Elements
 
     ! Re-establish the character vector representing the element names:
