@@ -91,14 +91,14 @@ while True:                             # The Event Loop
                     elements.remove(elements[i])
                     print(elements)
                     nElements = nElements - 1
-            tempLayout = [[sg.Text('Temperature')],[sg.Input(key='-temperature-')],
+            tempLayout = [[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(16,1))],
                           [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],key='-tunit-')]]
-            presLayout = [[sg.Text('Pressure')],[sg.Input(key='-pressure-')],
+            presLayout = [[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(16,1))],
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],key='-punit-')]]
             elemLayout = []
             for i in range(nElements):
                 elemLayout.append([sg.Text(elements[i])])
-                elemLayout.append([sg.Input(key='-'+elements[i]+'-')])
+                elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(16,1))])
             calcLayout = [tempLayout,
                           presLayout,
                           elemLayout,
