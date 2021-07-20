@@ -24,6 +24,7 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+CCFLAGS     = -std=gnu++11
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -141,7 +142,7 @@ $(SHARED_LIB): $(SHARED_LNK)
 	$(AR) rcs $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -c $< -o $@
+	$(CC) $(CCFLAGS) -c $< -o $@
 
 $(C_LIB): $(C_LNK)
 	$(AR) rcs $@ $^
