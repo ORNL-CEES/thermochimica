@@ -23,14 +23,14 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
 		LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
 		# link flags for linux users:
-		LDFLAGS     =  -O2 -fno-automatic -fbounds-check
+		LDFLAGS     =  -g -O0 -fno-automatic -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
