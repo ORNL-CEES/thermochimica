@@ -133,10 +133,17 @@ while True:                             # The Event Loop
                         inputFile.write('data file         = ' + datafile + '\n')
                         inputFile.write('print mode        = 2\n')
                         inputFile.write('debug mode        = .FALSE.\n')
-                    subprocess.call(['./bin/ThermochimicaInputScriptMode',filename])
+                    thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")#,stdout=thermoOut)
+                    # print(thermoOut)
+                    resultOutput = [[sg.Text(thermoOut)]]
+                    outWindow = sg.Window('Thermochimica output',resultOutput)
+                    while True:                             # The Event Loop
+                        event, values = outWindow.read()
+                        print(event, values)
+                        if event == sg.WIN_CLOSED or event == 'Exit':
+                            break
+                    outWindow.close()
             calcWindow.close()
-            calcWindow.FindElement(key).Update('')
-            calcLayout = ''
         except:
             pass
 
