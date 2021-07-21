@@ -92,9 +92,9 @@ while True:                             # The Event Loop
                     print(elements)
                     nElements = nElements - 1
             tempLayout = [[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(16,1))],
-                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],key='-tunit-')]]
+                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]]
             presLayout = [[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(16,1))],
-                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],key='-punit-')]]
+                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]]
             elemLayout = []
             for i in range(nElements):
                 elemLayout.append([sg.Text(elements[i])])
@@ -103,7 +103,7 @@ while True:                             # The Event Loop
                           presLayout,
                           elemLayout,
                           [sg.Text('Mass unit')],
-                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],key='-munit-')],
+                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
                           [sg.Button('Run'), sg.Exit()]]
             calcWindow = sg.Window('Thermochimica calculation', calcLayout)
             while True:                             # The Event Loop
