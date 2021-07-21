@@ -30,7 +30,7 @@ file_list_column = [
 dataWindow = sg.Window('Thermochimica database selection', file_list_column)
 
 calcIter = 0
-while True:                             # The Event Loop
+while True:
     event, values = dataWindow.read()
     print(event, values)
     if event == sg.WIN_CLOSED or event == 'Exit':
@@ -38,7 +38,6 @@ while True:                             # The Event Loop
     elif event == "-FOLDER-":
         folder = values["-FOLDER-"]
         try:
-            # Get list of files in folder
             file_list = os.listdir(folder)
         except:
             file_list = []
@@ -55,7 +54,6 @@ while True:                             # The Event Loop
             datafile = os.path.join(
                 values["-FOLDER-"], values["-FILE LIST-"][0]
             )
-            # datafile = 'data/C-O.dat'
             with open(datafile) as f:
                 f.readline()
                 line = f.readline()
@@ -106,7 +104,7 @@ while True:                             # The Event Loop
                           [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
                           [sg.Button('Run'), sg.Exit()]]
             calcWindow = sg.Window('Thermochimica calculation', calcLayout)
-            while True:                             # The Event Loop
+            while True:
                 event, values = calcWindow.read()
                 print(event, values)
                 if event == sg.WIN_CLOSED or event == 'Exit':
@@ -133,11 +131,10 @@ while True:                             # The Event Loop
                         inputFile.write('data file         = ' + datafile + '\n')
                         inputFile.write('print mode        = 2\n')
                         inputFile.write('debug mode        = .FALSE.\n')
-                    thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")#,stdout=thermoOut)
-                    # print(thermoOut)
+                    thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
                     resultOutput = [[sg.Text(thermoOut)]]
                     outWindow = sg.Window('Thermochimica output',resultOutput)
-                    while True:                             # The Event Loop
+                    while True:
                         event, values = outWindow.read()
                         print(event, values)
                         if event == sg.WIN_CLOSED or event == 'Exit':
