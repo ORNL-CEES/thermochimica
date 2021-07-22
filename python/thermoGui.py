@@ -105,9 +105,10 @@ while True:
                           [sg.Button('Run'), sg.Exit()]]
             calcWindow = sg.Window('Thermochimica calculation', calcLayout)
             while True:
-                event, values = calcWindow.read()
+                event, values = calcWindow.read(timeout=50)
+                eventd, valuesd = dataWindow.read(timeout=50)
                 print(event, values)
-                if event == sg.WIN_CLOSED or event == 'Exit':
+                if event == sg.WIN_CLOSED or event == 'Exit' or eventd == sg.WIN_CLOSED or eventd == 'Exit':
                     break
                 elif event =='Run':
                     temperature = values['-temperature-']
@@ -135,9 +136,11 @@ while True:
                     resultOutput = [[sg.Text(thermoOut)]]
                     outWindow = sg.Window('Thermochimica output',resultOutput)
                     while True:
-                        event, values = outWindow.read()
+                        event, values = outWindow.read(timeout=50)
+                        eventc, valuesc = calcWindow.read(timeout=50)
+                        eventd, valuesd = dataWindow.read(timeout=50)
                         print(event, values)
-                        if event == sg.WIN_CLOSED or event == 'Exit':
+                        if event == sg.WIN_CLOSED or event == 'Exit' or eventd == sg.WIN_CLOSED or eventd == 'Exit'or eventc == sg.WIN_CLOSED or eventc == 'Exit':
                             break
                     outWindow.close()
             calcWindow.close()
