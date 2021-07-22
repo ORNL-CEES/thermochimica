@@ -24,11 +24,17 @@ database_frame = sg.Frame(layout=[
 [sg.In(size=(30, 1), enable_events=True, key="-FOLDER-"), sg.FolderBrowse('Browse',size=(8,1))],
 [sg.Listbox(values=[], enable_events=True, size=(40, 20), key="-FILE LIST-")]], title='Thermodynamic Database', relief=sg.RELIEF_SUNKEN)
 
+composition_layout = sg.Frame(layout=[
+[sg.Text('E1'), sg.Input(key='-composition1-',size=(16,1))],
+[sg.Text('E1'), sg.Input(key='-composition2-',size=(16,1))]], title='')
+
 system_input_frame = sg.Frame(layout=[
 [sg.Text('Temperature')],
 [sg.Input(key='-temperature-',size=(16,1)), sg.Combo(['K', 'C', 'F'], default_value='K',key='_tunit_')],
 [sg.Text('Pressure')],
-[sg.Input(key='-pressure-',size=(16,1)), sg.Combo(['atm', 'Pa', 'bar'], default_value='atm',key='_punit_')]], title='System Inputs', relief=sg.RELIEF_SUNKEN)
+[sg.Input(key='-pressure-',size=(16,1)), sg.Combo(['atm', 'Pa', 'bar'], default_value='atm',key='_punit_')],
+[sg.Text('Composition')],
+[composition_layout, sg.Combo(['moles', 'kg', 'atoms', 'g'], default_value='moles',key='_compunit_')],], title='System Inputs', relief=sg.RELIEF_SUNKEN)
 
 layout = [
     [sg.Menu(menu_def, tearoff=True)],
