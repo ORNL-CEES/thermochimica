@@ -27,9 +27,22 @@ file_list_column = [
     ],
 ]
 
-dataWindow = sg.Window('Thermochimica database selection', file_list_column)
+dataWindow = sg.Window('Thermochimica database selection', file_list_column,finalize=True)
+folder = os.getcwd()+'/data'
+print(folder)
+try:
+    file_list = os.listdir(folder)
+except:
+    file_list = []
 
-calcIter = 0
+fnames = [
+    f
+    for f in file_list
+    if os.path.isfile(os.path.join(folder, f))
+    and f.lower().endswith((".dat", ".DAT"))
+]
+dataWindow["-FILE LIST-"].update(fnames)
+
 while True:
     event, values = dataWindow.read()
     print(event, values)
@@ -52,7 +65,7 @@ while True:
     elif event == "-FILE LIST-":  # A file was chosen from the listbox
         try:
             datafile = os.path.join(
-                values["-FOLDER-"], values["-FILE LIST-"][0]
+                folder, values["-FILE LIST-"][0]
             )
             with open(datafile) as f:
                 f.readline()
