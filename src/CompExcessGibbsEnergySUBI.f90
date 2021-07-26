@@ -225,8 +225,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             d = iConstituentSublattice(iSPI,1,m)
 
             if (cConstituentNameSUB(iSPI,2,c) == 'Va') then
-                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d) * q
-                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c)
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,1,d)
+                dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c) * q
             else if (dSublatticeCharge(iSPI,2,c) == 0D0) then
                 dMolFraction(i) = dMolFraction(i) * dSiteFraction(iSPI,2,c) * q
             else
