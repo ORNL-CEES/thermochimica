@@ -54,13 +54,22 @@ program ThermochimicaInputScriptMode
     nP = CEILING(DABS(dPressHigh-dPressLow)/DABS(dDeltaP))
   end if
 
+  if (lStepTogether) then
+    nP = 0
+    dDeltaP = (dPressHigh - dPressLow) / nT
+  end if
+
   do i = 0, nT
     dTemperature = dTempLow + i*dDeltaT
     if ((dTempHigh > dTempLow) .AND. (dTemperature > dTempHigh)) dTemperature = dTempHigh
     if ((dTempHigh < dTempLow) .AND. (dTemperature < dTempHigh)) dTemperature = dTempHigh
 
     do j = 0, nP
-      dPressure = dPressLow + j*dDeltaP
+      if (lStepTogether) then
+        dPressure = dPressLow + i*dDeltaP
+      else
+        dPressure = dPressLow + j*dDeltaP
+      end if
       if ((dPressHigh > dPressLow) .AND. (dPressure > dPressHigh)) dPressure = dPressHigh
       if ((dPressHigh < dPressLow) .AND. (dPressure < dPressHigh)) dPressure = dPressHigh
 

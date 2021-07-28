@@ -261,7 +261,16 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         read(cValue,*,IOSTAT = INFO) lReinitRequested
         if (INFO /= 0) then
           INFOThermo = 44
-          write (cErrMsg, '(A32,I10)') 'Cannot read reinitialization mode on line: ', iCounter
+          write (cErrMsg, '(A43,I10)') 'Cannot read reinitialization mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('stepTogether','steptogether','StepTogether','step_Together',&
+        'step_together','Step_Together')
+        read(cValue,*,IOSTAT = INFO) lStepTogether
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A35,I10)') 'Cannot step-together mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         endif
