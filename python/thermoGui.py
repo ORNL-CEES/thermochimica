@@ -82,7 +82,6 @@ while True:
                     elLen = 25 # formatted 25 wide
                     for j in range(3):
                         elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                elements = [i for i in elements if i!='']
             i = 0
             while i < nElements:
                 try:
