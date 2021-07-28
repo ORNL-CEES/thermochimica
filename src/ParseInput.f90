@@ -266,7 +266,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           return
         endif
       case ('stepTogether','steptogether','StepTogether','step_Together',&
-        'step_together','Step_Together')
+        'step_together','Step_Together','step Together','step together','Step Together',)
         read(cValue,*,IOSTAT = INFO) lStepTogether
         if (INFO /= 0) then
           INFOThermo = 44
