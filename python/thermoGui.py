@@ -44,6 +44,7 @@ fnames = [
 dataWindow["-FILE LIST-"].update(fnames)
 
 timeout = 50
+inputSize = 20
 
 while True:
     event, values = dataWindow.read()
@@ -93,24 +94,26 @@ while True:
                     elements.remove(elements[i])
                     # print(elements)
                     nElements = nElements - 1
-            tempLayout = [[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(16,1))],
-                          [sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(16,1))],
-                          [sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))],
-                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')],
+            tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
                           [sg.Text('Temperature range:')],
                           [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
-                          [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]]
-            presLayout = [[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(16,1))],
-                          [sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(16,1))],
-                          [sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))],
-                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')],
+                          [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+            presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(inputSize,1))],
+                          [sg.Text('Pressure range:')],
                           [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
                           [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
-                          [sg.Radio('Enabled, step with temperature', 'prange', default=False, enable_events=True, key='-pent-')]]
+                          [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
+                          ]
             elemLayout = []
             for i in range(nElements):
                 elemLayout.append([sg.Text(elements[i])])
-                elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(16,1))])
+                elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(inputSize,1))])
             calcLayout = [tempLayout,
                           presLayout,
                           elemLayout,
@@ -141,6 +144,8 @@ while True:
                     calcWindow.Element('-pent-').Update(disabled = True)
                     if values['-pent-']:
                         calcWindow.Element('-pdis-').Update(value = True)
+                        calcWindow.Element('-endpressure-').Update(visible = False)
+                        calcWindow.Element('-endpressurelabel-').Update(visible = False)
                 elif event == '-ten-':
                     calcWindow.Element('-endtemperature-').Update(visible = True)
                     calcWindow.Element('-endtemperaturelabel-').Update(visible = True)
