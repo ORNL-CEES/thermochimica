@@ -74,21 +74,15 @@ while True:
                 line = f.readline() # read first data line (# elements, # phases, n*# species)
                 nElements = int(line[1:5])
                 nSoln = int(line[6:10])
-                elements = ['']*nElements
-                elIt = 0
+                elements = []
                 for i in range(math.ceil((nSoln+3)/15)-1):
                     f.readline() # read the rest of the # species but don't need them)
                 for i in range(math.ceil(nElements/3)):
                     els = f.readline() # read a line of elements (3 per line)
                     elLen = 25 # formatted 25 wide
                     for j in range(3):
-                        elements[elIt] = els[1+j*elLen:(1+j)*elLen].strip()
-                        elIt = elIt + 1
-                        if elIt == nElements:
-                            break # breaks inner
-                    else:
-                        continue # if inner not broken, continue inner
-                    break # breaks outer if inner broken
+                        elements.append(els[1+j*elLen:(1+j)*elLen].strip())
+                [i for i in elements if i!='']
             i = 0
             while i < nElements:
                 try:
