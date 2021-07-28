@@ -206,7 +206,9 @@ while True:
                             inputFile.write('mass(' + str(atomic_number_map.index(elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
                         inputFile.write('temperature unit         = ' + tunit + '\n')
                         inputFile.write('pressure unit          = ' + punit + '\n')
-                        inputFile.write('mass unit          = ' + munit + '\n')
+                        if values['-pent-']:
+                            inputFile.write('step together     = .TRUE.\n')
+                        inputFile.write('mass unit         = ' + munit + '\n')
                         inputFile.write('data file         = ' + datafile + '\n')
                         inputFile.write('print mode        = 2\n')
                         inputFile.write('debug mode        = .FALSE.\n')
