@@ -211,7 +211,7 @@ while True:
                         inputFile.write('print mode        = 2\n')
                         inputFile.write('debug mode        = .FALSE.\n')
                     thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
-                    resultOutput = [[sg.Text(thermoOut)]]
+                    resultOutput = [[sg.Column([[sg.Text(thermoOut)]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
                     outWindow = sg.Window('Thermochimica output',resultOutput)
                     while True:
                         event, values = outWindow.read(timeout=timeout)
