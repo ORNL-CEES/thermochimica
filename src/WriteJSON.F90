@@ -37,9 +37,9 @@ subroutine WriteJSON(append)
         write(1,*) '      "moles": ', dMolesElement(i), ','
         write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
         if (i < nElements) then
-          write(1,*) '    },'
+            write(1,*) '    },'
         else
-          write(1,*) '    }'
+            write(1,*) '    }'
         end if
     end do
     write(1,*) '  },'
@@ -71,11 +71,8 @@ subroutine WriteJSONSolnPhase
 
     implicit none
 
-    integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
-    real(8)                                 :: dCutOff, Tcritical, B, StructureFactor
-
-    ! Initiate variables:
-    dCutOff = 1D-70
+    integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
+    real(8) :: Tcritical, B, StructureFactor
 
     write(1,*) '  "solution phases": {'
 
@@ -90,12 +87,12 @@ subroutine WriteJSONSolnPhase
         write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
         l = 0
         do k = 1, nElements
-          if (-iAssemblage(k) == j) l = k
+            if (-iAssemblage(k) == j) l = k
         end do
         if (l > 0) then
-          write(1,*) '      "moles": ', dMolesPhase(l), ','
+            write(1,*) '      "moles": ', dMolesPhase(l), ','
         else
-          write(1,*) '      "moles": 0.0,'
+            write(1,*) '      "moles": 0.0,'
         end if
 
         if ((cSolnPhaseType(j) == 'SUBLM') .OR. (cSolnPhaseType(j) == 'RKMPM')) then
@@ -129,17 +126,17 @@ subroutine WriteJSONSolnPhase
             write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                         dStoichSpecies(i,nElements), ']'
             if (i < iLast) then
-              write(1,*) '        },'
+                write(1,*) '        },'
             else
-              write(1,*) '        }'
+                write(1,*) '        }'
             end if
         end do
         write(1,*) '      }'
 
         if (j < nSolnPhasesSys) then
-          write(1,*) '    },'
+            write(1,*) '    },'
         else
-          write(1,*) '    }'
+            write(1,*) '    }'
         end if
 
         ! Check if this phase is represented by the Compound Energy Formalism:
@@ -193,20 +190,20 @@ subroutine WriteJSONPureConPhase
         write(1,*) '    "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         l = 0
         do k = 1, nElements
-          if (iAssemblage(k) == i) l = k
+            if (iAssemblage(k) == i) l = k
         end do
         if (l > 0) then
-          write(1,*) '      "moles":', dMolesPhase(l), ","
+            write(1,*) '      "moles":', dMolesPhase(l), ","
         else
-          write(1,*) '      "moles": 0.0', ","
+            write(1,*) '      "moles": 0.0', ","
         end if
         write(1,*) '      "chemical potential":', dStdGibbsEnergy(i)*dIdealConstant*dTemperature, ","
         write(1,*) '      "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                     dStoichSpecies(i,nElements), ']'
         if (i < nSpeciesPhase(nSolnPhasesSys) + nConPhasesSys) then
-          write(1,*) '    },'
+            write(1,*) '    },'
         else
-          write(1,*) '    }'
+            write(1,*) '    }'
         end if
     end do LOOP_PureStable
 
