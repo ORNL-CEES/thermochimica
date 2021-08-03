@@ -11,54 +11,49 @@ subroutine WriteJSON(append)
     logical :: exist
     integer :: i
 
-    iPrintResultsMode     = 2
-
-    ! Return if the print results mode is zero.
-    if (iPrintResultsMode == 0) return
-
     ! Only proceed for a successful calculation:
-    IF_PASS: if (INFOThermo == 0) then
-        inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
-        if (append .AND. exist) then
-            open(1, file= DATA_DIRECTORY // '../thermoout.json', status='OLD', &
-                position='append', action='write')
+    IF_PASS: if (INFOThermo /= 0) return
+
+    inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
+    if (append .AND. exist) then
+        open(1, file= DATA_DIRECTORY // '../thermoout.json', status='OLD', &
+            position='append', action='write')
+    else
+        open(1, file= DATA_DIRECTORY // '../thermoout.json', status='REPLACE', &
+              action='write')
+    end if
+
+    write(1,*) '{'
+
+    ! Print the results for solution phases:
+    call WriteJSONSolnPhase
+
+    ! Print the results for pure condensed phases:
+    call WriteJSONPureConPhase
+
+    write(1,*) '  "elements": {'
+    do i = 1, nElements
+        write(1,*) '    "', TRIM(cElementName(i)), '": {'
+        write(1,*) '      "moles": ', dMolesElement(i), ','
+        write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
+        if (i < nElements) then
+          write(1,*) '    },'
         else
-            open(1, file= DATA_DIRECTORY // '../thermoout.json', status='REPLACE', &
-                  action='write')
+          write(1,*) '    }'
         end if
+    end do
+    write(1,*) '  },'
 
-        write(1,*) '{'
+    write(1,*) '  "temperature": ', dTemperature, ','
+    write(1,*) '  "pressure": ', dPressure, ','
+    write(1,*) '  "Integral Gibbs energy": ', dGibbsEnergySys, ','
+    write(1,*) '  "Functional norm": ', dGEMFunctionNorm, ','
+    write(1,*) '  "solution phases": ', nSolnPhases, ','
+    write(1,*) '  "pure condensed phases": ', nConPhases
 
-        ! Print the results for solution phases:
-        call WriteJSONSolnPhase
+    write(1,*) '}'
 
-        ! Print the results for pure condensed phases:
-        call WriteJSONPureConPhase
-
-        write(1,*) '  "elements": {'
-        do i = 1, nElements
-            write(1,*) '    "', TRIM(cElementName(i)), '": {'
-            write(1,*) '      "moles": ', dMolesElement(i), ','
-            write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
-            if (i < nElements) then
-              write(1,*) '    },'
-            else
-              write(1,*) '    }'
-            end if
-        end do
-        write(1,*) '  },'
-
-        write(1,*) '  "temperature": ', dTemperature, ','
-        write(1,*) '  "pressure": ', dPressure, ','
-        write(1,*) '  "Integral Gibbs energy": ', dGibbsEnergySys, ','
-        write(1,*) '  "Functional norm": ', dGEMFunctionNorm, ','
-        write(1,*) '  "solution phases": ', nSolnPhases, ','
-        write(1,*) '  "pure condensed phases": ', nConPhases
-
-        write(1,*) '}'
-
-        close (1)
-    end if IF_PASS
+    close (1)
 
     return
 
