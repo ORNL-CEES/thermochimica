@@ -12,7 +12,7 @@ subroutine WriteJSON(append)
     integer :: i
 
     ! Only proceed for a successful calculation:
-    IF_PASS: if (INFOThermo /= 0) return
+    if (INFOThermo /= 0) return
 
     inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
     if (append .AND. exist) then
