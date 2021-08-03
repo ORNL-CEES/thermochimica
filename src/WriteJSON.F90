@@ -69,15 +69,16 @@ end subroutine WriteJSON
 subroutine WriteJSONSolnPhase
 
     USE ModuleThermo
+    USE ModuleThermoIO
     USE ModuleGEMSolver
     USE ModulePrintUtils
 
     implicit none
 
     integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nMax, nCutOff
-    integer,    dimension(:),   allocatable :: iTempVec, iTempSpecies
+    integer,    dimension(:),   allocatable :: iTempVec
     real(8)                                 :: dCutOff, Tcritical, B, StructureFactor
-    real(8),    dimension(:),   allocatable :: dTempVec, dTempSpecies
+    real(8),    dimension(:),   allocatable :: dTempVec
     character(2)                            :: cDummy
     character(30)                           :: cDummyB
 
@@ -85,10 +86,6 @@ subroutine WriteJSONSolnPhase
     ! Initiate variables:
     cDummy  = '  '
     dCutOff = 1D-70
-
-    ! Allocate arrays to sort solution phases:
-    if (allocated(iTempVec)) deallocate(iTempVec)
-    if (allocated(dTempVec)) deallocate(dTempVec)
 
     allocate(dTempVec(nSolnPhases), iTempVec(nSolnPhases))
     do i = 1, nSolnPhases
@@ -117,7 +114,7 @@ subroutine WriteJSONSolnPhase
         nMax              = 1
 
         ! Print solution phase name:
-        write(1,*) '    "', TRIM(cSolnPhaseName(l)), '": {'
+        write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(l))), '": {'
         write(1,*) '      "moles": ', dMolesPhase(k), ','
 
         if ((cSolnPhaseType(l) == 'SUBLM') .OR. (cSolnPhaseType(l) == 'RKMPM')) then
@@ -141,51 +138,21 @@ subroutine WriteJSONSolnPhase
         !     call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
         ! end if
 
-        if (allocated(iTempSpecies)) deallocate(iTempSpecies)
-        if (allocated(dTempSpecies)) deallocate(dTempSpecies)
-
         write(1,*) '      "species": {'
-        k = iLast - iFirst + 1
-        allocate(iTempSpecies(k), dTempSpecies(k))
-        nCutOff = k
-        select case (cSolnPhaseType(l))
-            case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
-
-                ! Initialize temporary variables:
-                dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
-
-                ! Sort species in phase:
-                call SortPick(k, dTempSpecies, iTempSpecies)
-
-                LOOP_CutOffX: do i = 1, k
-                    ! Convert relative species index to an absolute index:
-                    c = iTempSpecies(i) + iFirst - 1
-
-                    if (dMolFraction(c) < dCutOff) then
-                        nCutOff = i - 1
-                        exit LOOP_CutOffX
-                    end if
-                end do LOOP_CutOffX
-            case default
-                ! The species in this phase will not be sorted.
-                do i = 1, k
-                    iTempSpecies(i) = i
-                end do
-        end select
-
         ! The minimum number of species that will be printed is 2:
-        nCutOff = MAX(nCutOff, 2)
-
-        k    = LEN_TRIM(cSpeciesName(iFirst)) - 1
-        nMax = MAX(k, nMax)
+        nCutOff = MAX(iLast - iFirst + 1, 2)
 
         ! Print species:
         do i = iFirst, iFirst + nCutOff - 1
-            c = iTempSpecies(i-iFirst+1) + iFirst - 1
+            write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
+            write(1,*) '          "mole fraction":', dMolFraction(i), ","
+            write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ","
+            write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
+                                                        dStoichSpecies(i,nElements), ']'
             if (i < iFirst + nCutOff - 1) then
-              write(1,*) '        "', TRIM(cSpeciesName(c)), '": ', dMolFraction(c), ","
+              write(1,*) '        },'
             else
-              write(1,*) '        "', TRIM(cSpeciesName(c)), '": ', dMolFraction(c)
+              write(1,*) '        }'
             end if
         end do
         write(1,*) '      }'
@@ -229,9 +196,6 @@ subroutine WriteJSONSolnPhase
 
     write(1,*) '  },'
 
-    ! Deallocate allocatable arrays:
-    deallocate(dTempVec,iTempVec)
-
 end subroutine WriteJSONSolnPhase
 
 !-------------------------------------------------------------------------------------------------------------
@@ -240,12 +204,13 @@ end subroutine WriteJSONSolnPhase
 subroutine WriteJSONPureConPhase
 
     USE ModuleThermo
+    USE ModuleThermoIO
     USE ModuleGEMSolver
     USE ModulePrintUtils
 
     implicit none
 
-    integer                                 :: i, j
+    integer                                 :: i, j, c
     integer,    dimension(:),   allocatable :: iTempVec
     real(8),    dimension(:),   allocatable :: dTempVec
 
@@ -264,10 +229,15 @@ subroutine WriteJSONPureConPhase
     ! Loop through stable pure condensed phases:
     LOOP_PureStable: do i = 1, nConPhases
         j = iTempVec(i)
+        write(1,*) '    "', TRIM(ADJUSTL(cSpeciesName(iAssemblage(j)))), '": {'
+        write(1,*) '      "moles":', dMolesPhase(j), ","
+        write(1,*) '      "chemical potential":', dStdGibbsEnergy(iAssemblage(j))*dIdealConstant*dTemperature, ","
+        write(1,*) '      "stoichiometry": [', (dStoichSpecies(iAssemblage(j),c), ',', c = 1,nElements-1), &
+                                                    dStoichSpecies(iAssemblage(j),nElements), ']'
         if (i < nConPhases) then
-          write(1,*) '    "', TRIM(cSpeciesName(iAssemblage(j))), '": ', dMolesPhase(j), ","
+          write(1,*) '    },'
         else
-          write(1,*) '    "', TRIM(cSpeciesName(iAssemblage(j))), '": ', dMolesPhase(j)
+          write(1,*) '    }'
         end if
     end do LOOP_PureStable
 
