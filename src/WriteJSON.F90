@@ -1,4 +1,4 @@
-subroutine WriteJSON
+subroutine WriteJSON(append)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -7,6 +7,8 @@ subroutine WriteJSON
 
     implicit none
 
+    logical, intent(in) :: append
+    logical :: exist
     integer :: i
 
     iPrintResultsMode     = 2
@@ -16,15 +18,14 @@ subroutine WriteJSON
 
     ! Only proceed for a successful calculation:
     IF_PASS: if (INFOThermo == 0) then
-      ! inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
-      ! if (exist) then
-      !   open(1, file= DATA_DIRECTORY // '../thermoout.json', status='old', &
-      !         position='append', action='write')
-      ! else
-        ! open(1, file= DATA_DIRECTORY // '../thermoout.json', status='new', action='write')
-      ! end if
-        open(1, file= DATA_DIRECTORY // '../thermoout.json', status='REPLACE', &
-             action='write')
+        inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
+        if (append .AND. exist) then
+            open(1, file= DATA_DIRECTORY // '../thermoout.json', status='OLD', &
+                position='append', action='write')
+        else
+            open(1, file= DATA_DIRECTORY // '../thermoout.json', status='REPLACE', &
+                  action='write')
+        end if
 
         write(1,*) '{'
 
@@ -148,7 +149,6 @@ subroutine WriteJSONSolnPhase
 
         ! Check if this phase is represented by the Compound Energy Formalism:
         IF_SUBL: if ((csolnPhaseType(j) == 'SUBL').OR.(csolnPhaseType(j) == 'SUBLM')) then
-
             ! Store the index # of the charged phase:
             iChargedPhaseID = iPhaseSublattice(j)
 

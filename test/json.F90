@@ -35,7 +35,7 @@ program json
     ! Perform post-processing of results:
     if (iPrintResultsMode > 0)  call PrintResults
 
-    call WriteJSON
+    call WriteJSON(.FALSE.)
 
     ! Destruct everything:
     if (INFOThermo == 0)        call ResetThermoAll
