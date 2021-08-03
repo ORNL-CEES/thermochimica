@@ -17,7 +17,7 @@ subroutine WriteJSON(append)
     inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
     if (append .AND. exist) then
         open(1, file= DATA_DIRECTORY // '../thermoout.json', &
-            status='OLD', position='append', action='write')
+              status='OLD', position='append', action='write')
     else
         open(1, file= DATA_DIRECTORY // '../thermoout.json', &
               status='REPLACE', action='write')
