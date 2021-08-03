@@ -73,11 +73,12 @@ subroutine WriteJSONSolnPhase
 
     integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
     real(8) :: Tcritical, B, StructureFactor
+    character(16) :: intStr
 
     write(1,*) '  "solution phases": {'
 
     ! Loop through solution phases:
-    LOOP_SolnStable: do j = 1, nSolnPhasesSys
+    do j = 1, nSolnPhasesSys
 
         ! First and last solution species indices, respectively:
         iFirst = nSpeciesPhase(j-1) + 1
@@ -131,7 +132,41 @@ subroutine WriteJSONSolnPhase
                 write(1,*) '        }'
             end if
         end do
-        write(1,*) '      }'
+
+        ! Check if this phase is represented by the Compound Energy Formalism:
+        if ((csolnPhaseType(j) == 'SUBL').OR.(csolnPhaseType(j) == 'SUBLM')) then
+            write(1,*) '      },'
+            write(1,*) '      "sublattices": {'
+            ! Store the index # of the charged phase:
+            iChargedPhaseID = iPhaseSublattice(j)
+
+            ! Loop through sublattices:
+            do s = 1, nSublatticePhase(iChargedPhaseID)
+                write(intStr,*) s
+                write(1,*) '        "sublattice ', TRIM(ADJUSTL(intStr)), '": {'
+                write(1,*) '          "stoichiometric coefficient": ', dStoichSublattice(iChargedPhaseID,s), ','
+                write(1,*) '          "constituents": {'
+                ! Loop through constituents in sublattice s:
+                LOOP_SubCon: do c = 1, nConstituentSublattice(iChargedPhaseID,s)
+                    if (c < nConstituentSublattice(iChargedPhaseID,s)) then
+                        write(1,*) '            "', TRIM(ADJUSTL(cConstituentNameSUB(iChargedPhaseID,s,c))), '": ', &
+                                dSiteFraction(iChargedPhaseID,s,c), ','
+                    else
+                        write(1,*) '            "', TRIM(ADJUSTL(cConstituentNameSUB(iChargedPhaseID,s,c))), '": ', &
+                                dSiteFraction(iChargedPhaseID,s,c)
+                    end if
+                end do LOOP_SubCon
+                write(1,*) '          }'
+                if (s < nSublatticePhase(iChargedPhaseID)) then
+                    write(1,*) '        },'
+                else
+                    write(1,*) '        }'
+                end if
+            end do
+            write(1,*) '      }'
+        else
+            write(1,*) '      }'
+        end if
 
         if (j < nSolnPhasesSys) then
             write(1,*) '    },'
@@ -139,30 +174,7 @@ subroutine WriteJSONSolnPhase
             write(1,*) '    }'
         end if
 
-        ! Check if this phase is represented by the Compound Energy Formalism:
-        IF_SUBL: if ((csolnPhaseType(j) == 'SUBL').OR.(csolnPhaseType(j) == 'SUBLM')) then
-            ! Store the index # of the charged phase:
-            iChargedPhaseID = iPhaseSublattice(j)
-
-            ! Loop through sublattices:
-            LOOP_Sub: do s = 1, nSublatticePhase(iChargedPhaseID)
-
-                write(1,*) 'Sublattice ', s, '; stoichiometric coefficient: ', &
-                    dStoichSublattice(iChargedPhaseID,s)
-
-                ! Loop through constituents in sublattice s:
-                LOOP_SubCon: do c = 1, nConstituentSublattice(iChargedPhaseID,s)
-
-                    write(1,*) cConstituentNameSUB(iChargedPhaseID,s,c), &
-                            dSiteFraction(iChargedPhaseID,s,c)
-                end do LOOP_SubCon
-
-                if (s /= nSublatticePhase(iChargedPhaseID)) write(1,*)
-            end do LOOP_Sub
-
-        end if IF_SUBL
-
-    end do LOOP_SolnStable
+    end do
 
     write(1,*) '  },'
 
