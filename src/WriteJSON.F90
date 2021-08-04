@@ -231,7 +231,7 @@ subroutine WriteJSONMQM(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l, m, c
+    integer :: i, j, k, l, m, c, a, b, x, y
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nSub1, nSub2, iMax
     real(8) :: dSum, dMax, dSumElementQuads, dSumElementPairs,dMolesPairs
@@ -288,13 +288,18 @@ subroutine WriteJSONMQM(iSolnIndex)
         end do
         dSum = dSum + dNi(i)
     end do
-    write(1,*) '      "cation fractions": {'
+    write(1,*) '      "cations": {'
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum
+        write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,i))), '": {'
+        write(1,*) '          "mole fraction": ', dXi(i), ','
+        write(1,*) '          "charge": ', dSublatticeCharge(iSPI,1,i), ','
+        write(1,*) '          "chemical group": ', iChemicalGroup(iSPI,1,i)
+
         if (i < nSub1) then
-            write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,i))), '": ', dXi(i), ','
+            write(1,*) '        },'
         else
-            write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,i))), '": ', dXi(i)
+            write(1,*) '        }'
         end if
     end do
     write(1,*) '      },'
@@ -317,14 +322,18 @@ subroutine WriteJSONMQM(iSolnIndex)
         end do
         dSum = dSum + dNi(j)
     end do
-    write(1,*) '      "anion fractions": {'
+    write(1,*) '      "anions": {'
     do i = 1, nSub2
         j = i + nSub1
         dXi(j) = dNi(j) / dSum
+        write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,i))), '": {'
+        write(1,*) '          "mole fraction": ', dXi(j), ','
+        write(1,*) '          "charge": ', dSublatticeCharge(iSPI,2,i), ','
+        write(1,*) '          "chemical group": ', iChemicalGroup(iSPI,2,i)
         if (i < nSub2) then
-            write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,i))), '": ', dXi(j), ','
+            write(1,*) '        },'
         else
-            write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,i))), '": ', dXi(j)
+            write(1,*) '        }'
         end if
     end do
     write(1,*) '      },'
@@ -377,15 +386,21 @@ subroutine WriteJSONMQM(iSolnIndex)
 
     dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
     write(1,*) '      "moles of endmembers": ', dMolesPairs, ','
-    write(1,*) '      "endmember fractions": {'
+    write(1,*) '      "endmembers": {'
     do m = 1, nPairsSRO(iSPI,1)
+        write(1,*) '        "', TRIM(ADJUSTL(cPairName(iSPI,m))), '": {'
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
         dXij(i,j) = dNij(i,j) / dSum
+        write(1,*) '          "mole fraction": ', dXij(i,j), ','
+        write(1,*) '          "constituents": [ "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,i))), '", "', &
+                                                    TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,j))), '" ],'
+        write(1,*) '          "stoichiometric coefficients": [', dConstituentCoefficients(iSPI,m,1), ',', &
+                                                                 dConstituentCoefficients(iSPI,m,2), ']'
         if (m < nPairsSRO(iSPI,1)) then
-            write(1,*) '        "', TRIM(ADJUSTL(cPairName(iSPI,m))), '": ', dXij(i,j), ','
+            write(1,*) '          },'
         else
-            write(1,*) '        "', TRIM(ADJUSTL(cPairName(iSPI,m))), '": ', dXij(i,j)
+            write(1,*) '          }'
         end if
     end do
     write(1,*) '      },'
@@ -394,9 +409,17 @@ subroutine WriteJSONMQM(iSolnIndex)
     ! Print species:
     do i = iFirst, iLast
         k = i + 1 - iFirst
+        a = iPairID(iSPI, k, 1)
+        b = iPairID(iSPI, k, 2)
+        x = iPairID(iSPI, k, 3) - nSublatticeElements(iSPI,1)
+        y = iPairID(iSPI, k, 4) - nSublatticeElements(iSPI,1)
         write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         write(1,*) '          "mole fraction":', dMolFraction(i), ","
         write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
+        write(1,*) '          "constituents": [ "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,a))), '", "', &
+                                                    TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,b))), '", "', &
+                                                    TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,x))), '", "', &
+                                                    TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,y))), '" ],'
         write(1,*) '          "coordination numbers": [', (dCoordinationNumber(iSPI,k,c), ',', c = 1,3), &
                                                     dCoordinationNumber(iSPI,k,4), '],'
         write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
