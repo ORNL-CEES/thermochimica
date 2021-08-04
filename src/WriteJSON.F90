@@ -46,10 +46,10 @@ subroutine WriteJSON(append)
 
     write(1,*) '  "temperature": ', dTemperature, ','
     write(1,*) '  "pressure": ', dPressure, ','
-    write(1,*) '  "Integral Gibbs energy": ', dGibbsEnergySys, ','
-    write(1,*) '  "Functional norm": ', dGEMFunctionNorm, ','
-    write(1,*) '  "solution phases": ', nSolnPhases, ','
-    write(1,*) '  "pure condensed phases": ', nConPhases
+    write(1,*) '  "integral Gibbs energy": ', dGibbsEnergySys, ','
+    write(1,*) '  "functional norm": ', dGEMFunctionNorm, ','
+    write(1,*) '  "# solution phases": ', nSolnPhases, ','
+    write(1,*) '  "# pure condensed phases": ', nConPhases
 
     write(1,*) '}'
 
