@@ -328,7 +328,7 @@ subroutine WriteJSONMQM(iSolnIndex)
         dXi(j) = dNi(j) / dSum
         write(1,*) '        "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,2,i))), '": {'
         write(1,*) '          "mole fraction": ', dXi(j), ','
-        write(1,*) '          "charge": ', dSublatticeCharge(iSPI,2,i), ','
+        write(1,*) '          "charge": ', -dSublatticeCharge(iSPI,2,i), ','
         write(1,*) '          "chemical group": ', iChemicalGroup(iSPI,2,i)
         if (i < nSub2) then
             write(1,*) '        },'
