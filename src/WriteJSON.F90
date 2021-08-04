@@ -86,6 +86,7 @@ subroutine WriteJSONSolnPhase
 
         ! Print solution phase name:
         write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
+        write(1,*) '      "phase model": "', TRIM(ADJUSTL(cSolnPhaseType(j))), '",'
         l = 0
         do k = 1, nElements
             if (-iAssemblage(k) == j) l = k
