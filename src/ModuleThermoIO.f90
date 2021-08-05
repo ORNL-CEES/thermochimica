@@ -58,7 +58,7 @@ module ModuleThermoIO
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(120)                           :: cThermoFileName
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
-    logical                                  :: lStepTogether = .FALSE.
+    logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
 
     ! Compound variables:
     integer                                  :: nCompounds = 0

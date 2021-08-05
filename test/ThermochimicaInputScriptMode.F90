@@ -28,7 +28,8 @@ program ThermochimicaInputScriptMode
   implicit none
   character(1024) :: cInputFile
   real(8) :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
-  integer :: i, nT, j, nP
+  integer :: i, nT, j, nP, nSim
+  character(16) :: intStr
 
   ! Read input argument to get filename
   call get_command_argument(1, cInputFile)
@@ -59,6 +60,14 @@ program ThermochimicaInputScriptMode
     dDeltaP = (dPressHigh - dPressLow) / nT
   end if
 
+  if (lWriteJSON) then
+    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+        status='REPLACE', action='write')
+    write(1,*) '{'
+    close (1)
+  end if
+
+  nSim = 0
   do i = 0, nT
     dTemperature = dTempLow + i*dDeltaT
     if ((dTempHigh > dTempLow) .AND. (dTemperature > dTempHigh)) dTemperature = dTempHigh
@@ -75,11 +84,24 @@ program ThermochimicaInputScriptMode
 
       ! Call Thermochimica:
       call Thermochimica
+      nSim = nSim + 1
 
       if (lReinitRequested) call SaveReinitData
 
       ! Perform post-processing of results:
       if (iPrintResultsMode > 0)  call PrintResults
+      if (lWriteJSON) then
+        open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='OLD', position='append', action='write')
+        write(intStr,*) nSim
+        write(1,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
+        close (1)
+        call WriteJSON(.TRUE.)
+        open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='OLD', position='append', action='write')
+        if ((i < nT) .OR. (j < nP)) write(1,*) ','
+        close (1)
+      end if
 
       ! Reset Thermochimica:
       call ResetThermo
@@ -88,6 +110,13 @@ program ThermochimicaInputScriptMode
       call ThermoDebug
     end do
   end do
+
+  if (lWriteJSON) then
+    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+        status='OLD', position='append', action='write')
+    write(1,*) '}'
+    close (1)
+  end if
 
   call ResetThermoAll
 

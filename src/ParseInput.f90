@@ -270,7 +270,16 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         read(cValue,*,IOSTAT = INFO) lStepTogether
         if (INFO /= 0) then
           INFOThermo = 44
-          write (cErrMsg, '(A35,I10)') 'Cannot step-together mode on line: ', iCounter
+          write (cErrMsg, '(A40,I10)') 'Cannot read step-together mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('writeJSON','writejson','WriteJSON','write_JSON',&
+        'write_json','Write_JSON','write JSON','write json','Write JSON')
+        read(cValue,*,IOSTAT = INFO) lWriteJSON
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         endif
