@@ -72,7 +72,7 @@ subroutine WriteJSONSolnPhase
     implicit none
 
     integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
-    real(8) :: Tcritical, B, StructureFactor
+    real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase
     character(16) :: intStr
 
     write(1,*) '  "solution phases": {'
@@ -93,8 +93,10 @@ subroutine WriteJSONSolnPhase
         end do
         if (l > 0) then
             write(1,*) '      "moles": ', dMolesPhase(l), ','
+            dTempMolesPhase = dMolesPhase(l)
         else
             write(1,*) '      "moles": 0.0,'
+            dTempMolesPhase = 0D0
         end if
 
         if ((cSolnPhaseType(j) == 'SUBLM') .OR. (cSolnPhaseType(j) == 'RKMPM')) then
@@ -122,6 +124,7 @@ subroutine WriteJSONSolnPhase
             do i = iFirst, iLast
                 write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
                 write(1,*) '          "mole fraction":', dMolFraction(i), ","
+                write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
                 write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ","
                 write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                             dStoichSpecies(i,nElements), ']'
