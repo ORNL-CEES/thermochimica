@@ -28,10 +28,16 @@ while True:
     elif event == '-yaxis-':
         ykey = [[]]
         yen = []
+        leg = []
         plotWindow.Element('Plot').Update(disabled = True)
         if values['-yaxis-'] == 'temperature' or values['-yaxis-'] == 'pressure':
             ykey[0].append(values['-yaxis-'])
             yen.append(True)
+            leg.append(values['-yaxis-'])
+            if values['-yaxis-'] == 'temperature':
+                ylab = 'Temperature [K]'
+            elif values['-yaxis-'] == 'pressure':
+                ylab = 'Pressure [atm]'
             plotWindow.Element('Plot').Update(disabled = False)
         elif values['-yaxis-'] == 'moles' or values['-yaxis-'] == 'chemical potential':
             ykey = []
@@ -46,7 +52,11 @@ while True:
                     ykey.append(['solution phases',j,values['-yaxis-']])
                     yen.append(False)
                     phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j)
+                    ylab = 'Moles'
                     yi = yi + 1
+                else:
+                    ylab = 'Chemical Potential [J]'
                 if data['1']['solution phases'][j]['phase model'] == 'SUBG' or data['1']['solution phases'][j]['phase model'] == 'SUBQ':
                     speciesLabel = 'quadruplets'
                 else:
@@ -55,12 +65,14 @@ while True:
                     ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
                     yen.append(False)
                     phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j+': '+k)
                     yi = yi + 1
             phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
             for j in pureCondensedPhases:
                 ykey.append(['pure condensed phases',j,values['-yaxis-']])
                 yen.append(False)
                 phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                leg.append(j)
                 yi = yi + 1
             phaseSelectLayout = [[]]
             for j in phaseColumns:
@@ -79,6 +91,7 @@ while True:
             selectWindow.close()
         elif values['-yaxis-'] == 'mole fraction':
             ykey = []
+            ylab = 'Mole Fraction'
             solutionPhases = list(data['1']['solution phases'].keys())
             phaseColumns = []
             yi = 0
@@ -92,6 +105,7 @@ while True:
                     ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
                     yen.append(False)
                     phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j+': '+k)
                     yi = yi + 1
                 phaseSelectLayout = [[]]
                 for j in phaseColumns:
@@ -111,10 +125,12 @@ while True:
             plotWindow.Element('Plot').Update(disabled = False)
         elif values['-yaxis-'] == 'element potential':
             ykey = []
+            ylab = 'Element Potential [J]'
             elements = list(data['1']['elements'].keys())
             for j in elements:
                 ykey.append(['elements',j,values['-yaxis-']])
                 yen.append(True)
+                leg.append(j)
             plotWindow.Element('Plot').Update(disabled = False)
     elif event == 'Plot':
         x = []
@@ -125,8 +141,13 @@ while True:
         for j in data.keys():
             if xkey == 'iteration':
                 x.append(int(j))
+                xlab = 'Iteration'
             else:
                 x.append(data[j][xkey])
+                if xkey == 'temperature':
+                    xlab = 'Temperature [K]'
+                elif xkey == 'pressure':
+                    xlab = 'Pressure [atm]'
             for yi in range(len(ykey)):
                 if len(ykey[yi]) == 1:
                     y[yi].append(data[j][ykey[yi][0]])
@@ -136,9 +157,12 @@ while True:
                     y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]][ykey[yi][3]][ykey[yi][4]])
         # Start figure
         fig = plt.figure()
-        ax  = fig.add_axes([0.12, 0.1, 0.85, 0.85])
+        ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])
         for yi in range(len(ykey)):
             if yen[yi]:
-                ax.plot(x,y[yi],'.-')
+                ax.plot(x,y[yi],'.-',label = leg[yi])
+        ax.legend()
+        ax.set_xlabel(xlab)
+        ax.set_ylabel(ylab)
         plt.show()
 plotWindow.close()
