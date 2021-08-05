@@ -119,6 +119,7 @@ while True:
                           elemLayout,
                           [sg.Text('Mass unit')],
                           [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                          [sg.Checkbox('Save JSON',key='-json-')],
                           [sg.Button('Run'), sg.Exit()]]
             calcWindow = sg.Window('Thermochimica calculation', calcLayout, finalize=True)
             calcWindow.Element('-endtemperature-').Update(visible = False)
@@ -212,6 +213,8 @@ while True:
                         inputFile.write('data file         = ' + datafile + '\n')
                         inputFile.write('print mode        = 2\n')
                         inputFile.write('debug mode        = .FALSE.\n')
+                        if values['-json-']:
+                            inputFile.write('write json     = .TRUE.\n')
                     thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
                     resultOutput = [[sg.Column([[sg.Text(thermoOut)]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
                     outWindow = sg.Window('Thermochimica output',resultOutput)
