@@ -16,7 +16,8 @@ if list(data.keys())[0] != '1':
 optionsLayout = [
                   [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],
                   [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction',
-                   'chemical potential', 'element potential'], key='-yaxis-', enable_events=True)]
+                   'chemical potential', 'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
+                    key='-yaxis-', enable_events=True)]
                 ]
 plotLayout = [optionsLayout,
               [sg.Button('Plot', disabled = True), sg.Exit()]]
@@ -30,7 +31,7 @@ while True:
         yen = []
         leg = []
         plotWindow.Element('Plot').Update(disabled = True)
-        if values['-yaxis-'] == 'temperature' or values['-yaxis-'] == 'pressure':
+        if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm']:
             ykey[0].append(values['-yaxis-'])
             yen.append(True)
             leg.append(values['-yaxis-'])
@@ -38,8 +39,22 @@ while True:
                 ylab = 'Temperature [K]'
             elif values['-yaxis-'] == 'pressure':
                 ylab = 'Pressure [atm]'
+            elif values['-yaxis-'] == 'integral Gibbs energy':
+                ylab = 'Integral Gibbs Energy [J]'
+            elif values['-yaxis-'] == 'functional norm':
+                ylab = 'Functional Norm'
             plotWindow.Element('Plot').Update(disabled = False)
-        elif values['-yaxis-'] == 'moles' or values['-yaxis-'] == 'chemical potential':
+        elif values['-yaxis-'] == '# phases':
+            ykey[0].append('# solution phases')
+            yen.append(True)
+            leg.append('# of Solution Phases')
+            ykey.append([])
+            ykey[1].append('# pure condensed phases')
+            yen.append(True)
+            leg.append('# of Pure Condensed Phases')
+            ylab = 'Number of Stable Phases'
+            plotWindow.Element('Plot').Update(disabled = False)
+        elif values['-yaxis-'] in ['moles','chemical potential']:
             ykey = []
             solutionPhases = list(data['1']['solution phases'].keys())
             pureCondensedPhases = list(data['1']['pure condensed phases'].keys())
