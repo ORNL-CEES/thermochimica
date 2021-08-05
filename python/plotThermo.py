@@ -41,6 +41,12 @@ while True:
             yi = 0
             for j in solutionPhases:
                 phaseColumns.append([[sg.Text(j)]])
+                if values['-yaxis-'] == 'moles':
+                    # total moles of solution phase
+                    ykey.append(['solution phases',j,values['-yaxis-']])
+                    yen.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    yi = yi + 1
                 if data['1']['solution phases'][j]['phase model'] == 'SUBG' or data['1']['solution phases'][j]['phase model'] == 'SUBQ':
                     speciesLabel = 'quadruplets'
                 else:
