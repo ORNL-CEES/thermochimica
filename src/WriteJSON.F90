@@ -237,7 +237,7 @@ subroutine WriteJSONMQM(iSolnIndex)
     integer :: i, j, k, l, m, c, a, b, x, y
     integer :: iSolnIndex, iSPI, nPhaseElements
     integer :: iFirst, iLast, nSub1, nSub2, iMax
-    real(8) :: dSum, dMax, dSumElementQuads, dSumElementPairs,dMolesPairs
+    real(8) :: dSum, dMax, dSumElementQuads, dSumElementPairs, dMolesPairs, dTempMolesPhase
     real(8) :: dZa, dZb, dZx, dZy
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
     real(8), allocatable, dimension(:,:) :: dXij, dNij
@@ -409,6 +409,15 @@ subroutine WriteJSONMQM(iSolnIndex)
     write(1,*) '      },'
 
     write(1,*) '      "quadruplets": {'
+    l = 0
+    do k = 1, nElements
+        if (-iAssemblage(k) == iSolnIndex) l = k
+    end do
+    if (l > 0) then
+        dTempMolesPhase = dMolesPhase(l)
+    else
+        dTempMolesPhase = 0D0
+    end if
     ! Print species:
     do i = iFirst, iLast
         k = i + 1 - iFirst
@@ -418,6 +427,7 @@ subroutine WriteJSONMQM(iSolnIndex)
         y = iPairID(iSPI, k, 4) - nSublatticeElements(iSPI,1)
         write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         write(1,*) '          "mole fraction":', dMolFraction(i), ","
+        write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
         write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
         write(1,*) '          "constituents": [ "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,a))), '", "', &
                                                     TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,b))), '", "', &
