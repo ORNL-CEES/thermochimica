@@ -20,7 +20,7 @@ optionsLayout = [
                     key='-yaxis-', enable_events=True)]
                 ]
 plotLayout = [optionsLayout,
-              [sg.Button('Plot', disabled = True), sg.Exit()]]
+              [sg.Button('Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
 plotWindow = sg.Window('Thermochimica plot setup', plotLayout, finalize=True)
 while True:
     event, values = plotWindow.read()
@@ -170,14 +170,35 @@ while True:
                     y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]])
                 elif len(ykey[yi]) == 5:
                     y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]][ykey[yi][3]][ykey[yi][4]])
+        plotWindow.Element('Export Plot Script').Update(disabled = False)
         # Start figure
         fig = plt.figure()
         ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-        for yi in range(len(ykey)):
+        for yi in range(len(yen)):
             if yen[yi]:
                 ax.plot(x,y[yi],'.-',label = leg[yi])
         ax.legend()
         ax.set_xlabel(xlab)
         ax.set_ylabel(ylab)
         plt.show()
+    elif event == 'Export Plot Script':
+        with open('python/generatedPlotScript.py', 'w') as f:
+            f.write('# Thermochimica-generated plot script\n')
+            f.write('import matplotlib.pyplot as plt\n')
+            f.write('x = '+"{}\n".format(x))
+            f.write('y = '+"{}\n".format(y))
+            f.write('xlab = \''+xlab+'\'\n')
+            f.write('ylab = \''+ylab+'\'\n')
+            f.write('yen = '+"{}\n".format(yen))
+            f.write('leg = '+"{}\n".format(leg))
+            f.write('# Start figure\n')
+            f.write('fig = plt.figure()\n')
+            f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
+            f.write('for yi in range(len(yen)):\n')
+            f.write('    if yen[yi]:\n')
+            f.write('        ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
+            f.write('ax.legend()\n')
+            f.write('ax.set_xlabel(xlab)\n')
+            f.write('ax.set_ylabel(ylab)\n')
+            f.write('plt.show()\n')
 plotWindow.close()
