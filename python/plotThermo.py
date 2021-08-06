@@ -72,7 +72,7 @@ while True:
                     yi = yi + 1
                 else:
                     ylab = 'Chemical Potential [J]'
-                if data['1']['solution phases'][j]['phase model'] == 'SUBG' or data['1']['solution phases'][j]['phase model'] == 'SUBQ':
+                if data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
                     speciesLabel = 'quadruplets'
                 else:
                     speciesLabel = 'species'
@@ -112,7 +112,7 @@ while True:
             yi = 0
             for j in solutionPhases:
                 phaseColumns.append([[sg.Text(j)]])
-                if data['1']['solution phases'][j]['phase model'] == 'SUBG' or data['1']['solution phases'][j]['phase model'] == 'SUBQ':
+                if data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
                     speciesLabel = 'quadruplets'
                 else:
                     speciesLabel = 'species'
@@ -122,21 +122,21 @@ while True:
                     phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
                     leg.append(j+': '+k)
                     yi = yi + 1
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(ykey)):
-                            yen[yi] = values[str(yi)]
-                        plotWindow.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
+            phaseSelectLayout = [[]]
+            for j in phaseColumns:
+                phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
+            phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            while True:
+                event, values = selectWindow.read()
+                if event == sg.WIN_CLOSED or event == 'Cancel':
+                    break
+                elif event == 'Accept':
+                    for yi in range(len(ykey)):
+                        yen[yi] = values[str(yi)]
+                    plotWindow.Element('Plot').Update(disabled = False)
+                    break
+            selectWindow.close()
             plotWindow.Element('Plot').Update(disabled = False)
         elif values['-yaxis-'] == 'element potential':
             ykey = []
