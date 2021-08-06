@@ -174,7 +174,8 @@ while True:
                     filename = 'inputs/pythonInput.ti'
                     masses = [0.0]*nElements
                     for i in range(nElements):
-                        masses[i] = values['-'+elements[i]+'-']
+                        if values['-'+elements[i]+'-'] != '':
+                            masses[i] = values['-'+elements[i]+'-']
                     tunit = values['-tunit-']
                     punit = values['-punit-']
                     munit = values['-munit-']
@@ -222,7 +223,6 @@ while True:
                         event, values = outWindow.read(timeout=timeout)
                         eventc, valuesc = calcWindow.read(timeout=timeout)
                         eventd, valuesd = dataWindow.read(timeout=timeout)
-                        # print(event, values)
                         if event == sg.WIN_CLOSED or event == 'Exit' or eventd == sg.WIN_CLOSED or eventd == 'Exit'or eventc == sg.WIN_CLOSED or eventc == 'Exit':
                             break
                     outWindow.close()
