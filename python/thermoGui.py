@@ -217,7 +217,7 @@ while True:
                         if values['-json-']:
                             inputFile.write('write json     = .TRUE.\n')
                     thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
-                    resultOutput = [[sg.Column([[sg.Text(thermoOut)]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
+                    resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, thermoOut.count('\n')))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
                     outWindow = sg.Window('Thermochimica output',resultOutput)
                     while True:
                         event, values = outWindow.read(timeout=timeout)
