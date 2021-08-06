@@ -21,6 +21,8 @@
     !   03/04/2013      M.H.A. Piro         Fix bug in correction process when dealing with ionic phases
     !                                        the loop should count back from the number of constraints,
     !                                        not the number of charged phases).
+    !   09/06/2021      M. Poschmann        Correct moles of species to be proportional to mole fraction times
+    !                                        moles of respective phase before direction vector is computed.
     !
     !
     ! Purpose:
