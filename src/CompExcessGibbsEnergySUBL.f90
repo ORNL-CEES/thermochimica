@@ -193,21 +193,6 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
             dMolFraction(i)  = dTemp
         end do LOOP_CorrectX
 
-        ! Correct the number of moles for each species if the solution phase is stable:
-        if (lSolnPhases(iSolnIndex)) then
-            l = 0
-            ! Determine the relative phase index:
-            LOOP_C: do j = 1, nSolnPhases
-                l = nElements - j + 1
-                k = -iAssemblage(l)
-                if (k == iSolnIndex) exit LOOP_C
-            end do LOOP_C
-            ! Correct molar quantities:
-            do i = iFirst, iLast
-                !dMolesSpecies(i) = dMolesPhase(l) * dMolFraction(i)
-            end do
-        end if
-
         ! REFERENCE GIBBS ENERGY AND IDEAL MIXING
         ! ---------------------------------------
 
