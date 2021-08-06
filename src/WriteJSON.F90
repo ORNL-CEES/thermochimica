@@ -74,6 +74,7 @@ subroutine WriteJSONSolnPhase
     integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
     real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase
     character(16) :: intStr
+    character(25) :: tempSpeciesName
 
     write(1,*) '  "solution phases": {'
 
@@ -122,7 +123,9 @@ subroutine WriteJSONSolnPhase
             write(1,*) '      "species": {'
             ! Print species:
             do i = iFirst, iLast
-                write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
+                write(tempSpeciesName,100) cSpeciesName(i)
+                100 FORMAT (A25)
+                write(1,*) '        "', TRIM(ADJUSTL(tempSpeciesName)), '": {'
                 write(1,*) '          "mole fraction":', dMolFraction(i), ","
                 write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
                 write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ","
