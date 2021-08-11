@@ -331,8 +331,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         b = iRegularParam(abxy,3)              ! Index of B
         xx = iRegularParam(abxy,4)             ! Index of X, unadjusted
         yy = iRegularParam(abxy,5)             ! Index of Y, unadjusted
-        x = xx - nSub1   ! Index of X
-        y = yy - nSub1   ! Index of Y
+        x = xx - nSub1                         ! Index of X
+        y = yy - nSub1                         ! Index of Y
         p = iRegularParam(abxy,6)              ! Exponent 1
         q = iRegularParam(abxy,7)              ! Exponent 2
         r = iRegularParam(abxy,8)              ! Exponent 3
@@ -380,25 +380,36 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
             end if
             ! Now use lists to generate xi and chi
-            do i = 1, nSub1
-                do j = i, nSub1
-                    k = (x - 1) * (nSub1 * (nSub1 + 1) / 2)
-                    if (i == j) then
-                        k = k + i
-                    else
-                        k = k + nSub1 + i + ((j-2)*(j-1)/2)
-                    end if
-                    iQuad = k + iFirst - 1
-                    if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
+            ! Below is chi with counting of x /= y quads
+            do k = 1, nPairsSRO(iSPI,2)
+                ii = iPairID(iSPI,k,1)
+                jj = iPairID(iSPI,k,2)
+                kk = iPairID(iSPI,k,3)
+                ll = iPairID(iSPI,k,4)
+                iQuad = k + iFirst - 1
+                if (lAsymmetric1(ii) .AND. lAsymmetric1(jj)) then
+                    if ((xx == kk) .AND. (xx == ll)) then
                         dChi1 = dChi1 + dMolFraction(iQuad)
+                    else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((xx == kk) .OR. (xx == ll))) then
+                        dChi1 = dChi1 + 0.5D0 * dMolFraction(iQuad)
                     end if
-                    if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
+                end if
+                if (lAsymmetric2(ii) .AND. lAsymmetric2(jj)) then
+                    if ((xx == kk) .AND. (xx == ll)) then
                         dChi2 = dChi2 + dMolFraction(iQuad)
+                    else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((xx == kk) .OR. (xx == ll))) then
+                        dChi2 = dChi2 + 0.5D0 * dMolFraction(iQuad)
                     end if
-                    if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
+                end if
+                if ((lAsymmetric1(ii) .OR. lAsymmetric2(ii)) .AND. (lAsymmetric1(jj) .OR. lAsymmetric2(jj))) then
+                    if ((xx == kk) .AND. (xx == ll)) then
                         dChiDen = dChiDen + dMolFraction(iQuad)
+                    else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((xx == kk) .OR. (xx == ll))) then
+                        dChiDen = dChiDen + 0.5D0 * dMolFraction(iQuad)
                     end if
-                end do
+                end if
+            end do
+            do i = 1, nSub1
                 ! Below is xi with counting of x /= y quads
                 do k = 1, nPairsSRO(iSPI,2)
                     l = k + iFirst - 1
@@ -703,17 +714,29 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! G-type terms
             if (cRegularParam(abxy) == 'G') then
                 dDgex = 0D0
-                if (.NOT.((x == y) .AND. ((k /= x) .OR. (l /= x)))) then
+                ! if (.NOT.((x == y) .AND. ((k /= x) .OR. (l /= x)))) then
                     if (lAsymmetric1(i) .AND. lAsymmetric1(j)) then
-                        dDgex = dDgex + dGex * p / dChi1 / dChiDen
+                        if ((x == k) .AND. (x == l)) then
+                            dDgex = dDgex + dGex * p / dChi1 / dChiDen
+                        else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((x == k) .OR. (x == l))) then
+                            dDgex = dDgex + 0.5D0 * dGex * p / dChi1 / dChiDen
+                        end if
                     end if
                     if (lAsymmetric2(i) .AND. lAsymmetric2(j)) then
-                        dDgex = dDgex + dGex * q / dChi2 / dChiDen
+                        if ((x == k) .AND. (x == l)) then
+                            dDgex = dDgex + dGex * q / dChi2 / dChiDen
+                        else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((x == k) .OR. (x == l))) then
+                            dDgex = dDgex + 0.5D0 * dGex * q / dChi2 / dChiDen
+                        end if
                     end if
                     if ((lAsymmetric1(i) .OR. lAsymmetric2(i)) .AND. (lAsymmetric1(j) .OR. lAsymmetric2(j))) then
-                        dDgex = dDgex + dDgexBase
+                        if ((x == k) .AND. (x == l)) then
+                            dDgex = dDgex + dDgexBase
+                        else if ((cSolnPhaseType(iSolnIndex) == 'SUBQ') .AND. ((x == k) .OR. (x == l))) then
+                            dDgex = dDgex + 0.5D0 * dDgexBase
+                        end if
                     end if
-                end if
+                ! end if
 
                 dDgex = dDgex + dGex * dTernaryFactorDG
             ! Q-type terms
