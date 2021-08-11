@@ -206,33 +206,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dSumNsij = dSumNsij + dNsij(i,j)
         end do
     end do
-    ! do m = 1, nPairsSRO(iSPI,1)
-    !     i = iConstituentSublattice(iSPI,1,m)
-    !     j = iConstituentSublattice(iSPI,2,m)
-    !     do k = 1, nPairsSRO(iSPI,2)
-    !         l = iFirst + k - 1
-    !         dZa = dCoordinationNumber(iSPI,k,1)
-    !         dZb = dCoordinationNumber(iSPI,k,2)
-    !         if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-    !             dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1)
-    !             dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-    !         end if
-    !         if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-    !             dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1)
-    !             dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) / dZa) / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-    !         end if
-    !         if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-    !             dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1)
-    !             dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-    !         end if
-    !         if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-    !             dNij(i,j) = dNij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1)
-    !             dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) / dZb) / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-    !         end if
-    !     end do
-    !     dSumNij = dSumNij + dNij(i,j)
-    !     dSumNsij = dSumNsij + dNsij(i,j)
-    ! end do
 
     do i = 1, nSub1
         do j = 1, nSub2
@@ -311,26 +284,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                             * (nA * nX / dZetaSpecies(iSPI,m)))
             end do
         end do
-        ! do m = 1, nPairsSRO(iSPI,1)
-        !     i = iConstituentSublattice(iSPI,1,m)
-        !     j = iConstituentSublattice(iSPI,2,m)
-        !     if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-        !         ! dEntropy = dEntropy + DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
-        !         ! / dZa / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-        !     end if
-        !     if ((i == iPairID(iSPI,k,1)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-        !         ! dEntropy = dEntropy + DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
-        !         ! / dZa / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-        !     end if
-        !     if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,3)))  then
-        !         ! dEntropy = dEntropy + DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
-        !         ! / dZb / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-        !     end if
-        !     if ((i == iPairID(iSPI,k,2)) .AND. ((j + nSub1) == iPairID(iSPI,k,4)))  then
-        !         ! dEntropy = dEntropy + DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
-        !         ! / dZb / dConstituentCoefficients(iSPI,m,1) / dZetaSpecies(iSPI,m)
-        !     end if
-        ! end do
 
         ! Pair indices:
         ii = iPairID(iSPI,k,1)
@@ -429,8 +382,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             ! Now use lists to generate xi and chi
             do i = 1, nSub1
                 do j = i, nSub1
-                    k = (x - 1) * (nSub1 &
-                                    * (nSub1 + 1) / 2)
+                    k = (x - 1) * (nSub1 * (nSub1 + 1) / 2)
                     if (i == j) then
                         k = k + i
                     else
