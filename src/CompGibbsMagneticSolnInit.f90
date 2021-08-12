@@ -1,4 +1,4 @@
-subroutine CompGibbsMagneticSolnInit(i,j)
+subroutine CompGibbsMagneticSolnInit(j)
 
     USE ModuleParseCS
     USE ModuleThermo
@@ -6,7 +6,7 @@ subroutine CompGibbsMagneticSolnInit(i,j)
 
     implicit none
 
-    integer :: i, j
+    integer, intent(in) :: j
     real(8) :: B, D, p, invpmone, tau, Tcritical, g, StructureFactor
 
 

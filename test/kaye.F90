@@ -66,7 +66,6 @@ program thermo
 
     implicit none
 
-    integer :: i, j, k
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -76,15 +75,9 @@ program thermo
 
     ! Specify values:
     dPressure              = 1D0
-    ! dTemperature           = 1723D0
-    ! dElementMass(42)       = 0.3D0            ! Mo
-    ! dElementMass(44)       = 0.5D0            ! Ru
-    ! dElementMass(46)       = 0.2D0            ! Pd
-
     dTemperature           = 400D0
     dElementMass(42)       = 0.9D0            ! Mo
     dElementMass(44)       = 0.1D0            ! Ru
-    ! dElementMass(46)       = 1.1D0            ! Pd
 
     ! Specify output mode:
     iPrintResultsMode     = 2
@@ -97,15 +90,6 @@ program thermo
 
     ! Perform post-processing of results:
     if (iPrintResultsMode > 0)  call PrintResults
-
-    ! do i = 1, nSolnPhases
-    !   k = -iAssemblage(nElements + 1 - i)
-    !   do j = nSpeciesPhase(k-1)+1, nSpeciesPhase(k)
-    !     print *, cSpeciesName(j), ' ', dMolFraction(j), ' ', dPartialExcessGibbs(j) * dIdealConstant * dTemperature
-    !   end do
-    ! end do
-
-    ! print *, nDummySpecies, nChargedConstraints
 
     ! Destruct everything:
     if (INFOThermo == 0)        call ResetThermoAll
