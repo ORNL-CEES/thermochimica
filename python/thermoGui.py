@@ -225,8 +225,12 @@ while True:
                         inputFile.write('debug mode        = .FALSE.\n')
                         if values['-json-']:
                             inputFile.write('write json     = .TRUE.\n')
-                    thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
-                    resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, thermoOut.count('\n')))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
+                    thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
+                    nLines = thermoOut.count('\n')
+                    if (nLines < 5000):
+                        resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
+                    else:
+                        resultOutput = [[sg.Text('Output is too large to display')]]
                     outWindow = sg.Window('Thermochimica output',resultOutput, location = [825,0])
                     while True:
                         event, values = outWindow.read(timeout=timeout)
