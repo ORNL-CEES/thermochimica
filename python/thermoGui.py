@@ -114,13 +114,22 @@ while True:
             for i in range(nElements):
                 elemLayout.append([sg.Text(elements[i])])
                 elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(inputSize,1))])
-            calcLayout = [tempLayout,
-                          presLayout,
-                          elemLayout,
-                          [sg.Text('Mass unit')],
-                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
-                          [sg.Checkbox('Save JSON',key='-json-')],
-                          [sg.Button('Run'), sg.Exit()]]
+            if (nElements < 8):
+                calcLayout = [tempLayout,
+                              presLayout,
+                              elemLayout,
+                              [sg.Text('Mass unit')],
+                              [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                              [sg.Checkbox('Save JSON',key='-json-')],
+                              [sg.Button('Run'), sg.Exit()]]
+            else:
+                calcLayout = [tempLayout,
+                              presLayout,
+                              [sg.Column(elemLayout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
+                              [sg.Text('Mass unit')],
+                              [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                              [sg.Checkbox('Save JSON',key='-json-')],
+                              [sg.Button('Run'), sg.Exit()]]
             calcWindow = sg.Window('Thermochimica calculation', calcLayout, location = [400,0], finalize=True)
             calcWindow.Element('-endtemperature-').Update(visible = False)
             calcWindow.Element('-endtemperaturelabel-').Update(visible = False)
