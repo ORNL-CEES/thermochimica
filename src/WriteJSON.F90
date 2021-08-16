@@ -176,22 +176,18 @@ subroutine WriteJSONSolnPhase
         dTotalElements = 0D0
         do c = 1, nElements
             do i = iFirst, iLast
-                dTotalElements = dTotalElements + dStoichSpecies(i,c)*dMolFraction(i)*dTempMolesPhase
+                dTotalElements = dTotalElements + dStoichSpecies(i,c)*dMolFraction(i)
             end do
         end do
         do c = 1, nElements
             dCurrentElement = 0D0
             do i = iFirst, iLast
-                dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)*dTempMolesPhase
+                dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)
             end do
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
             write(1,*) '          "moles of element in phase":', dCurrentElement, ','
-            if (dTotalElements > 0D0) then
-                write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
-            else
-                write(1,*) '          "mole fraction of phase by element":', 0D0, ','
-            end if
-            write(1,*) '          "mole fraction of element by phase":', dCurrentElement / dMolesElement(c)
+            write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
+            write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements) then
                 write(1,*) '        },'
             else
@@ -250,18 +246,14 @@ subroutine WriteJSONPureConPhase
         write(1,*) '      "elements": {'
         dTotalElements = 0D0
         do c = 1, nElements
-            dTotalElements = dTotalElements + dStoichSpecies(i,c)*dTempMolesPhase
+            dTotalElements = dTotalElements + dStoichSpecies(i,c)
         end do
         do c = 1, nElements
-            dCurrentElement = dStoichSpecies(i,c)*dTempMolesPhase
+            dCurrentElement = dStoichSpecies(i,c)
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
             write(1,*) '          "moles of element in phase":', dCurrentElement, ','
-            if (dTotalElements > 0D0) then
-                write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
-            else
-                write(1,*) '          "mole fraction of phase by element":', 0D0, ','
-            end if
-            write(1,*) '          "mole fraction of element by phase":', dCurrentElement / dMolesElement(c)
+            write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
+            write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements) then
                 write(1,*) '        },'
             else
