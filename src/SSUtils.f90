@@ -8,8 +8,8 @@ subroutine SetThermoFileName(cFileName,lcFileName)
   integer, intent(in) :: lcFileName
   character(120) :: cFileNameLen
 
-  cFileNameLen = cFileName(1:min(120,lcFileName))
-  cThermoFileName       = trim(cFileNameLen)
+  cFileNameLen = cFileName!(1:min(120,lcFileName))
+  cThermoFileName       = trim(cFileNameLen(1:lcFileName))
 
   return
 

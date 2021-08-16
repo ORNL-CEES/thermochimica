@@ -47,7 +47,8 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     integer,      intent(out)   :: INFO
     integer                     :: i, j
     real(8),      intent(out)   :: dElementChemPot
-    character(3), intent(inout) :: cElementNameRequest
+    character(*), intent(in)    :: cElementNameRequest
+    character(3)                :: cElementNameUse
 
 
     ! Initialize variables:
@@ -58,13 +59,14 @@ subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
     if (INFOThermo == 0) then
 
         ! Remove trailing blanks:
-        cElementNameRequest = TRIM(cElementNameRequest)
+        cElementNameUse = cElementNameRequest
+        cElementNameUse = TRIM(cElementNameUse)
 
         ! Loop through elements to find the one corresponding to the element
         ! being requested:
         j = 0
         LOOP_A: do i = 1, nElements
-            if (cElementNameRequest == cElementName(i)) then
+            if (cElementNameUse == cElementName(i)) then
                 j = i
                 exit LOOP_A
             end if

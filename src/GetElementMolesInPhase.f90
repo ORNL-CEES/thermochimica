@@ -49,13 +49,16 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     integer,       intent(out)   :: INFO
     integer                      :: i, j, k, iPhaseInd
     real(8),       intent(out)   :: dMolesOut
-    character(25), intent(in)    :: cPhase
-    character(3),  intent(in)    :: cElement
+    character(*), intent(in)    :: cPhase
+    character(*),  intent(in)    :: cElement
     integer, intent(in)          :: lcPhase, lcElement
     character(25)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement
 
-    cSearchPhase = TRIM(cPhase(1:min(25,lcPhase)))
-    cSearchElement = TRIM(cElement(1:min(3,lcElement)))
+    cSearchPhase = cPhase !TRIM(cPhase(1:min(25,lcPhase)))
+    cSearchPhase = TRIM(cSearchPhase(1:min(25,lcPhase)))
+    cSearchElement = cElement! TRIM(cElement(1:min(3,lcElement)))
+    cSearchElement = TRIM(cSearchElement(1:min(3,lcElement)))
+
 
     ! Initialize variables:
     INFO            = 0
