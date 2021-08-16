@@ -15,11 +15,13 @@ if list(data.keys())[0] != '1':
 
 optionsLayout = [
                   [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],
-                  [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction',
-                   'chemical potential', 'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
+                  [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
+                   'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
+                   'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                     key='-yaxis-', enable_events=True)],
-                  [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction',
-                   'chemical potential', 'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
+                  [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
+                   'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
+                   'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                     key='-yaxis2-', enable_events=True, disabled=True)]
                 ]
 plotLayout = [optionsLayout,
@@ -102,6 +104,50 @@ while True:
                 phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
                 leg.append(j)
                 yi = yi + 1
+            phaseSelectLayout = [[]]
+            for j in phaseColumns:
+                phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
+            phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            while True:
+                event, values = selectWindow.read()
+                if event == sg.WIN_CLOSED or event == 'Cancel':
+                    break
+                elif event == 'Accept':
+                    for yi in range(len(ykey)):
+                        yen[yi] = values[str(yi)]
+                    plotWindow.Element('Plot').Update(disabled = False)
+                    plotWindow.Element('-yaxis2-').Update(disabled = False)
+                    break
+            selectWindow.close()
+        elif values['-yaxis-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
+            ykey = []
+            solutionPhases = list(data['1']['solution phases'].keys())
+            pureCondensedPhases = list(data['1']['pure condensed phases'].keys())
+            phaseColumns = []
+            yi = 0
+            for j in solutionPhases:
+                phaseColumns.append([[sg.Text(j)]])
+                if values['-yaxis-'] == 'moles of element in phase':
+                    ylab = 'Moles of Element in Phase'
+                if values['-yaxis-'] == 'mole fraction of phase by element':
+                    ylab = 'Mole Fraction of Phase by Element'
+                else:
+                    ylab = 'Mole Fraction of Element by Phase'
+                for k in list(data['1']['solution phases'][j]['elements'].keys()):
+                    ykey.append(['solution phases',j,'elements',k,values['-yaxis-']])
+                    yen.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j+': '+k)
+                    yi = yi + 1
+            for j in pureCondensedPhases:
+                phaseColumns.append([[sg.Text(j)]])
+                for k in list(data['1']['pure condensed phases'][j]['elements'].keys()):
+                    ykey.append(['pure condensed phases',j,'elements',k,values['-yaxis-']])
+                    yen.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j+': '+k)
+                    yi = yi + 1
             phaseSelectLayout = [[]]
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
@@ -224,6 +270,49 @@ while True:
                 phaseColumns[-1].append([sg.Checkbox(ykey2[yi][-2],key=str(yi))])
                 leg2.append(j)
                 yi = yi + 1
+            phaseSelectLayout = [[]]
+            for j in phaseColumns:
+                phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
+            phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            while True:
+                event, values = selectWindow.read()
+                if event == sg.WIN_CLOSED or event == 'Cancel':
+                    break
+                elif event == 'Accept':
+                    for yi in range(len(ykey2)):
+                        yen2[yi] = values[str(yi)]
+                    plotWindow.Element('Plot').Update(disabled = False)
+                    break
+            selectWindow.close()
+        elif values['-yaxis2-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
+            ykey2 = []
+            solutionPhases = list(data['1']['solution phases'].keys())
+            pureCondensedPhases = list(data['1']['pure condensed phases'].keys())
+            phaseColumns = []
+            yi = 0
+            for j in solutionPhases:
+                phaseColumns.append([[sg.Text(j)]])
+                if values['-yaxis2-'] == 'moles of element in phase':
+                    ylab2 = 'Moles of Element in Phase'
+                if values['-yaxis2-'] == 'mole fraction of phase by element':
+                    ylab2 = 'Mole Fraction of Phase by Element'
+                else:
+                    ylab2 = 'Mole Fraction of Element by Phase'
+                for k in list(data['1']['solution phases'][j]['elements'].keys()):
+                    ykey2.append(['solution phases',j,'elements',k,values['-yaxis2-']])
+                    yen2.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey2[yi][-2],key=str(yi))])
+                    leg2.append(j+': '+k)
+                    yi = yi + 1
+            for j in pureCondensedPhases:
+                phaseColumns.append([[sg.Text(j)]])
+                for k in list(data['1']['pure condensed phases'][j]['elements'].keys()):
+                    ykey2.append(['pure condensed phases',j,'elements',k,values['-yaxis2-']])
+                    yen2.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey2[yi][-2],key=str(yi))])
+                    leg2.append(j+': '+k)
+                    yi = yi + 1
             phaseSelectLayout = [[]]
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
