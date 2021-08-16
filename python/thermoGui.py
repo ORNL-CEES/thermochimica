@@ -27,7 +27,7 @@ file_list_column = [
     ],
 ]
 
-dataWindow = sg.Window('Thermochimica database selection', file_list_column,finalize=True)
+dataWindow = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
 folder = os.getcwd()+'/data'
 # print(folder)
 try:
@@ -121,7 +121,7 @@ while True:
                           [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
                           [sg.Checkbox('Save JSON',key='-json-')],
                           [sg.Button('Run'), sg.Exit()]]
-            calcWindow = sg.Window('Thermochimica calculation', calcLayout, finalize=True)
+            calcWindow = sg.Window('Thermochimica calculation', calcLayout, location = [400,0], finalize=True)
             calcWindow.Element('-endtemperature-').Update(visible = False)
             calcWindow.Element('-endtemperaturelabel-').Update(visible = False)
             calcWindow.Element('-ntstep-').Update(visible = False)
@@ -218,7 +218,7 @@ while True:
                             inputFile.write('write json     = .TRUE.\n')
                     thermoOut=subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
                     resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, thermoOut.count('\n')))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
-                    outWindow = sg.Window('Thermochimica output',resultOutput)
+                    outWindow = sg.Window('Thermochimica output',resultOutput, location = [825,0])
                     while True:
                         event, values = outWindow.read(timeout=timeout)
                         eventc, valuesc = calcWindow.read(timeout=timeout)

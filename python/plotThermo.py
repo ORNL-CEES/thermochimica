@@ -26,7 +26,7 @@ optionsLayout = [
                 ]
 plotLayout = [optionsLayout,
               [sg.Button('Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
-plotWindow = sg.Window('Thermochimica plot setup', plotLayout, finalize=True)
+plotWindow = sg.Window('Thermochimica plot setup', plotLayout, location = [0,0], finalize=True)
 
 ykey = [[]]
 yen = []
@@ -34,6 +34,8 @@ leg = []
 ykey2 = [[]]
 yen2 = []
 leg2 = []
+
+popupLocation = [300,0]
 
 while True:
     event, values = plotWindow.read()
@@ -108,7 +110,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -152,7 +154,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -186,7 +188,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -274,7 +276,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -317,7 +319,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -350,7 +352,7 @@ while True:
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
             phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, finalize=True)
+            selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
             while True:
                 event, values = selectWindow.read()
                 if event == sg.WIN_CLOSED or event == 'Cancel':
