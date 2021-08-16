@@ -72,7 +72,7 @@ subroutine WriteJSONSolnPhase
     implicit none
 
     integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
-    real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase
+    real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase, dTotalElements, dCurrentElement
     character(16) :: intStr
     character(25) :: tempSpeciesName
 
@@ -126,9 +126,9 @@ subroutine WriteJSONSolnPhase
                 write(tempSpeciesName,100) cSpeciesName(i)
                 100 FORMAT (A25)
                 write(1,*) '        "', TRIM(ADJUSTL(tempSpeciesName)), '": {'
-                write(1,*) '          "mole fraction":', dMolFraction(i), ","
-                write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
-                write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ","
+                write(1,*) '          "mole fraction":', dMolFraction(i), ','
+                write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ','
+                write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
                 write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                             dStoichSpecies(i,nElements), ']'
                 if (i < iLast) then
@@ -168,11 +168,37 @@ subroutine WriteJSONSolnPhase
                         write(1,*) '        }'
                     end if
                 end do
-                write(1,*) '      }'
-            else
-                write(1,*) '      }'
             end if
+            write(1,*) '      },'
         end if
+
+        write(1,*) '      "elements": {'
+        dTotalElements = 0D0
+        do c = 1, nElements
+            do i = iFirst, iLast
+                dTotalElements = dTotalElements + dStoichSpecies(i,c)*dMolFraction(i)*dTempMolesPhase
+            end do
+        end do
+        do c = 1, nElements
+            dCurrentElement = 0D0
+            do i = iFirst, iLast
+                dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)*dTempMolesPhase
+            end do
+            write(1,*) '        "', TRIM(cElementName(c)), '": {'
+            write(1,*) '          "moles":', dCurrentElement, ','
+            if (dTotalElements > 0D0) then
+                write(1,*) '          "mole fraction of phase":', dCurrentElement / dTotalElements, ','
+            else
+                write(1,*) '          "mole fraction of phase":', 0D0, ','
+            end if
+            write(1,*) '          "fraction of element":', dCurrentElement / dMolesElement(c)
+            if (c < nElements) then
+                write(1,*) '        },'
+            else
+                write(1,*) '        }'
+            end if
+        end do
+        write(1,*) '      }'
 
         if (j < nSolnPhasesSys) then
             write(1,*) '    },'
@@ -198,7 +224,8 @@ subroutine WriteJSONPureConPhase
 
     implicit none
 
-    integer                                 :: c, i, k, l
+    integer :: c, i, k, l
+    real(8) :: dTempMolesPhase, dTotalElements, dCurrentElement
 
     write(1,*) '  "pure condensed phases": {'
 
@@ -211,13 +238,37 @@ subroutine WriteJSONPureConPhase
             if (iAssemblage(k) == i) l = k
         end do
         if (l > 0) then
-            write(1,*) '      "moles":', dMolesPhase(l), ","
+            write(1,*) '      "moles": ', dMolesPhase(l), ','
+            dTempMolesPhase = dMolesPhase(l)
         else
-            write(1,*) '      "moles": 0.0', ","
+            write(1,*) '      "moles": 0.0,'
+            dTempMolesPhase = 0D0
         end if
-        write(1,*) '      "chemical potential":', dStdGibbsEnergy(i)*dIdealConstant*dTemperature, ","
+        write(1,*) '      "chemical potential":', dStdGibbsEnergy(i)*dIdealConstant*dTemperature, ','
         write(1,*) '      "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
-                                                    dStoichSpecies(i,nElements), ']'
+                                                    dStoichSpecies(i,nElements), '],'
+        write(1,*) '      "elements": {'
+        dTotalElements = 0D0
+        do c = 1, nElements
+            dTotalElements = dTotalElements + dStoichSpecies(i,c)*dTempMolesPhase
+        end do
+        do c = 1, nElements
+            dCurrentElement = dStoichSpecies(i,c)*dTempMolesPhase
+            write(1,*) '        "', TRIM(cElementName(c)), '": {'
+            write(1,*) '          "moles":', dCurrentElement, ','
+            if (dTotalElements > 0D0) then
+                write(1,*) '          "mole fraction of phase":', dCurrentElement / dTotalElements, ','
+            else
+                write(1,*) '          "mole fraction of phase":', 0D0, ','
+            end if
+            write(1,*) '          "fraction of element":', dCurrentElement / dMolesElement(c)
+            if (c < nElements) then
+                write(1,*) '        },'
+            else
+                write(1,*) '        }'
+            end if
+        end do
+        write(1,*) '      }'
         if (i < nSpeciesPhase(nSolnPhasesSys) + nConPhasesSys) then
             write(1,*) '    },'
         else
@@ -446,7 +497,7 @@ subroutine WriteJSONMQM(iSolnIndex)
             write(1,*) '        }'
         end if
     end do
-    write(1,*) '      }'
+    write(1,*) '      },'
 
     ! Deallocate allocatable arrays:
     deallocate(dXi,dYi,dNi,dXij,dNij)
