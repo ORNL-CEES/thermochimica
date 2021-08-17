@@ -19,6 +19,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     character(30), dimension(*), intent(out),optional :: cPair
     real(8), dimension(*), intent(out),optional       :: dPair
     character(30)                           :: cDummyB
+    character(2)                            :: cDummy
     ! X_ij/kl corresponds to dMolFraction
 
 
@@ -75,41 +76,22 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         dXi(i) = dNi(i) / dSum
     end do
     if (lPrint) then
-        ! First anion:
-        i = 1
-        cDummyB  = TRIM(cConstituentNameSUB(iSPI,1,i))
-        if (dXi(i) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '{ ', dXi(i), ' ', cDummyB
-        else
-            print '(A20,ES10.4,A35)', '{ ', dXi(i), cDummyB
-        end if
-        k    = LEN_TRIM(cConstituentNameSUB(iSPI,1,i)) - 1
-        nMax = MAX(k, nMax)
-
-        ! Print middle anions:
-        do i = 2, nSub1 - 1
+        do i = 1, nSub1
             cDummyB  = TRIM(cConstituentNameSUB(iSPI,1,i))
-            if (dXi(i) >= 1D-1) then
-                print '(A20,F7.5,A3,A35)', '+ ', dXi(i), ' ', cDummyB
-            else
-                print '(A20,ES10.4,A35)', '+ ', dXi(i), cDummyB
-            end if
-            k        = LEN_TRIM(cConstituentNameSUB(iSPI,1,i)) - 1
+            k    = LEN_TRIM(cConstituentNameSUB(iSPI,1,i)) - 1
             nMax = MAX(k, nMax)
+            if (i == 1) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == nSub1) cDummyB(nMax+2:nMax+3) = '}'
+            if (dXi(i) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', cDummy, dXi(i), ' ', cDummyB
+            else
+                print '(A20,ES10.4,A35)', cDummy, dXi(i), cDummyB
+            end if
         end do
-
-        ! Print last anion:
-        i = nSub1
-        k        = LEN_TRIM(cConstituentNameSUB(iSPI,1,i)) - 1
-        nMax     = MAX(k, nMax) + 1
-        cDummyB  = TRIM(cConstituentNameSUB(iSPI,1,i))
-        cDummyB(nMax+2:nMax+3) = '}'
-
-        if (dXi(i) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '+ ', dXi(i), ' ', cDummyB
-        else
-            print '(A20,ES10.4,A35)', '+ ', dXi(i), cDummyB
-        end if
     end if
 
     ! Do anions now:
@@ -137,44 +119,23 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         dXi(j) = dNi(j) / dSum
     end do
     if (lPrint) then
-        ! First anion:
-        i = 1
-        j = i + nSub1
-        cDummyB  = TRIM(cConstituentNameSUB(iSPI,2,i))
-        if (dXi(j) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '{ ', dXi(j), ' ', cDummyB
-        else
-            print '(A20,ES10.4,A35)', '{ ', dXi(j), cDummyB
-        end if
-        k    = LEN_TRIM(cConstituentNameSUB(iSPI,2,i)) - 1
-        nMax = MAX(k, nMax)
-
-        ! Print middle anions:
-        do i = 2, nSub2 - 1
+        do i = 1, nSub2
             j = i + nSub1
             cDummyB  = TRIM(cConstituentNameSUB(iSPI,2,i))
-            if (dXi(j) >= 1D-1) then
-                print '(A20,F7.5,A3,A35)', '+ ', dXi(j), ' ', cDummyB
-            else
-                print '(A20,ES10.4,A35)', '+ ', dXi(j), cDummyB
-            end if
-            k        = LEN_TRIM(cConstituentNameSUB(iSPI,2,i)) - 1
+            k    = LEN_TRIM(cConstituentNameSUB(iSPI,2,i)) - 1
             nMax = MAX(k, nMax)
+            if (i == 1) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == nSub2) cDummyB(nMax+2:nMax+3) = '}'
+            if (dXi(i) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', cDummy, dXi(j), ' ', cDummyB
+            else
+                print '(A20,ES10.4,A35)', cDummy, dXi(j), cDummyB
+            end if
         end do
-
-        ! Print last anion:
-        i = nSub2
-        j = i + nSub1
-        k        = LEN_TRIM(cConstituentNameSUB(iSPI,2,i)) - 1
-        nMax     = MAX(k, nMax) + 1
-        cDummyB  = TRIM(cConstituentNameSUB(iSPI,2,i))
-        cDummyB(nMax+2:nMax+3) = '}'
-
-        if (dXi(j) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '+ ', dXi(j), ' ', cDummyB
-        else
-            print '(A20,ES10.4,A35)', '+ ', dXi(j), cDummyB
-        end if
     end if
 
     dSum = 0D0
