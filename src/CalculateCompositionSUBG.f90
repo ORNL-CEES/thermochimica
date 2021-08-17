@@ -10,7 +10,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
 
     integer :: i, j, k, l, m
     integer :: iSolnIndex, iSPI, nPhaseElements
-    integer :: iFirst, iLast, nSub1, nSub2, iMax
+    integer :: iFirst, iLast, nSub1, nSub2, iMax, nMax
     real(8) :: dSum, dMax, dSumElementQuads, dSumElementPairs,dMolesPairs
     real(8) :: dZa, dZb, dZx, dZy!, dXtot, dYtot
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi
@@ -18,6 +18,8 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     logical :: lPrint
     character(30), dimension(*), intent(out),optional :: cPair
     real(8), dimension(*), intent(out),optional       :: dPair
+    character(30)                           :: cDummyB
+    character(2)                            :: cDummy
     ! X_ij/kl corresponds to dMolFraction
 
 
@@ -69,11 +71,29 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         end do
         dSum = dSum + dNi(i)
     end do
-    if (lPrint) print *, "Cation fractions:"
+    if (lPrint) print *, '   Cation fractions:'
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum
-        if (lPrint) print *, cConstituentNameSUB(iSPI,1,i), dXi(i)
     end do
+    if (lPrint) then
+        do i = 1, nSub1
+            cDummyB  = TRIM(cConstituentNameSUB(iSPI,1,i))
+            k    = LEN_TRIM(cConstituentNameSUB(iSPI,1,i)) - 1
+            nMax = MAX(k, nMax)
+            if (i == 1) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == nSub1) cDummyB(nMax+2:nMax+3) = '}'
+            if (dXi(i) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', cDummy, dXi(i), ' ', cDummyB
+            else
+                print '(A20,ES10.4,A35)', cDummy, dXi(i), cDummyB
+            end if
+        end do
+    end if
+
     ! Do anions now:
     dSum = 0D0
     do i = 1, nSub2
@@ -93,12 +113,30 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         end do
         dSum = dSum + dNi(j)
     end do
-    if (lPrint) print *, "Anion fractions:"
+    if (lPrint) print *, '   Anion fractions:'
     do i = 1, nSub2
         j = i + nSub1
         dXi(j) = dNi(j) / dSum
-        if (lPrint) print *, cConstituentNameSUB(iSPI,2,i), dXi(j)
     end do
+    if (lPrint) then
+        do i = 1, nSub2
+            j = i + nSub1
+            cDummyB  = TRIM(cConstituentNameSUB(iSPI,2,i))
+            k    = LEN_TRIM(cConstituentNameSUB(iSPI,2,i)) - 1
+            nMax = MAX(k, nMax)
+            if (i == 1) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == nSub2) cDummyB(nMax+2:nMax+3) = '}'
+            if (dXi(i) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', cDummy, dXi(j), ' ', cDummyB
+            else
+                print '(A20,ES10.4,A35)', cDummy, dXi(j), cDummyB
+            end if
+        end do
+    end if
 
     dSum = 0D0
     do m = 1, nPairsSRO(iSPI,1)
@@ -147,9 +185,9 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     end do
 
     dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
-    if (lPrint) print *, ""
-    if (lPrint) print *, dMolesPairs, " Moles of pairs"
-    if (lPrint) print *, "Pair fractions:"
+    if (lPrint) print *
+    if (lPrint) print '(A7,F7.5,A15)', '       ', dMolesPairs, ' Moles of pairs'
+    if (lPrint) print *, '   Pair fractions:'
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)
         j = iConstituentSublattice(iSPI,2,m)
@@ -158,10 +196,50 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
             cPair(m) = ADJUSTL(cPairName(iSPI,m))
         end if
         if (PRESENT(dPair)) dPair(m) = dXij(i,j)
-        if (lPrint) print *, cPairName(iSPI,m), dXij(i,j)
     end do
 
+    if (lPrint) then
+        ! First pair:
+        m = 1
+        i = iConstituentSublattice(iSPI,1,m)
+        j = iConstituentSublattice(iSPI,2,m)
+        if (dXij(i,j) >= 1D-1) then
+            print '(A20,F7.5,A3,A35)', '{ ', dXij(i,j), ' ', cPairName(iSPI,m)
+        else
+            print '(A20,ES10.4,A35)', '{ ', dXij(i,j), cPairName(iSPI,m)
+        end if
+        k    = LEN_TRIM(cPairName(iSPI,m)) - 1
+        nMax = MAX(k, nMax)
 
+        ! Print middle pairs:
+        do m = 2, nPairsSRO(iSPI,1) - 1
+            i = iConstituentSublattice(iSPI,1,m)
+            j = iConstituentSublattice(iSPI,2,m)
+            if (dXij(i,j) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', '+ ', dXij(i,j), ' ', cPairName(iSPI,m)
+            else
+                print '(A20,ES10.4,A35)', '+ ', dXij(i,j), cPairName(iSPI,m)
+            end if
+            k        = LEN_TRIM(cPairName(iSPI,m)) - 1
+            nMax = MAX(k, nMax)
+        end do
+
+        ! Print last pair:
+        m = nPairsSRO(iSPI,1)
+        i = iConstituentSublattice(iSPI,1,m)
+        j = iConstituentSublattice(iSPI,2,m)
+        k        = LEN_TRIM(cPairName(iSPI,m)) - 1
+        nMax     = MAX(k, nMax) + 1
+        cDummyB  = TRIM(cPairName(iSPI,m))
+        cDummyB(nMax+2:nMax+3) = '}'
+
+        if (dXij(i,j) >= 1D-1) then
+            print '(A20,F7.5,A3,A35)', '+ ', dXij(i,j), ' ', cDummyB
+        else
+            print '(A20,ES10.4,A35)', '+ ', dXij(i,j), cDummyB
+        end if
+        print *
+    end if
 
     ! Deallocate allocatable arrays:
     deallocate(dXi,dYi,dNi,dXij,dNij)
