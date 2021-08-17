@@ -224,7 +224,7 @@ subroutine PrintResultsSolnPhase
 
         if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
             call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
-            print *, 'Quadruplet fractions:'
+            print *, '   Quadruplet fractions:'
         end if
 
         if (allocated(iTempSpecies)) deallocate(iTempSpecies)
