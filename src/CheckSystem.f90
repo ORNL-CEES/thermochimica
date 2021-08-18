@@ -257,7 +257,7 @@ subroutine CheckSystem
     end do LOOP_checkElements
 
     ! The system requires a minimum of two elements in order to be considered:
-    if (nElements < 2 + k) then
+    if (nElements < 1 + k) then
         INFOThermo = 5
         return
     end if
@@ -321,7 +321,7 @@ subroutine CheckSystem
 
             ! Count the number of solution phases in the system:
             iTempVec(nSolnPhasesSys+1) = nSpecies
-            if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 1) then
+            if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 0) then
                 nSolnPhasesSys = nSolnPhasesSys + 1
                 nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
                 ! Check if this is a charged phase:
@@ -334,14 +334,6 @@ subroutine CheckSystem
                     m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
                     nMaxConstituentSys = MAX(nMaxConstituentSys,m)
                 end if
-            elseif (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
-                ! There is only one species in this solution phase.  This solution phase should not be considered.
-                iSpeciesPass(nSpeciesPhaseCS(i-1) + 1 : nSpeciesPhaseCS(i))          = 0
-                nSpecies                 = nSpecies - 1
-                iTempVec(nSolnPhasesSys) = nSpecies
-            else
-                ! Do nothing.  The number of species in this solution phase is zero and this phase will not be
-                ! considered.
             end if
         end do LOOP_SolnPhases
 
