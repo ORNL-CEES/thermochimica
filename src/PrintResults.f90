@@ -140,7 +140,7 @@ subroutine PrintResultsSolnPhase
 
     implicit none
 
-    integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nMax, nCutOff
+    integer                                 :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nMax
     integer,    dimension(:),   allocatable :: iTempVec, iTempSpecies
     real(8)                                 :: dCutOff, dTemp, Tcritical, B, StructureFactor, dMolesPairs
     real(8),    dimension(:),   allocatable :: dTempVec, dTempSpecies
@@ -232,11 +232,9 @@ subroutine PrintResultsSolnPhase
 
         k = iLast - iFirst + 1
         allocate(iTempSpecies(k), dTempSpecies(k))
-        nCutOff = k
         select case (cSolnPhaseType(l))
 
             case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
-
                 ! Initialize temporary variables:
                 dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
 
@@ -246,11 +244,6 @@ subroutine PrintResultsSolnPhase
                 LOOP_CutOffX: do i = 1, k
                     ! Convert relative species index to an absolute index:
                     c = iTempSpecies(i) + iFirst - 1
-
-                    if (dMolFraction(c) < dCutOff) then
-                        nCutOff = i - 1
-                        exit LOOP_CutOffX
-                    end if
                 end do LOOP_CutOffX
 
             case default
@@ -258,47 +251,26 @@ subroutine PrintResultsSolnPhase
                 do i = 1, k
                     iTempSpecies(i) = i
                 end do
-
         end select
 
-        ! The minimum number of species that will be printed is 2:
-        nCutOff = MAX(nCutOff, 2)
-
-        ! First species:
-        c = iTempSpecies(1) + iFirst - 1
-        if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '{ ', dmolFraction(c), ' ', cSpeciesName(c)
-        else
-            print '(A20,ES10.4,A35)', '{ ', dmolFraction(c), cSpeciesName(c)
-        end if
-
-        k    = LEN_TRIM(cSpeciesName(iFirst)) - 1
-        nMax = MAX(k, nMax)
-
         ! Print middle species:
-        do i = iFirst + 1, iFirst + nCutOff - 2
+        do i = iFirst, iLast
             c = iTempSpecies(i-iFirst+1) + iFirst - 1
-            if (dmolFraction(c) >= 1D-1) then
-                print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cSpeciesName(c)
-            else
-                print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cSpeciesName(c)
-            end if
-            k        = LEN_TRIM(cSpeciesName(c)) - 1
+            cDummyB  = TRIM(cSpeciesName(c))
+            k    = LEN_TRIM(cSpeciesName(c)) - 1
             nMax = MAX(k, nMax)
+            if (i == iFirst) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == iLast) cDummyB(nMax+2:nMax+3) = '}'
+            if (dmolFraction(c) >= 1D-1) then
+                print '(A20,F7.5,A3,A35)', cDummy, dMolFraction(c), ' ', cDummyB
+            else
+                print '(A20,ES10.4,A35)', cDummy, dMolFraction(c), cDummyB
+            end if
         end do
-
-        ! Print last species:
-        c        = iTempSpecies(nCutOff) + iFirst - 1
-        k        = LEN_TRIM(cSpeciesName(c)) - 1
-        nMax     = MAX(k, nMax) + 1
-        cDummyB  = TRIM(cSpeciesName(c))
-        cDummyB(nMax+2:nMax+3) = '}'
-
-        if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cDummyB
-        else
-            print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cDummyB
-        end if
         print *
 
         ! Check if this phase is represented by the Compound Energy Formalism:
