@@ -34,6 +34,66 @@ def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
             p2.append(boundPhases[1])
     return mint, maxt
 
+def runCalc(ts, x1, x2, p1, p2, mint, maxt):
+    print('Thermochimica calculation initiated.')
+    subprocess.run(['./bin/PhaseDiagramDataGen',filename])
+    print('Thermochimica calculation finished.')
+
+    fname = 'thermoout.json'
+
+    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt)
+
+    boundaries = []
+    b = []
+    for i in range(len(p1)):
+        # If a miscibility gap label has been used unnecessarily, remove it
+        if p1[i].find('#2') > 0:
+            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                p1[i] = p1[i][0:p1[i].find('#2')]
+        if p2[i].find('#2') > 0:
+            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                p2[i] = p2[i][0:p2[i].find('#2')]
+
+        repeat = False
+        for j in range(len(boundaries)):
+            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                b.append(j)
+                repeat = True
+        if not(repeat):
+            boundaries.append([p1[i],p2[i]])
+            b.append(len(boundaries)-1)
+
+    # Start figure
+    fig = plt.figure()
+    ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
+        ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
+        minj = np.argmin(np.array(ts)[inds])
+        maxj = np.argmax(np.array(ts)[inds])
+        if (np.array(ts)[inds][minj] > mint):
+            ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
+        if (np.array(ts)[inds][maxj] < maxt):
+            ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
+    ax.set_xlim(0,1)
+    plt.show()
+    return mint, maxt
+
+def writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile):
+    with open(filename, 'w') as inputFile:
+        inputFile.write('! Python-generated input file for Thermochimica\n')
+        xstep = (float(xhi)-float(xlo))/float(nxstep)
+        inputFile.write('x          = ' + str(xlo) + ':' + str(xhi) + ':' + str(xstep) + '\n')
+        tstep = (float(thi)-float(tlo))/float(ntstep)
+        inputFile.write('temperature          = ' + str(tlo) + ':' + str(thi) + ':' + str(tstep) + '\n')
+        inputFile.write('pressure          = ' + str(pressure) + '\n')
+        inputFile.write('temperature unit         = ' + tunit + '\n')
+        inputFile.write('pressure unit          = ' + punit + '\n')
+        inputFile.write('mass unit          = \'' + munit + '\'\n')
+        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+        inputFile.write('data file         = ' + datafile + '\n')
+
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
     'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
@@ -120,16 +180,16 @@ while True:
                     print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
                     elements.remove(elements[i])
                     nElements = nElements - 1
-            elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],key='-el1-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('Element 2')],[sg.Combo(elements[:nElements],key='-el2-')]],vertical_alignment='t')]
-            xLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
-                          [sg.Text('Concentration unit')],[sg.Combo(['moles'],default_value='moles',key='-munit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
+            elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],default_value=elements[0],key='-el1-')]],vertical_alignment='t'),
+                              sg.Column([[sg.Text('Element 2')],[sg.Combo(elements[:nElements],default_value=elements[1],key='-el2-')]],vertical_alignment='t')]
+            xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
+                          [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
                           ],vertical_alignment='t'),
                           sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
             tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                           [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
+                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
                           ],vertical_alignment='t'),
                           sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
             presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
@@ -158,12 +218,12 @@ while True:
                                 cancelRun = False
                                 break
                         confirmWindow.close()
-                    temperature = values['-temperature-']
+                    tlo= values['-temperature-']
+                    thi = values['-endtemperature-']
                     pressure = values['-pressure-']
                     filename = 'inputs/pythonPhaseDiagramInput.ti'
                     tunit = values['-tunit-']
                     punit = values['-punit-']
-                    tend = values['-endtemperature-']
                     xhi = values['-xhi-']
                     xlo = values['-xlo-']
                     el1 = values['-el1-']
@@ -183,24 +243,7 @@ while True:
                     munit = values['-munit-']
                     if cancelRun:
                         continue
-                    with open(filename, 'w') as inputFile:
-                        inputFile.write('! Python-generated input file for Thermochimica\n')
-                        xstep = (float(xhi)-float(xlo))/float(nxstep)
-                        inputFile.write('x          = ' + str(xlo) + ':' + str(xhi) + ':' + str(xstep) + '\n')
-                        tstep = (float(tend)-float(temperature))/float(ntstep)
-                        inputFile.write('temperature          = ' + str(temperature) + ':' + str(tend) + ':' + str(tstep) + '\n')
-                        inputFile.write('pressure          = ' + str(pressure) + '\n')
-                        inputFile.write('temperature unit         = ' + tunit + '\n')
-                        inputFile.write('pressure unit          = ' + punit + '\n')
-                        inputFile.write('mass unit          = ' + munit + '\n')
-                        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-                        inputFile.write('data file         = ' + datafile + '\n')
-                    print('Thermochimica calculation initiated.')
-                    subprocess.run(['./bin/PhaseDiagramDataGen',filename])
-                    print('Thermochimica calculation finished.')
-
-                    fname = 'thermoout.json'
-
+                    writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile)
                     ts = []
                     x1 = []
                     x2 = []
@@ -208,45 +251,45 @@ while True:
                     p2 = []
                     mint = 1e6
                     maxt = 0
-
-                    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt)
-
-                    boundaries = []
-                    b = []
-                    for i in range(len(p1)):
-                        # If a miscibility gap label has been used unnecessarily, remove it
-                        if p1[i].find('#2') > 0:
-                            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
-                                p1[i] = p1[i][0:p1[i].find('#2')]
-                        if p2[i].find('#2') > 0:
-                            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
-                                p2[i] = p2[i][0:p2[i].find('#2')]
-
-                        repeat = False
-                        for j in range(len(boundaries)):
-                            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
-                                b.append(j)
-                                repeat = True
-                        if not(repeat):
-                            boundaries.append([p1[i],p2[i]])
-                            b.append(len(boundaries)-1)
-
-                    # Start figure
-                    fig = plt.figure()
-                    ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-                    for j in range(len(boundaries)):
-                        inds = [i for i, k in enumerate(b) if k == j]
-                        ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
-                        ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
-                        minj = np.argmin(np.array(ts)[inds])
-                        maxj = np.argmax(np.array(ts)[inds])
-                        if (np.array(ts)[inds][minj] > mint):
-                            ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
-                        if (np.array(ts)[inds][maxj] < maxt):
-                            ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
-                    ax.set_xlim(0,1)
-                    plt.show()
+                    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt)
                     setupWindow.Element('Refine').Update(disabled = False)
+                elif event =='Refine':
+                    xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
+                                  sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
+                                  sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
+                    tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
+                                  sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
+                                  sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
+                    refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
+                    refineWindow = sg.Window('Phase diagram setup', refineLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = refineWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Cancel':
+                            break
+                        elif event =='Refine':
+                            cancelRun = False
+                            ntstep = values['-ntstepr-']
+                            nxstep = values['-nxstepr-']
+                            if (float(ntstep) * float(nxstep)) > 50000:
+                                cancelRun = True
+                                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+                                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
+                                while True:
+                                    event, values = confirmWindow.read(timeout=timeout)
+                                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                                        break
+                                    elif event == 'Continue':
+                                        cancelRun = False
+                                        break
+                                confirmWindow.close()
+                            tlo = values['-temperaturer-']
+                            thi = values['-endtemperaturer-']
+                            xhi = values['-xhir-']
+                            xlo = values['-xlor-']
+                            if cancelRun:
+                                continue
+                            writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile)
+                            mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt)
             setupWindow.close()
         except:
             pass
