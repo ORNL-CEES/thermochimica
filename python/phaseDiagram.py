@@ -22,8 +22,11 @@ x1 = []
 x2 = []
 p1 = []
 p2 = []
+mint = 1e6
+maxt = 0
 for i in list(data.keys()):
-    # print(data[i]['temperature'])
+    mint = min(mint,data[i]['temperature'])
+    maxt = max(maxt,data[i]['temperature'])
     if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
         ts.append(data[i]['temperature'])
         boundPhases = []
@@ -40,6 +43,33 @@ for i in list(data.keys()):
         x2.append(boundComps[1])
         p1.append(boundPhases[0])
         p2.append(boundPhases[1])
+
+# f = open('pd-ru-out-refine1.json',)
+# data = json.load(f)
+# f.close()
+# if list(data.keys())[0] != '1':
+#     print('Output does not contain data series')
+#     exit()
+#
+# for i in list(data.keys()):
+#     mint = min(mint,data[i]['temperature'])
+#     maxt = max(maxt,data[i]['temperature'])
+#     if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
+#         ts.append(data[i]['temperature'])
+#         boundPhases = []
+#         boundComps = []
+#         for phaseName in list(data[i]['solution phases'].keys()):
+#             if (data[i]['solution phases'][phaseName]['moles'] > 0):
+#                 boundPhases.append(phaseName)
+#                 boundComps.append(data[i]['solution phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
+#         for phaseName in list(data[i]['pure condensed phases'].keys()):
+#             if (data[i]['pure condensed phases'][phaseName]['moles'] > 0):
+#                 boundPhases.append(phaseName)
+#                 boundComps.append(data[i]['pure condensed phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
+#         x1.append(boundComps[0])
+#         x2.append(boundComps[1])
+#         p1.append(boundPhases[0])
+#         p2.append(boundPhases[1])
 
 boundaries = []
 b = []
@@ -69,5 +99,11 @@ for j in range(len(boundaries)):
     inds = [i for i, k in enumerate(b) if k == j]
     ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
     ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
+    minj = np.argmin(np.array(ts)[inds])
+    maxj = np.argmax(np.array(ts)[inds])
+    if (np.array(ts)[inds][minj] > mint):
+        ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
+    if (np.array(ts)[inds][maxj] < maxt):
+        ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
 ax.set_xlim(0,1)
 plt.show()
