@@ -86,7 +86,11 @@ subroutine WriteJSONSolnPhase
         iLast  = nSpeciesPhase(j)
 
         ! Print solution phase name:
-        write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
+        if (lMiscibility(j)) then
+            write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '#2": {'
+        else
+            write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
+        end if
         write(1,*) '      "phase model": "', TRIM(ADJUSTL(cSolnPhaseType(j))), '",'
         l = 0
         do k = 1, nElements
