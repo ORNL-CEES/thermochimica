@@ -1,6 +1,6 @@
-import math
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 
 f = open('pd-ru-out.json',)
 data = json.load(f)
@@ -41,9 +41,33 @@ for i in list(data.keys()):
         p1.append(boundPhases[0])
         p2.append(boundPhases[1])
 
+boundaries = []
+b = []
+for i in range(len(p1)):
+    # If a miscibility gap label has been used unnecessarily, remove it
+    if p1[i].find('#2') > 0:
+        if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+            p1[i] = p1[i][0:p1[i].find('#2')]
+    if p2[i].find('#2') > 0:
+        if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+            p2[i] = p2[i][0:p2[i].find('#2')]
+
+    repeat = False
+    for j in range(len(boundaries)):
+        if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+            b.append(j)
+            repeat = True
+    if not(repeat):
+        boundaries.append([p1[i],p2[i]])
+        b.append(len(boundaries)-1)
+print(boundaries)
+# print(b)
 # Start figure
 fig = plt.figure()
 ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-ax.plot(x1,ts,'.')
-ax.plot(x2,ts,'.')
+for j in range(len(boundaries)):
+    inds = [i for i, k in enumerate(b) if k == j]
+    ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
+    ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
+ax.set_xlim(0,1)
 plt.show()
