@@ -76,8 +76,7 @@ for i in range(len(p1)):
     if not(repeat):
         boundaries.append([p1[i],p2[i]])
         b.append(len(boundaries)-1)
-print(boundaries)
-# print(b)
+
 # Start figure
 fig = plt.figure()
 ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
