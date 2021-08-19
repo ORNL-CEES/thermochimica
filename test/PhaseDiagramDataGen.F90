@@ -23,8 +23,16 @@ program PhaseDiagramDataGen
 
     ! Specify values:
     dPressure              = dPress
-    nt = CEILING((thi - tlo) / dDeltaT)
-    nx = CEILING((xhi - xlo) / dDeltaX)
+    if ((thi == tlo) .OR. dDeltaT == 0D0) then
+      nt = 1
+    else
+      nt = CEILING((thi - tlo) / dDeltaT)
+    end if
+    if ((xhi == xlo) .OR. dDeltaX == 0D0) then
+      nx = 1
+    else
+      nx = CEILING((xhi - xlo) / dDeltaX)
+    end if
 
     open(1, file= DATA_DIRECTORY // '../thermoout.json', &
         status='REPLACE', action='write')
@@ -51,6 +59,8 @@ program PhaseDiagramDataGen
           if ((i < nt) .OR. (j < nx)) write(1,*) ','
           close (1)
           nSim = nSim + 1
+        else
+          INFOThermo = 0
         end if
         call ResetThermo
       end do
