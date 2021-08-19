@@ -2,20 +2,13 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
-def processPhaseDiagramData(fname,elx):
+def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
     f = open(fname,)
     data = json.load(f)
     f.close()
     if list(data.keys())[0] != '1':
         print('Output does not contain data series')
         exit()
-    ts = []
-    x1 = []
-    x2 = []
-    p1 = []
-    p2 = []
-    mint = 1e6
-    maxt = 0
     for i in list(data.keys()):
         mint = min(mint,data[i]['temperature'])
         maxt = max(maxt,data[i]['temperature'])
@@ -35,7 +28,7 @@ def processPhaseDiagramData(fname,elx):
             x2.append(boundComps[1])
             p1.append(boundPhases[0])
             p2.append(boundPhases[1])
-    return ts, x1, x2, p1, p2, mint, maxt
+    return mint, maxt
 
 fname = 'pd-ru-out.json'
 elx = 'Ru'
@@ -48,14 +41,7 @@ p2 = []
 mint = 1e6
 maxt = 0
 
-tsr, x1r, x2r, p1r, p2r, mintr, maxtr = processPhaseDiagramData(fname,elx)
-ts = [item for sublist in [ts,tsr] for item in sublist]
-x1 = [item for sublist in [x1,x1r] for item in sublist]
-x2 = [item for sublist in [x2,x2r] for item in sublist]
-p1 = [item for sublist in [p1,p1r] for item in sublist]
-p2 = [item for sublist in [p2,p2r] for item in sublist]
-mint = min(mint,mintr)
-maxt = max(maxt,maxtr)
+mint, maxt = processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt)
 
 boundaries = []
 b = []
