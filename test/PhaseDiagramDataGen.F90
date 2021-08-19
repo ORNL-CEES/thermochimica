@@ -36,8 +36,8 @@ program PhaseDiagramDataGen
       dTbase = tlo + (REAL(i)/REAL(nt))*(thi-tlo)
       do j = 0, nx
         dTemperature = dTbase + (REAL(MODULO(j,10))/10D0)*(1D0/REAL(nt))*(thi-tlo)
-        dElementMass(iEl1) = xlo + REAL(j)/REAL(nx)*(xhi-xlo)
-        dElementMass(iEl2) = 1D0-dElementMass(iEl1)
+        dElementMass(iEl2) = xlo + REAL(j)/REAL(nx)*(xhi-xlo)
+        dElementMass(iEl1) = 1D0-dElementMass(iEl2)
         call Thermochimica
         if (INFOThermo == 0) then
           open(1, file= DATA_DIRECTORY // '../thermoout.json', &
