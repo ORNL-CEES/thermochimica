@@ -2,19 +2,42 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
-f = open('pd-ru-out.json',)
-data = json.load(f)
-f.close()
-if list(data.keys())[0] != '1':
-    print('Output does not contain data series')
-    exit()
+def processPhaseDiagramData(fname,elx):
+    f = open(fname,)
+    data = json.load(f)
+    f.close()
+    if list(data.keys())[0] != '1':
+        print('Output does not contain data series')
+        exit()
+    ts = []
+    x1 = []
+    x2 = []
+    p1 = []
+    p2 = []
+    mint = 1e6
+    maxt = 0
+    for i in list(data.keys()):
+        mint = min(mint,data[i]['temperature'])
+        maxt = max(maxt,data[i]['temperature'])
+        if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
+            ts.append(data[i]['temperature'])
+            boundPhases = []
+            boundComps = []
+            for phaseName in list(data[i]['solution phases'].keys()):
+                if (data[i]['solution phases'][phaseName]['moles'] > 0):
+                    boundPhases.append(phaseName)
+                    boundComps.append(data[i]['solution phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
+            for phaseName in list(data[i]['pure condensed phases'].keys()):
+                if (data[i]['pure condensed phases'][phaseName]['moles'] > 0):
+                    boundPhases.append(phaseName)
+                    boundComps.append(data[i]['pure condensed phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
+            x1.append(boundComps[0])
+            x2.append(boundComps[1])
+            p1.append(boundPhases[0])
+            p2.append(boundPhases[1])
+    return ts, x1, x2, p1, p2, mint, maxt
 
-phases = list(data['1']['solution phases'].keys())
-for phaseName in list(data['1']['pure condensed phases'].keys()):
-    phases.append(phaseName)
-print(phases)
-elements = list(data['1']['elements'].keys())
-print(elements)
+fname = 'pd-ru-out.json'
 elx = 'Ru'
 
 ts = []
@@ -24,52 +47,15 @@ p1 = []
 p2 = []
 mint = 1e6
 maxt = 0
-for i in list(data.keys()):
-    mint = min(mint,data[i]['temperature'])
-    maxt = max(maxt,data[i]['temperature'])
-    if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
-        ts.append(data[i]['temperature'])
-        boundPhases = []
-        boundComps = []
-        for phaseName in list(data[i]['solution phases'].keys()):
-            if (data[i]['solution phases'][phaseName]['moles'] > 0):
-                boundPhases.append(phaseName)
-                boundComps.append(data[i]['solution phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
-        for phaseName in list(data[i]['pure condensed phases'].keys()):
-            if (data[i]['pure condensed phases'][phaseName]['moles'] > 0):
-                boundPhases.append(phaseName)
-                boundComps.append(data[i]['pure condensed phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
-        x1.append(boundComps[0])
-        x2.append(boundComps[1])
-        p1.append(boundPhases[0])
-        p2.append(boundPhases[1])
 
-# f = open('pd-ru-out-refine1.json',)
-# data = json.load(f)
-# f.close()
-# if list(data.keys())[0] != '1':
-#     print('Output does not contain data series')
-#     exit()
-#
-# for i in list(data.keys()):
-#     mint = min(mint,data[i]['temperature'])
-#     maxt = max(maxt,data[i]['temperature'])
-#     if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
-#         ts.append(data[i]['temperature'])
-#         boundPhases = []
-#         boundComps = []
-#         for phaseName in list(data[i]['solution phases'].keys()):
-#             if (data[i]['solution phases'][phaseName]['moles'] > 0):
-#                 boundPhases.append(phaseName)
-#                 boundComps.append(data[i]['solution phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
-#         for phaseName in list(data[i]['pure condensed phases'].keys()):
-#             if (data[i]['pure condensed phases'][phaseName]['moles'] > 0):
-#                 boundPhases.append(phaseName)
-#                 boundComps.append(data[i]['pure condensed phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
-#         x1.append(boundComps[0])
-#         x2.append(boundComps[1])
-#         p1.append(boundPhases[0])
-#         p2.append(boundPhases[1])
+tsr, x1r, x2r, p1r, p2r, mintr, maxtr = processPhaseDiagramData(fname,elx)
+ts = [item for sublist in [ts,tsr] for item in sublist]
+x1 = [item for sublist in [x1,x1r] for item in sublist]
+x2 = [item for sublist in [x2,x2r] for item in sublist]
+p1 = [item for sublist in [p1,p1r] for item in sublist]
+p2 = [item for sublist in [p2,p2r] for item in sublist]
+mint = min(mint,mintr)
+maxt = max(maxt,maxtr)
 
 boundaries = []
 b = []
