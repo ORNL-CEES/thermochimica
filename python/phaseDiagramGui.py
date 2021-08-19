@@ -83,9 +83,15 @@ def runCalc(ts, x1, x2, p1, p2, mint, maxt):
 def writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile):
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
-        xstep = (float(xhi)-float(xlo))/float(nxstep)
+        if float(nxstep) > 0:
+            xstep = (float(xhi)-float(xlo))/float(nxstep)
+        else:
+            xstep = 0
         inputFile.write('x          = ' + str(xlo) + ':' + str(xhi) + ':' + str(xstep) + '\n')
-        tstep = (float(thi)-float(tlo))/float(ntstep)
+        if float(ntstep) > 0:
+            tstep = (float(thi)-float(tlo))/float(ntstep)
+        else:
+            tstep = 0
         inputFile.write('temperature          = ' + str(tlo) + ':' + str(thi) + ':' + str(tstep) + '\n')
         inputFile.write('pressure          = ' + str(pressure) + '\n')
         inputFile.write('temperature unit         = ' + tunit + '\n')
@@ -228,10 +234,10 @@ while True:
                     xlo = values['-xlo-']
                     el1 = values['-el1-']
                     el2 = values['-el2-']
-                    if str(el1) == str(el2):
+                    if (str(el1) == str(el2)) or (float(tlo) == float(thi)):
                         cancelRun = True
-                        repeatLayout = [[sg.Text('The same element cannot be selected twice.')],[sg.Button('Cancel')]]
-                        repeatWindow = sg.Window('Repeat element notification', repeatLayout, location = [400,0], finalize=True)
+                        repeatLayout = [[sg.Text('Values cannot be equal.')],[sg.Button('Cancel')]]
+                        repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True)
                         while True:
                             event, values = repeatWindow.read(timeout=timeout)
                             if event == sg.WIN_CLOSED or event == 'Cancel':
