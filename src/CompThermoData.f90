@@ -417,7 +417,7 @@ subroutine CompThermoData
                     if (iPhase(j) == 0) then
                         call CompGibbsMagnetic(i,j)
                     else
-                        call CompGibbsMagneticSolnInit(i,j)
+                        call CompGibbsMagneticSolnInit(j)
                     end if
                 end if
 
