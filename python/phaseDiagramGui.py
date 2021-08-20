@@ -34,7 +34,7 @@ def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
             p2.append(boundPhases[1])
     return mint, maxt
 
-def runCalc(ts, x1, x2, p1, p2, mint, maxt):
+def runCalc(ts, x1, x2, p1, p2, mint, maxt, labels):
     print('Thermochimica calculation initiated.')
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     print('Thermochimica calculation finished.')
@@ -77,10 +77,15 @@ def runCalc(ts, x1, x2, p1, p2, mint, maxt):
         if (np.array(ts)[inds][maxj] < maxt):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
     ax.set_xlim(0,1)
+    print('1')
+    for lab in labels:
+        print('2')
+        print(lab)
+        plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
     plt.show()
     return mint, maxt
 
-def writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile):
+def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile):
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
         if float(nxstep) > 0:
@@ -99,6 +104,29 @@ def writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,d
         inputFile.write('mass unit          = \'' + munit + '\'\n')
         inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
         inputFile.write('data file         = ' + datafile + '\n')
+
+def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels):
+    writeInputFile(filename,xlab,xlab,0,tlab,tlab,0,pressure,tunit,punit,munit,el1,el2,datafile)
+    subprocess.run(['./bin/PhaseDiagramDataGen',filename])
+    fname = 'thermoout.json'
+    f = open(fname,)
+    data = json.load(f)
+    f.close()
+    if list(data.keys())[0] != '1':
+        print('Output does not contain data series')
+        exit()
+    labelName = []
+    for phaseName in list(data['1']['solution phases'].keys()):
+        if (data['1']['solution phases'][phaseName]['moles'] > 0):
+            labelName.append(phaseName)
+    for phaseName in list(data['1']['pure condensed phases'].keys()):
+        if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
+            labelName.append(phaseName)
+    print(labelName)
+    print('+'.join(labelName))
+    labels.append([[xlab,tlab],'+'.join(labelName)])
+    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
+    return mint, maxt
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -201,7 +229,7 @@ while True:
             presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
                           ]
-            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Exit()]]
+            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Button('Add Label', disabled = True), sg.Exit()]]
             setupWindow = sg.Window('Phase diagram setup', setupLayout, location = [400,0], finalize=True)
             while True:
                 event, values = setupWindow.read(timeout=timeout)
@@ -249,7 +277,7 @@ while True:
                     munit = values['-munit-']
                     if cancelRun:
                         continue
-                    writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile)
+                    writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
                     ts = []
                     x1 = []
                     x2 = []
@@ -257,8 +285,10 @@ while True:
                     p2 = []
                     mint = 1e6
                     maxt = 0
-                    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt)
+                    labels = []
+                    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
                     setupWindow.Element('Refine').Update(disabled = False)
+                    setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
                     xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                                   sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -294,8 +324,23 @@ while True:
                             xlo = values['-xlor-']
                             if cancelRun:
                                 continue
-                            writeInputFile(filename,xlo,xhi,tlo,thi,pressure,tunit,punit,munit,el1,el2,datafile)
-                            mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt)
+                            writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
+                            mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
+                    refineWindow.close()
+                elif event =='Add Label':
+                    xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
+                    tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
+                    labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
+                    labelWindow = sg.Window('Phase diagram setup', labelLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = labelWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Cancel':
+                            break
+                        elif event =='Add Label':
+                            xlab = values['-xlab-']
+                            tlab = values['-tlab-']
+                            mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels)
+                    labelWindow.close()
             setupWindow.close()
         except:
             pass
