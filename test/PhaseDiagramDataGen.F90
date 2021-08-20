@@ -24,12 +24,12 @@ program PhaseDiagramDataGen
     ! Specify values:
     dPressure              = dPress
     if ((thi == tlo) .OR. dDeltaT == 0D0) then
-      nt = 1
+      nt = 0
     else
       nt = CEILING((thi - tlo) / dDeltaT)
     end if
     if ((xhi == xlo) .OR. dDeltaX == 0D0) then
-      nx = 1
+      nx = 0
     else
       nx = CEILING((xhi - xlo) / dDeltaX)
     end if
@@ -41,10 +41,13 @@ program PhaseDiagramDataGen
 
     nSim = 1
     do i = 0, nt
-      dTbase = tlo + (REAL(i)/REAL(nt))*(thi-tlo)
+      dTbase = tlo
+      if (nt > 0) dTbase = dTbase + (REAL(i)/REAL(nt))*(thi-tlo)
       do j = 0, nx
-        dTemperature = dTbase + (REAL(MODULO(j,10))/10D0)*(1D0/REAL(nt))*(thi-tlo)
-        dElementMass(iEl2) = xlo + REAL(j)/REAL(nx)*(xhi-xlo)
+        dTemperature = dTbase
+        if (nt > 0) dTemperature = dTemperature + (REAL(MODULO(j,10))/10D0)*(1D0/REAL(nt))*(thi-tlo)
+        dElementMass(iEl2) = xlo
+        if (nx > 0) dElementMass(iEl2) = dElementMass(iEl2) + REAL(j)/REAL(nx)*(xhi-xlo)
         dElementMass(iEl1) = 1D0-dElementMass(iEl2)
         call Thermochimica
         if (INFOThermo == 0) then
