@@ -34,7 +34,7 @@ def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
             p2.append(boundPhases[1])
     return mint, maxt
 
-def runCalc(ts, x1, x2, p1, p2, mint, maxt, labels):
+def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels):
     print('Thermochimica calculation initiated.')
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     print('Thermochimica calculation finished.')
@@ -77,10 +77,10 @@ def runCalc(ts, x1, x2, p1, p2, mint, maxt, labels):
         if (np.array(ts)[inds][maxj] < maxt):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
     ax.set_xlim(0,1)
-    print('1')
+    ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
+    ax.set_xlabel('Mole fraction ' + str(el2))
+    ax.set_ylabel('Temperature [K]')
     for lab in labels:
-        print('2')
-        print(lab)
         plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
     plt.show()
     return mint, maxt
@@ -125,7 +125,7 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
     print(labelName)
     print('+'.join(labelName))
     labels.append([[xlab,tlab],'+'.join(labelName)])
-    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
+    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
     return mint, maxt
 
 atomic_number_map = [
@@ -286,7 +286,7 @@ while True:
                     mint = 1e6
                     maxt = 0
                     labels = []
-                    mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
+                    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
@@ -325,7 +325,7 @@ while True:
                             if cancelRun:
                                 continue
                             writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
-                            mint, maxt = runCalc(ts, x1, x2, p1, p2, mint, maxt, labels)
+                            mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
                     refineWindow.close()
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
