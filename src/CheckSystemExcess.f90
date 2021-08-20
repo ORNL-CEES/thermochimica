@@ -90,7 +90,7 @@ subroutine CheckSystemExcess
 
         select case (cSolnPhaseTypeCS(i))
             case ('IDMX')
-                ! Ideal mixture, do nothing.
+                nParamPhase(nCounter) = nParam
             case ('QKTO', 'RKMP', 'RKMPM')
                 ! Note that this is just checking whether the parameter should be considered.  This format
                 ! is consistent amoungst the above list of phase types.
