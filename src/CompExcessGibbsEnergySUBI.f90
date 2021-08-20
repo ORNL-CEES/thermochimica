@@ -86,7 +86,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
     integer :: iFirst, iLast
     real(8) :: dSub1Total, dSub2Total, dydn
-    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, cc1, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms, dTest
+    real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, cc1, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
     real(8) :: dPreFactor, v, f, chargeCi, chargeCj, chargeCk
     real(8) :: yCi, yCj, yCk, yAi, yAj, yBi, yBj, yBk, yDi, yDj, gex
@@ -1372,8 +1372,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     dChemicalPotential(i) = dChemicalPotential(i) + dydn * dgdc1(j) * dMolAtoms / dMol
                 end if
             end do
-
-            dTest = 0D0
 
             do j = 1, nConstituentSublattice(iSPI,2)
                 ! cation / vacancy
