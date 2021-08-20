@@ -122,8 +122,6 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
     for phaseName in list(data['1']['pure condensed phases'].keys()):
         if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
             labelName.append(phaseName)
-    print(labelName)
-    print('+'.join(labelName))
     labels.append([[xlab,tlab],'+'.join(labelName)])
     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
     return mint, maxt
