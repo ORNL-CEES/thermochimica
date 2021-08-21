@@ -192,6 +192,7 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
 
     ax.set_xlim(0,1)
+    ax.set_ylim(mint,maxt)
     ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
     ax.set_xlabel('Mole fraction ' + str(el2))
     ax.set_ylabel('Temperature [K]')
