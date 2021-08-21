@@ -84,7 +84,10 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     fname = 'thermoout.json'
 
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+    return mint, maxt
 
+def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     boundaries = []
     b = []
     for i in range(len(p1)):
@@ -199,7 +202,6 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     for lab in labels:
         plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
     plt.show()
-    return mint, maxt
 
 def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile):
     with open(filename, 'w') as inputFile:
@@ -343,7 +345,8 @@ while True:
             presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
                           ]
-            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Button('Add Label', disabled = True), sg.Exit()]]
+            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True),
+                            sg.Button('Add Label', disabled = True), sg.Button('Remove Label', disabled = True), sg.Exit()]]
             setupWindow = sg.Window('Phase diagram setup', setupLayout, location = [400,0], finalize=True)
             while True:
                 event, values = setupWindow.read(timeout=timeout)
@@ -413,7 +416,7 @@ while True:
                                   sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
                                   sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
                     refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
-                    refineWindow = sg.Window('Phase diagram setup', refineLayout, location = [400,0], finalize=True)
+                    refineWindow = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
                     while True:
                         event, values = refineWindow.read(timeout=timeout)
                         if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -447,7 +450,7 @@ while True:
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
                     tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
                     labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
-                    labelWindow = sg.Window('Phase diagram setup', labelLayout, location = [400,0], finalize=True)
+                    labelWindow = sg.Window('Add phase label', labelLayout, location = [400,0], finalize=True)
                     while True:
                         event, values = labelWindow.read(timeout=timeout)
                         if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -457,6 +460,34 @@ while True:
                             tlab = values['-tlab-']
                             mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data)
                     labelWindow.close()
+                    setupWindow.Element('Remove Label').Update(disabled = False)
+                elif event =='Remove Label':
+                    headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
+                                       sg.Text('Concentration',size = [15,1],justification='center'),
+                                       sg.Text('Temperature',  size = [15,1],justification='center'),
+                                       sg.Text('Remove Label?',size = [15,1])]]
+                    labelListLayout = []
+                    for i in range(len(labels)):
+                        labelListLayout.append([[sg.Text(labels[i][1],size = [55,1],justification='left'),
+                                                 sg.Text(labels[i][0][0],size = [15,1],justification='center'),
+                                                 sg.Text(labels[i][0][1],size = [15,1],justification='center'),
+                                                 sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
+                    removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
+                    removeWindow = sg.Window('Add phase label', removeLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = removeWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Cancel':
+                            break
+                        if event == 'Remove Label(s)':
+                            tempLength = len(labels)
+                            for i in reversed(range(tempLength)):
+                                if values['-removeLabel'+str(i)+'-']:
+                                    del labels[i]
+                            if len(labels) == 0:
+                                setupWindow.Element('Remove Label').Update(disabled = True)
+                            break
+                    removeWindow.close()
+                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
             setupWindow.close()
         except:
             pass
