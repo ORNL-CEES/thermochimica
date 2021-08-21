@@ -6,7 +6,7 @@ import math
 import os
 import subprocess
 
-def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
+def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data):
     f = open(fname,)
     data = json.load(f)
     f.close()
@@ -20,28 +20,70 @@ def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt):
             ts.append(data[i]['temperature'])
             boundPhases = []
             boundComps = []
-            for phaseName in list(data[i]['solution phases'].keys()):
-                if (data[i]['solution phases'][phaseName]['moles'] > 0):
-                    boundPhases.append(phaseName)
-                    boundComps.append(data[i]['solution phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
-            for phaseName in list(data[i]['pure condensed phases'].keys()):
-                if (data[i]['pure condensed phases'][phaseName]['moles'] > 0):
-                    boundPhases.append(phaseName)
-                    boundComps.append(data[i]['pure condensed phases'][phaseName]['elements'][elx]['mole fraction of phase by element'])
+            for phaseType in ['solution phases','pure condensed phases']:
+                for phaseName in list(data[i][phaseType].keys()):
+                    if (data[i][phaseType][phaseName]['moles'] > 0):
+                        boundPhases.append(phaseName)
+                        boundComps.append(data[i][phaseType][phaseName]['elements'][elx]['mole fraction of phase by element'])
             x1.append(boundComps[0])
             x2.append(boundComps[1])
             p1.append(boundPhases[0])
             p2.append(boundPhases[1])
+        elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
+            if not(elx in list(data[i]['elements'].keys())):
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                            pname = phaseName
+                if not(pname in x0data[0]):
+                    x0data[0].append(pname)
+                    x0data[1].append(data[i]['temperature'])
+                    x0data[2].append(data[i]['temperature'])
+                pindex = x0data[0].index(pname)
+                x0data[1][pindex] = min(x0data[1][pindex],data[i]['temperature'])
+                x0data[2][pindex] = max(x0data[2][pindex],data[i]['temperature'])
+            elif float(data[i]['elements'][elx]['moles']) == 1:
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                            pname = phaseName
+                if not(pname in x1data[0]):
+                    x1data[0].append(pname)
+                    x1data[1].append(data[i]['temperature'])
+                    x1data[2].append(data[i]['temperature'])
+                pindex = x1data[0].index(pname)
+                x1data[1][pindex] = min(x1data[1][pindex],data[i]['temperature'])
+                x1data[2][pindex] = max(x1data[2][pindex],data[i]['temperature'])
+    if len(x0data[1]) > 1:
+        x0sort = [i[0] for i in sorted(enumerate(x0data[1]), key=lambda x:x[1])]
+        phaseOrder = []
+        for i in x0sort:
+            phaseOrder.append(x0data[0][i])
+        xtemp = [[],[],[]]
+        xtemp[0] = phaseOrder
+        xtemp[1] = sorted(x0data[1])
+        xtemp[2] = sorted(x0data[2])
+        x0data = xtemp
+    if len(x1data[1]) > 1:
+        x1sort = [i[0] for i in sorted(enumerate(x1data[1]), key=lambda x:x[1])]
+        phaseOrder = []
+        for i in x1sort:
+            phaseOrder.append(x1data[0][i])
+        xtemp = [[],[],[]]
+        xtemp[0] = phaseOrder
+        xtemp[1] = sorted(x1data[1])
+        xtemp[2] = sorted(x1data[2])
+        x1data = xtemp
     return mint, maxt
 
-def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels):
+def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     print('Thermochimica calculation initiated.')
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     print('Thermochimica calculation finished.')
 
     fname = 'thermoout.json'
 
-    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt)
+    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
     boundaries = []
     b = []
@@ -66,16 +108,89 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels):
     # Start figure
     fig = plt.figure()
     ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+
+    bEdgeLine = [[False,False] for i in range(len(boundaries))]
+    # Plot along x=0 and x=1 boundaries
+    for j in range(len(x0data[1])):
+        if j > 0:
+            ax.plot(0,x0data[1][j],'kv')
+            for k in range(len(boundaries)):
+                if (x0data[0][j] in boundaries[k]) and (x0data[0][j-1] in boundaries[k]):
+                    inds = [i for i, l in enumerate(b) if l == k]
+                    bind = boundaries[k].index(x0data[0][j])
+                    if bind == 0:
+                        minj = np.argmin(np.array(x1)[inds])
+                        ax.plot([0,np.array(x1)[inds][minj]],[x0data[1][j],np.array(ts)[inds][minj]],'k-')
+                    elif bind == 1:
+                        minj = np.argmin(np.array(x2)[inds])
+                        ax.plot([0,np.array(x2)[inds][minj]],[x0data[1][j],np.array(ts)[inds][minj]],'k-')
+                    if np.array(ts)[inds][minj] == np.min(np.array(ts)[inds]):
+                        bEdgeLine[k][0] = True
+                    if np.array(ts)[inds][minj] == np.max(np.array(ts)[inds]):
+                        bEdgeLine[k][1] = True
+        if j < len(x0data[1]) - 1:
+            ax.plot(0,x0data[2][j],'k^')
+            for k in range(len(boundaries)):
+                if (x0data[0][j] in boundaries[k]) and (x0data[0][j+1] in boundaries[k]):
+                    inds = [i for i, l in enumerate(b) if l == k]
+                    bind = boundaries[k].index(x0data[0][j])
+                    if bind == 0:
+                        minj = np.argmin(np.array(x1)[inds])
+                        ax.plot([0,np.array(x1)[inds][minj]],[x0data[2][j],np.array(ts)[inds][minj]],'k-')
+                    elif bind == 1:
+                        minj = np.argmin(np.array(x2)[inds])
+                        ax.plot([0,np.array(x2)[inds][minj]],[x0data[2][j],np.array(ts)[inds][minj]],'k-')
+                    if np.array(ts)[inds][minj] == np.min(np.array(ts)[inds]):
+                        bEdgeLine[k][0] = True
+                    if np.array(ts)[inds][minj] == np.max(np.array(ts)[inds]):
+                        bEdgeLine[k][1] = True
+    for j in range(len(x1data[1])):
+        if j > 0:
+            ax.plot(1,x1data[1][j],'kv')
+            for k in range(len(boundaries)):
+                if (x1data[0][j] in boundaries[k]) and (x1data[0][j-1] in boundaries[k]):
+                    inds = [i for i, l in enumerate(b) if l == k]
+                    bind = boundaries[k].index(x1data[0][j])
+                    if bind == 0:
+                        maxj = np.argmax(np.array(x1)[inds])
+                        ax.plot([1,np.array(x1)[inds][maxj]],[x1data[1][j],np.array(ts)[inds][maxj]],'k-')
+                    elif bind == 1:
+                        maxj = np.argmax(np.array(x2)[inds])
+                        ax.plot([1,np.array(x2)[inds][maxj]],[x1data[1][j],np.array(ts)[inds][maxj]],'k-')
+                    if np.array(ts)[inds][maxj] == np.min(np.array(ts)[inds]):
+                        bEdgeLine[k][0] = True
+                    if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
+                        bEdgeLine[k][1] = True
+        if j < len(x0data[1]) - 1:
+            ax.plot(1,x1data[2][j],'k^')
+            for k in range(len(boundaries)):
+                if (x1data[0][j] in boundaries[k]) and (x1data[0][j+1] in boundaries[k]):
+                    inds = [i for i, l in enumerate(b) if l == k]
+                    bind = boundaries[k].index(x1data[0][j])
+                    if bind == 0:
+                        maxj = np.argmax(np.array(x1)[inds])
+                        ax.plot([1,np.array(x1)[inds][maxj]],[x1data[2][j],np.array(ts)[inds][maxj]],'k-')
+                    elif bind == 1:
+                        maxj = np.argmax(np.array(x2)[inds])
+                        ax.plot([1,np.array(x2)[inds][maxj]],[x1data[2][j],np.array(ts)[inds][maxj]],'k-')
+                    if np.array(ts)[inds][maxj] == np.min(np.array(ts)[inds]):
+                        bEdgeLine[k][0] = True
+                    if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
+                        bEdgeLine[k][1] = True
+
+    # plot 2-phase region boundaries
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
         ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
         ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
         minj = np.argmin(np.array(ts)[inds])
         maxj = np.argmax(np.array(ts)[inds])
-        if (np.array(ts)[inds][minj] > mint):
+        # plot invariant temperatures
+        if (np.array(ts)[inds][minj] > mint) and not(bEdgeLine[j][0]):
             ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
-        if (np.array(ts)[inds][maxj] < maxt):
+        if (np.array(ts)[inds][maxj] < maxt) and not(bEdgeLine[j][1]):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
+
     ax.set_xlim(0,1)
     ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
     ax.set_xlabel('Mole fraction ' + str(el2))
@@ -105,7 +220,7 @@ def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,m
         inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
         inputFile.write('data file         = ' + datafile + '\n')
 
-def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels):
+def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data):
     writeInputFile(filename,xlab,xlab,0,tlab,tlab,0,pressure,tunit,punit,munit,el1,el2,datafile)
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     fname = 'thermoout.json'
@@ -123,7 +238,7 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
         if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
             labelName.append(phaseName)
     labels.append([[xlab,tlab],'+'.join(labelName)])
-    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
+    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
 atomic_number_map = [
@@ -281,10 +396,12 @@ while True:
                     x2 = []
                     p1 = []
                     p2 = []
+                    x0data = [[],[],[]]
+                    x1data = [[],[],[]]
                     mint = 1e6
                     maxt = 0
                     labels = []
-                    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
+                    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
@@ -323,7 +440,7 @@ while True:
                             if cancelRun:
                                 continue
                             writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
-                            mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels)
+                            mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     refineWindow.close()
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
@@ -337,7 +454,7 @@ while True:
                         elif event =='Add Label':
                             xlab = values['-xlab-']
                             tlab = values['-tlab-']
-                            mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels)
+                            mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data)
                     labelWindow.close()
             setupWindow.close()
         except:
