@@ -249,10 +249,16 @@ subroutine InitGEMSolver
               end do
 
               ! Normalize the mole fractions so that their sum equals unity:
-              dSum = 1D0 / dSum
-              do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                  dMolFraction(i) = dMolFraction(i) * dSum
-              end do
+              if (dSum > 0D0) then
+                  dSum = 1D0 / dSum
+                  do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                      dMolFraction(i) = dMolFraction(i) * dSum
+                  end do
+              else
+                  do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                      dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
+                  end do
+              end if
 
       end do LOOP_CompX
     end if IF_ReinitLoaded
