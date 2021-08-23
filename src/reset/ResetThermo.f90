@@ -185,6 +185,8 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(iSUBLParamData)) deallocate(iSUBLParamData, STAT = INFO)
     i = i + INFO
+    if (allocated(iSUBIMixType)) deallocate(iSUBIMixType, STAT = INFO)
+    i = i + INFO
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then

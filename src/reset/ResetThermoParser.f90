@@ -123,6 +123,10 @@ subroutine ResetThermoParser
     i = i + INFO
     if (allocated(dCoordinationNumberCS)) deallocate(dCoordinationNumberCS, STAT = INFO)
     i = i + INFO
+    if (allocated(iSUBIMixTypeCS)) deallocate(iSUBIMixTypeCS, STAT = INFO)
+    i = i + INFO
+    if (allocated(iSUBIParamDataCS)) deallocate(iSUBIParamDataCS, STAT = INFO)
+    i = i + INFO
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then
