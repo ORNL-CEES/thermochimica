@@ -97,6 +97,4 @@ program thermo
     ! Call the debugger:
     call ThermoDebug
 
-    call RunKaye
-
 end program thermo
