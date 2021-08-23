@@ -255,7 +255,6 @@ subroutine InitGEMSolver
                       dMolFraction(i) = dMolFraction(i) * dSum
                   end do
               else
-                  print *, dSum
                   do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
                       dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
                   end do
