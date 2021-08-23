@@ -125,55 +125,60 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
 
     ! Now look through possible tags to assign variables
     select case (cTag)
-    case ('p','P','pressure','press','Pressure','Press')
-      iColon1 = 0
-      iColon2 = 0
-      iColon1 = INDEX(cValue,':')
-      if (iColon1 > 0) then
-        iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
-        read(cValue(1:iColon1-1),*,IOSTAT = INFO) dPressLow
-        if (iColon2 > iColon1) then
-          read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dPressHigh
-          read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaP
+      case ('p','P','pressure','press','Pressure','Press')
+        iColon1 = 0
+        iColon2 = 0
+        iColon1 = INDEX(cValue,':')
+        if (iColon1 > 0) then
+          iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
+          read(cValue(1:iColon1-1),*,IOSTAT = INFO) dPressLow
+          if (iColon2 > iColon1) then
+            read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dPressHigh
+            read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaP
+          else
+            read(cValue(iColon1+1:),*,IOSTAT = INFO) dPressHigh
+            if (dPressHigh >  dPressLow) dDeltaP =  1
+            if (dPressHigh <  dPressLow) dDeltaP = -1
+            if (dPressHigh == dPressLow) dDeltaP =  0
+          end if
         else
-          read(cValue(iColon1+1:),*,IOSTAT = INFO) dPressHigh
-          if (dPressHigh >  dPressLow) dDeltaP =  1
-          if (dPressHigh <  dPressLow) dDeltaP = -1
-          if (dPressHigh == dPressLow) dDeltaP =  0
+          read(cValue,*,IOSTAT = INFO) dPressLow
+          dPressHigh = dPressLow
+          dDeltaP = 0
         end if
-      else
-        read(cValue,*,IOSTAT = INFO) dPressLow
-        dPressHigh = dPressLow
-        dDeltaP = 0
-      end if
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A30,I10)') 'Cannot read pressure on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-      lPressure = .TRUE.
-    case ('t','temp','temperature','T','Temp','Temperature')
-      iColon1 = 0
-      iColon2 = 0
-      iColon1 = INDEX(cValue,':')
-      if (iColon1 > 0) then
-        iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
-        read(cValue(1:iColon1-1),*,IOSTAT = INFO) dTempLow
-        if (iColon2 > iColon1) then
-          read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dTempHigh
-          read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaT
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A30,I10)') 'Cannot read pressure on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        lPressure = .TRUE.
+      case ('t','temp','temperature','T','Temp','Temperature')
+        iColon1 = 0
+        iColon2 = 0
+        iColon1 = INDEX(cValue,':')
+        if (iColon1 > 0) then
+          iColon2 = INDEX(cValue(iColon1+1:),':') + iColon1
+          read(cValue(1:iColon1-1),*,IOSTAT = INFO) dTempLow
+          if (iColon2 > iColon1) then
+            read(cValue(iColon1+1:iColon2-1),*,IOSTAT = INFO) dTempHigh
+            read(cValue(iColon2+1:),*,IOSTAT = INFO) dDeltaT
+          else
+            read(cValue(iColon1+1:),*,IOSTAT = INFO) dTempHigh
+            if (dTempHigh >  dTempLow) dDeltaT =  10
+            if (dTempHigh <  dTempLow) dDeltaT = -10
+            if (dTempHigh == dTempLow) dDeltaT =  0
+          end if
         else
-          read(cValue(iColon1+1:),*,IOSTAT = INFO) dTempHigh
-          if (dTempHigh >  dTempLow) dDeltaT =  10
-          if (dTempHigh <  dTempLow) dDeltaT = -10
-          if (dTempHigh == dTempLow) dDeltaT =  0
+          read(cValue,*,IOSTAT = INFO) dTempLow
+          dTempHigh = dTempLow
+          dDeltaT = 0
         end if
         if (INFO /= 0) then
           INFOThermo = 44
           print *, 'Cannot read temperature on line: ', iCounter
           return
-        endif
+        end if
         lTemperature = .TRUE.
       case ('m','mass','M','Mass')
         read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
@@ -182,7 +187,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A26,I10)') 'Cannot read mass on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
         lMass = .TRUE.
       case ('p_unit','pressure_unit','Pressure_unit','Pressure_Unit','P_unit','pressure unit',&
         'Pressure Unit','Pressure unit','press_unit','press unit','Press unit','Press Unit',&
@@ -196,7 +201,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A35,I10)') 'Cannot read pressure unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
         lPressureUnit = .TRUE.
       case ('t_unit','temperature_unit','Temperature_unit','Temperature_Unit','T_unit','T_Unit',&
         'temperature unit','Temperature Unit','Temperature unit','temp_unit','temp unit',&
@@ -210,7 +215,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A38,I10)') 'Cannot read temperature unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
         lTemperatureUnit = .TRUE.
       case ('m_unit','mass_unit','Mass_unit','Mass_Unit','m unit','mass unit','Mass unit','Mass Unit',&
         'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
@@ -220,7 +225,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A31,I10)') 'Cannot read mass unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
         lMassUnit = .TRUE.
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
@@ -230,7 +235,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
         lData = .TRUE.
       case ('print_mode','Print_mode','Print_Mode',&
         'print mode','Print mode','Print Mode')
@@ -240,7 +245,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A32,I10)') 'Cannot read print mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
       case ('debug_mode','Debug_mode','Debug_Mode',&
         'debug mode','Debug mode','Debug Mode')
         read(cValue,*,IOSTAT = INFO) lDebugMode
@@ -249,7 +254,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A32,I10)') 'Cannot read debug mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
       case ('reinit','Reinit','reinitialization','Reinitialization',&
         'reinit_mode','Reinit_mode','Reinit_Mode','reinitialization_mode','Reinitialization_mode','Reinitialization_Mode',&
         'reinit mode','Reinit mode','Reinit Mode','reinitialization mode','Reinitialization mode','Reinitialization Mode')
@@ -259,7 +264,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A43,I10)') 'Cannot read reinitialization mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
       case ('stepTogether','steptogether','StepTogether','step_Together',&
         'step_together','Step_Together','step Together','step together','Step Together')
         read(cValue,*,IOSTAT = INFO) lStepTogether
@@ -268,7 +273,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A40,I10)') 'Cannot read step-together mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
       case ('writeJSON','writejson','WriteJSON','write_JSON',&
         'write_json','Write_JSON','write JSON','write json','Write JSON')
         read(cValue,*,IOSTAT = INFO) lWriteJSON
@@ -277,66 +282,12 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
-        endif
+        end if
       case default
         write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)
-        return
-      end if
-      lTemperatureUnit = .TRUE.
-    case ('m_unit','mass_unit','Mass_unit','Mass_Unit','m unit','mass unit','Mass unit','Mass Unit',&
-      'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
-      read(cValue,*,IOSTAT = INFO) cInputUnitMass
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A31,I10)') 'Cannot read mass unit on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-      lMassUnit = .TRUE.
-    case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
-      'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
-      read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-      lData = .TRUE.
-    case ('print_mode','Print_mode','Print_Mode',&
-      'print mode','Print mode','Print Mode')
-      read(cValue,*,IOSTAT = INFO) iPrintResultsMode
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A32,I10)') 'Cannot read print mode on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-    case ('debug_mode','Debug_mode','Debug_Mode',&
-      'debug mode','Debug mode','Debug Mode')
-      read(cValue,*,IOSTAT = INFO) lDebugMode
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A32,I10)') 'Cannot read debug mode on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-    case ('reinit','Reinit','reinitialization','Reinitialization',&
-      'reinit_mode','Reinit_mode','Reinit_Mode','reinitialization_mode','Reinitialization_mode','Reinitialization_Mode',&
-      'reinit mode','Reinit mode','Reinit Mode','reinitialization mode','Reinitialization mode','Reinitialization Mode')
-      read(cValue,*,IOSTAT = INFO) lReinitRequested
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A32,I10)') 'Cannot read reinitialization mode on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-    case default
-      write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
-      print *,  trim(cErrMsg)
-    end select
-  end do LOOP_ReadFile
+    endselect
+  enddo LOOP_ReadFile
 
   ! Now check that all required variables have been set
   if (.NOT. lPressure) then
@@ -374,55 +325,55 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   end if
 
   select case (cInputUnitTemperature)
-  case ('K')
-      ! Do nothing.
-  case ('C')
-      dTempLow  = dTempLow  + 273.15D0
-      dTempHigh = dTempHigh + 273.15D0
-      cInputUnitTemperature = 'K'
-  case ('F')
-      dTempLow  = (dTempLow  + 459.67D0) * (5D0/9D0)
-      dTempHigh = (dTempHigh + 459.67D0) * (5D0/9D0)
-      dDeltaT   = dDeltaT * (5D0/9D0)
-      cInputUnitTemperature = 'K'
-  case ('R')
-      dTempLow  = dTempLow  * (5D0/9D0)
-      dTempHigh = dTempHigh * (5D0/9D0)
-      dDeltaT   = dDeltaT * (5D0/9D0)
-      cInputUnitTemperature = 'K'
-  case default
-      ! Temperature unit not recognized.
-      INFOThermo = 4
-      return
+      case ('K')
+          ! Do nothing.
+      case ('C')
+          dTempLow  = dTempLow  + 273.15D0
+          dTempHigh = dTempHigh + 273.15D0
+          cInputUnitTemperature = 'K'
+      case ('F')
+          dTempLow  = (dTempLow  + 459.67D0) * (5D0/9D0)
+          dTempHigh = (dTempHigh + 459.67D0) * (5D0/9D0)
+          dDeltaT   = dDeltaT * (5D0/9D0)
+          cInputUnitTemperature = 'K'
+      case ('R')
+          dTempLow  = dTempLow  * (5D0/9D0)
+          dTempHigh = dTempHigh * (5D0/9D0)
+          dDeltaT   = dDeltaT * (5D0/9D0)
+          cInputUnitTemperature = 'K'
+      case default
+          ! Temperature unit not recognized.
+          INFOThermo = 4
+          return
   end select
 
   select case (cInputUnitPressure)
-  case ('atm')
-      ! Do nothing.
-  case ('psi')
-      dPressLow  = dPressLow  * 0.068045957064D0
-      dPressHigh = dPressHigh * 0.068045957064D0
-      dDeltaP    = dDeltaP * 0.068045957064D0
-      cInputUnitPressure = 'atm'
-  case ('bar')
-      dPressLow  = dPressLow  * 0.98692316931D0
-      dPressHigh = dPressHigh * 0.98692316931D0
-      dDeltaP    = dDeltaP * 0.98692316931D0
-      cInputUnitPressure = 'atm'
-  case ('Pa')
-      dPressLow  = dPressLow  * 0.009869231693D0 * 1D-3
-      dPressHigh = dPressHigh * 0.009869231693D0 * 1D-3
-      dDeltaP    = dDeltaP * 0.009869231693D0 * 1D-3
-      cInputUnitPressure = 'atm'
-  case ('kPa')
-      dPressLow  = dPressLow  * 0.009869231693D0
-      dPressHigh = dPressHigh * 0.009869231693D0
-      dDeltaP    = dDeltaP * 0.009869231693D0
-      cInputUnitPressure = 'atm'
-  case default
-      ! Pressure unit not recognized.
-      INFOThermo = 4
-      return
+      case ('atm')
+          ! Do nothing.
+      case ('psi')
+          dPressLow  = dPressLow  * 0.068045957064D0
+          dPressHigh = dPressHigh * 0.068045957064D0
+          dDeltaP    = dDeltaP * 0.068045957064D0
+          cInputUnitPressure = 'atm'
+      case ('bar')
+          dPressLow  = dPressLow  * 0.98692316931D0
+          dPressHigh = dPressHigh * 0.98692316931D0
+          dDeltaP    = dDeltaP * 0.98692316931D0
+          cInputUnitPressure = 'atm'
+      case ('Pa')
+          dPressLow  = dPressLow  * 0.009869231693D0 * 1D-3
+          dPressHigh = dPressHigh * 0.009869231693D0 * 1D-3
+          dDeltaP    = dDeltaP * 0.009869231693D0 * 1D-3
+          cInputUnitPressure = 'atm'
+      case ('kPa')
+          dPressLow  = dPressLow  * 0.009869231693D0
+          dPressHigh = dPressHigh * 0.009869231693D0
+          dDeltaP    = dDeltaP * 0.009869231693D0
+          cInputUnitPressure = 'atm'
+      case default
+          ! Pressure unit not recognized.
+          INFOThermo = 4
+          return
   end select
 
 end subroutine ParseInput
