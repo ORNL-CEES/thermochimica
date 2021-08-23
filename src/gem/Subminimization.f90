@@ -476,7 +476,7 @@ subroutine SubMinNewton(iSolnPhaseIndex)
             dHessian(j,j)     = 1D0 / dMolFraction(i)
             dHessian(nEqn,j)  = -1D0
             dHessian(j,nEqn)  = -1D0
-            dRHS(j)           = dDrivingForce - (dChemicalPotential(i) + 1 - dChemicalPotentialStar(j))
+            dRHS(j)           = dDrivingForce - (dChemicalPotential(i) + 1D0 - dChemicalPotentialStar(j))
             dRHS(nEqn)        = dRHS(nEqn) + dMolFraction(i)
         end do
 
