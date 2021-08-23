@@ -307,12 +307,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dPowXij = 0.75D0
             dPowYi  = 0.5D0
         end if
-        dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
-                        / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
-        if (dSum == 0) then
-            dEntropy = 100D0
-        else
-            dEntropy = dEntropy + DLOG(dMolFraction(l) / dSum)
+        
+        if (.NOT. (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll) == 0D0)) then
+            dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
+                            / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
+            if (dSum == 0) then
+                dEntropy = 100D0
+            else
+                dEntropy = dEntropy + DLOG(dMolFraction(l) / dSum)
+            end if
         end if
 
         dRef = dStdGibbsEnergy(l)
