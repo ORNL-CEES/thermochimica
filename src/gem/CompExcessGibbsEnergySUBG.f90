@@ -94,8 +94,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     iFirst = nSpeciesPhase(iSolnIndex-1) + 1
     iLast  = nSpeciesPhase(iSolnIndex)
     iSPI = iPhaseSublattice(iSolnIndex)
-    nSub1 = nSublatticeElements(iSPI,1)
-    nSub2 = nSublatticeElements(iSPI,2)
+    nSub1 = nConstituentSublattice(iSPI,1)
+    nSub2 = nConstituentSublattice(iSPI,2)
 
     ! Allocate allocatable arrays:
     if (allocated(dXi)) deallocate(dXi)

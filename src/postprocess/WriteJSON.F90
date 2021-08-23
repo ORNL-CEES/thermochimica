@@ -296,8 +296,8 @@ subroutine WriteJSONMQM(iSolnIndex)
     iFirst = nSpeciesPhase(iSolnIndex-1) + 1
     iLast  = nSpeciesPhase(iSolnIndex)
     iSPI = iPhaseSublattice(iSolnIndex)
-    nSub1 = nSublatticeElements(iSPI,1)
-    nSub2 = nSublatticeElements(iSPI,2)
+    nSub1 = nConstituentSublattice(iSPI,1)
+    nSub2 = nConstituentSublattice(iSPI,2)
 
     ! Allocate allocatable arrays:
     if (allocated(dXi)) deallocate(dXi)
@@ -469,8 +469,8 @@ subroutine WriteJSONMQM(iSolnIndex)
         k = i + 1 - iFirst
         a = iPairID(iSPI, k, 1)
         b = iPairID(iSPI, k, 2)
-        x = iPairID(iSPI, k, 3) - nSublatticeElements(iSPI,1)
-        y = iPairID(iSPI, k, 4) - nSublatticeElements(iSPI,1)
+        x = iPairID(iSPI, k, 3) - nConstituentSublattice(iSPI,1)
+        y = iPairID(iSPI, k, 4) - nConstituentSublattice(iSPI,1)
         write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         write(1,*) '          "mole fraction":', dMolFraction(i), ","
         write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
