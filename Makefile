@@ -22,14 +22,16 @@
 ## ===================
 AR          = ar
 FC          = gfortran
+CC          = g++
 FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+CCFLAGS     = -std=gnu++11
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
 		LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
 		# link flags for linux users:
-		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+		LDFLAGS     =  -g -O0 -fno-automatic -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
@@ -64,17 +66,28 @@ VPATH				= $(SHARED_DIR)
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o
+MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o CalculateCompositionSUBG.o
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
-## SHARED LIBRARIES:
+## LIBRARIES:
 ## =================
 TC_LIB      = libthermochimica.a
 SHARED_SRC  = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.f90)))
+SHARED_SRCF = $(foreach dir,$(SHARED_DIR),$(notdir $(wildcard $(dir)/*.F90)))
 SHARED_OBJ  = $(SHARED_SRC:.f90=.o)
+SHARED_OBJ += $(SHARED_SRCF:.F90=.o)
 SHARED_LNK  = $(addprefix $(OBJ_DIR)/,$(SHARED_OBJ))
 SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
+
+## =================
+## C interface library:
+## =================
+C_SRC       = Thermochimica-c.c
+C_OBJ       = $(C_SRC:.c=.o)
+C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
+TC-C_LIB    = libthermoc.a
+C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -94,7 +107,6 @@ DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 
-
 ## =============
 ## WEEKLY TESTS:
 ## =============
@@ -107,7 +119,7 @@ WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 ## =======
 ## COMPILE
 ## =======
-all:  directories $(MODS_LNK) $(SHARED_LNK) $(SHARED_LIB) $(EXEC_LNK) $(EXE_BIN)
+all:  directories $(MODS_LNK) $(SHARED_LNK) $(SHARED_LIB) $(EXEC_LNK) $(EXE_BIN) $(C_LNK) $(C_LIB)
 
 directories: ${OBJ_DIR} ${BIN_DIR}
 
@@ -123,10 +135,19 @@ ${BIN_DIR}:
 $(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.F90
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
+	$(AR) rcs $@ $^
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CCFLAGS) -c $< -o $@
+
+$(C_LIB): $(C_LNK)
 	$(AR) rcs $@ $^
 
 $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
@@ -168,6 +189,12 @@ install: $(SHARED_LIB)
 	install -m 644 $(SHARED_LIB) $(DESTDIR)$(PREFIX)/lib/
 	install -d $(DESTDIR)$(PREFIX)/include/
 	install -m 644 $(OBJ_DIR)/*.mod $(DESTDIR)$(PREFIX)/include/
+
+c-thermo: $(C_LIB)
+	install -d $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(C_LIB) $(DESTDIR)$(PREFIX)/lib/
+
+libraries: install c-thermo
 
 ## =============
 ## DOCUMENTATION

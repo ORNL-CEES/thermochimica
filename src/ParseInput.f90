@@ -169,50 +169,117 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           if (dTempHigh <  dTempLow) dDeltaT = -10
           if (dTempHigh == dTempLow) dDeltaT =  0
         end if
-      else
-        read(cValue,*,IOSTAT = INFO) dTempLow
-        dTempHigh = dTempLow
-        dDeltaT = 0
-      end if
-      if (INFO /= 0) then
-        INFOThermo = 44
-        print *, 'Cannot read temperature on line: ', iCounter
-        return
-      end if
-      lTemperature = .TRUE.
-    case ('m','mass','M','Mass')
-      read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A26,I10)') 'Cannot read mass on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-      lMass = .TRUE.
-    case ('p_unit','pressure_unit','Pressure_unit','Pressure_Unit','P_unit','pressure unit',&
-      'Pressure Unit','Pressure unit','press_unit','press unit','Press unit','Press Unit',&
-      'p unit','P unit','P Unit',&
-      'p_units','pressure_units','Pressure_units','Pressure_Units','P_units','P_Units','pressure units',&
-        'Pressure Units','Pressure units','press_units','press units','Press units','Press Units'&
-        'p units','P units','P Units')
-      read(cValue,*,IOSTAT = INFO) cInputUnitPressure
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A35,I10)') 'Cannot read pressure unit on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      end if
-      lPressureUnit = .TRUE.
-    case ('t_unit','temperature_unit','Temperature_unit','Temperature_Unit','T_unit','T_Unit',&
-      'temperature unit','Temperature Unit','Temperature unit','temp_unit','temp unit',&
-      'Temp unit','Temp Unit','t unit','T unit','T Unit',&
-      't_units','temperature_units','Temperature_units','Temperature_Units','T_units','T_Units',&
-        'temperature units','Temperature Units','Temperature units','temp_units','temp units',&
-        'Temp units','Temp Units','t units','T units','T Units')
-      read(cValue,*,IOSTAT = INFO) cInputUnitTemperature
-      if (INFO /= 0) then
-        INFOThermo = 44
-        write (cErrMsg, '(A38,I10)') 'Cannot read temperature unit on line: ', iCounter
+        if (INFO /= 0) then
+          INFOThermo = 44
+          print *, 'Cannot read temperature on line: ', iCounter
+          return
+        endif
+        lTemperature = .TRUE.
+      case ('m','mass','M','Mass')
+        read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A26,I10)') 'Cannot read mass on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+        lMass = .TRUE.
+      case ('p_unit','pressure_unit','Pressure_unit','Pressure_Unit','P_unit','pressure unit',&
+        'Pressure Unit','Pressure unit','press_unit','press unit','Press unit','Press Unit',&
+        'p unit','P unit','P Unit',&
+        'p_units','pressure_units','Pressure_units','Pressure_Units','P_units','P_Units','pressure units',&
+          'Pressure Units','Pressure units','press_units','press units','Press units','Press Units'&
+          'p units','P units','P Units')
+        read(cValue,*,IOSTAT = INFO) cInputUnitPressure
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A35,I10)') 'Cannot read pressure unit on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+        lPressureUnit = .TRUE.
+      case ('t_unit','temperature_unit','Temperature_unit','Temperature_Unit','T_unit','T_Unit',&
+        'temperature unit','Temperature Unit','Temperature unit','temp_unit','temp unit',&
+        'Temp unit','Temp Unit','t unit','T unit','T Unit',&
+        't_units','temperature_units','Temperature_units','Temperature_Units','T_units','T_Units',&
+          'temperature units','Temperature Units','Temperature units','temp_units','temp units',&
+          'Temp units','Temp Units','t units','T units','T Units')
+        read(cValue,*,IOSTAT = INFO) cInputUnitTemperature
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A38,I10)') 'Cannot read temperature unit on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+        lTemperatureUnit = .TRUE.
+      case ('m_unit','mass_unit','Mass_unit','Mass_Unit','m unit','mass unit','Mass unit','Mass Unit',&
+        'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
+        read(cValue,*,IOSTAT = INFO) cInputUnitMass
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A31,I10)') 'Cannot read mass unit on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+        lMassUnit = .TRUE.
+      case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
+        'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
+        read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+        lData = .TRUE.
+      case ('print_mode','Print_mode','Print_Mode',&
+        'print mode','Print mode','Print Mode')
+        read(cValue,*,IOSTAT = INFO) iPrintResultsMode
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A32,I10)') 'Cannot read print mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('debug_mode','Debug_mode','Debug_Mode',&
+        'debug mode','Debug mode','Debug Mode')
+        read(cValue,*,IOSTAT = INFO) lDebugMode
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A32,I10)') 'Cannot read debug mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('reinit','Reinit','reinitialization','Reinitialization',&
+        'reinit_mode','Reinit_mode','Reinit_Mode','reinitialization_mode','Reinitialization_mode','Reinitialization_Mode',&
+        'reinit mode','Reinit mode','Reinit Mode','reinitialization mode','Reinitialization mode','Reinitialization Mode')
+        read(cValue,*,IOSTAT = INFO) lReinitRequested
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A43,I10)') 'Cannot read reinitialization mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('stepTogether','steptogether','StepTogether','step_Together',&
+        'step_together','Step_Together','step Together','step together','Step Together')
+        read(cValue,*,IOSTAT = INFO) lStepTogether
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A40,I10)') 'Cannot read step-together mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('writeJSON','writejson','WriteJSON','write_JSON',&
+        'write_json','Write_JSON','write JSON','write json','Write JSON')
+        read(cValue,*,IOSTAT = INFO) lWriteJSON
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case default
+        write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)
         return
       end if

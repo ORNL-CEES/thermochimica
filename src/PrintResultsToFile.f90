@@ -1,47 +1,4 @@
-
-    !-------------------------------------------------------------------------------------------------------------
-    !
-    !> \file    PrintResults.f90
-    !> \brief   Print results to screen in a style similar to FactSage.
-    !> \author  M.H.A. Piro
-    !> \date    January 14, 2013
-    !
-    !
-    ! Revisions:
-    ! ==========
-    !
-    !   Date            Programmer          Description of change
-    !   ----            ----------          ---------------------
-    !   01/14/2013      M.H.A. Piro         Original code.
-    !   02/05/2013      M.H.A. Piro         Sort solution species by the mole fraction and apply a cut off
-    !                                        value.
-    !   02/05/2013      M.H.A. Piro         Apply variable formatting to pure condensed phases to constrain
-    !                                        output to 5 significant figures.
-    !
-    !
-    !
-    ! Purpose:
-    ! ========
-    !
-    !> \details The purpose of this subroutine is to print the results to screen in a style similar to FactSage.
-    !
-    !
-    ! Pertinent variables:
-    ! ====================
-    !
-    ! nConPhases        An integer scalar representing the number of stable pure condensed phases.
-    ! nSolnPhases       An integer scalar representing the number of stable solution phases.
-    ! iAssemblage       An integer vector representing the absolute indices of stable phases.
-    ! dMolesPhase       A double real vector representing the number of moles for each stable phase in the system.
-    ! dMolFraction      A double real vector representing the mole fraction of each species in the system.
-    ! dGibbsEnergySys   A double real scalar representing the integral Gibbs energy of the system.
-    ! dGEMFunctionNorm  A double real scalar representing the functional norm applied in Gibbs energy.
-    ! dCutOff           A double real scalar representing the minimum mole fraction to be cut-off from output.
-    !
-    !-------------------------------------------------------------------------------------------------------------
-
-
-subroutine PrintResults
+subroutine PrintResultsToFile
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -51,64 +8,72 @@ subroutine PrintResults
     implicit none
 
     integer :: i
+    logical :: exist
 
+    iPrintResultsMode     = 2
 
     ! Return if the print results mode is zero.
     if (iPrintResultsMode == 0) return
 
     ! Only proceed for a successful calculation:
     IF_PASS: if (INFOThermo == 0) then
+      inquire(file="/home/max/proj/thermoout.txt", exist=exist)
+      if (exist) then
+        open(1, file='/home/max/proj/thermoout.txt', status='old', position='append', action='write')
+      else
+        open(1, file='/home/max/proj/thermoout.txt', status='new', action='write')
+      end if
 
-        print *
-        print *, '======================================================='
-        print *, '|                THERMOCHIMICA RESULTS                |'
-        print *, '======================================================='
-        print *
+        write(1,*)
+        write(1,*) '======================================================='
+        write(1,*) '|                THERMOCHIMICA RESULTS                |'
+        write(1,*) '======================================================='
+        write(1,*)
 
         ! Print the results for solution phases:
-        call PrintResultsSolnPhase
+        call PrintResultsSolnPhaseToFile
 
         ! Print the results for pure condensed phases:
-        call PrintResultsPureConPhase
+        call PrintResultsPureConPhaseToFile
 
-        print *, '======================================================='
-        print *, '|                  System properties                  |'
-        print *, '======================================================='
-        print *
+        write(1,*) '======================================================='
+        write(1,*) '|                  System properties                  |'
+        write(1,*) '======================================================='
+        write(1,*)
 
         if ((dPressure < 1D3).AND.(dPressure > 1D-1)) then
-            print '(A16,F10.2,A4)', 'Temperature = ', dTemperature, ' [K]'
-            print '(A16,F10.4,A6)', 'Pressure    = ', dPressure, ' [atm]'
+            write(1,'(A16,F10.2,A4)') 'Temperature = ', dTemperature, ' [K]'
+            write(1,'(A16,F10.4,A6)') 'Pressure    = ', dPressure, ' [atm]'
         else
-            print '(A16,F11.2,A4)', 'Temperature = ', dTemperature, ' [K]'
-            print '(A16,ES11.3,A6)', 'Pressure    = ', dPressure, ' [atm]'
+            write(1,'(A16,F11.2,A4)') 'Temperature = ', dTemperature, ' [K]'
+            write(1,'(A16,ES11.3,A6)') 'Pressure    = ', dPressure, ' [atm]'
         end if
-        print *
-        print *, ' System Component ', ' Mass [mol]  ', 'Chemical potential [J/mol]'
-        print *, ' ---------------- ', ' ----------  ', '--------------------------'
+        write(1,*)
+        write(1,*) ' System Component ', ' Mass [mol]  ', 'Chemical potential [J/mol]'
+        write(1,*) ' ---------------- ', ' ----------  ', '--------------------------'
         do i = 1, nElements
-            print '(A14,A1,ES15.4,A1, ES14.6)', cElementName(i), ' ', dMolesElement(i), ' ', &
+            write(1,'(A14,A1,ES15.4,A1, ES14.6)') cElementName(i), ' ', dMolesElement(i), ' ', &
                 dElementPotential(i) * dIdealConstant * dTemperature
         end do
-        print *
-        print '(A26,ES12.5,A4)', ' Integral Gibbs energy = ', dGibbsEnergySys, ' [J]'
+        write(1,*)
+        write(1,'(A26,ES12.5,A4)') ' Integral Gibbs energy = ', dGibbsEnergySys, ' [J]'
 
         if (iPrintResultsMode == 2) then
-            print '(A26, ES12.5,A11)', ' Functional norm       = ', dGEMFunctionNorm, ' [unitless]'
+            write(1,'(A26, ES12.5,A11)') ' Functional norm       = ', dGEMFunctionNorm, ' [unitless]'
         end if
 
         ! Provide additional details if in advanced post-processing mode:
         if (iPrintResultsMode == 2) then
-            print *
-            print '(A38,I3)', ' # of stable pure condensed phases = ', nConPhases
-            print '(A38,I3)', ' # of stable solution phases       = ', nSolnPhases
+            write(1,*)
+            write(1,'(A38,I3)') ' # of stable pure condensed phases = ', nConPhases
+            write(1,'(A38,I3)') ' # of stable solution phases       = ', nSolnPhases
 
         end if
 
-        print *
-        print *, '======================================================='
-        print *
-
+        write(1,*)
+        write(1,*) '======================================================='
+        write(1,*)
+        close (1)
     else
         ! Do nothing, let the debugger take over.
 
@@ -116,23 +81,9 @@ subroutine PrintResults
 
     return
 
-end subroutine PrintResults
+end subroutine PrintResultsToFile
 
-!-------------------------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------------------------
-
-    !---------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! ========
-    !
-    ! The purpose of this subroutine is to print the results from solution
-    ! phases.
-    !
-    !---------------------------------------------------------------------------
-
-subroutine PrintResultsSolnPhase
+subroutine PrintResultsSolnPhaseToFile
 
     USE ModuleThermo
     USE ModuleGEMSolver
@@ -183,7 +134,7 @@ subroutine PrintResultsSolnPhase
         ! Print solution phase name:
         !if ((dMolesPhase(k) >= 1D4).OR.(dMolesPhase(k) <= 1D-1)) then
         if ((dMolesPhase(k) >= 999.95).OR.(dMolesPhase(k) <= 1D-1)) then
-            print '(A3,ES10.4,A5,A12)', cDummy, dMolesPhase(k), ' mol ', cSolnPhaseName(l)
+            write(1,'(A3,ES10.4,A5,A12)') cDummy, dMolesPhase(k), ' mol ', cSolnPhaseName(l)
         elseif ((dMolesPhase(k) < 0.99949).AND.(dMolesPhase(k) > 1D-1)) then
             ! Format the output so that there are 5 significant figures (k = 6 because it includes ".").
             i = 7
@@ -193,7 +144,7 @@ subroutine PrintResultsSolnPhase
             write (FMTB, *) i
             dTemp = dMolesPhase(k)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A6,A7,A5,A15)', cDummy, FMTA, ' mol ', cSolnPhaseName(l)
+            write(1,'(A6,A7,A5,A15)') cDummy, FMTA, ' mol ', cSolnPhaseName(l)
         else
             i = 6
             write (FMTA, *) i
@@ -202,7 +153,7 @@ subroutine PrintResultsSolnPhase
             write (FMTB, *) i
             dTemp = dMolesPhase(k)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A7,A6,A5,A15)', cDummy, FMTA, ' mol ', cSolnPhaseName(l)
+            write(1,'(A7,A6,A5,A15)') cDummy, FMTA, ' mol ', cSolnPhaseName(l)
         end if
 
         if ((cSolnPhaseType(l) == 'SUBLM') .OR. (cSolnPhaseType(l) == 'RKMPM')) then
@@ -212,19 +163,19 @@ subroutine PrintResultsSolnPhase
             StructureFactor = dCoeffGibbsMagnetic(iFirst,3)
             if (Tcritical < 0D0) then
                 Tcritical = -Tcritical * StructureFactor
-                print '(A27,F10.2,A4)', 'Neel temperature = ', Tcritical, ' [K]'
+                write(1,'(A27,F10.2,A4)') 'Neel temperature = ', Tcritical, ' [K]'
             else
-                print '(A28,F10.2,A4)', 'Curie temperature = ', Tcritical, ' [K]'
+                write(1,'(A28,F10.2,A4)') 'Curie temperature = ', Tcritical, ' [K]'
             end if
             if (B < 0D0) then
                 B         = -B * StructureFactor
             end if
-            print '(A35,F10.5)', 'Magnetic moment per atom = ', B
+            write(1,'(A35,F10.5)') 'Magnetic moment per atom = ', B
         end if
 
         if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
             call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
-            print *, '   Quadruplet fractions:'
+            write(1,*) 'Quadruplet fractions:'
         end if
 
         if (allocated(iTempSpecies)) deallocate(iTempSpecies)
@@ -234,27 +185,31 @@ subroutine PrintResultsSolnPhase
         allocate(iTempSpecies(k), dTempSpecies(k))
         nCutOff = k
         select case (cSolnPhaseType(l))
-        case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
-            ! Initialize temporary variables:
-            dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
 
-            ! Sort species in phase:
-            call SortPick(k, dTempSpecies, iTempSpecies)
+            case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
 
-            LOOP_CutOffX: do i = 1, k
-                ! Convert relative species index to an absolute index:
-                c = iTempSpecies(i) + iFirst - 1
+                ! Initialize temporary variables:
+                dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
 
-                if (dMolFraction(c) < dCutOff) then
-                    nCutOff = i - 1
-                    exit LOOP_CutOffX
-                end if
-            end do LOOP_CutOffX
-        case default
-            ! The species in this phase will not be sorted.
-            do i = 1, k
-                iTempSpecies(i) = i
-            end do
+                ! Sort species in phase:
+                call SortPick(k, dTempSpecies, iTempSpecies)
+
+                LOOP_CutOffX: do i = 1, k
+                    ! Convert relative species index to an absolute index:
+                    c = iTempSpecies(i) + iFirst - 1
+
+                    if (dMolFraction(c) < dCutOff) then
+                        nCutOff = i - 1
+                        exit LOOP_CutOffX
+                    end if
+                end do LOOP_CutOffX
+
+            case default
+                ! The species in this phase will not be sorted.
+                do i = 1, k
+                    iTempSpecies(i) = i
+                end do
+
         end select
 
         ! The minimum number of species that will be printed is 2:
@@ -263,9 +218,9 @@ subroutine PrintResultsSolnPhase
         ! First species:
         c = iTempSpecies(1) + iFirst - 1
         if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '{ ', dmolFraction(c), ' ', cSpeciesName(c)
+            write(1,'(A20,F7.5,A3,A35)') '{ ', dmolFraction(c), ' ', cSpeciesName(c)
         else
-            print '(A20,ES10.4,A35)', '{ ', dmolFraction(c), cSpeciesName(c)
+            write(1,'(A20,ES10.4,A35)') '{ ', dmolFraction(c), cSpeciesName(c)
         end if
 
         k    = LEN_TRIM(cSpeciesName(iFirst)) - 1
@@ -275,9 +230,9 @@ subroutine PrintResultsSolnPhase
         do i = iFirst + 1, iFirst + nCutOff - 2
             c = iTempSpecies(i-iFirst+1) + iFirst - 1
             if (dmolFraction(c) >= 1D-1) then
-                print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cSpeciesName(c)
+                write(1,'(A20,F7.5,A3,A35)') '+ ', dmolFraction(c), ' ', cSpeciesName(c)
             else
-                print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cSpeciesName(c)
+                write(1,'(A20,ES10.4,A35)') '+ ', dmolFraction(c), cSpeciesName(c)
             end if
             k        = LEN_TRIM(cSpeciesName(c)) - 1
             nMax = MAX(k, nMax)
@@ -291,11 +246,11 @@ subroutine PrintResultsSolnPhase
         cDummyB(nMax+2:nMax+3) = '}'
 
         if (dmolFraction(c) >= 1D-1) then
-            print '(A20,F7.5,A3,A35)', '+ ', dmolFraction(c), ' ', cDummyB
+            write(1,'(A20,F7.5,A3,A35)') '+ ', dmolFraction(c), ' ', cDummyB
         else
-            print '(A20,ES10.4,A35)', '+ ', dmolFraction(c), cDummyB
+            write(1,'(A20,ES10.4,A35)') '+ ', dmolFraction(c), cDummyB
         end if
-        print *
+        write(1,*)
 
         ! Check if this phase is represented by the Compound Energy Formalism:
         IF_SUBL: if ((csolnPhaseType(l) == 'SUBL').OR.(csolnPhaseType(l) == 'SUBLM')) then
@@ -303,12 +258,12 @@ subroutine PrintResultsSolnPhase
             ! Store the index # of the charged phase:
             iChargedPhaseID = iPhaseSublattice(l)
 
-            print *, '      ------------------------------------------------'
+            write(1,*) '      ------------------------------------------------'
 
             ! Loop through sublattices:
             LOOP_Sub: do s = 1, nSublatticePhase(iChargedPhaseID)
 
-                print '(A18,I1,A30,F6.3)', 'Sublattice ', s, '; stoichiometric coefficient: ', &
+                write(1,'(A18,I1,A30,F6.3)') 'Sublattice ', s, '; stoichiometric coefficient: ', &
                     dStoichSublattice(iChargedPhaseID,s)
 
                 cDummy  = '{ '
@@ -320,13 +275,13 @@ subroutine PrintResultsSolnPhase
                     if (c == nConstituentSublattice(iChargedPhaseID,s)) cDummyB = ' }'
 
                     if (dSiteFraction(iChargedPhaseID,s,c) >= 0.999949D0) then
-                        print '(A20,A8,F9.4,A4,A2)', cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
+                        write(1,'(A20,A8,F9.4,A4,A2)') cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
                             dSiteFraction(iChargedPhaseID,s,c), ' ', cDummyB
                     elseif (dSiteFraction(iChargedPhaseID,s,c) >= 1D-1) then
-                        print '(A20,A8,F10.5,A3,A2)', cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
+                        write(1,'(A20,A8,F10.5,A3,A2)') cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
                             dSiteFraction(iChargedPhaseID,s,c), ' ', cDummyB
                     else
-                        print '(A20,A8,ES13.4,A2)', cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
+                        write(1,'(A20,A8,ES13.4,A2)') cDummy, cConstituentNameSUB(iChargedPhaseID,s,c), &
                             dSiteFraction(iChargedPhaseID,s,c), cDummyB
                     end if
 
@@ -335,11 +290,11 @@ subroutine PrintResultsSolnPhase
 
                 end do LOOP_SubCon
 
-                if (s /= nSublatticePhase(iChargedPhaseID)) print *
+                if (s /= nSublatticePhase(iChargedPhaseID)) write(1,*)
             end do LOOP_Sub
 
-            print *, '      ------------------------------------------------'
-            print *
+            write(1,*) '      ------------------------------------------------'
+            write(1,*)
 
         end if IF_SUBL
 
@@ -348,7 +303,7 @@ subroutine PrintResultsSolnPhase
     ! Deallocate allocatable arrays:
     deallocate(dTempVec,iTempVec)
 
-end subroutine PrintResultsSolnPhase
+end subroutine PrintResultsSolnPhaseToFile
 
 !-------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------
@@ -365,7 +320,7 @@ end subroutine PrintResultsSolnPhase
     !---------------------------------------------------------------------------
 
 
-subroutine PrintResultsPureConPhase
+subroutine PrintResultsPureConPhaseToFile
 
     USE ModuleThermo
     USE ModuleGEMSolver
@@ -402,7 +357,7 @@ subroutine PrintResultsPureConPhase
         j = iTempVec(i)
 
         if ((dMolesPhase(j) >= 1D4).OR.(dMolesPhase(j) <= 1D-1)) then
-            print '(A3,ES10.4,A5,A15)', cDummy, dMolesPhase(j), ' mol ', cSpeciesName(iAssemblage(j))
+            write(1,'(A3,ES10.4,A5,A15)') cDummy, dMolesPhase(j), ' mol ', cSpeciesName(iAssemblage(j))
         elseif ((dMolesPhase(j) < 0.99949).AND.(dMolesPhase(j) > 1D-1)) then
             ! Format the output so that there are 5 significant figures (k = 6 because it includes ".").
             k = 7
@@ -412,7 +367,7 @@ subroutine PrintResultsPureConPhase
             write (FMTB, *) k
             dTemp = dMolesPhase(j)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A6,A7,A5,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
+            write(1,'(A6,A7,A5,A15)') cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
         else
             ! Format the output so that there are 5 significant figures (k = 6 because it includes ".").
             k = 6
@@ -422,9 +377,9 @@ subroutine PrintResultsPureConPhase
             write (FMTB, *) k
             dTemp = dMolesPhase(j)
             write (FMTA, "(F" // ADJUSTL(FMTA) // "." // ADJUSTL(FMTB) // ")") dTemp
-            print '(A7,A6,A5,A15)', cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
+            write(1,'(A7,A6,A5,A15)') cDummy, FMTA, ' mol ', cSpeciesName(iAssemblage(j))
         end if
-        print *
+        write(1,*)
 
         cDummy = '+ '
 
@@ -433,8 +388,4 @@ subroutine PrintResultsPureConPhase
     ! Deallocate allocatable arrays:
     deallocate(iTempVec,dTempVec)
 
-end subroutine PrintResultsPureConPhase
-
-    !---------------------------------------------------------------------------
-    !                      END - PrintResults.f90
-    !---------------------------------------------------------------------------
+end subroutine PrintResultsPureConPhaseToFile

@@ -75,6 +75,7 @@ subroutine ParseCSDataBlockSUBG( i )
     integer                     :: iaaxy, ibbxy, iabxx, iabyy
     integer,     dimension(10)  :: iTempVec
     real(8)                     :: qa, qb, qx, qy, za, zb, zx, zy, dF, dCoax, dCobx, dCoay, dCoby
+    real(8)                     :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cTempVec
     logical, dimension(:), allocatable :: lPairSet
@@ -310,6 +311,19 @@ subroutine ParseCSDataBlockSUBG( i )
         ib2y2 = b + ((ya - 1) * (nConstituentSublatticeCS(nCSCS,1) &
                                 * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
 
+        dZaA2X2 = dCoordinationNumberCS(nCSCS,ia2x2,1)
+        dZbB2X2 = dCoordinationNumberCS(nCSCS,ib2x2,1)
+        dZaA2Y2 = dCoordinationNumberCS(nCSCS,ia2y2,1)
+        dZbB2Y2 = dCoordinationNumberCS(nCSCS,ib2y2,1)
+
+        za = dCoordinationNumberCS(nCSCS,j,1)
+        zb = dCoordinationNumberCS(nCSCS,j,2)
+        zx = dCoordinationNumberCS(nCSCS,j,3)
+        zy = dCoordinationNumberCS(nCSCS,j,4)
+
+        qx = dSublatticeChargeCS(nCSCS,2,xa)
+        qy = dSublatticeChargeCS(nCSCS,2,ya)
+
         l = j + nSpeciesPhaseCS(i-1)
 
         ! Create quadruplet names
@@ -323,14 +337,11 @@ subroutine ParseCSDataBlockSUBG( i )
         dCoay = dConstituentCoefficientsCS(nCSCS,iay,1)
         dCoby = dConstituentCoefficientsCS(nCSCS,iby,1)
         do k = 1, nElementsCS
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
-                                   (dStoichPairsCS(nCSCS,iax,k) / dCoordinationNumberCS(nCSCS, j, 1)) / (2D0 * dCoax)
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
-                                   (dStoichPairsCS(nCSCS,ibx,k) / dCoordinationNumberCS(nCSCS, j, 2)) / (2D0 * dCobx)
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
-                                   (dStoichPairsCS(nCSCS,iay,k) / dCoordinationNumberCS(nCSCS, j, 1)) / (2D0 * dCoay)
-            dStoichSpeciesCS(l,k) = dStoichSpeciesCS(l,k) + &
-                                   (dStoichPairsCS(nCSCS,iby,k) / dCoordinationNumberCS(nCSCS, j, 2)) / (2D0 * dCoby)
+            dStoichSpeciesCS(l,k) = ((qx * dStoichPairsCS(nCSCS,iax,k) / (za * zx * dCoax))  &
+                                  +  (qx * dStoichPairsCS(nCSCS,ibx,k) / (zb * zx * dCobx))  &
+                                  +  (qy * dStoichPairsCS(nCSCS,iay,k) / (za * zy * dCoay))  &
+                                  +  (qy * dStoichPairsCS(nCSCS,iby,k) / (zb * zy * dCoby))) &
+                                            / ((qx/zx) + (qy/zy))
         end do
     end do
 
