@@ -107,11 +107,6 @@ subroutine ParseCSDataBlockSUBI(i)
 
     ! Read in the number of constituents for each sublattice:
     read (1,*,IOSTAT = INFO) nConstituentSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
-    ! Copy to nSublatticeElementsCS to use the charge array
-    ! NOTE: This is bad, these two arrays should be the same thing, but got implemented
-    ! separately for different models
-    nSublatticeElementsCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS)) = &
-      nConstituentSublatticeCS(nCountSublatticeCS,1:nSublatticePhaseCS(nCountSublatticeCS))
 
     ! Read in the name of each constituent for each sublattice:
     do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
