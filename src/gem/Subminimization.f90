@@ -133,7 +133,6 @@ subroutine Subminimization(iSolnPhaseIndex,lPhasePass)
 
     ! Subminimization iteration loop:
     LOOP_IterSub: do iterSub = 1, iterSubMax
-
         ! Compute the Newton direction vector:
         call SubMinNewton(iSolnPhaseIndex)
 
@@ -148,21 +147,15 @@ subroutine Subminimization(iSolnPhaseIndex,lPhasePass)
 
         ! Only check for convergence if the functional norm is below tolerance:
         if (dSubMinFunctionNorm < dTolerance(1)) then
-
             ! Check convergence:
             if ((dDrivingForce <= dTolerance(4)).AND. .NOT.(lMiscibility(iSolnPhaseIndex))) lSubMinConverged = .TRUE.
-
         end if
-
         ! Exit if the subminimization has converged:
         if ((lSubMinConverged).OR.(INFOThermo /= 0)) exit LOOP_IterSub
-
         ! Check if the solution phases represening the miscibility gap duplicate one another:
         if (lMiscibility(iSolnPhaseIndex)) call SubMinCheckDuplicate(lDuplicate)
-
         ! Exit if the subminimization has converged:
         if (lDuplicate) exit LOOP_IterSub
-
     end do LOOP_IterSub
 
     ! If the composition of phases representing a miscibility gap duplicate one another (i.e., they have virtually
@@ -266,10 +259,8 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
 
     ! Loop through all constituents in this solution phase:
     do k = 1, nVar
-
         ! Absolute species index:
         i = nSpeciesPhase(iSolnPhaseIndex-1) + k
-
         ! Compute the chemical potentials of all constituents defined by the element potentials:
         dChemicalPotentialStar(k) = 0D0
         do j = 1, nElements
@@ -277,10 +268,8 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
                 * dStoichSpecies(i,j)
         end do
         dChemicalPotentialStar(k) = dChemicalPotentialStar(k) / DFLOAT(iParticlesPerMole(i))
-
         ! Initialize the mole fractions:
         dMolFraction(i) = DMAX1(dMolFraction(i), 1D-15)
-
     end do
 
     ! Compute the chemical potentials of solution phase constituents:
@@ -350,7 +339,6 @@ subroutine SubMinChemicalPotential(iSolnPhaseIndex)
 
     integer::  iSolnPhaseIndex
 
-
     ! Initialize variables:
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
@@ -396,21 +384,15 @@ subroutine SubMinDrivingForce
 
     integer::  i, j
 
-
     ! Initialize variables:
     dDrivingForce = 0D0
-
     ! Loop through all species in this phase:
     do j = 1, nVar
-
         ! Absolute species index:
         i = iFirst + j - 1
-
         ! Update the driving force:
-        dDrivingForce = dDrivingForce + dMolfraction(i) * (dChemicalPotential(i) - dChemicalPotentialStar(j))
-
+        dDrivingForce = dDrivingForce + dMolFraction(i) * (dChemicalPotential(i) - dChemicalPotentialStar(j))
     end do
-
     ! Normalize the driving force:
     dDrivingForce = dDrivingForce / DFLOAT(nVar)
 
@@ -450,7 +432,6 @@ subroutine SubMinNewton(iSolnPhaseIndex)
 
     integer :: i, j, k, iSolnPhaseIndex, INFO, nEqn, m
 
-
     ! Initialize variables:
     nEqn     = nVar + 1
     INFO     = 0
@@ -462,11 +443,11 @@ subroutine SubMinNewton(iSolnPhaseIndex)
     ! Construct diagonal and part of the arrow head:
     do j = 1, nVar
         i                 = nSpeciesPhase(iSolnPhaseIndex-1) + j
-        dHessian(j,j)     = 1D0 / dMolfraction(i)
+        dHessian(j,j)     = 1D0 / dMolFraction(i)
         dHessian(nEqn,j)  = -1D0
         dHessian(j,nEqn)  = -1D0
         dRHS(j)           = dDrivingForce - (dChemicalPotential(i) + 1 - dChemicalPotentialStar(j))
-        dRHS(nEqn)        = dRHS(nEqn) + dMolfraction(i)
+        dRHS(nEqn)        = dRHS(nEqn) + dMolFraction(i)
     end do
 
     ! Apply an additional row/column if the phase is ionic:
@@ -474,13 +455,12 @@ subroutine SubMinNewton(iSolnPhaseIndex)
         nEqn = nEqn + 1
         k    = iPhaseElectronID(iSolnPhaseIndex)
         m    = 2
-
         dRHS(nEqn) = 0D0
         do j = 1, nVar
             i                 = nSpeciesPhase(iSolnPhaseIndex-1) + j
             dHessian(nEqn,j)  = -dStoichSpecies(i,k)
             dHessian(j,nEqn)  = dHessian(nEqn,j)
-            dRHS(nEqn)        = dRHS(nEqn) + dStoichSpecies(i,k) * dMolfraction(i)
+            dRHS(nEqn)        = dRHS(nEqn) + dStoichSpecies(i,k) * dMolFraction(i)
         end do
     end if
 
@@ -493,15 +473,14 @@ subroutine SubMinNewton(iSolnPhaseIndex)
         nEqn     = nVar + 1
         dHessian = 0D0
         dRHS     = -1D0
-
         ! Construct diagonal and part of the arrow head:
         do j = 1, nVar
             i                 = nSpeciesPhase(iSolnPhaseIndex-1) + j
-            dHessian(j,j)     = 1D0 / dMolfraction(i)
+            dHessian(j,j)     = 1D0 / dMolFraction(i)
             dHessian(nEqn,j)  = -1D0
             dHessian(j,nEqn)  = -1D0
             dRHS(j)           = dDrivingForce - (dChemicalPotential(i) + 1 - dChemicalPotentialStar(j))
-            dRHS(nEqn)        = dRHS(nEqn) + dMolfraction(i)
+            dRHS(nEqn)        = dRHS(nEqn) + dMolFraction(i)
         end do
 
         ! Apply an additional row/column if the phase is ionic:
@@ -509,19 +488,16 @@ subroutine SubMinNewton(iSolnPhaseIndex)
             nEqn = nEqn + 1
             k    = iPhaseElectronID(iSolnPhaseIndex)
             m    = 2
-
             dRHS(nEqn) = 0D0
             do j = 1, nVar
                 i                 = nSpeciesPhase(iSolnPhaseIndex-1) + j
                 dHessian(nEqn,j)  = -dStoichSpecies(i,k)
                 dHessian(j,nEqn)  = dHessian(nEqn,j)
-                dRHS(nEqn)        = dRHS(nEqn) + dStoichSpecies(i,k) * dMolfraction(i)
+                dRHS(nEqn)        = dRHS(nEqn) + dStoichSpecies(i,k) * dMolFraction(i)
             end do
         end if
-
         ! Call the linear equation solver:
         call DGESV( nEqn, 1, dHessian, nEqn, iHessian, dRHS, nEqn, INFO )
-
     end if
 
     ! Check for an error from ArrowSolver:
@@ -570,7 +546,6 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
     integer :: i, j, k, iSolnPhaseIndex
     real(8) :: dStepLength, dTemp, dMaxChange
 
-
     ! Initialize variables:
     dStepLength = 1D0
     dMaxChange  = 0.2D0
@@ -578,21 +553,15 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
     ! Initialize steplength (determine a steplength that prevents negative mole fractions
     ! and constrains maximum change):
     do j = 1, nVar
-
         ! Absolute species index:
         i = iFirst + j - 1
-
         ! Check if the mole fraction of this constituent is driven to be negative:
-        if (dMolfraction(i) + dRHS(j) <= 0D0) then
-
+        if (dMolFraction(i) + dRHS(j) <= 0D0) then
             ! Determine a step length that reduces the mole fraction by a factor of 100:
-            dTemp = -0.99D0 * dMolfraction(i) / dRHS(j)
-
+            dTemp = -0.99D0 * dMolFraction(i) / dRHS(j)
             ! Update the step length:
             dStepLength = DMIN1(dStepLength, dTemp)
-
         end if
-
         ! Compute a step length that constrains the maximum change by dMaxChange:
         dTemp=dStepLength
         if(dRHS(j) /= 0D0)then
@@ -605,16 +574,12 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
     ! Update the mole fractions:
     dTemp = 0D0
     do j = 1, nVar
-
         ! Absolute species index:
         i = iFirst + j - 1
-
         ! Apply step length:
-        dMolfraction(i) = dMolfraction(i) + dStepLength * dRHS(j)
-
+        dMolFraction(i) = dMolFraction(i) + dStepLength * dRHS(j)
         ! Store maximum change to the mole fraction:
         dTemp = DMAX1(dTemp, DABS(dRHS(j)))
-
     end do
 
     ! Iterate to satisfy Wolfe conditions:
@@ -631,31 +596,22 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
 
         ! Check for a converging/diverging solution:
         if (dDrivingForce < dDrivingForceLast) then
-
             ! The driving force is less than the last driving force:
             exit LOOP_WOLFE
-
         else
             ! Divergence has been detected.  Dampen the sub-system:
             dStepLength = dStepLength * 0.5D0
             dTemp       = 0D0
-
             ! Adjust the mole fractions of species:
             do j = 1, nVar
-
                 ! Absolute species index:
                 i = iFirst + j - 1
-
                 ! Apply step length:
-                dMolfraction(i) = dMolfraction(i) - dStepLength * dRHS(j)
-
+                dMolFraction(i) = dMolFraction(i) - dStepLength * dRHS(j)
                 ! Constrain the minimum mole fraction to an arbitrarily small value:
-                dMolfraction(i) = DMAX1(dMolfraction(i), 1D-100)
-
+                dMolFraction(i) = DMAX1(dMolFraction(i), 1D-100)
                 dTemp = DMAX1(dTemp, dStepLength * dRHS(j))
-
             end do
-
         end if
 
     end do LOOP_WOLFE
@@ -693,7 +649,7 @@ end subroutine SubMinLineSearch
 
 subroutine SubMinFunctionNorm(iSolnPhaseIndex)
 
-    USE ModuleThermo!, ONLY: dMolfraction, dStoichSpecies, iPhaseElectronID
+    USE ModuleThermo!, ONLY: dMolFraction, dStoichSpecies, iPhaseElectronID
     USE ModuleSubMin
 
     implicit none
@@ -701,22 +657,19 @@ subroutine SubMinFunctionNorm(iSolnPhaseIndex)
     integer :: i, j
     integer :: iSolnPhaseIndex
 
-
     ! Initialize variables:
     dSubMinFunctionNorm = -1D0
 
     ! Compute residual of mole fractions:
     do i = iFirst, iLast
-        dSubMinFunctionNorm = dSubMinFunctionNorm + dMolfraction(i)
+        dSubMinFunctionNorm = dSubMinFunctionNorm + dMolFraction(i)
     end do
 
     ! Compute residual of charge neutrality constraints:
     if (iPhaseElectronID(iSolnPhaseIndex) /= 0) then
-
         j = iPhaseElectronID(iSolnPhaseIndex)
-
         do i = iFirst, iLast
-            dSubMinFunctionNorm = dSubMinFunctionNorm + dMolfraction(i) * dStoichSpecies(i,j)
+            dSubMinFunctionNorm = dSubMinFunctionNorm + dMolFraction(i) * dStoichSpecies(i,j)
         end do
     end if
 
@@ -755,7 +708,6 @@ subroutine SubMinCheckDuplicate(lDuplicate)
     real(8) :: dTemp
     logical :: lDuplicate
 
-
     ! Initialize variables:
     iFirstOther = nSpeciesPhase(iSolnPhaseIndexOther-1) + 1
     iLastOther  = nSpeciesPhase(iSolnPhaseIndexOther)
@@ -770,13 +722,11 @@ subroutine SubMinCheckDuplicate(lDuplicate)
 
     ! Compute the Euclidean norm between the two mole fraction vectors:
     do k = 1, nVar
-
         ! Absolute species index:
         i = iFirst      + k - 1    ! Absolute index for first species in iSolnPhaseIndex
         j = iFirstOther + k - 1    ! Absolute index for first species in iSolnPhaseIndexOther
 
-        dTemp = dTemp + (dMolfraction(i) - dMolfraction(j))**2
-
+        dTemp = dTemp + (dMolFraction(i) - dMolFraction(j))**2
     end do
 
     ! Compute the normalized Euclidean norm between the mole fraction vectors between the two "phases":
