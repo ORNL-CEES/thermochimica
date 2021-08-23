@@ -221,7 +221,6 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
 
     integer::  i, j, k, iSolnPhaseIndex, iterSubMax
 
-
     ! Initialize variables:
     iFirst            = nSpeciesPhase(iSolnPhaseIndex-1) + 1
     iLast             = nSpeciesPhase(iSolnPhaseIndex)
@@ -289,10 +288,8 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
         else
             ! Loop through all solution phases in the data-file system:
             LOOP_SolnSys: do i = 1, nSolnPhasesSys
-
                 ! Cycle if this is same phase:
                 if (i == iSolnPhaseIndex) cycle LOOP_SolnSys
-
                 ! Check if these phases are the same:
                 if (cSolnPhaseName(iSolnPhaseIndex) == cSolnPhaseName(i)) then
                     iSolnPhaseIndexOther = i
