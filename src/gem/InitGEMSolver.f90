@@ -249,12 +249,13 @@ subroutine InitGEMSolver
               end do
 
               ! Normalize the mole fractions so that their sum equals unity:
-              if (dSum > 0D0) then
+              if (dSum > 1D-200 .AND. dSum < 1D200) then
                   dSum = 1D0 / dSum
                   do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
                       dMolFraction(i) = dMolFraction(i) * dSum
                   end do
               else
+                  print *, dSum
                   do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
                       dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
                   end do
