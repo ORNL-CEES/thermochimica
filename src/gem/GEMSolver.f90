@@ -107,8 +107,8 @@ subroutine GEMSolver
 
         ! Report an error if this failed:
         if (.NOT.(lConverged)) then
-            INFOThermo = 14
-            return
+            ! INFOThermo = 14
+            ! return
         end if
 
     end if
