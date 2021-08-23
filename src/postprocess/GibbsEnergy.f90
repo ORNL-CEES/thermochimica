@@ -89,8 +89,8 @@ subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn
             dGibbsPhase = 0D0
             dMolFractionPhase = 0D0
             do j = nSpeciesPhase(iPhaseIndex - 1) + 1, nSpeciesPhase(iPhaseIndex)
-                dGibbsPhase = dGibbsPhase + dChemicalPotential(j) * dMolesPhaseIn(k) * dMolFractionIn(j)
-                dMolFractionPhase = dMolFractionPhase + dMolFractionIn(j)
+                dGibbsPhase = dGibbsPhase + dChemicalPotential(j) * dMolesPhase(k) * dMolFraction(j)
+                dMolFractionPhase = dMolFractionPhase + dMolFraction(j)
             end do
             dGibbsEnergySysOut = dGibbsEnergySysOut + dGibbsPhase / dMolFractionPhase
         end do

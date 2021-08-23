@@ -80,8 +80,7 @@ subroutine ParseCSDataBlockSUBL(i)
 
     implicit none
 
-    integer                   :: i, j, k, l, m, n, p, s
-    character(8),dimension(3) :: cDummyVec
+    integer                   :: i, j, k, n, s
 
 
     ! Initialize variables:
@@ -105,27 +104,7 @@ subroutine ParseCSDataBlockSUBL(i)
 
     ! Read in the name of each constituent for each sublattice:
     LOOP_SUBL_CONST_NAME: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
-
-        ! Number of constituents on last line (per sublattice):
-        k = MOD(nConstituentSublatticeCS(nCountSublatticeCS,s),3)
-
-        ! Number of full lines of constituents (per sublattice):
-        l = (nConstituentSublatticeCS(nCountSublatticeCS,s) - k) / 3
-
-        ! Loop through full lines of constituent names:
-        do m = 1, l
-            read (1,*,IOSTAT = INFO) cDummyVec(1:3)
-            p = (m-1)*3 + 1
-            cConstituentNameSUBCS(nCountSublatticeCS, s, p:p+2) = cDummyVec(1:3)
-        end do
-
-        ! Read in the last line of constituent names if there is less than three constituents:
-        if (k /= 0) then
-            read (1,*,IOSTAT = INFO) cDummyVec(1:k)
-            p = l*3 + 1
-            cConstituentNameSUBCS(nCountSublatticeCS, s, p:p+k-1) = cDummyVec(1:k)
-        end if
-
+        read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
     end do LOOP_SUBL_CONST_NAME
 
     ! Record an error if necessary:

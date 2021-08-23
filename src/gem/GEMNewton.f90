@@ -21,6 +21,8 @@
     !   03/04/2013      M.H.A. Piro         Fix bug in correction process when dealing with ionic phases
     !                                        the loop should count back from the number of constraints,
     !                                        not the number of charged phases).
+    !   09/06/2021      M. Poschmann        Correct moles of species to be proportional to mole fraction times
+    !                                        moles of respective phase before direction vector is computed.
     !
     !
     ! Purpose:
@@ -117,6 +119,16 @@ subroutine GEMNewton(INFO)
     B                   = 0D0
     dUpdateVar          = 0D0
     dEffStoichSolnPhase = 0D0
+
+    do k = 1, nSolnPhases
+        ! Absolute solution phase index:
+        m = -iAssemblage(nElements - k + 1)
+        ! Loop through species in phase:
+        do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+            dMolesSpecies(l) = dMolesPhase(nElements - k + 1) * dMolFraction(l)
+            dMolesSpecies(l) = DMAX1(dMolesSpecies(l), dTolerance(8))
+        end do
+    end do
 
     ! Construct the Hessian matrix (elements):
     do j = 1, nElements

@@ -188,8 +188,16 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                     iExponent = iMagneticParam(iParam,4)
                     xprod = x1 * x2
                     dx    = x1 - x2
-                    dxvmo     = dx**(iExponent-1)
-                    dxvmo     = DMIN1(dxvmo,1D30)
+                    if (dx == 0D0) then
+                        if (iExponent > 0) then
+                            dxvmo = 0D0
+                        else
+                            dxvmo = 1D30
+                        end if
+                    else
+                        dxvmo = dx**(iExponent-1)
+                    end if
+                    dxvmo = DMIN1(dxvmo,1D30)
                     ! Cycle if dx = 0 to prevent calculating either an INF or a NAN:
                     if (dx == 0D0) cycle LOOP_Param
                     do i = iFirst, iLast

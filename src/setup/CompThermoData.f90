@@ -125,6 +125,7 @@ subroutine CompThermoData
     nDummySpecies    = 0
     nCounter         = 0
     dTemp            = 1D0 / (dIdealConstant * dTemperature)
+    iSUBIMixType     = 0
 
     ! Compute Gibbs energy coefficients:
     dGibbsCoeff(1)   = 1D0                             ! A
@@ -563,7 +564,8 @@ subroutine CompThermoData
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
-        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' )) nCounter = nCounter + 1
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' ) &
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBI')) nCounter = nCounter + 1
 
         LOOP_Param: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
 
@@ -697,6 +699,36 @@ subroutine CompThermoData
 
                         iSUBLParamData(n,1) = nMixSets
 
+                    case ('SUBI')
+                        ! Populating iSUBIMixType from parsed CS data
+                        iSUBIMixType(n) = iSUBIMixTypeCS(j)
+                        ! Compute mixing terms L
+                        do k = 1, 6
+                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                        end do
+
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
+
+                        do k = 1, iRegularParamCS(j,1)
+                            ! The constituent numbering scheme from ChemSage does not consider the sublattice #, but just
+                            ! a continuing count of the constituents.
+                            m = iRegularParamCS(j,k+1)
+
+                            ! Figure out the sublattice (l) and constituent (m) indices:
+                            LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
+                                l = s
+                                if (m > nConstituentSublatticeCS(nCounter,s)) then
+                                    m = m - nConstituentSublatticeCS(nCounter,s)
+                                else
+                                    exit LOOP_SUBI
+                                end if
+
+                            end do LOOP_SUBI
+
+                            ! Apply indexing scheme (l is sublattice index, iCounstituentPass is constituent index on
+                            ! sublattice l):
+                            iRegularParam(n,k+1) = (10000 * l) + iConstituentPass(nCounter,s,m)
+                        end do
                 end select
             end if IF_ParamPass
         end do LOOP_Param

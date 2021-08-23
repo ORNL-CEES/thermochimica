@@ -84,6 +84,7 @@ subroutine ParseCSDataBlock
     nParamPhaseCS       = 0
     nMagParamPhaseCS    = 0
     dGibbsMagneticCS    = 0D0
+    iMiscSUBI           = 0
 
     ! Loop through all solution phases:
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
@@ -122,7 +123,8 @@ subroutine ParseCSDataBlock
 
         ! Count sublattice phases
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
+             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
+             (cSolnPhaseTypeCS(i) == 'SUBI')) then
              nCountSublatticeCS = nCountSublatticeCS + 1
              iPhaseSublatticeCS(i) = nCountSublatticeCS
         end if
@@ -226,30 +228,33 @@ subroutine ParseCSDataBlock
 
         ! Check the type of solution phase to interpret mixing parameters:
         select case (cSolnPhaseTypeCS(i))
-        ! Ideal mixture model
-        case ('IDMX')
-            ! Do nothing.
-        ! Quasichemical Kohler-Toop model
-        case ('QKTO')
-            call ParseCSDataBlockQKTO(i)
-        ! Redlich-Kister-Muggiano-Polynomial model
-        case ('RKMP', 'RKMPM')
-            call ParseCSDataBlockRKMP(i)
-        ! Compound Energy Formalism (sublattice) model:
-        case ('SUBL', 'SUBLM')
-            call ParseCSDataBlockSUBL(i)
-        ! Quadruplet quasichemical model:
-        case ('SUBG')
-            ! Parse the data-block section for SUBG phases:
-            call ParseCSDataBlockSUBG(i)
-        ! Quadruplet quasichemical model:
-        case ('SUBQ')
-            ! Parse the data-block section for SUBQ phases:
-            call ParseCSDataBlockSUBG(i)
-        case default
-            ! The solution phase type is not supported. Report an error.
-            INFO = 17
-            return
+            ! Ideal mixture model
+            case ('IDMX')
+                ! Do nothing.
+            ! Quasichemical Kohler-Toop model
+            case ('QKTO')
+                call ParseCSDataBlockQKTO(i)
+            ! Redlich-Kister-Muggiano-Polynomial model
+            case ('RKMP', 'RKMPM')
+                call ParseCSDataBlockRKMP(i)
+            ! Compound Energy Formalism (sublattice) model:
+            case ('SUBL', 'SUBLM')
+                call ParseCSDataBlockSUBL(i)
+            ! Quadruplet quasichemical model:
+            case ('SUBG')
+                ! Parse the data-block section for SUBG phases:
+                call ParseCSDataBlockSUBG(i)
+            ! Quadruplet quasichemical model:
+            case ('SUBQ')
+                ! Parse the data-block section for SUBQ phases:
+                call ParseCSDataBlockSUBG(i)
+            ! Ionic Liquid Model:
+            case ('SUBI')
+                call ParseCSDataBlockSUBI(i)
+            case default
+                ! The solution phase type is not supported. Report an error.
+                INFO = 17
+                return
         end select ! End checking the type of solution phase.
 
         ! Return if an error has been recorded:
