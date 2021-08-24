@@ -126,6 +126,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         ! Store the info for the pure condensed phase to be removed to temporary variables:
         dTempVec        = dMolesPhase
         iAssemblageTest = iAssemblage
+        iConPhaseLast   = iAssemblage(i)
 
         ! Move the info for the last pure conndesed phase to the location being removed:
         dMolesPhase(i) = dMolesPhase(nConPhases)

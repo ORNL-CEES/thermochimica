@@ -65,11 +65,10 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
 
     implicit none
 
-    integer::                       i, j, k, l, iPhaseChange, INFO, iterBack
-    integer,dimension(nElements)::  iAssemblageTest
-    real(8)::                       dTemp
-    logical::                       lPhasePass, lSwapLater, lCompEverything
-
+    integer                       :: i, j, k, l, iPhaseChange, INFO, iterBack
+    integer, dimension(nElements) :: iAssemblageTest
+    real(8), dimension(nElements) :: dTempVec
+    logical                       :: lPhasePass, lSwapLater, lCompEverything
 
     ! Initialize variables:
     lCompEverything = .FALSE.
@@ -93,57 +92,44 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
     ! Loop through all solution phases in the current estimated phase assemblgae to see which one should
     ! be swapped:
     LOOP_SolnPhase: do i = 1, nSolnPhases
-
         j = -iAssemblage(nElements - i + 1)
-
         ! Check if this phase has a miscibility gap, and if so, make sure that it does not swap itself:
         if ((lMiscibility(iPhaseChange)).OR.(lMiscibility(j))) then
-
             ! Either the phase that is to be added to the system or the current phase is not the first
             ! "phase" that contains a miscibility gap.
-
             ! Check if they belong to the same "phase", and if so, skip to the next phase:
             if (cSolnPhaseName(j) == cSolnPhaseName(iPhaseChange)) cycle LOOP_SolnPhase
-
         end if
 
         ! Check if this phase has a corresponding phase with a miscibility gap, and if so, make sure that
         ! the phase with the highest absolute index is used:
         LOOP_CheckMiscible: do k = 1, nSolnPhases
-
             ! Cycle if they are the same phase:
             if (k == i) cycle LOOP_CheckMiscible
-
             ! Store the absolute phase index of k:
             l = -iAssemblage(nElements-k+1)
-
             ! Check if the pair of phases contain a miscibility gap:
             if (cSolnPhaseName(l) == cSolnPhaseName(j)) then
-
                 ! If the absolute phase index of j is less than l, cycle to the next phase:
                 if (j < l) cycle LOOP_SolnPhase
-
             end if
-
         end do LOOP_CheckMiscible
 
         ! Check if this phase assemblage has been previously considered:
         if (iterGlobal > 60) then
-
             j                  = nElements - i + 1
             iAssemblageTest    = iAssemblage
             iAssemblageTest(j) = -iPhaseChange
-
             ! Check whether this particular phase assemblage has been previously considered:
             call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
-
             ! This phase assemblage has been considered.  Move on to the next phase:
             if (lSwapLater) cycle LOOP_SolnPhase
-
         end if
 
+        dTempVec        = dMolesPhase
+        iAssemblageTest = iAssemblage
+
         k              = nElements - i + 1
-        dTemp          = dMolesPhase(k)
         iSolnPhaseLast = -iAssemblage(k)
         iAssemblage(k) = -iPhaseChange
 
@@ -178,9 +164,8 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             exit LOOP_SolnPhase
         else
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
-            k                   = nElements - i + 1
-            dMolesPhase(k)      = dTemp
-            iAssemblage(k)      = -iSolnPhaseLast
+            iAssemblage = iAssemblageTest
+            dMolesPhase = dTempVec
             dPartialExcessGibbs = dPartialExcessGibbsLast
             cycle LOOP_SolnPhase
         end if
