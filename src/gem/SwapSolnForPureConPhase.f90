@@ -59,7 +59,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
 
     integer                       :: i, j, k, iPhaseChange, INFO, iterBack
     integer, dimension(nElements) :: iAssemblageTest, iTempVec
-    real(8)                       :: dTemp
+    real(8), dimension(nElements) :: dTempVec
     logical                       :: lPhasePass, lSwapLater, lCompEverything
 
 
@@ -124,10 +124,10 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         if (lSwapLater) cycle LOOP_ConPhase
 
         ! Store the info for the pure condensed phase to be removed to temporary variables:
-        dTemp          = dMolesPhase(i)
-        iConPhaseLast  = iAssemblage(i)
+        dTempVec        = dMolesPhase
+        iAssemblageTest = iAssemblage
 
-        ! Move the info for the last pure condnesed phase to the location being removed:
+        ! Move the info for the last pure conndesed phase to the location being removed:
         dMolesPhase(i) = dMolesPhase(nConPhases)
         iAssemblage(i) = iAssemblage(nConPhases)
 
@@ -174,13 +174,10 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
             exit LOOP_ConPhase
         else
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
-            j                       = nElements - nSolnPhases + 1
-            iAssemblage(j)          = 0
-            dMolesPhase(j)          = 0D0
-            nConPhases              = nConPhases + 1
-            nSolnPhases             = nSolnPhases - 1
-            iAssemblage(nConPhases) = iConPhaseLast
-            dMolesPhase(nConPhases) = dTemp
+            nConPhases  = nConPhases + 1
+            nSolnPhases = nSolnPhases - 1
+            iAssemblage = iAssemblageTest
+            dMolesPhase = dTempVec
             cycle LOOP_ConPhase
         end if
 
