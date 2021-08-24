@@ -63,7 +63,7 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
 
     integer                       :: i, j, iPhaseAdd, iPhaseRem, INFO, iterBack
     integer, dimension(nElements) :: iAssemblageTest
-    real(8), dimension(nElements) :: dTempVec
+    real(8)                       :: dTemp
     logical                       :: lPhasePass, lCompEverything, lSwapLater
 
 
@@ -88,9 +88,7 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
     ! Compute the stoichiometry of the solution phase that is to be added to the system:
     call CompStoichSolnPhase(iPhaseAdd)
 
-    dTempVec        = dMolesPhase
-    iAssemblageTest = iAssemblage
-
+    dTemp          =  dMolesPhase(j)
     iSolnPhaseLast = -iAssemblage(j)    ! Absolute index of phase to be removed.
 
     ! Swap solution phases:
@@ -122,8 +120,8 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
         lSolnPhases(iSolnPhaseLast)  = .FALSE.
     else
         ! This phase assemblage cannot be considered.  Revert back to the previous values:
-        iAssemblage = iAssemblageTest
-        dMolesPhase = dTempVec
+        dMolesPhase(j) = dTemp
+        iAssemblage(j) = -iSolnPhaseLast
     end if
 
     return
