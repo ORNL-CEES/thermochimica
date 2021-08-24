@@ -29,18 +29,18 @@ CCFLAGS     = -std=gnu++11
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
-		LDLOC   =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
-		# link flags for linux users:
-		LDFLAGS = -O0 -g -fno-automatic -fbounds-check
+    LDLOC   = -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
+    # link flags for linux users:
+    LDFLAGS = -O0 -g -fno-automatic -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
-		LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
+    LDFLAGS = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
-		LDLOC     =  -llapack -lblas -lgfortran
-		# link flags for Windows users:
-		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+    LDLOC   =  -llapack -lblas -lgfortran
+    # link flags for Windows users:
+    LDFLAGS =  -O0 -g -fno-automatic -fbounds-check
 endif
 
 ## ====================
