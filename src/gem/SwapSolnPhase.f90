@@ -67,7 +67,7 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
 
     integer                       :: i, j, k, l, iPhaseChange, INFO, iterBack
     integer, dimension(nElements) :: iAssemblageTest
-    real(8), dimension(nElements) :: dTempVec
+    real(8)                       :: dTemp
     logical                       :: lPhasePass, lSwapLater, lCompEverything
 
     ! Initialize variables:
@@ -126,10 +126,8 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             if (lSwapLater) cycle LOOP_SolnPhase
         end if
 
-        dTempVec        = dMolesPhase
-        iAssemblageTest = iAssemblage
-
         k              = nElements - i + 1
+        dTemp          = dMolesPhase(k)
         iSolnPhaseLast = -iAssemblage(k)
         iAssemblage(k) = -iPhaseChange
 
@@ -164,8 +162,9 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             exit LOOP_SolnPhase
         else
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
-            iAssemblage = iAssemblageTest
-            dMolesPhase = dTempVec
+            k                   = nElements - i + 1
+            dMolesPhase(k)      = dTemp
+            iAssemblage(k)      = -iSolnPhaseLast
             dPartialExcessGibbs = dPartialExcessGibbsLast
             cycle LOOP_SolnPhase
         end if
