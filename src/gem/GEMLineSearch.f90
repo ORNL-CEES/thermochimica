@@ -362,18 +362,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     ! Reduce the mass of this species by an arbitrary positive value less than
                     ! unity:
                     dMolFraction(i) = 0.5D0
-
-!!!! TEMPORARY   !!!!!
-!!!! TEMPORARY   !!!!!
-!!!! TEMPORARY   !!!!!
-
-                elseif ((dMolesSpecies(i) / dMolesPhaseLast(nElements - l + 1)) < 1D-10) then
-
-                    dMolFraction(i) = 0.1D0
-
-
                 else
-
                     dStepLength = dTemp * 0.99D0
                 end if
             end if
@@ -382,12 +371,9 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             if (dMolesSpecies(i) > 1D-100) then
                 if (dMolFraction(i) > 0) then
                     dMaxSpeciesChange = MAX(dMaxSpeciesChange,ABS(LOG(dMolFraction(i)))*dStepLength)
-                else
-                    ! if set negative or zero do nothing, I guess
                 end if
             end if
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
-
         end do
     end do
 
@@ -439,11 +425,8 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         ! by a large margin:
         if (dTemp > dMaxIncrease) i = i + 1
 
-
-! THIS FOLLOWING SECTION NEEDS TO BE BETTER FIGURED OUT.  WHY WOULD IT DAMPEN IF A SOLUTOIN PHASE IS
-! BECOMING NEGATIVE WITH DTEMP > 0.011 OR DTEMP < 0.009??
-
-
+        ! THIS FOLLOWING SECTION NEEDS TO BE BETTER FIGURED OUT.  WHY WOULD IT DAMPEN IF A SOLUTOIN PHASE IS
+        ! BECOMING NEGATIVE WITH DTEMP > 0.011 OR DTEMP < 0.009??
         if (dTemp < 1D0) then
         !if (dTemp < 0.1D0) then
             if ((dTemp > 0.05D0).OR.(dTemp < 0.009D0)) then
@@ -462,7 +445,6 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         end if
     end do
 
-
     dTemp = 0.05D0
 
     ! Count the number of solution phases (i.e., j) that are changing by at least 5%:
@@ -480,11 +462,9 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
         ! If there is more than one solution phase that is changing by more than 5%, then dampen some more:
         if (j > 1) dStepLength = dStepLength * 0.5D0
-
     else
         ! Stagnating? Seen a lot of oscillation in small dMolFractions, try reducing step size
         if (dMaxChange < 1D-6) dStepLength = dStepLength * 0.5D0
-
     end if
 
     ! Further dampen the system if a miscible phase was recently added to the system:
