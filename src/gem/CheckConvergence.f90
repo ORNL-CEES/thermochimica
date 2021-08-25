@@ -148,7 +148,7 @@ subroutine CheckConvergence
     ! print *, "Test 3 "
     if (nSolnPhases + nConPhases > nElements - nChargedConstraints) call CorrectPhaseRule(lPhaseChange)
 
-    if (lPhaseChange .EQV. .TRUE.) return
+    if (lPhaseChange) return
 
     ! TEST #8: Check the relative errors of the mass balance equations:
     ! -----------------------------------------------------------------
