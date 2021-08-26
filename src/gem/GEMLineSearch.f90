@@ -363,7 +363,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                     ! unity:
                     dMolFraction(i) = 0.5D0
                 else
-                    dStepLength = dTemp * 0.99D0
+                    dStepLength = dTemp * 0.95D0
                 end if
             end if
             ! This check was getting hung up on tiny tiny mole fractions in some cases,
