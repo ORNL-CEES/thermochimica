@@ -46,8 +46,7 @@ subroutine CompFunctionNorm
     implicit none
 
     integer :: i, j, k, l
-    real(8) :: dTemp, dTempB
-
+    real(8) :: dNormComponent
 
     ! Initialize variables:
     dGEMFunctionNorm    = 0D0
@@ -55,64 +54,45 @@ subroutine CompFunctionNorm
 
     ! Compute the residuals of the mass balance equations for each element:
     do j = 1, nElements
-        dTemp = dMolesElement(j)
-
+        dNormComponent = dMolesElement(j)
         do i = 1, nSolnPhases
             k = -iAssemblage(nElements - i + 1)       ! Absolute solution phase index
-
             ! Compute the stoichiometry of this solution phase:
             call CompStoichSolnPhase(k)
-
-            dTemp = dTemp - dEffStoichSolnPhase(k,j) * dMolesPhase(nElements - i + 1)
-
+            dNormComponent = dNormComponent - dEffStoichSolnPhase(k,j) * dMolesPhase(nElements - i + 1)
         end do
-
         do i = 1,nConPhases
-            dTemp = dTemp - dMolesPhase(i) * dStoichSpecies(iAssemblage(i),j)
+            dNormComponent = dNormComponent - dMolesPhase(i) * dStoichSpecies(iAssemblage(i),j)
         end do
-
-        dGEMFunctionNorm = dGEMFunctionNorm + (dTemp)**(2)
-
+        dGEMFunctionNorm = dGEMFunctionNorm + (dNormComponent)**(2)
     end do
 
     ! Compute the residuals of the Gibbs energy difference between each solution phase and the element potentials:
     do l = 1, nSolnPhases
         k      = -iAssemblage(nElements - l + 1)       ! Absolute solution phase index
-        dTempB = 0D0
-
         do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-            dTemp = 0D0
+            dNormComponent = 0D0
             do j = 1, nElements
-                dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
+                dNormComponent = dNormComponent + dElementPotential(j) * dStoichSpecies(i,j)
             end do
-
             ! Normalize the residual term by the number of particles per formula mass:
-            dTemp = dTemp / DFLOAT(iParticlesPerMole(i))
-
-			! Compute the residual term weighted by the mole fraction:
-            dTemp = DABS(dChemicalPotential(i) - dTemp) * dMolFraction(i)
-
+            dNormComponent = dNormComponent / DFLOAT(iParticlesPerMole(i))
+            ! Compute the residual term weighted by the mole fraction:
+            dNormComponent = DABS(dChemicalPotential(i) - dNormComponent) * dMolFraction(i)
             ! Exclude trace species from the computation of the functional norm:
-            dTempB = dTempB + dTemp
-
+            dGEMFunctionNorm = dGEMFunctionNorm + (dNormComponent)**(2)
         end do
-
-        dGEMFunctionNorm = dGEMFunctionNorm + (dTempB)**(2)
-
     end do
 
     ! Compute the residuals of the chemical potentials of pure condensed phases and the element potentials:
     do i = 1, nConPhases
         k     = iAssemblage(i)
-        dTemp = 0D0
-
+        dNormComponent = 0D0
         do j = 1, nElements
-            dTemp = dTemp + dElementPotential(j) * dStoichSpecies(k,j)
+            dNormComponent = dNormComponent + dElementPotential(j) * dStoichSpecies(k,j)
         end do
-
-        dTemp            = dTemp - dStdGibbsEnergy(k)
-        dGEMFunctionNorm = dGEMFunctionNorm + (dTemp)**(2)
-
+        dNormComponent            = dNormComponent - dStdGibbsEnergy(k)
+        dGEMFunctionNorm = dGEMFunctionNorm + (dNormComponent)**(2)
     end do
 
     ! Finally, the functional norm:
