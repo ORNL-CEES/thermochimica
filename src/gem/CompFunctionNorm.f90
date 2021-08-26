@@ -79,7 +79,6 @@ subroutine CompFunctionNorm
             dNormComponent = dNormComponent / DFLOAT(iParticlesPerMole(i))
             ! Compute the residual term weighted by the mole fraction:
             dNormComponent = DABS(dChemicalPotential(i) - dNormComponent) * dMolFraction(i)
-            ! Exclude trace species from the computation of the functional norm:
             dGEMFunctionNorm = dGEMFunctionNorm + (dNormComponent)**(2)
         end do
     end do
