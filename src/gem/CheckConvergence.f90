@@ -121,17 +121,16 @@ subroutine CheckConvergence
     lConverged      = .FALSE.
     lCompEverything = .TRUE.
     lPhaseChange    = .FALSE.
-    ! print *, dMolesPhase
     ! Test if the largest relative change in species mole fraction is large
     ! This is a self-consistency check
-    ! print *, "Test self-consistency ", dMaxSpeciesChange
+    if (lDebugMode) print *, "Test self-consistency ", dMaxSpeciesChange
     if (dMaxSpeciesChange > LOG(2D0)) then
         return
     end if
 
     ! TEST #1: Check if any of the phases in the assemblage are "dummy" phases:
     ! -------------------------------------------------------------------------
-    ! print *, "Test 1"
+    if (lDebugMode) print *, "Test 1"
     LOOP_TEST1: do i = 1, nElements
         if (iAssemblage(i) > 0) then
             if (iPhase(iAssemblage(i)) < 0) return
@@ -140,19 +139,19 @@ subroutine CheckConvergence
 
     ! TEST #2: Check to make sure that the number of moles of all phases are non-negative.
     ! ------------------------------------------------------------------------------------
-    ! print *, "Test 2 ", MINVAL(dMolesPhase)
+    if (lDebugMode) print *, "Test 2 ", MINVAL(dMolesPhase)
     if (MINVAL(dMolesPhase) < 0D0) return
 
     ! TEST #3: Check that the Phase Rule has been satisfied:
     ! -----------------------------------------------------------------------------------
-    ! print *, "Test 3 "
+    if (lDebugMode) print *, "Test 3 "
     if (nSolnPhases + nConPhases > nElements - nChargedConstraints) call CorrectPhaseRule(lPhaseChange)
 
     if (lPhaseChange) return
 
     ! TEST #8: Check the relative errors of the mass balance equations:
     ! -----------------------------------------------------------------
-    ! print *, "Test 8 "
+    if (lDebugMode) print *, "Test 8 "
     LOOP_TEST8: do j = 1, nElements
         dResidual = -dMolesElement(j)
         ! Loop through solution phases:
@@ -170,18 +169,18 @@ subroutine CheckConvergence
         end do
 
         ! Compute residual or relative error term:
-        if (dMolesElement(j) == 0D0) then
-            ! The system component corresponds to an electron:
-            dResidual = DABS(dResidual)
-        else
-            dResidual = DABS(dResidual) / dMolesElement(j)
+        if (dMolesElement(j) > 0D0) then
+            dResidual = dResidual / dMolesElement(j)
         end if
-        if (dResidual > dTolerance(1)) return
+        if (DABS(dResidual) > dTolerance(1)) then
+            if (lDebugMode) print *, cElementName(j), dMolesElement(j), dResidual
+            return
+        end if
     end do LOOP_TEST8
 
     ! CONVERGENCE TEST SHORTCUT
     ! -----------------------------------------------------------------------------------
-    ! print *, "Test Shortcut ", dGEMFunctionNorm
+    if (lDebugMode) print *, "Test Shortcut ", dGEMFunctionNorm
     ! Now that crucial tests have been done, can check for convergence shortcut
     ! If the functional norm is less than a specified tolerance and the system hasn't changed,
     ! call it a day:
@@ -195,7 +194,7 @@ subroutine CheckConvergence
         lConverged = .TRUE.
         return
     end if
-    ! print *, "Test Shortcut 2"
+    if (lDebugMode) print *, "Test Shortcut 2"
     ! Return if the functional norm is too large.  In other words, it's not worth the flops checking.
     if (dGEMFunctionNorm > dTolerance(1)) return
 
@@ -205,15 +204,15 @@ subroutine CheckConvergence
     ! Compute the driving force for all pure condensed phases:
     call CompDrivingForce(iMaxDrivingForce, dMaxDrivingForce)
     if (iMaxDrivingForce > 0) then
-        ! print *, "Test 4 ", dMaxDrivingForce, cSpeciesName(iMaxDrivingForce)
+        if (lDebugMode) print *, "Test 4 ", dMaxDrivingForce, cSpeciesName(iMaxDrivingForce)
     else
-        ! print *, "Test 4 ", dMaxDrivingForce
+        if (lDebugMode) print *, "Test 4 ", dMaxDrivingForce
     end if
     if (dMaxDrivingForce < dTolerance(4)) return
 
     ! TEST #5: Check the residuals of chemical potential terms:
     ! ---------------------------------------------------------
-    ! print *, "Test 5 "
+    if (lDebugMode) print *, "Test 5 "
     LOOP_TEST5: do j = 1, nSolnPhases
         k = -iAssemblage(nElements - j + 1)
 
@@ -243,7 +242,7 @@ subroutine CheckConvergence
 
     ! TEST #6: Check the residuals of site fractions on each sublattice of a CEF phase:
     ! ---------------------------------------------------------------------------------
-    ! print *, "Test 6 "
+    if (lDebugMode) print *, "Test 6 "
     ! Loop through solution phases that are stable:
     LOOP_TEST6: do j = 1, nSolnPhases
 
@@ -276,7 +275,7 @@ subroutine CheckConvergence
 
     ! TEST #7: Check if a solution phase should be added to the phase assemblage:
     ! ---------------------------------------------------------------------------
-    ! print *, "Test 7 "
+    if (lDebugMode) print *, "Test 7 "
     LOOP_TEST7: do i = 1,nSolnPhasesSys
 
         ! Skip this phase if it is already predicted to be stable:
@@ -293,7 +292,7 @@ subroutine CheckConvergence
 
     ! TEST #9: Check for a miscibility gap:
     ! -------------------------------------
-    ! print *, "Test 9 "
+    if (lDebugMode) print *, "Test 9 "
     ! Loop through all solution phases in the system to check for a miscibiltiy gap:
     LOOP_TEST9: do i = 1, nSolnPhasesSys
 
