@@ -30,13 +30,13 @@
     !> \details The purpose of this subroutine is to estimate the number of moles of each solution and pure
     !! condensed phase in the system.  The stoichiometry of each solution phase and (obviously) pure condensed
     !! phase is fixed and this subroutine determines a particular combination of molar quantities that minimizes
-    !! the mass balance residuals using a Linear Leasr Squares (LLS) technique.
+    !! the mass balance residuals using a Linear Least Squares (LLS) technique.
     !!
     !! This subroutine addresses a particular issue that occasionally arises when a pure condensed phase is
     !! driven out of the system (when it should), but it also drives a solution phase to almost be removed when
     !! it shouldn't.  At this point, the system may have sufficiently diverged that it may be impossible for
     !! the system to recover.  The element potentials may be close to the equilibrium values, but the molar
-    !! quantities of solution speices are way off.  This subroutine therefore fixes the chemical potentials
+    !! quantities of solution species are way off.  This subroutine therefore fixes the chemical potentials
     !! and determines the best combination of molar quantities of the phases.
     !
     !

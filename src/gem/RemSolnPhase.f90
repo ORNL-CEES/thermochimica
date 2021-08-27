@@ -79,18 +79,17 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
     iSolnPhaseLast  = -iAssemblage(k)           ! Absolute index of the solution phase that is to be removed.
     iAssemblage(k)  = iAssemblage(j)
     iAssemblage(j)  = 0
-    ! nSolnPhases     = nSolnPhases - 1
+
     nSolnPhases = 0
     do i =1, SIZE(iAssemblage)
         if (iAssemblage(i) < 0) nSolnPhases = nSolnPhases + 1
     end do
 
     if (nSolnPhases == 0) then
-
         ! Check the system if there are only pure condensed phases and no solution phases:
         call CheckSysOnlyPureConPhases
 
-        if (INFOTHermo == 27) INFOTHermo = 0
+        if (INFOThermo == 27) INFOThermo = 0
 
         if (lConverged) then
             ! The system can be represented by only pure condensed phases.
@@ -99,7 +98,6 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
             ! The system has not converged.  Return the num
             dMolesPhase = dTempVec
         end if
-
     else
         ! Check to make sure that the new phase assemblage is valid:
         j = MAX(1,nConPhases)
