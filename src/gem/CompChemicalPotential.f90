@@ -64,33 +64,25 @@ subroutine CompChemicalPotential(lCompEverything)
 
     ! Compute the mole fractions of species in solution phases expected to be stable:
     do j = 1, nSolnPhases
-
         k      = nElements - j + 1          ! Index of phase in iAssemblage
         dTemp  = 1D0 / dMolesPhase(k)
         k      = -iAssemblage(k)            ! Absolute index of solution phase
-
         ! Compute the mole fractions of all solution phase constituents in the phase:
         do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
             dMolFraction(i) = dMolesSpecies(i) * dTemp
         end do
-
         ! Compute excess terms:
         call CompExcessGibbsEnergy(k)
-
     end do
 
     ! Check if the chemical potentials for everything should be computed:
     if (lCompEverything) then
-
         ! Compute the chemical potentials for every solution phase in the system:
         LOOP_SolnPhasesSys: do j = 1, nSolnPhasesSys
-
             ! Skip this phase if it is already part of the system:
             if (lSolnPhases(j)) cycle LOOP_SolnPhasesSys
-
             ! Compute the mole fractions of solution phase constituents:
             call CompMolFraction(j)
-
         end do LOOP_SolnPhasesSys
     end if
 
