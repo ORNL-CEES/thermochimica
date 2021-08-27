@@ -56,22 +56,18 @@ subroutine CompStoichSolnPhase(k)
     n = nSpeciesPhase(k)                ! Last  species in phase
 
     ! Compute the effective stoichiometry:
-    LOOP_A: do i = m, n
 
-        LOOP_B: do j = 1,nElements
+    LOOP_B: do j = 1,nElements
+        LOOP_A: do i = m, n
             dEffStoichSolnPhase(k,j) = dEffStoichSolnPhase(k,j) + dMolFraction(i) * dStoichSpecies(i,j) &
-                / DFLOAT(iParticlesPerMole(i))
-
-            ! Check for a NAN:
-            if (dEffStoichSolnPhase(k,j) /= dEffStoichSolnPhase(k,j)) then
-                INFOThermo = 24
-
-                exit LOOP_A
-            end if
-
-        end do LOOP_B
-
-    end do LOOP_A
+                                        / DFLOAT(iParticlesPerMole(i))
+        end do LOOP_A
+        ! Check for a NAN:
+        if (dEffStoichSolnPhase(k,j) /= dEffStoichSolnPhase(k,j)) then
+            INFOThermo = 24
+            exit LOOP_B
+        end if
+    end do LOOP_B
 
     return
 
