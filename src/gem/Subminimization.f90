@@ -473,7 +473,8 @@ subroutine SubMinNewton(iSolnPhaseIndex)
         ! Construct diagonal and part of the arrow head:
         do j = 1, nVar
             i                 = nSpeciesPhase(iSolnPhaseIndex-1) + j
-            dHessian(j,j)     = MIN(1D0 / dMolFraction(i),1D0 - 1D-10)
+            dHessian(j,j)     = MAX(1D0 / dMolFraction(i),1D0 + 1D-10)
+            dHessian(j,j)     = MIN(1D0 / dMolFraction(i),1D10)
             dHessian(nEqn,j)  = -1D0
             dHessian(j,nEqn)  = -1D0
             dRHS(j)           = dDrivingForce - (dChemicalPotential(i) + 1D0 - dChemicalPotentialStar(j))
