@@ -52,8 +52,7 @@ subroutine CompChemicalPotential(lCompEverything)
 
     implicit none
 
-    integer :: i, j, k
-    real(8) :: dTemp
+    integer :: i, j, k, l
     logical :: lCompEverything
 
 
@@ -65,14 +64,13 @@ subroutine CompChemicalPotential(lCompEverything)
     ! Compute the mole fractions of species in solution phases expected to be stable:
     do j = 1, nSolnPhases
         k      = nElements - j + 1          ! Index of phase in iAssemblage
-        dTemp  = 1D0 / dMolesPhase(k)
-        k      = -iAssemblage(k)            ! Absolute index of solution phase
+        l      = -iAssemblage(k)            ! Absolute index of solution phase
         ! Compute the mole fractions of all solution phase constituents in the phase:
-        do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-            dMolFraction(i) = dMolesSpecies(i) * dTemp
+        do i = nSpeciesPhase(l-1) + 1, nSpeciesPhase(l)
+            dMolFraction(i) = dMolesSpecies(i) / dMolesPhase(k)
         end do
         ! Compute excess terms:
-        call CompExcessGibbsEnergy(k)
+        call CompExcessGibbsEnergy(l)
     end do
 
     ! Check if the chemical potentials for everything should be computed:
