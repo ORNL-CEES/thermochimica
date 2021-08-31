@@ -205,13 +205,11 @@ subroutine ParseCSDataBlockSUBL(i)
         ! Some mixing cases require three interaction parameters to be created
         ! if the term is L_0
         ! If one mixing term create three mixing terms
-        if (n == 1) then
-            if ((iRegularParamCS(nParamCS,1) == 4) .AND. (n == 1)) then
-                ! Adds 2 mixing terms
-                n = 3
-                ! If lTripleTerm is true then interaction parameters will be added
-                lTripleTerm = .TRUE.
-            end if
+        if ((iRegularParamCS(nParamCS,1)+1-nSublatticePhaseCS(nCountSublatticeCS) == 3) .AND. (n == 1)) then
+            ! Adds 2 mixing terms
+            n = 3
+            ! If lTripleTerm is true then interaction parameters will be added
+            lTripleTerm = .TRUE.
         end if
 
         ! Loop through number of mixing terms per component array:
