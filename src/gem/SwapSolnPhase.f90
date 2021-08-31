@@ -91,8 +91,6 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
     ! Compute the stoichiometry of this phase:
     call CompStoichSolnPhase(iPhaseChange)
 
-    ! print *, '-----------'
-    ! print *, dMolesPhase
     dMolesPhaseTemp   = dMolesPhase
     dMolFractionTemp  = dMolFraction
     dMolesSpeciesTemp = dMolesSpecies
@@ -171,24 +169,16 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             exit LOOP_SolnPhase
         else
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
-            ! print *, 'reject'
             dMolesPhase   = dMolesPhaseTemp
             dMolFraction  = dMolFractionTemp
             dMolesSpecies = dMolesSpeciesTemp
             iAssemblage   = iAssemblageTemp
-            ! call CompChemicalPotential(lCompEverything)
-            ! print *, dMolesPhase
-            ! k                   = nElements - i + 1
-            ! dMolesPhase(k)      = dTemp
-            ! iAssemblage(k)      = -iSolnPhaseLast
             dPartialExcessGibbs = dPartialExcessGibbsLast
             cycle LOOP_SolnPhase
         end if
 
     end do LOOP_SolnPhase
 
-    ! print *, 'last'
-    ! print *, dMolesPhase
     return
 
 end subroutine SwapSolnPhase
