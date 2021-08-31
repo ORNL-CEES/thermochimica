@@ -65,7 +65,7 @@ module ModuleThermoIO
     real(8),       dimension(118)            :: dCompoundMass
     real(8),       dimension(118,0:118)      :: dCompoundStoich
     character(12), dimension(118)            :: cCompoundNames
-    logical                                  :: lCompoundStoichCalculated = .FALSE.
+    logical                                  :: lCompoundStoichCalculated = .FALSE., lRetryAttempted = .FALSE.
 
     ! OUTPUT VARIABLES:
     integer                                  :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut
