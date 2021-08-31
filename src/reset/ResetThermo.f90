@@ -36,7 +36,7 @@
 subroutine ResetThermo
 
     USE ModuleThermo
-    USE ModuleThermoIO, ONLY: INFOThermo
+    USE ModuleThermoIO, ONLY: INFOThermo, lRetryAttempted
     USE ModuleGEMSolver
     USE ModuleSubMin
 
@@ -187,6 +187,8 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(iSUBIMixType)) deallocate(iSUBIMixType, STAT = INFO)
     i = i + INFO
+
+    lRetryAttempted = .FALSE.
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then
