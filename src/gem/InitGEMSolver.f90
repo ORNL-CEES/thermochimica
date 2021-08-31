@@ -199,68 +199,66 @@ subroutine InitGEMSolver
       end do
     ! If there is no reinit data use old methods:
     else
-      ! Calculate the total number of moles for each solution phase:
-      do i = 1, nElements
-          j           = iPhase(iAssemblageLast(i))
-          dTempVec(j) = dTempVec(j) + dMolesPhaseLast(i)
-      end do
+        ! Calculate the total number of moles for each solution phase:
+        do i = 1, nElements
+            j           = iPhase(iAssemblageLast(i))
+            dTempVec(j) = dTempVec(j) + dMolesPhaseLast(i)
+        end do
 
-      ! Count the number of pure condensed phases and solution phases are assumed to be part of the phase
-      ! assemblage and establish iAssemblage based on the results of Leveling and PostLeveling:
-      LOOP_AddPhase: do i = 1, nElements
-          if ((iPhase(iAssemblageLast(i)) == 0).AND.(nConPhases + nSolnPhases < nElements)) then
-              nConPhases              = nConPhases + 1
-              iAssemblage(nConPhases) = iAssemblageLast(i)
-              dMolesPhase(nConPhases) = dMolesPhaseLast(i)
-          elseif ((iPhase(iAssemblageLast(i)) > 0).AND.(nConPhases + nSolnPhases < nElements)) then
-              do j = 1,nSolnPhases
-                  k = nElements - j + 1
-                  ! Ensure that this solution phase is not already stored:
-                  if (iAssemblage(k) == -iPhase(iAssemblageLast(i))) cycle LOOP_AddPhase
-              end do
+        ! Count the number of pure condensed phases and solution phases are assumed to be part of the phase
+        ! assemblage and establish iAssemblage based on the results of Leveling and PostLeveling:
+        LOOP_AddPhase: do i = 1, nElements
+            if ((iPhase(iAssemblageLast(i)) == 0).AND.(nConPhases + nSolnPhases < nElements)) then
+                nConPhases              = nConPhases + 1
+                iAssemblage(nConPhases) = iAssemblageLast(i)
+                dMolesPhase(nConPhases) = dMolesPhaseLast(i)
+            elseif ((iPhase(iAssemblageLast(i)) > 0).AND.(nConPhases + nSolnPhases < nElements)) then
+                do j = 1,nSolnPhases
+                    k = nElements - j + 1
+                    ! Ensure that this solution phase is not already stored:
+                    if (iAssemblage(k) == -iPhase(iAssemblageLast(i))) cycle LOOP_AddPhase
+                end do
 
-              nSolnPhases = nSolnPhases + 1
+                nSolnPhases = nSolnPhases + 1
 
-              j = nElements - nSolnPhases + 1
-              k = iPhase(iAssemblageLast(i))
+                j = nElements - nSolnPhases + 1
+                k = iPhase(iAssemblageLast(i))
 
-              iAssemblage(j) = -k
-              dMolesPhase(j) = DMAX1(dTempVec(k),dTolerance(9))
-              lSolnPhases(k) = .TRUE.
-          end if
-      end do LOOP_AddPhase
+                iAssemblage(j) = -k
+                dMolesPhase(j) = DMAX1(dTempVec(k),dTolerance(9))
+                lSolnPhases(k) = .TRUE.
+            end if
+        end do LOOP_AddPhase
 
-      ! Initialize mole fractions of all solution phase constituents:
-      LOOP_CompX: do k = 1, nSolnPhasesSys
+        ! Initialize mole fractions of all solution phase constituents:
+        LOOP_CompX: do k = 1, nSolnPhasesSys
+            ! Reinitialize temporary variable:
+            dSum = 0D0
 
-          ! Reinitialize temporary variable:
-          dSum = 0D0
+            ! The default case assumes an ideal solution phase.
+            do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                dTemp = 0D0
+                do j = 1, nElements
+                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
+                end do
+                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+                dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i) - dMagGibbsEnergy(i))
+                dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
+                dSum            = dSum + dMolFraction(i)
+            end do
 
-          ! The default case assumes an ideal solution phase.
-              do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                  dTemp = 0D0
-                  do j = 1, nElements
-                      dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
-                  end do
-                  dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
-                  dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i) - dMagGibbsEnergy(i))
-                  dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
-                  dSum            = dSum + dMolFraction(i)
-              end do
-
-              ! Normalize the mole fractions so that their sum equals unity:
-              if (dSum > 1D-200 .AND. dSum < 1D200) then
-                  dSum = 1D0 / dSum
-                  do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                      dMolFraction(i) = dMolFraction(i) * dSum
-                  end do
-              else
-                  do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
-                      dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
-                  end do
-              end if
-
-      end do LOOP_CompX
+            ! Normalize the mole fractions so that their sum equals unity:
+            if (dSum > 1D-200 .AND. dSum < 1D200) then
+                dSum = 1D0 / dSum
+                do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                    dMolFraction(i) = dMolFraction(i) * dSum
+                end do
+            else
+                do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                    dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
+                end do
+            end if
+        end do LOOP_CompX
     end if IF_ReinitLoaded
 
     ! If there aren't any solution phases currently predicted to be stable, check if any should be added:
