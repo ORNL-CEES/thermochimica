@@ -80,8 +80,8 @@ subroutine ParseCSDataBlockSUBL(i)
 
     implicit none
 
-    integer                   :: i, j, k, n, s
-
+    integer :: i, j, k, n, s
+    logical :: lTripleTerm
 
     ! Initialize variables:
     n = 0
@@ -200,6 +200,20 @@ subroutine ParseCSDataBlockSUBL(i)
         ! Correct the indexing scheme (order of mixing) for the first parameter:
         iRegularParamCS(nParamCS, j+2) = 0
 
+        ! lTripleTerm is false unless the specified conditions are met
+        lTripleTerm = .false.
+        ! Some mixing cases require three interaction parameters to be created
+        ! if the term is L_0
+        ! If one mixing term create three mixing terms
+        if (n == 1) then
+            if ((iRegularParamCS(nParamCS,1) == 4) .AND. (n == 1)) then
+                ! Adds 2 mixing terms
+                n = 3
+                ! If lTripleTerm is true then interaction parameters will be added
+                lTripleTerm = .TRUE.
+            end if
+        end if
+
         ! Loop through number of mixing terms per component array:
         LOOP_ParamArray: do k = 2, n
 
@@ -211,6 +225,9 @@ subroutine ParseCSDataBlockSUBL(i)
 
             ! Correct the indexing scheme (order of mixing parameter):
             iRegularParamCS(nParamCS, j+2) = k - 1
+
+            ! Re-read in mixing parameters
+            if (lTripleTerm) backspace(UNIT = 1)
 
             ! Read mixing terms:
             read (1,*,IOSTAT = INFO) dRegularParamCS(nParamCS,1:6)
