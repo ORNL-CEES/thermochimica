@@ -139,6 +139,12 @@ subroutine CompMolFraction(k)
                 dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
                 dSum = dSum + dMolFraction(i)
             end do
+            if (dSum > 1D0) then
+                do i = m, n
+                     dMolFraction(i) = dMolFraction(i) / dSum
+                end do
+                dSum = 1D0
+            end if
             do i = m, n
                 dTemp = 0D0
                 do j = 1, nElements
@@ -153,7 +159,7 @@ subroutine CompMolFraction(k)
 
 
     ! Compute the sum of all mole fractions in this phase and the effective
-    ! stocihiometry:
+    ! stoichiometry:
     do i = m, n
         dSumMolFractionSoln(k) = dSumMolFractionSoln(k) + dMolFraction(i)
         do j = 1,nElements
