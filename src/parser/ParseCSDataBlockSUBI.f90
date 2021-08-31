@@ -322,7 +322,7 @@ subroutine ParseCSDataBlockSUBI(i)
                 ! Adds 2 mixing terms
                 n = 3
                 ! If lTripleTerm is true then interaction parameters will be added
-                lTripleTerm = .true.
+                lTripleTerm = .TRUE.
             end if
         end if
 
