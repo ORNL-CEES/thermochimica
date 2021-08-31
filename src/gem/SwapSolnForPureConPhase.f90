@@ -58,8 +58,9 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
     implicit none
 
     integer                       :: i, j, k, iPhaseChange, INFO, iterBack
-    integer, dimension(nElements) :: iAssemblageTest, iTempVec
-    real(8), dimension(nElements) :: dTempVec
+    integer, dimension(nElements) :: iAssemblageTest, iAssemblageTemp
+    real(8), dimension(nElements) :: dMolesPhaseTemp
+    real(8), dimension(nSpecies)  :: dMolFractionTemp, dMolesSpeciesTemp
     logical                       :: lPhasePass, lSwapLater, lCompEverything
 
 
@@ -67,7 +68,6 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
     lPhasePass            = .FALSE.
     lSwapLater            = .FALSE.
     lCompEverything       = .FALSE.
-    iTempVec(1:nElements) = iAssemblage(1:nElements)
 
     ! Check if this phase contains a miscibility gap:
     if (lMiscibility(-iPhaseChange)) then
@@ -104,11 +104,16 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
     ! Compute the stoichiometry of this phase:
     call CompStoichSolnPhase(-iPhaseChange)
 
+    dMolesPhaseTemp   = dMolesPhase
+    dMolFractionTemp  = dMolFraction
+    dMolesSpeciesTemp = dMolesSpecies
+    iAssemblageTemp   = iAssemblage
+
     LOOP_ConPhase: do i = 1, nConPhases
 
         ! Check iteration history:
-        iAssemblageTest(1:nElements)             = iTempVec(1:nElements)
-        iAssemblageTest(i)                       = iTempVec(nConPhases)
+        iAssemblageTest                          = iAssemblageTemp
+        iAssemblageTest(i)                       = iAssemblageTemp(nConPhases)
         iAssemblageTest(nConPhases)              = 0
         iAssemblageTest(nElements - nSolnPhases) = iPhaseChange
 
@@ -122,11 +127,6 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
         if (lSwapLater) cycle LOOP_ConPhase
-
-        ! Store the info for the pure condensed phase to be removed to temporary variables:
-        dTempVec        = dMolesPhase
-        iAssemblageTest = iAssemblage
-        iConPhaseLast   = iAssemblage(i)
 
         ! Move the info for the last pure conndesed phase to the location being removed:
         dMolesPhase(i) = dMolesPhase(nConPhases)
@@ -147,11 +147,11 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         call CompMolAllSolnPhases
 
         ! Compute the number of moles of solution species:
-        k = nElements - nSolnPhases + 1
-        do j = nSpeciesPhase(-iPhaseChange-1) + 1, nSpeciesPhase(-iPhaseChange)
-            dMolesSpecies(j) = dMolFraction(j) * dMolesPhase(k) / dSumMolFractionSoln(-iPhaseChange)
-            dMolesSpecies(j) = DMAX1(dMolesSpecies(j), dTolerance(8))
-        end do
+        ! k = nElements - nSolnPhases + 1
+        ! do j = nSpeciesPhase(-iPhaseChange-1) + 1, nSpeciesPhase(-iPhaseChange)
+        !     dMolesSpecies(j) = dMolFraction(j) * dMolesPhase(k) !/ dSumMolFractionSoln(-iPhaseChange)
+        !     dMolesSpecies(j) = DMAX1(dMolesSpecies(j), dTolerance(8))
+        ! end do
 
         ! Compute the chemical potentials:
         call CompChemicalPotential(lCompEverything)
@@ -177,8 +177,11 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
             nConPhases  = nConPhases + 1
             nSolnPhases = nSolnPhases - 1
-            iAssemblage = iAssemblageTest
-            dMolesPhase = dTempVec
+            dMolesPhase   = dMolesPhaseTemp
+            dMolFraction  = dMolFractionTemp
+            dMolesSpecies = dMolesSpeciesTemp
+            iAssemblage   = iAssemblageTemp
+            ! call CompChemicalPotential(lCompEverything)
             cycle LOOP_ConPhase
         end if
 

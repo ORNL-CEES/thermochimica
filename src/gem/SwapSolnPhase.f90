@@ -66,8 +66,10 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
     implicit none
 
     integer                       :: i, j, k, l, iPhaseChange, INFO, iterBack
-    integer, dimension(nElements) :: iAssemblageTest
+    integer, dimension(nElements) :: iAssemblageTest, iAssemblageTemp
     real(8)                       :: dTemp
+    real(8), dimension(nElements) :: dMolesPhaseTemp
+    real(8), dimension(nSpecies)  :: dMolFractionTemp, dMolesSpeciesTemp
     logical                       :: lPhasePass, lSwapLater, lCompEverything
 
     ! Initialize variables:
@@ -88,6 +90,13 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
 
     ! Compute the stoichiometry of this phase:
     call CompStoichSolnPhase(iPhaseChange)
+
+    ! print *, '-----------'
+    ! print *, dMolesPhase
+    dMolesPhaseTemp   = dMolesPhase
+    dMolFractionTemp  = dMolFraction
+    dMolesSpeciesTemp = dMolesSpecies
+    iAssemblageTemp   = iAssemblage
 
     ! Loop through all solution phases in the current estimated phase assemblgae to see which one should
     ! be swapped:
@@ -162,15 +171,24 @@ subroutine SwapSolnPhase(iPhaseChange,lPhasePass)
             exit LOOP_SolnPhase
         else
             ! This phase assemblage cannot be considered.  Revert back to the previous assemblage:
-            k                   = nElements - i + 1
-            dMolesPhase(k)      = dTemp
-            iAssemblage(k)      = -iSolnPhaseLast
+            ! print *, 'reject'
+            dMolesPhase   = dMolesPhaseTemp
+            dMolFraction  = dMolFractionTemp
+            dMolesSpecies = dMolesSpeciesTemp
+            iAssemblage   = iAssemblageTemp
+            ! call CompChemicalPotential(lCompEverything)
+            ! print *, dMolesPhase
+            ! k                   = nElements - i + 1
+            ! dMolesPhase(k)      = dTemp
+            ! iAssemblage(k)      = -iSolnPhaseLast
             dPartialExcessGibbs = dPartialExcessGibbsLast
             cycle LOOP_SolnPhase
         end if
 
     end do LOOP_SolnPhase
 
+    ! print *, 'last'
+    ! print *, dMolesPhase
     return
 
 end subroutine SwapSolnPhase
