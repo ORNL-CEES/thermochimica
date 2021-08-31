@@ -61,7 +61,7 @@ subroutine CompMolAllSolnPhases
 
     implicit none
 
-    integer                               :: i, j, k, M, N, MN
+    integer                               :: i, j, k, l, M, N, MN
     integer                               :: NRHS, LDA, LDB, INFO, LWORK
     real(8)                               :: dURF, dTemp
     real(8),  dimension(:,:), allocatable :: A
@@ -77,7 +77,7 @@ subroutine CompMolAllSolnPhases
     TRANS     = 'N'
     INFO      = 0
     NRHS      = 1
-    M         = nElements
+    M         = nElements - nChargedConstraints
     N         = nSolnPhases + nConPhases
     LDA       = MAX(1,M)
     LDB       = MAX(1,M,N)
@@ -86,9 +86,7 @@ subroutine CompMolAllSolnPhases
     dURF      = 0.5D0
 
     ! Allocate memory:
-    allocate(A(M,N))
-    allocate(B(M))
-    allocate(WORK(LWORK))
+    allocate(A(LDA,N),B(LDB),WORK(LWORK))
 
     ! Initialize allocatable variables:
     A        = 0D0
@@ -97,61 +95,52 @@ subroutine CompMolAllSolnPhases
 
     ! Construct matrix A representing the "effective stoichiometry" of each solution phase:
     do j = 1, nSolnPhases
-
         ! Absolute solution phase index:
         k = -iAssemblage(nElements - j + 1)
-
         ! Compute the stoichiometry of this solution phase:
         call CompStoichSolnPhase(k)
-
-        do i = 1,nElements
+        do i = 1, M
            A(i,j) = dEffStoichSolnPhase(k,i)
         end do
-
     end do
 
     ! Construct matrix A representing the stoichiometry of each pure condensed phase:
     do j = nSolnPhases + 1, nSolnPhases + nConPhases
         k = iAssemblage(j - nSolnPhases)
-
-        do i = 1, nElements
+        do i = 1, M
             A(i,j) = dStoichSpecies(k,i)
         end do
     end do
 
     ! Apply the right hand side vector:
-    do i = 1, nElements
+    do i = 1, M
         B(i) = dMolesElement(i)
     end do
 
     ! This routine solves the Linear Least Squares (LLS) problem using QR or LQ factorization
     ! in double precision:
-    call DGELS( TRANS, M, N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO )
+    call DGELS(TRANS, M, N, NRHS, A, LDA, B, LDB, WORK, LWORK, INFO)
+
+    dMolesPhase = 0D0
 
     ! Update the estimated number of moles of each solution phase:
     LOOP_SolnPhases: do k = 1, nSolnPhases
         j = nElements - k + 1
-        dTemp = dMolesPhase(j)
-
-        if (dMolesPhase(j) <= 0D0) then
-            dMolesPhase(j) = dURF * B(k)
-            dMolesPhase(j) = DMIN1(dMolesPhase(j),dTolerance(10))
-        elseif (dMolesPhase(j) > 0D0) then
-            if (B(k) > 0D0) dMolesPhase(j) = dURF * B(k) + (1D0 - dURF) * dMolesPhase(j)
-        end if
-
-        dMolesPhase(j) = DMAX1(dMolesPhase(j),dTolerance(9))
+        dMolesPhase(j) = DMAX1(B(k),dTolerance(9))
         dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
-
-        if (dTemp > 0D0) then
-            dTemp = dMolesPhase(j) / dTemp
-            j = -iAssemblage(j)
-            do i = nSpeciesPhase(j-1) + 1, nSpeciesPhase(j)
-                dMolesSpecies(i) = dMolesSpecies(i) * dTemp
-            end do
-        end if
-
+        l = -iAssemblage(j)
+        dTemp = 0D0
+        do i = nSpeciesPhase(l-1) + 1, nSpeciesPhase(l)
+            dMolesSpecies(i) = dMolFraction(i) * dMolesPhase(j)
+            dTemp = dTemp + dMolFraction(i)
+        end do
     end do LOOP_SolnPhases
+
+    do k = nSolnPhases + 1, nSolnPhases + nConPhases
+        j = k - nSolnPhases
+        dMolesPhase(j) = DMAX1(B(k),dTolerance(9))
+        dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
+    end do
 
     ! Deallocate memory:
     i = 0
