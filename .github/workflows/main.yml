@@ -49,5 +49,11 @@ jobs:
       - name: run tests
         run: bash ./run_private_tests > testresults.out
         
-      - name: echo ouput
+      - name: echoOutput
         run: echo "$(cat testresults.out)"
+        
+      - name: Upload output file
+        uses: actions/upload-artifact@v2
+        with:
+          name: output-test-results
+          path: testresults.out
