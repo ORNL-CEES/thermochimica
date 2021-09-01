@@ -30,6 +30,9 @@ jobs:
         
       - name: make test
         run: make test
+        
+      - name: run tests
+        run: ./run_tests | testresults.out
 
 #       # Runs a single command using the runners shell
 #       - name: Run a one-line script
