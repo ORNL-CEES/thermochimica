@@ -24,14 +24,20 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: make
+        run: make
+        
+      - name: make test
+        run: make test
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+#       # Runs a single command using the runners shell
+#       - name: Run a one-line script
+#         run: echo Hello, world!
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          cp /home/max/proj/privateTesting/data/C-O.dat thermochimica/thermochimica/data/TESTFILE
-          echo test, and deploy your project.
+#       # Runs a set of commands using the runners shell
+#       - name: Run a multi-line script
+#         run: |
+#           echo "$HOME/.local/bin" >> $GITHUB_PATH
+#           cp /home/max/proj/privateTesting/data/C-O.dat thermochimica/thermochimica/data/TESTFILE
+#           echo test, and deploy your project.
