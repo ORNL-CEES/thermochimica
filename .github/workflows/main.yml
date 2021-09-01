@@ -31,6 +31,9 @@ jobs:
       - name: make test
         run: make test
         
+      - name: copy data
+        run: cp /home/max/proj/privateTesting/data/C-O.dat data/TESTFILE
+        
       - name: run tests
         run: bash ./run_tests > testresults.out
 
