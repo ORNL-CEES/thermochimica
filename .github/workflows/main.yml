@@ -49,11 +49,23 @@ jobs:
       - name: run tests
         run: bash ./run_private_tests > testresults.out
         
-      - name: echoOutput
-        run: echo "$(cat testresults.out)"
-        
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
           name: output-test-results
           path: testresults.out
+          
+      - name: run fpdb carpet
+        run: ./bin/carpet-FPDB
+        
+      - name: Upload FPDB success
+        uses: actions/upload-artifact@v2
+        with:
+          name: output-FPDB-pass
+          path: carpetFPDBPass.txt
+        
+      - name: Upload FPDB failures
+        uses: actions/upload-artifact@v2
+        with:
+          name: output-FPDB-fail
+          path: carpetFPDBFail.txt
