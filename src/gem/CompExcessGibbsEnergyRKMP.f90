@@ -161,12 +161,11 @@ subroutine CompExcessGibbsEnergyRKMP(iSolnIndex)
 
                 ! Loop through species in this phase:
                 do i = iFirstSpecies, iLastSpecies
-                    ! Compute Kronecker-Delta term for ternary parameter:
-                    KD = 0
-                    if (iRegularParam(iParam,5) == i - iFirstSpecies + 1) KD = 1
-
                     ! Relative species index in phase:
                     j = i - iFirstSpecies + 1
+                    ! Compute Kronecker-Delta term for ternary parameter:
+                    KD = 0
+                    if (iRegularParam(iParam,5) == j) KD = 1
 
                     if ((j == iRegularParam(iParam,2)).OR.(j == iRegularParam(iParam,3)).OR. &
                         (j == iRegularParam(iParam,4))) then
