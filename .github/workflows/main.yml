@@ -48,3 +48,6 @@ jobs:
         
       - name: run tests
         run: bash ./run_private_tests > testresults.out
+        
+      - name: echo ouput
+        run: echo "$(cat testresults.out)"
