@@ -223,7 +223,7 @@ def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,m
         inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
         inputFile.write('data file         = ' + datafile + '\n')
 
-def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data):
+def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data,ts,x1,x2,p1,p2):
     writeInputFile(filename,xlab,xlab,0,tlab,tlab,0,pressure,tunit,punit,munit,el1,el2,datafile)
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     fname = 'thermoout.json'
@@ -458,7 +458,7 @@ while True:
                         elif event =='Add Label':
                             xlab = values['-xlab-']
                             tlab = values['-tlab-']
-                            mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data)
+                            mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data,ts,x1,x2,p1,p2)
                     labelWindow.close()
                     setupWindow.Element('Remove Label').Update(disabled = False)
                 elif event =='Remove Label':
