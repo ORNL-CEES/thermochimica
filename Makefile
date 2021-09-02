@@ -23,24 +23,24 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -g -O0 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++11
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
-		LDLOC     =  -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
-		# link flags for linux users:
-		LDFLAGS     =  -g -O0 -fno-automatic -fbounds-check
+    LDLOC   = -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
+    # link flags for linux users:
+    LDFLAGS = -O0 -g -fno-automatic -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
-		LDFLAGS     = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
+    LDFLAGS = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
-		LDLOC     =  -llapack -lblas -lgfortran
-		# link flags for Windows users:
-		LDFLAGS     =  -O0 -g -fno-automatic -fbounds-check
+    LDLOC   =  -llapack -lblas -lgfortran
+    # link flags for Windows users:
+    LDFLAGS =  -O0 -g -fno-automatic -fbounds-check
 endif
 
 ## ====================
@@ -52,13 +52,16 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
+SRC_SDR     = debug gem module parser postprocess reinit reset setup
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
 WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
+SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
+VPATH				= $(SHARED_DIR)
 
 ## ========
 ## MODULES:
@@ -129,10 +132,10 @@ ${BIN_DIR}:
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.f90
+$(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.F90
+$(OBJ_DIR)/%.o: %.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.F90

@@ -24,46 +24,46 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-        
+
       - name: copy data
         run: cp /home/max/proj/privateTesting/data/* data/
-        
+
       - name: remove standard tests
         run: rm test/daily/*.F90
-        
+
       - name: copy tests
         run: cp /home/max/proj/privateTesting/privateTests/*.F90 test/daily/
-        
+
       - name: copy test driver
         run: cp /home/max/proj/privateTesting/run_private_tests .
-        
+
       - name: make clean
         run: make veryclean
-        
+
       - name: make
         run: make
-        
+
       - name: make test
         run: make test
-        
+
       - name: run tests
         run: bash ./run_private_tests > testresults.out
-        
+
       - name: Upload output file
         uses: actions/upload-artifact@v2
         with:
           name: output-test-results
           path: testresults.out
-          
+
       - name: run fpdb carpet
         run: ./bin/carpet-FPDB
-        
+
       - name: Upload FPDB success
         uses: actions/upload-artifact@v2
         with:
           name: output-FPDB-pass
           path: carpetFPDBPass.txt
-        
+
       - name: Upload FPDB failures
         uses: actions/upload-artifact@v2
         with:

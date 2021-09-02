@@ -31,6 +31,9 @@ program TestThermo44
 
     implicit none
 
+    integer :: i,j,k
+    logical :: s1pass, s2pass
+
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
@@ -49,23 +52,32 @@ program TestThermo44
     ! Call Thermochimica:
     call Thermochimica
 
+    s1pass = .FALSE.
+    s2pass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        if (((DABS(dMolFraction(3) - 0.72838D0)/0.72838D0) < 1D-3).AND. &
-        ((DABS(dMolFraction(4) - 0.27161995D0)/0.27161995D0) < 1D-3).AND. &
-        ((DABS(dGibbsEnergySys - (-5.04309D6))/(-5.04309D6)) < 1D-3))  then
-            ! The test passed:
-            print *, 'TestThermo44: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo44: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
+        if (DABS(dGibbsEnergySys - (-5.04309D6))/(-5.04309D6) < 1D-3) then
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements + 1 - i)
+                if (cSolnPhaseName(k) == 'HCPN') then
+                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Pd') then
+                            if (DABS(dMolFraction(j) - 0.4D0)/0.4D0 < 1D-3) s1pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
+                            if (DABS(dMolFraction(j) - 0.6D0)/0.6D0 < 1D-3) s2pass = .TRUE.
+                        end if
+                    end do
+                end if
+            end do
         end if
+    end if
+
+    if (s1pass .AND. s2pass) then
+        ! The test passed:
+        print *, 'TestThermo44: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo44: FAIL <---'
@@ -73,8 +85,5 @@ program TestThermo44
         call ResetThermo
         call EXIT(1)
     end if
-
-! Reset Thermochimica:
-call ResetThermo
 
 end program TestThermo44
