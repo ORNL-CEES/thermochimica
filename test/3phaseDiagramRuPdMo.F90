@@ -34,7 +34,7 @@ program thermo
     nSim = 1
     do i = 0, nx
       do j =  0, nx
-        dElementMass(42) = REAL(i)/REAL(nx) !+ REAL(MODULO(j,10)) / (10D0 * REAL(nx))
+        dElementMass(42) = REAL(i)/REAL(nx)
         dElementMass(44) = REAL(j)/REAL(nx) * MAX(1D0 - (dElementMass(42)),0D0)
         dElementMass(46) = MAX(1D0 - (dElementMass(42) + dElementMass(44)),0D0)
 
