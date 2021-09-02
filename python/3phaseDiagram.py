@@ -32,62 +32,16 @@ def processPhaseDiagramData(fname, elx, ely, x1, x2, p1, p2, x0data, x1data):
             x2.append(boundComps[1])
             p1.append(boundPhases[0])
             p2.append(boundPhases[1])
-        # elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
-        #     if not(elx in list(data[i]['elements'].keys())):
-        #         for phaseType in ['solution phases','pure condensed phases']:
-        #             for phaseName in list(data[i][phaseType].keys()):
-        #                 if (data[i][phaseType][phaseName]['moles'] > 0):
-        #                     pname = phaseName
-        #         if not(pname in x0data[0]):
-        #             x0data[0].append(pname)
-        #             x0data[1].append(data[i]['temperature'])
-        #             x0data[2].append(data[i]['temperature'])
-        #         pindex = x0data[0].index(pname)
-        #         x0data[1][pindex] = min(x0data[1][pindex],data[i]['temperature'])
-        #         x0data[2][pindex] = max(x0data[2][pindex],data[i]['temperature'])
-        #     elif float(data[i]['elements'][elx]['moles']) == 1:
-        #         for phaseType in ['solution phases','pure condensed phases']:
-        #             for phaseName in list(data[i][phaseType].keys()):
-        #                 if (data[i][phaseType][phaseName]['moles'] > 0):
-        #                     pname = phaseName
-        #         if not(pname in x1data[0]):
-        #             x1data[0].append(pname)
-        #             x1data[1].append(data[i]['temperature'])
-        #             x1data[2].append(data[i]['temperature'])
-        #         pindex = x1data[0].index(pname)
-        #         x1data[1][pindex] = min(x1data[1][pindex],data[i]['temperature'])
-        #         x1data[2][pindex] = max(x1data[2][pindex],data[i]['temperature'])
-    # if len(x0data[1]) > 1:
-    #     x0sort = [i[0] for i in sorted(enumerate(x0data[1]), key=lambda x:x[1])]
-    #     phaseOrder = []
-    #     for i in x0sort:
-    #         phaseOrder.append(x0data[0][i])
-    #     xtemp = [[],[],[]]
-    #     xtemp[0] = phaseOrder
-    #     xtemp[1] = sorted(x0data[1])
-    #     xtemp[2] = sorted(x0data[2])
-    #     x0data = xtemp
-    # if len(x1data[1]) > 1:
-    #     x1sort = [i[0] for i in sorted(enumerate(x1data[1]), key=lambda x:x[1])]
-    #     phaseOrder = []
-    #     for i in x1sort:
-    #         phaseOrder.append(x1data[0][i])
-    #     xtemp = [[],[],[]]
-    #     xtemp[0] = phaseOrder
-    #     xtemp[1] = sorted(x1data[1])
-    #     xtemp[2] = sorted(x1data[2])
-    #     x1data = xtemp
 
-# def runCalc(el1, el2, ts, x1, x2, p1, p2, labels, x0data, x1data):
-#     print('Thermochimica calculation initiated.')
-#     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
-#     print('Thermochimica calculation finished.')
-#
-#     fname = 'thermoout.json'
-#
-#     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
-#     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
-#     return mint, maxt
+def runCalc(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data):
+    print('Thermochimica calculation initiated.')
+    subprocess.run(['./bin/Phase3DiagramDataGen',filename])
+    print('Thermochimica calculation finished.')
+
+    fname = 'thermoout.json'
+
+    processPhaseDiagramData(fname, el1, el2, x1, x2, p1, p2, x0data, x1data)
+    makePlot(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data)
 
 def fmt(x,pos=None):
     return '{:.2f}'.format(1-x)
@@ -149,45 +103,46 @@ def makePlot(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data):
     plt.sca(ax)
     plt.show()
 
-# def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile):
-#     with open(filename, 'w') as inputFile:
-#         inputFile.write('! Python-generated input file for Thermochimica\n')
-#         if float(nxstep) > 0:
-#             xstep = (float(xhi)-float(xlo))/float(nxstep)
-#         else:
-#             xstep = 0
-#         inputFile.write('x          = ' + str(xlo) + ':' + str(xhi) + ':' + str(xstep) + '\n')
-#         if float(ntstep) > 0:
-#             tstep = (float(thi)-float(tlo))/float(ntstep)
-#         else:
-#             tstep = 0
-#         inputFile.write('temperature          = ' + str(tlo) + ':' + str(thi) + ':' + str(tstep) + '\n')
-#         inputFile.write('pressure          = ' + str(pressure) + '\n')
-#         inputFile.write('temperature unit         = ' + tunit + '\n')
-#         inputFile.write('pressure unit          = ' + punit + '\n')
-#         inputFile.write('mass unit          = \'' + munit + '\'\n')
-#         inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-#         inputFile.write('data file         = ' + datafile + '\n')
+def writeInputFile(filename,x1lo,x1hi,x2lo,x2hi,nx1step,nx2step,t,pressure,tunit,punit,munit,el1,el2,el3,datafile):
+    with open(filename, 'w') as inputFile:
+        inputFile.write('! Python-generated input file for Thermochimica\n')
+        if float(nx1step) > 0:
+            x1step = (float(x1hi)-float(x1lo))/float(nx1step)
+        else:
+            x1step = 0
+        if float(nx2step) > 0:
+            x2step = (float(x2hi)-float(x2lo))/float(nx2step)
+        else:
+            x2step = 0
+        inputFile.write('x1          = ' + str(x1lo) + ':' + str(x1hi) + ':' + str(x1step) + '\n')
+        inputFile.write('x2          = ' + str(x2lo) + ':' + str(x2hi) + ':' + str(x2step) + '\n')
+        inputFile.write('temperature          = ' + str(t) + '\n')
+        inputFile.write('pressure          = ' + str(pressure) + '\n')
+        inputFile.write('temperature unit         = ' + tunit + '\n')
+        inputFile.write('pressure unit          = ' + punit + '\n')
+        inputFile.write('mass unit          = \'' + munit + '\'\n')
+        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + ' ' + str(atomic_number_map.index(el3)+1) + '\n')
+        inputFile.write('data file         = ' + datafile + '\n')
 
-# def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,labels,x0data,x1data):
-#     writeInputFile(filename,xlab,xlab,0,tlab,tlab,0,pressure,tunit,punit,munit,el1,el2,datafile)
-#     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
-#     fname = 'thermoout.json'
-#     f = open(fname,)
-#     data = json.load(f)
-#     f.close()
-#     if list(data.keys())[0] != '1':
-#         print('Output does not contain data series')
-#         exit()
-#     labelName = []
-#     for phaseName in list(data['1']['solution phases'].keys()):
-#         if (data['1']['solution phases'][phaseName]['moles'] > 0):
-#             labelName.append(phaseName)
-#     for phaseName in list(data['1']['pure condensed phases'].keys()):
-#         if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
-#             labelName.append(phaseName)
-#     labels.append([[xlab,tlab],'+'.join(labelName)])
-#     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+def addLabel(filename,x1lab,x2lab,temperature,pressure,tunit,punit,munit,el1,el2,datafile,labels,x0data,x1data,x1,x2,p1,p2):
+    writeInputFile(filename,x1lab,x1lab,x2lab,x2lab,0,0,temperature,pressure,tunit,punit,munit,el1,el2,el3,datafile)
+    subprocess.run(['./bin/Phase3DiagramDataGen',filename])
+    fname = 'thermoout.json'
+    f = open(fname,)
+    data = json.load(f)
+    f.close()
+    if list(data.keys())[0] != '1':
+        print('Output does not contain data series')
+        exit()
+    labelName = []
+    for phaseName in list(data['1']['solution phases'].keys()):
+        if (data['1']['solution phases'][phaseName]['moles'] > 0):
+            labelName.append(phaseName)
+    for phaseName in list(data['1']['pure condensed phases'].keys()):
+        if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
+            labelName.append(phaseName)
+    labels.append([[1-(x1lab+x2lab/2),x2lab],'+'.join(labelName)])
+    runCalc(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data)
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -213,9 +168,10 @@ file_list_column = [
     ],
 ]
 
-fname = 'thermoout.json'
+# fname = 'thermoout.json'
 
-
+filename = 'inputs/python3PhaseDiagramInput.ti'
+datafile = 'data/Kaye_NobleMetals.dat'
 el1 = 'Mo'
 el2 = 'Pd'
 el3 = 'Ru'
@@ -227,5 +183,18 @@ x0data = [[],[],[]]
 x1data = [[],[],[]]
 labels = []
 
-processPhaseDiagramData(fname, el1, el2, x1, x2, p1, p2, x0data, x1data)
-makePlot(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data)
+x1lo = 0
+x1hi = 1
+x2lo = 0
+x2hi = 1
+nxstep = 30
+t = 900
+pressure = 1
+tunit = 'K'
+punit = 'atm'
+munit = 'mole fraction'
+writeInputFile(filename,x1lo,x1hi,x2lo,x2hi,nxstep,nxstep,t,pressure,tunit,punit,munit,el1,el2,el3,datafile)
+runCalc(el1, el2, el3, x1, x2, p1, p2, labels, x0data, x1data)
+x1lab = 0.7
+x2lab = 0.2
+addLabel(filename,x1lab,x2lab,t,pressure,tunit,punit,munit,el1,el2,datafile,labels,x0data,x1data,x1,x2,p1,p2)
