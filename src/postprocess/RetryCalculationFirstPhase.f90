@@ -13,6 +13,7 @@ subroutine RetryCalculationFirstPhase
         if (nSpeciesPhase(1) > 0) then
             INFOThermo = 0
             lReinitRequested = .TRUE.
+            call PostProcess
             call SaveReinitData
             if (lReinitAvailable) then
                 iAssemblage_Old = 0
