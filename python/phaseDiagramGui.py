@@ -156,8 +156,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     # Plot along x=0 and x=1 boundaries
     for j in range(len(x0data[1])):
         i = phases.index(x0data[0][j])
-        phasePolyPoints[i].append([0,x0data[1][j]])
-        phasePolyPoints[i].append([0,x0data[2][j]])
+        phasePolyPoints[i].append([[0,x0data[1][j]]])
+        phasePolyPoints[i].append([[0,x0data[2][j]]])
         if j > 0:
             ax.plot(0,x0data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -192,8 +192,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                         bEdgeLine[k][1] = True
     for j in range(len(x1data[1])):
         i = phases.index(x1data[0][j])
-        phasePolyPoints[i].append([1,x1data[1][j]])
-        phasePolyPoints[i].append([1,x1data[2][j]])
+        phasePolyPoints[i].append([[1,x1data[1][j]]])
+        phasePolyPoints[i].append([[1,x1data[2][j]]])
         if j > 0:
             ax.plot(1,x1data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -233,12 +233,12 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         polygonPoints = []
         inds = [i for i, k in enumerate(b) if k == j]
         ttt = np.array(ts)[inds]
-        # sindex = np.argsort(ttt)
-        # ttt = ttt[sindex]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
         x1t = np.array(x1)[inds]
-        # x1t = x1t[sindex]
+        x1t = x1t[sindex]
         x2t = np.array(x2)[inds]
-        # x2t = x2t[sindex]
+        x2t = x2t[sindex]
         ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
         ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
         for i in range(len(inds)):
@@ -258,23 +258,26 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
         for i in range(len(phases)):
             if boundaries[j][0] == phases[i]:
-                for k in range(len(inds)):
-                    phasePolyPoints[i].append([x1t[k],ttt[k]])
+                phasePolyPoints[i].append(polygonPoints[0:len(inds)-1])
             if boundaries[j][1] == phases[i]:
-                for k in range(len(inds)):
-                    phasePolyPoints[i].append([x2t[k],ttt[k]])
+                phasePolyPoints[i].append(list(reversed(polygonPoints[len(inds):-1])))
     for i in range(len(phases)):
-        # center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i]), [len(phasePolyPoints[i])] * 2))
-        nppoints = np.array(phasePolyPoints[i])
-        center = ((min(nppoints[:,0]) + max(nppoints[:,0]))/2,(min(nppoints[:,1])+max(nppoints[:,1]))/2)
-        print(center)
-        # print(sorted(phasePolyPoints[i], key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
-        phaseOutline = Polygon(phasePolyPoints[i]).buffer(0)
-        center = list(phaseOutline.centroid.coords)[0]
-        print(center)
-        phaseOutline = Polygon(sorted(phasePolyPoints[i], key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)).buffer(0)
+        segcenters = []
+        for j in range(len(phasePolyPoints[i])):
+            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+        sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+        sortedPolyPoints = []
+        for j in range(len(phasePolyPoints[i])):
+            k = segcenters.index(sortcenters[j])
+            if sortcenters[j][1] > sortcenters[j-1][1]:
+                for l in range(len(phasePolyPoints[i][k])):
+                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
+            else:
+                for l in reversed(range(len(phasePolyPoints[i][k]))):
+                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
+        phaseOutline = Polygon(sortedPolyPoints).buffer(0)
         outline = outline - phaseOutline
-        ax.plot(nppoints[:,0],nppoints[:,1],'.')
 
     patch = PolygonPatch(outline.buffer(0))
     ax.add_patch(patch)
