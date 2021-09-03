@@ -5,6 +5,10 @@ import numpy as np
 import math
 import os
 import subprocess
+from shapely.geometry import Polygon
+from descartes import PolygonPatch
+from functools import reduce
+import operator
 
 def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data):
     f = open(fname,)
@@ -87,8 +91,30 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
+def clockwiseangle_and_distance(point):
+    # Vector between point and the origin: v = p - o
+    vector = [point[0]-origin[0], point[1]-origin[1]]
+    # Length of vector: ||v||
+    lenvector = math.hypot(vector[0], vector[1])
+    # If length is zero there is no angle
+    if lenvector == 0:
+        return -math.pi, 0
+    # Normalize vector: v/||v||
+    normalized = [vector[0]/lenvector, vector[1]/lenvector]
+    dotprod  = normalized[0]*refvec[0] + normalized[1]*refvec[1]     # x1*x2 + y1*y2
+    diffprod = refvec[1]*normalized[0] - refvec[0]*normalized[1]     # x1*y2 - y1*x2
+    angle = math.atan2(diffprod, dotprod)
+    # Negative angles represent counter-clockwise angles so we need to subtract them
+    # from 2*pi (360 degrees)
+    if angle < 0:
+        return 2*math.pi+angle, lenvector
+    # I return first the angle because that's the primary sorting criterium
+    # but if two vectors have the same angle then the shorter distance should come first.
+    return angle, lenvector
+
 def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     boundaries = []
+    phases = []
     b = []
     for i in range(len(p1)):
         # If a miscibility gap label has been used unnecessarily, remove it
@@ -108,6 +134,20 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             boundaries.append([p1[i],p2[i]])
             b.append(len(boundaries)-1)
 
+    for i in range(len(boundaries)):
+        repeat1 = False
+        repeat2 = False
+        for j in range(len(phases)):
+            if (boundaries[i][0] == phases[j]):
+                repeat1 = True
+            if (boundaries[i][1] == phases[j]):
+                repeat2 = True
+        if not(repeat1):
+            phases.append(boundaries[i][0])
+        if not(repeat2):
+            phases.append(boundaries[i][1])
+
+    phasePolyPoints = [[] for i in range(len(phases))]
     # Start figure
     fig = plt.figure()
     ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
@@ -115,6 +155,9 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     bEdgeLine = [[False,False] for i in range(len(boundaries))]
     # Plot along x=0 and x=1 boundaries
     for j in range(len(x0data[1])):
+        i = phases.index(x0data[0][j])
+        phasePolyPoints[i].append([0,x0data[1][j]])
+        phasePolyPoints[i].append([0,x0data[2][j]])
         if j > 0:
             ax.plot(0,x0data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -148,6 +191,9 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                     if np.array(ts)[inds][minj] == np.max(np.array(ts)[inds]):
                         bEdgeLine[k][1] = True
     for j in range(len(x1data[1])):
+        i = phases.index(x1data[0][j])
+        phasePolyPoints[i].append([1,x1data[1][j]])
+        phasePolyPoints[i].append([1,x1data[2][j]])
         if j > 0:
             ax.plot(1,x1data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -181,11 +227,28 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                     if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
                         bEdgeLine[k][1] = True
 
+    outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
     # plot 2-phase region boundaries
     for j in range(len(boundaries)):
+        polygonPoints = []
         inds = [i for i, k in enumerate(b) if k == j]
+        ttt = np.array(ts)[inds]
+        # sindex = np.argsort(ttt)
+        # ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        # x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        # x2t = x2t[sindex]
         ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
         ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
+        for i in range(len(inds)):
+            polygonPoints.append([x1t[i],ttt[i]])
+        for i in reversed(range(len(inds))):
+            polygonPoints.append([x2t[i],ttt[i]])
+        phaseOutline = Polygon(polygonPoints).buffer(0)
+        outline = outline - phaseOutline
+        # patch = PolygonPatch(phaseOutline.buffer(0))
+        # ax.add_patch(patch)
         minj = np.argmin(np.array(ts)[inds])
         maxj = np.argmax(np.array(ts)[inds])
         # plot invariant temperatures
@@ -193,7 +256,28 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
         if (np.array(ts)[inds][maxj] < maxt) and not(bEdgeLine[j][1]):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
+        for i in range(len(phases)):
+            if boundaries[j][0] == phases[i]:
+                for k in range(len(inds)):
+                    phasePolyPoints[i].append([x1t[k],ttt[k]])
+            if boundaries[j][1] == phases[i]:
+                for k in range(len(inds)):
+                    phasePolyPoints[i].append([x2t[k],ttt[k]])
+    for i in range(len(phases)):
+        # center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i]), [len(phasePolyPoints[i])] * 2))
+        nppoints = np.array(phasePolyPoints[i])
+        center = ((min(nppoints[:,0]) + max(nppoints[:,0]))/2,(min(nppoints[:,1])+max(nppoints[:,1]))/2)
+        print(center)
+        # print(sorted(phasePolyPoints[i], key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
+        phaseOutline = Polygon(phasePolyPoints[i]).buffer(0)
+        center = list(phaseOutline.centroid.coords)[0]
+        print(center)
+        phaseOutline = Polygon(sorted(phasePolyPoints[i], key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)).buffer(0)
+        outline = outline - phaseOutline
+        ax.plot(nppoints[:,0],nppoints[:,1],'.')
 
+    patch = PolygonPatch(outline.buffer(0))
+    ax.add_patch(patch)
     ax.set_xlim(0,1)
     ax.set_ylim(mint,maxt)
     ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
