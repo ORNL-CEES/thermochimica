@@ -7,6 +7,7 @@ import os
 import subprocess
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPoint
+from shapely.prepared import prep
 from descartes import PolygonPatch
 from functools import reduce
 import operator
@@ -280,24 +281,13 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         phaseOutline = Polygon(sortedPolyPoints).buffer(0)
         outline = outline - phaseOutline
 
-    # X,Y = np.meshgrid(np.arange(0, 1, 10),np.arange(mint, maxt, 10))
-
-    #create a iterable with the (x,y) coordinates
-    # points = zip(X.flatten(),Y.flatten())
     resolution = 100
     x, y = np.meshgrid(np.arange(0, 1, 1/resolution), np.arange(mint, maxt, (maxt-mint)/resolution))
-    print('x and y')
     points = MultiPoint(list(zip(x.flatten(),y.flatten()+x.flatten()*(maxt-mint)/resolution)))
-    print('points')
-    # valid_points = [i for i in points if outline.contains(i)]
-    valid_points = list(points.intersection(outline))
-    # valid_points.extend(list(points.intersection(outline)))
-    print('valid')
-    print(len(valid_points))
+    prepOutline = prep(outline)
+    valid_points = list(filter(prepOutline.contains,points))
     xs = [point.x for point in valid_points]
     ys = [point.y for point in valid_points]
-    print(xs)
-    print(ys)
     ax.plot(xs,ys,'k*')
 
     # patch = PolygonPatch(outline.buffer(0))
