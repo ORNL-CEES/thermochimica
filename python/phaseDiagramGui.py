@@ -90,7 +90,7 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     fname = 'thermoout.json'
 
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
-    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+    # makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
 def clockwiseangle_and_distance(point):
@@ -340,6 +340,7 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
             labelName.append(phaseName)
     labels.append([[xlab,tlab],'+'.join(labelName)])
     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
 atomic_number_map = [
@@ -504,6 +505,7 @@ while True:
                     maxt = 0
                     labels = []
                     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
@@ -543,6 +545,7 @@ while True:
                                 continue
                             writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
                             mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                            makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     refineWindow.close()
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
