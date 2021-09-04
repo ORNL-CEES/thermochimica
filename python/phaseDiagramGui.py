@@ -82,7 +82,7 @@ def processPhaseDiagramData(fname, elx, ts, x1, x2, p1, p2, mint, maxt, x0data, 
         x1data = xtemp
     return mint, maxt
 
-def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
+def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data):
     print('Thermochimica calculation initiated.')
     subprocess.run(['./bin/PhaseDiagramDataGen',filename])
     print('Thermochimica calculation finished.')
@@ -90,7 +90,6 @@ def runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     fname = 'thermoout.json'
 
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
-    # makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
 def clockwiseangle_and_distance(point):
@@ -341,8 +340,22 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
         if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
             labelName.append(phaseName)
     labels.append([[xlab,tlab],'+'.join(labelName)])
-    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+    return mint, maxt
+
+def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile):
+    filename = 'inputs/pythonPhaseDiagramInput.ti'
+    if x == 0:
+        for i in range(len(x0data[1])-1):
+            while (x0data[1][i+1] - x0data[2][i]) > res:
+                writeInputFile(filename,x,x,0,x0data[2][i],x0data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
+                mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+    if x == 1:
+        for i in range(len(x1data[1])-1):
+            while (x1data[1][i+1] - x1data[2][i]) > res:
+                writeInputFile(filename,x,x,0,x1data[2][i],x1data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
+                mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     return mint, maxt
 
 atomic_number_map = [
@@ -506,7 +519,9 @@ while True:
                     mint = 1e6
                     maxt = 0
                     labels = []
-                    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                    mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+                    mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
@@ -546,7 +561,7 @@ while True:
                             if cancelRun:
                                 continue
                             writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile)
-                            mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                            mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     refineWindow.close()
                 elif event =='Add Label':
