@@ -45,7 +45,7 @@ program PhaseDiagramDataGen
       if (nt > 0) dTbase = dTbase + (REAL(i)/REAL(nt))*(thi-tlo)
       do j = 0, nx
         dTemperature = dTbase
-        if (nt > 0) dTemperature = dTemperature + ((REAL(MODULO(j,10))-5D0)/10D0)*(1D0/REAL(nt))*(thi-tlo)
+        if ((i > 0) .AND. (i < nt)) dTemperature = dTemperature + ((REAL(MODULO(j,10))-5D0)/10D0)*(1D0/REAL(nt))*(thi-tlo)
         dTemperature = MAX(dTemperature,tlo)
         dTemperature = MIN(dTemperature,thi)
         dElementMass(iEl2) = xlo
