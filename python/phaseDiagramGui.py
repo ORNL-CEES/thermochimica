@@ -152,6 +152,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     phasePolyPoints = [[] for i in range(len(phases))]
     # Start figure
     fig = plt.figure()
+    plt.ion()
     ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
     bEdgeLine = [[False,False] for i in range(len(boundaries))]
@@ -300,6 +301,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     for lab in labels:
         plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
     plt.show()
+    plt.pause(0.001)
 
 def writeInputFile(filename,xlo,xhi,nxstep,tlo,thi,ntstep,pressure,tunit,punit,munit,el1,el2,datafile):
     with open(filename, 'w') as inputFile:
