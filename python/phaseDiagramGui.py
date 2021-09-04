@@ -258,9 +258,9 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
         for i in range(len(phases)):
             if boundaries[j][0] == phases[i]:
-                phasePolyPoints[i].append(polygonPoints[0:len(inds)-1])
+                phasePolyPoints[i].append(polygonPoints[:len(inds)])
             if boundaries[j][1] == phases[i]:
-                phasePolyPoints[i].append(list(reversed(polygonPoints[len(inds):-1])))
+                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
     for i in range(len(phases)):
         segcenters = []
         for j in range(len(phasePolyPoints[i])):
