@@ -250,7 +250,6 @@ program RunCalculationList
 
     do i = 1, nCalc
       READ(3,*,IOSTAT = INFO) dTemperature, dPressure, dEls
-      print *, dTemperature, dPressure, dEls
       dElementMass = 0D0
       do j = 1, nElIn
         dElementMass(iEls(j)) = dEls(j)
