@@ -423,10 +423,44 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     print('Thermochimica calculation initiated.')
     subprocess.run(['./bin/RunCalculationList',filename])
     print('Thermochimica calculation finished.')
-
     fname = 'thermoout.json'
-
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+
+    tres = (maxt-mint)/res
+    xs = []
+    ys = []
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        for i in range(len(ttt)-1):
+            for k in np.arange(ttt[i],ttt[i+1],tres):
+                ys.append(k)
+                xs.append((x1t[i] + x1t[i+1] + x2t[i] + x2t[i+1])/4)
+
+    with open(filename, 'w') as inputFile:
+        inputFile.write('! Python-generated input file for Thermochimica\n')
+        inputFile.write('data file         = ' + datafile + '\n')
+        inputFile.write('temperature unit         = ' + tunit + '\n')
+        inputFile.write('pressure unit          = ' + punit + '\n')
+        inputFile.write('mass unit          = \'' + munit + '\'\n')
+        inputFile.write('nEl         = 2 \n')
+        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+        inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+        for i in range(len(xs)):
+            inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+
+    print('Thermochimica calculation initiated.')
+    subprocess.run(['./bin/RunCalculationList',filename])
+    print('Thermochimica calculation finished.')
+    fname = 'thermoout.json'
+    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+
     return mint, maxt
 
 atomic_number_map = [
