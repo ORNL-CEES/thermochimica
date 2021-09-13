@@ -548,7 +548,7 @@ while True:
             presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
                           ]
-            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True),
+            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Button('Auto Refine', disabled = True),
                             sg.Button('Add Label', disabled = True), sg.Button('Remove Label', disabled = True), sg.Exit()]]
             setupWindow = sg.Window('Phase diagram setup', setupLayout, location = [400,0], finalize=True)
             while True:
@@ -609,12 +609,9 @@ while True:
                     maxt = 0
                     labels = []
                     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
-                    mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
-                    mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
-                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
-                    mint, maxt = autoRefine(300,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
+                    setupWindow.Element('Auto Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
                     xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -655,6 +652,11 @@ while True:
                             mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     refineWindow.close()
+                elif event =='Auto Refine':
+                    mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    mint, maxt = autoRefine(300,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
                     tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
