@@ -424,7 +424,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     plt.show()
     plt.pause(0.001)
 
-    filename = 'inputs/pythonPhaseDiagramInput.ti'
+    filename = 'inputs/pythonCalculationListInput.ti'
 
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -438,6 +438,13 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         for i in range(len(xs)):
             inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
 
+    print('Thermochimica calculation initiated.')
+    subprocess.run(['./bin/RunCalculationList',filename])
+    print('Thermochimica calculation finished.')
+
+    fname = 'thermoout.json'
+
+    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     return mint, maxt
 
 atomic_number_map = [
@@ -605,7 +612,8 @@ while True:
                     mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
-                    mint, maxt = autoRefine(100,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    mint, maxt = autoRefine(300,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
