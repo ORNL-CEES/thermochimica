@@ -346,10 +346,6 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
             phases.append(boundaries[i][1])
 
     phasePolyPoints = [[] for i in range(len(phases))]
-    # Start figure
-    fig = plt.figure()
-    plt.ion()
-    ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
     for j in range(len(x0data[1])):
         i = phases.index(x0data[0][j])
@@ -372,16 +368,12 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         x1t = x1t[sindex]
         x2t = np.array(x2)[inds]
         x2t = x2t[sindex]
-        ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
-        ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
         for i in range(len(inds)):
             polygonPoints.append([x1t[i],ttt[i]])
         for i in reversed(range(len(inds))):
             polygonPoints.append([x2t[i],ttt[i]])
         phaseOutline = Polygon(polygonPoints).buffer(0)
         outline = outline - phaseOutline
-        # patch = PolygonPatch(phaseOutline.buffer(0))
-        # ax.add_patch(patch)
         minj = np.argmin(np.array(ts)[inds])
         maxj = np.argmax(np.array(ts)[inds])
         for i in range(len(phases)):
@@ -413,16 +405,6 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     valid_points = list(filter(prepOutline.contains,points))
     xs = [point.x for point in valid_points]
     ys = [point.y for point in valid_points]
-    ax.plot(xs,ys,'k*')
-    ax.set_xlim(0,1)
-    ax.set_ylim(mint,maxt)
-    ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
-    ax.set_xlabel('Mole fraction ' + str(el2))
-    ax.set_ylabel('Temperature [K]')
-    for lab in labels:
-        plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
-    plt.show()
-    plt.pause(0.001)
 
     filename = 'inputs/pythonCalculationListInput.ti'
 
