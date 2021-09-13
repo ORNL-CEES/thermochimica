@@ -148,7 +148,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         if not(repeat2):
             phases.append(boundaries[i][1])
 
-    phasePolyPoints = [[] for i in range(len(phases))]
     # Start figure
     fig = plt.figure()
     plt.ion()
@@ -158,8 +157,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     # Plot along x=0 and x=1 boundaries
     for j in range(len(x0data[1])):
         i = phases.index(x0data[0][j])
-        phasePolyPoints[i].append([[0,x0data[1][j]]])
-        phasePolyPoints[i].append([[0,x0data[2][j]]])
         if j > 0:
             ax.plot(0,x0data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -194,8 +191,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                         bEdgeLine[k][1] = True
     for j in range(len(x1data[1])):
         i = phases.index(x1data[0][j])
-        phasePolyPoints[i].append([[1,x1data[1][j]]])
-        phasePolyPoints[i].append([[1,x1data[2][j]]])
         if j > 0:
             ax.plot(1,x1data[1][j],'kv')
             for k in range(len(boundaries)):
@@ -232,7 +227,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
     # plot 2-phase region boundaries
     for j in range(len(boundaries)):
-        polygonPoints = []
         inds = [i for i, k in enumerate(b) if k == j]
         ttt = np.array(ts)[inds]
         sindex = np.argsort(ttt)
@@ -243,14 +237,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         x2t = x2t[sindex]
         ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
         ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
-        for i in range(len(inds)):
-            polygonPoints.append([x1t[i],ttt[i]])
-        for i in reversed(range(len(inds))):
-            polygonPoints.append([x2t[i],ttt[i]])
-        phaseOutline = Polygon(polygonPoints).buffer(0)
-        outline = outline - phaseOutline
-        # patch = PolygonPatch(phaseOutline.buffer(0))
-        # ax.add_patch(patch)
         minj = np.argmin(np.array(ts)[inds])
         maxj = np.argmax(np.array(ts)[inds])
         # plot invariant temperatures
@@ -258,40 +244,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             ax.plot([np.array(x1)[inds][minj],np.array(x2)[inds][minj]],[np.array(ts)[inds][minj],np.array(ts)[inds][minj]],'k-')
         if (np.array(ts)[inds][maxj] < maxt) and not(bEdgeLine[j][1]):
             ax.plot([np.array(x1)[inds][maxj],np.array(x2)[inds][maxj]],[np.array(ts)[inds][maxj],np.array(ts)[inds][maxj]],'k-')
-        for i in range(len(phases)):
-            if boundaries[j][0] == phases[i]:
-                phasePolyPoints[i].append(polygonPoints[:len(inds)])
-            if boundaries[j][1] == phases[i]:
-                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-    for i in range(len(phases)):
-        segcenters = []
-        for j in range(len(phasePolyPoints[i])):
-            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-        sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-        sortedPolyPoints = []
-        for j in range(len(phasePolyPoints[i])):
-            k = segcenters.index(sortcenters[j])
-            if sortcenters[j][1] > sortcenters[j-1][1]:
-                for l in range(len(phasePolyPoints[i][k])):
-                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
-            else:
-                for l in reversed(range(len(phasePolyPoints[i][k]))):
-                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
-        phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-        outline = outline - phaseOutline
 
-    resolution = 100
-    x, y = np.meshgrid(np.arange(0, 1, 1/resolution), np.arange(mint, maxt, (maxt-mint)/resolution))
-    points = MultiPoint(list(zip(x.flatten(),y.flatten()+x.flatten()*(maxt-mint)/resolution)))
-    prepOutline = prep(outline)
-    valid_points = list(filter(prepOutline.contains,points))
-    xs = [point.x for point in valid_points]
-    ys = [point.y for point in valid_points]
-    ax.plot(xs,ys,'k*')
-
-    # patch = PolygonPatch(outline.buffer(0))
-    # ax.add_patch(patch)
     ax.set_xlim(0,1)
     ax.set_ylim(mint,maxt)
     ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
@@ -356,6 +309,120 @@ def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tu
             while (x1data[1][i+1] - x1data[2][i]) > res:
                 writeInputFile(filename,x,x,0,x1data[2][i],x1data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+    return mint, maxt
+
+def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile):
+    boundaries = []
+    phases = []
+    b = []
+    for i in range(len(p1)):
+        # If a miscibility gap label has been used unnecessarily, remove it
+        if p1[i].find('#2') > 0:
+            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                p1[i] = p1[i][0:p1[i].find('#2')]
+        if p2[i].find('#2') > 0:
+            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                p2[i] = p2[i][0:p2[i].find('#2')]
+        repeat = False
+        for j in range(len(boundaries)):
+            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                b.append(j)
+                repeat = True
+        if not(repeat):
+            boundaries.append([p1[i],p2[i]])
+            b.append(len(boundaries)-1)
+
+    for i in range(len(boundaries)):
+        repeat1 = False
+        repeat2 = False
+        for j in range(len(phases)):
+            if (boundaries[i][0] == phases[j]):
+                repeat1 = True
+            if (boundaries[i][1] == phases[j]):
+                repeat2 = True
+        if not(repeat1):
+            phases.append(boundaries[i][0])
+        if not(repeat2):
+            phases.append(boundaries[i][1])
+
+    phasePolyPoints = [[] for i in range(len(phases))]
+    # Start figure
+    fig = plt.figure()
+    plt.ion()
+    ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+
+    for j in range(len(x0data[1])):
+        i = phases.index(x0data[0][j])
+        phasePolyPoints[i].append([[0,x0data[1][j]]])
+        phasePolyPoints[i].append([[0,x0data[2][j]]])
+    for j in range(len(x1data[1])):
+        i = phases.index(x1data[0][j])
+        phasePolyPoints[i].append([[1,x1data[1][j]]])
+        phasePolyPoints[i].append([[1,x1data[2][j]]])
+
+    outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
+    # plot 2-phase region boundaries
+    for j in range(len(boundaries)):
+        polygonPoints = []
+        inds = [i for i, k in enumerate(b) if k == j]
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        ax.plot(np.array(x1)[inds],np.array(ts)[inds],'.')
+        ax.plot(np.array(x2)[inds],np.array(ts)[inds],'.')
+        for i in range(len(inds)):
+            polygonPoints.append([x1t[i],ttt[i]])
+        for i in reversed(range(len(inds))):
+            polygonPoints.append([x2t[i],ttt[i]])
+        phaseOutline = Polygon(polygonPoints).buffer(0)
+        outline = outline - phaseOutline
+        # patch = PolygonPatch(phaseOutline.buffer(0))
+        # ax.add_patch(patch)
+        minj = np.argmin(np.array(ts)[inds])
+        maxj = np.argmax(np.array(ts)[inds])
+        for i in range(len(phases)):
+            if boundaries[j][0] == phases[i]:
+                phasePolyPoints[i].append(polygonPoints[:len(inds)])
+            if boundaries[j][1] == phases[i]:
+                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
+    for i in range(len(phases)):
+        segcenters = []
+        for j in range(len(phasePolyPoints[i])):
+            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+        sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+        sortedPolyPoints = []
+        for j in range(len(phasePolyPoints[i])):
+            k = segcenters.index(sortcenters[j])
+            if sortcenters[j][1] > sortcenters[j-1][1]:
+                for l in range(len(phasePolyPoints[i][k])):
+                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
+            else:
+                for l in reversed(range(len(phasePolyPoints[i][k]))):
+                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
+        phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+        outline = outline - phaseOutline
+
+    x, y = np.meshgrid(np.arange(0, 1, 1/res), np.arange(mint, maxt, (maxt-mint)/res))
+    points = MultiPoint(list(zip(x.flatten(),y.flatten()+x.flatten()*(maxt-mint)/res)))
+    prepOutline = prep(outline)
+    valid_points = list(filter(prepOutline.contains,points))
+    xs = [point.x for point in valid_points]
+    ys = [point.y for point in valid_points]
+    ax.plot(xs,ys,'k*')
+    ax.set_xlim(0,1)
+    ax.set_ylim(mint,maxt)
+    ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
+    ax.set_xlabel('Mole fraction ' + str(el2))
+    ax.set_ylabel('Temperature [K]')
+    for lab in labels:
+        plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
+    plt.show()
+    plt.pause(0.001)
     return mint, maxt
 
 atomic_number_map = [
@@ -523,6 +590,7 @@ while True:
                     mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                    mint, maxt = autoRefine(100,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                 elif event =='Refine':
