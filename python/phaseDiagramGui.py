@@ -423,6 +423,21 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
     plt.show()
     plt.pause(0.001)
+
+    filename = 'inputs/pythonPhaseDiagramInput.ti'
+
+    with open(filename, 'w') as inputFile:
+        inputFile.write('! Python-generated input file for Thermochimica\n')
+        inputFile.write('data file         = ' + datafile + '\n')
+        inputFile.write('temperature unit         = ' + tunit + '\n')
+        inputFile.write('pressure unit          = ' + punit + '\n')
+        inputFile.write('mass unit          = \'' + munit + '\'\n')
+        inputFile.write('nEl         = 2 \n')
+        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+        inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+        for i in range(len(xs)):
+            inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+
     return mint, maxt
 
 atomic_number_map = [
