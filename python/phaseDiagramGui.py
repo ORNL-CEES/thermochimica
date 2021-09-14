@@ -399,12 +399,20 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         phaseOutline = Polygon(sortedPolyPoints).buffer(0)
         outline = outline - phaseOutline
 
-    x, y = np.meshgrid(np.arange(0, 1, 1/res), np.arange(mint, maxt, (maxt-mint)/res))
-    points = MultiPoint(list(zip(x.flatten(),y.flatten()+x.flatten()*(maxt-mint)/res)))
-    prepOutline = prep(outline)
-    valid_points = list(filter(prepOutline.contains,points))
-    xs = [point.x for point in valid_points]
-    ys = [point.y for point in valid_points]
+    try:
+        outline = MultiPolygon([outline])
+    except:
+        outline = outline
+    xs = []
+    ys = []
+    for tempOutline in list(outline):
+        pxlo, ptlo, pxhi, pthi = tempOutline.bounds
+        x, y = np.meshgrid(np.arange(pxlo, pxhi, 1/res), np.arange(ptlo, pthi, (maxt-mint)/res))
+        points = MultiPoint(list(zip(x.flatten(),y.flatten()+x.flatten()*(maxt-mint)/res)))
+        prepOutline = prep(tempOutline)
+        valid_points = list(filter(prepOutline.contains,points))
+        xs.extend([point.x for point in valid_points])
+        ys.extend([point.y for point in valid_points])
 
     filename = 'inputs/pythonCalculationListInput.ti'
 
@@ -671,7 +679,7 @@ while True:
                 elif event =='Auto Refine':
                     mint, maxt = refineLimit(0,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     mint, maxt = refineLimit(1,2,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
-                    mint, maxt = autoRefine(300,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    mint, maxt = autoRefine(1000,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
