@@ -418,8 +418,10 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         outline = MultiPolygon(split(outline, splitter))
     for tempOutline in list(outline):
         pxlo, ptlo, pxhi, pthi = tempOutline.bounds
-        xs.append((pxlo + pxhi)/2)
-        ys.append((ptlo + pthi)/2)
+        xs.extend(np.linspace(pxlo, pxhi, int(np.ceil(res/10))))
+        xs.extend(np.linspace(pxhi, pxlo, int(np.ceil(res/10))))
+        ys.extend(np.linspace(pthi, ptlo, int(np.ceil(res/10))))
+        ys.extend(np.linspace(pthi, ptlo, int(np.ceil(res/10))))
 
     filename = 'inputs/pythonCalculationListInput.ti'
 
