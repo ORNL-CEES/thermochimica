@@ -404,8 +404,9 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
 
     xs = []
     ys = []
-    yindices = np.linspace(mint, maxt, int(np.ceil(res/10)))
-    xindices = np.linspace(0, 1, int(np.ceil(res/10)))
+    subres = int(np.ceil(np.sqrt(res)))
+    yindices = np.linspace(mint, maxt, subres)
+    xindices = np.linspace(0, 1, subres)
     horizontal_splitters = [
         LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices
     ]
@@ -418,10 +419,12 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         outline = MultiPolygon(split(outline, splitter))
     for tempOutline in list(outline):
         pxlo, ptlo, pxhi, pthi = tempOutline.bounds
-        xs.extend(np.linspace(pxlo, pxhi, int(np.ceil(res/10))))
-        xs.extend(np.linspace(pxhi, pxlo, int(np.ceil(res/10))))
-        ys.extend(np.linspace(pthi, ptlo, int(np.ceil(res/10))))
-        ys.extend(np.linspace(pthi, ptlo, int(np.ceil(res/10))))
+        xstep = (pxhi - pxlo) / subres / 2
+        ystep = (pthi - ptlo) / subres / 3
+        xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
+        xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
+        ys.extend(np.linspace(pthi - ystep, ptlo + 2*ystep, subres))
+        ys.extend(np.linspace(pthi - 2*ystep, ptlo + ystep, subres))
 
     filename = 'inputs/pythonCalculationListInput.ti'
 
