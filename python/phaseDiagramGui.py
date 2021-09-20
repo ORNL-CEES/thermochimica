@@ -254,7 +254,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     ax.set_xlabel('Mole fraction ' + str(el2))
     ax.set_ylabel('Temperature [K]')
     for lab in labels:
-        plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
+        plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
     plt.show()
     plt.pause(0.001)
 
@@ -297,7 +297,6 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
             labelName.append(phaseName)
     labels.append([[xlab,tlab],'+'.join(labelName)])
     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
-    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
     return mint, maxt
 
 def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile):
@@ -505,6 +504,83 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
 
     return mint, maxt
 
+def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile):
+    boundaries = []
+    phases = []
+    b = []
+    for i in range(len(p1)):
+        # If a miscibility gap label has been used unnecessarily, remove it
+        if p1[i].find('#2') > 0:
+            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                p1[i] = p1[i][0:p1[i].find('#2')]
+        if p2[i].find('#2') > 0:
+            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                p2[i] = p2[i][0:p2[i].find('#2')]
+        repeat = False
+        for j in range(len(boundaries)):
+            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                b.append(j)
+                repeat = True
+        if not(repeat):
+            boundaries.append([p1[i],p2[i]])
+            b.append(len(boundaries)-1)
+
+    for i in range(len(boundaries)):
+        repeat1 = False
+        repeat2 = False
+        for j in range(len(phases)):
+            if (boundaries[i][0] == phases[j]):
+                repeat1 = True
+            if (boundaries[i][1] == phases[j]):
+                repeat2 = True
+        if not(repeat1):
+            phases.append(boundaries[i][0])
+        if not(repeat2):
+            phases.append(boundaries[i][1])
+
+    phasePolyPoints = [[] for i in range(len(phases))]
+
+    for j in range(len(x0data[1])):
+        i = phases.index(x0data[0][j])
+        phasePolyPoints[i].append([[0,x0data[1][j]]])
+        phasePolyPoints[i].append([[0,x0data[2][j]]])
+    for j in range(len(x1data[1])):
+        i = phases.index(x1data[0][j])
+        phasePolyPoints[i].append([[1,x1data[1][j]]])
+        phasePolyPoints[i].append([[1,x1data[2][j]]])
+
+    # plot 2-phase region boundaries
+    for j in range(len(boundaries)):
+        polygonPoints = []
+        inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            break
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        for i in range(len(inds)):
+            polygonPoints.append([x1t[i],ttt[i]])
+        for i in reversed(range(len(inds))):
+            polygonPoints.append([x2t[i],ttt[i]])
+        phaseOutline = Polygon(polygonPoints)#.buffer(0)
+        center = list(phaseOutline.centroid.coords)[0]
+        labels.append([[center[0],center[1]],'+'.join(boundaries[j])])
+        for i in range(len(phases)):
+            if boundaries[j][0] == phases[i]:
+                phasePolyPoints[i].append(polygonPoints[:len(inds)])
+            if boundaries[j][1] == phases[i]:
+                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
+    for i in range(len(phases)):
+        segcenters = []
+        for j in range(len(phasePolyPoints[i])):
+            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+        labels.append([[center[0],center[1]],phases[i]])
+
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
     'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
@@ -607,7 +683,7 @@ while True:
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
                           ]
             setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Button('Auto Refine', disabled = True),
-                            sg.Button('Add Label', disabled = True), sg.Button('Remove Label', disabled = True), sg.Exit()]]
+                            sg.Button('Add Label', disabled = True), sg.Button('Auto Label', disabled = True), sg.Button('Remove Label', disabled = True), sg.Exit()]]
             setupWindow = sg.Window('Phase diagram setup', setupLayout, location = [400,0], finalize=True)
             while True:
                 event, values = setupWindow.read(timeout=timeout)
@@ -671,6 +747,7 @@ while True:
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Auto Refine').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
+                    setupWindow.Element('Auto Label').Update(disabled = False)
                 elif event =='Refine':
                     xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                                   sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -740,8 +817,14 @@ while True:
                         elif event =='Add Label':
                             xlab = values['-xlab-']
                             tlab = values['-tlab-']
+                            filename = 'inputs/labelInput.ti'
                             mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data,ts,x1,x2,p1,p2)
+                            makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     labelWindow.close()
+                    setupWindow.Element('Remove Label').Update(disabled = False)
+                elif event =='Auto Label':
+                    autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Remove Label').Update(disabled = False)
                 elif event =='Remove Label':
                     headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
@@ -751,8 +834,8 @@ while True:
                     labelListLayout = []
                     for i in range(len(labels)):
                         labelListLayout.append([[sg.Text(labels[i][1],size = [55,1],justification='left'),
-                                                 sg.Text(labels[i][0][0],size = [15,1],justification='center'),
-                                                 sg.Text(labels[i][0][1],size = [15,1],justification='center'),
+                                                 sg.Text("{:.3f}".format(labels[i][0][0]),size = [15,1],justification='center'),
+                                                 sg.Text("{:.0f}".format(labels[i][0][1]),size = [15,1],justification='center'),
                                                  sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
                     removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
                     removeWindow = sg.Window('Add phase label', removeLayout, location = [400,0], finalize=True)
@@ -767,9 +850,9 @@ while True:
                                     del labels[i]
                             if len(labels) == 0:
                                 setupWindow.Element('Remove Label').Update(disabled = True)
+                            makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                             break
                     removeWindow.close()
-                    makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
             setupWindow.close()
         except:
             pass
