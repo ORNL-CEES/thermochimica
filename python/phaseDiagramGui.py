@@ -406,12 +406,8 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     subres = int(np.ceil(np.sqrt(res)))
     yindices = np.linspace(mint, maxt, subres)
     xindices = np.linspace(0, 1, subres)
-    horizontal_splitters = [
-        LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices
-    ]
-    vertical_splitters = [
-        LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices
-    ]
+    horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
+    vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
     for splitter in vertical_splitters:
         outline = MultiPolygon(split(outline, splitter))
     for splitter in horizontal_splitters:
@@ -465,11 +461,14 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
             boundaries.append([p1[i],p2[i]])
             b.append(len(boundaries)-1)
 
+    # Refine two-phase region density
     tres = (maxt-mint)/res
     xs = []
     ys = []
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            break
         ttt = np.array(ts)[inds]
         sindex = np.argsort(ttt)
         ttt = ttt[sindex]
@@ -478,27 +477,30 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         x2t = np.array(x2)[inds]
         x2t = x2t[sindex]
         for i in range(len(ttt)-1):
-            for k in np.arange(ttt[i],ttt[i+1],tres):
-                ys.append(k)
-                xs.append((x1t[i] + x1t[i+1] + x2t[i] + x2t[i+1])/4)
+            gap = np.sqrt(((ttt[i]-ttt[i+1])/(maxt-mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
+            if gap > 1/res:
+                step = tres*((ttt[i+1]-ttt[i])/(maxt-mint))/gap
+                for k in np.arange(ttt[i]+step,ttt[i+1]-step,step):
+                    ys.append(k)
+                    xs.append((x1t[i] + x1t[i+1] + x2t[i] + x2t[i+1])/4)
 
-    with open(filename, 'w') as inputFile:
-        inputFile.write('! Python-generated input file for Thermochimica\n')
-        inputFile.write('data file         = ' + datafile + '\n')
-        inputFile.write('temperature unit         = ' + tunit + '\n')
-        inputFile.write('pressure unit          = ' + punit + '\n')
-        inputFile.write('mass unit          = \'' + munit + '\'\n')
-        inputFile.write('nEl         = 2 \n')
-        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-        inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-        for i in range(len(xs)):
-            inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-
-    print('Thermochimica calculation initiated.')
-    subprocess.run(['./bin/RunCalculationList',filename])
-    print('Thermochimica calculation finished.')
-    fname = 'thermoout.json'
-    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+    if len(xs) > 0:
+        with open(filename, 'w') as inputFile:
+            inputFile.write('! Python-generated input file for Thermochimica\n')
+            inputFile.write('data file         = ' + datafile + '\n')
+            inputFile.write('temperature unit         = ' + tunit + '\n')
+            inputFile.write('pressure unit          = ' + punit + '\n')
+            inputFile.write('mass unit          = \'' + munit + '\'\n')
+            inputFile.write('nEl         = 2 \n')
+            inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+            inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+            for i in range(len(xs)):
+                inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+        print('Thermochimica calculation initiated.')
+        subprocess.run(['./bin/RunCalculationList',filename])
+        print('Thermochimica calculation finished.')
+        fname = 'thermoout.json'
+        mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
     return mint, maxt
 
