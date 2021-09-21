@@ -11,7 +11,6 @@ from shapely.geometry import MultiPoint
 from shapely.geometry import LineString
 from shapely.prepared import prep
 from shapely.ops import split
-from descartes import PolygonPatch
 from functools import reduce
 import operator
 
@@ -112,7 +111,7 @@ def clockwiseangle_and_distance(point):
     # from 2*pi (360 degrees)
     if angle < 0:
         return 2*math.pi+angle, lenvector
-    # I return first the angle because that's the primary sorting criterium
+    # Return first the angle because that's the primary sorting criterion
     # but if two vectors have the same angle then the shorter distance should come first.
     return angle, lenvector
 
@@ -128,7 +127,6 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         if p2[i].find('#2') > 0:
             if not(p2[i][0:p2[i].find('#2')] == p1[i]):
                 p2[i] = p2[i][0:p2[i].find('#2')]
-
         repeat = False
         for j in range(len(boundaries)):
             if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
@@ -693,7 +691,11 @@ while True:
                 elif event =='Run':
                     cancelRun = False
                     ntstep = values['-ntstep-']
+                    if ntstep == '':
+                        ntstep = 10
                     nxstep = values['-nxstep-']
+                    if nxstep == '':
+                        nxstep = 10
                     if (float(ntstep) * float(nxstep)) > 50000:
                         cancelRun = True
                         confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
@@ -709,11 +711,17 @@ while True:
                     tlo= values['-temperature-']
                     thi = values['-endtemperature-']
                     pressure = values['-pressure-']
+                    if pressure == '':
+                        pressure = 1
                     filename = 'inputs/pythonPhaseDiagramInput.ti'
                     tunit = values['-tunit-']
                     punit = values['-punit-']
                     xhi = values['-xhi-']
+                    if xhi == '':
+                        xhi = 1
                     xlo = values['-xlo-']
+                    if xlo == '':
+                        xlo = 0
                     el1 = values['-el1-']
                     el2 = values['-el2-']
                     if (str(el1) == str(el2)) or (float(tlo) == float(thi)):
