@@ -441,6 +441,9 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     fname = 'thermoout.json'
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
+    return mint, maxt
+
+def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile):
     # Create arrays again with new data
     boundaries = []
     b = []
@@ -622,6 +625,7 @@ dataWindow["-FILE LIST-"].update(fnames)
 
 timeout = 50
 inputSize = 20
+buttonSize = 12
 
 while True:
     event, values = dataWindow.read()
@@ -682,8 +686,14 @@ while True:
             presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
                           [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
                           ]
-            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'), sg.Button('Refine', disabled = True), sg.Button('Auto Refine', disabled = True),
-                            sg.Button('Add Label', disabled = True), sg.Button('Auto Label', disabled = True), sg.Button('Remove Label', disabled = True), sg.Exit()]]
+            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'),
+                sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Densify', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Label', disabled = True, size = buttonSize)],
+                [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                sg.Exit()]]
             setupWindow = sg.Window('Phase diagram setup', setupLayout, location = [400,0], finalize=True)
             while True:
                 event, values = setupWindow.read(timeout=timeout)
@@ -756,6 +766,7 @@ while True:
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Auto Refine').Update(disabled = False)
+                    setupWindow.Element('Auto Densify').Update(disabled = False)
                     setupWindow.Element('Add Label').Update(disabled = False)
                     setupWindow.Element('Auto Label').Update(disabled = False)
                 elif event =='Refine':
@@ -815,6 +826,22 @@ while True:
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                             break
                     autoRefineWindow.close()
+                elif event =='Auto Densify':
+                    autoDensifyLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Densify'), sg.Exit()]]]
+                    autoDensifyWindow = sg.Window('Auto-densify setup', autoDensifyLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = autoDensifyWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Exit':
+                            break
+                        elif event == 'Densify':
+                            resRef = values['-res-']
+                            if resRef == '':
+                                resRef = 100
+                            resRef = float(resRef)
+                            mint, maxt = autoRefine2Phase(resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                            makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                            break
+                    autoDensifyWindow.close()
                 elif event =='Add Label':
                     xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
                     tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
@@ -830,8 +857,8 @@ while True:
                             filename = 'inputs/labelInput.ti'
                             mint, maxt = addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint,maxt,labels,x0data,x1data,ts,x1,x2,p1,p2)
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                            setupWindow.Element('Remove Label').Update(disabled = False)
                     labelWindow.close()
-                    setupWindow.Element('Remove Label').Update(disabled = False)
                 elif event =='Auto Label':
                     autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
