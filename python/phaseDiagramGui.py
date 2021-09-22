@@ -464,8 +464,77 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
             boundaries.append([p1[i],p2[i]])
             b.append(len(boundaries)-1)
 
-    # Refine two-phase region density
+    # Expand two-phase regions
     tres = (maxt-mint)/res
+    xs = []
+    ys = []
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            break
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        tbound = max(mint,ttt[0]-tres*3)
+        for k in np.arange(tbound,max(mint,ttt[0]-tres/3),tres/3):
+            ys.append(k)
+            xs.append((x1t[0] + x2t[0])/2)
+            ys.append(k)
+            xs.append((0.99*x1t[0] + 0.01*x2t[0]))
+            ys.append(k)
+            xs.append((0.01*x1t[0] + 0.99*x2t[0]))
+        tbound = min(maxt,ttt[-1]+tres*3)
+        for k in np.arange(min(maxt,ttt[-1]+tres/3),tbound,tres/3):
+            ys.append(k)
+            xs.append((x1t[-1] + x2t[-1])/2)
+            ys.append(k)
+            xs.append((0.99*x1t[-1] + 0.01*x2t[-1]))
+            ys.append(k)
+            xs.append((0.01*x1t[-1] + 0.99*x2t[-1]))
+
+    if len(xs) > 0:
+        with open(filename, 'w') as inputFile:
+            inputFile.write('! Python-generated input file for Thermochimica\n')
+            inputFile.write('data file         = ' + datafile + '\n')
+            inputFile.write('temperature unit         = ' + tunit + '\n')
+            inputFile.write('pressure unit          = ' + punit + '\n')
+            inputFile.write('mass unit          = \'' + munit + '\'\n')
+            inputFile.write('nEl         = 2 \n')
+            inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+            inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+            for i in range(len(xs)):
+                inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+        print('Thermochimica calculation initiated.')
+        subprocess.run(['./bin/RunCalculationList',filename])
+        print('Thermochimica calculation finished.')
+        fname = 'thermoout.json'
+        mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+
+    # Create arrays again with new data
+    boundaries = []
+    b = []
+    for i in range(len(p1)):
+        # If a miscibility gap label has been used unnecessarily, remove it
+        if p1[i].find('#2') > 0:
+            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                p1[i] = p1[i][0:p1[i].find('#2')]
+        if p2[i].find('#2') > 0:
+            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                p2[i] = p2[i][0:p2[i].find('#2')]
+        repeat = False
+        for j in range(len(boundaries)):
+            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                b.append(j)
+                repeat = True
+        if not(repeat):
+            boundaries.append([p1[i],p2[i]])
+            b.append(len(boundaries)-1)
+
+    # Refine two-phase region density
     xs = []
     ys = []
     for j in range(len(boundaries)):
