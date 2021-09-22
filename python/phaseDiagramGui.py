@@ -553,10 +553,11 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
         for i in range(len(ttt)-1):
             gap = np.sqrt(((ttt[i]-ttt[i+1])/(maxt-mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
             if gap > 1/res:
-                step = tres*((ttt[i+1]-ttt[i])/(maxt-mint))/gap
-                for k in np.arange(ttt[i]+step,ttt[i+1]-step,step):
+                step = tres*((ttt[i+1] - ttt[i])/(maxt - mint))/gap
+                for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
                     ys.append(k)
-                    xs.append((x1t[i] + x1t[i+1] + x2t[i] + x2t[i+1])/4)
+                    progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
+                    xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
 
     if len(xs) > 0:
         with open(filename, 'w') as inputFile:
