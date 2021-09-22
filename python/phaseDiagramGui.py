@@ -304,12 +304,12 @@ def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tu
     if x == 0:
         for i in range(len(x0data[1])-1):
             while (x0data[1][i+1] - x0data[2][i]) > res:
-                writeInputFile(filename,x,x,0,x0data[2][i],x0data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
+                writeInputFile(filename,0,0.001,2,x0data[2][i],x0data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     if x == 1:
         for i in range(len(x1data[1])-1):
             while (x1data[1][i+1] - x1data[2][i]) > res:
-                writeInputFile(filename,x,x,0,x1data[2][i],x1data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
+                writeInputFile(filename,0.999,1,2,x1data[2][i],x1data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     return mint, maxt
 
