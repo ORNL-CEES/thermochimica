@@ -892,8 +892,8 @@ while True:
                             if resRef == '':
                                 resRef = 100
                             resRef = float(resRef)
-                            mint, maxt = refineLimit(0,(maxt-mint)/resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
-                            mint, maxt = refineLimit(1,(maxt-mint)/resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                            mint, maxt = refineLimit(0,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                            mint, maxt = refineLimit(1,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                             mint, maxt = autoRefine(resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                             break
