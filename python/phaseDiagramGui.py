@@ -314,135 +314,144 @@ def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tu
     return mint, maxt
 
 def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile,outline):
-    boundaries = []
-    phases = []
-    b = []
-    for i in range(len(p1)):
-        # If a miscibility gap label has been used unnecessarily, remove it
-        if p1[i].find('#2') > 0:
-            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
-                p1[i] = p1[i][0:p1[i].find('#2')]
-        if p2[i].find('#2') > 0:
-            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
-                p2[i] = p2[i][0:p2[i].find('#2')]
-        repeat = False
+    nIt = 0
+    while nIt < 10:
+        nIt = nIt + 1
+        maxArea = 0
+        boundaries = []
+        phases = []
+        b = []
+        for i in range(len(p1)):
+            # If a miscibility gap label has been used unnecessarily, remove it
+            if p1[i].find('#2') > 0:
+                if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                    p1[i] = p1[i][0:p1[i].find('#2')]
+            if p2[i].find('#2') > 0:
+                if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                    p2[i] = p2[i][0:p2[i].find('#2')]
+            repeat = False
+            for j in range(len(boundaries)):
+                if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                    b.append(j)
+                    repeat = True
+            if not(repeat):
+                boundaries.append([p1[i],p2[i]])
+                b.append(len(boundaries)-1)
+
+        for i in range(len(boundaries)):
+            repeat1 = False
+            repeat2 = False
+            for j in range(len(phases)):
+                if (boundaries[i][0] == phases[j]):
+                    repeat1 = True
+                if (boundaries[i][1] == phases[j]):
+                    repeat2 = True
+            if not(repeat1):
+                phases.append(boundaries[i][0])
+            if not(repeat2):
+                phases.append(boundaries[i][1])
+
+        phasePolyPoints = [[] for i in range(len(phases))]
+
+        for j in range(len(x0data[1])):
+            i = phases.index(x0data[0][j])
+            phasePolyPoints[i].append([[0,x0data[1][j]]])
+            phasePolyPoints[i].append([[0,x0data[2][j]]])
+        for j in range(len(x1data[1])):
+            i = phases.index(x1data[0][j])
+            phasePolyPoints[i].append([[1,x1data[1][j]]])
+            phasePolyPoints[i].append([[1,x1data[2][j]]])
+
+        # plot 2-phase region boundaries
         for j in range(len(boundaries)):
-            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
-                b.append(j)
-                repeat = True
-        if not(repeat):
-            boundaries.append([p1[i],p2[i]])
-            b.append(len(boundaries)-1)
-
-    for i in range(len(boundaries)):
-        repeat1 = False
-        repeat2 = False
-        for j in range(len(phases)):
-            if (boundaries[i][0] == phases[j]):
-                repeat1 = True
-            if (boundaries[i][1] == phases[j]):
-                repeat2 = True
-        if not(repeat1):
-            phases.append(boundaries[i][0])
-        if not(repeat2):
-            phases.append(boundaries[i][1])
-
-    phasePolyPoints = [[] for i in range(len(phases))]
-
-    for j in range(len(x0data[1])):
-        i = phases.index(x0data[0][j])
-        phasePolyPoints[i].append([[0,x0data[1][j]]])
-        phasePolyPoints[i].append([[0,x0data[2][j]]])
-    for j in range(len(x1data[1])):
-        i = phases.index(x1data[0][j])
-        phasePolyPoints[i].append([[1,x1data[1][j]]])
-        phasePolyPoints[i].append([[1,x1data[2][j]]])
-
-    # plot 2-phase region boundaries
-    for j in range(len(boundaries)):
-        polygonPoints = []
-        inds = [i for i, k in enumerate(b) if k == j]
-        if len(inds) < 2:
-            break
-        ttt = np.array(ts)[inds]
-        sindex = np.argsort(ttt)
-        ttt = ttt[sindex]
-        x1t = np.array(x1)[inds]
-        x1t = x1t[sindex]
-        x2t = np.array(x2)[inds]
-        x2t = x2t[sindex]
-        for i in range(len(inds)):
-            polygonPoints.append([x1t[i],ttt[i]])
-        for i in reversed(range(len(inds))):
-            polygonPoints.append([x2t[i],ttt[i]])
-        phaseOutline = Polygon(polygonPoints).buffer(0)
-        outline = outline.buffer(0) - phaseOutline
-        minj = np.argmin(np.array(ts)[inds])
-        maxj = np.argmax(np.array(ts)[inds])
+            polygonPoints = []
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                break
+            ttt = np.array(ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(x2)[inds]
+            x2t = x2t[sindex]
+            for i in range(len(inds)):
+                polygonPoints.append([x1t[i],ttt[i]])
+            for i in reversed(range(len(inds))):
+                polygonPoints.append([x2t[i],ttt[i]])
+            phaseOutline = Polygon(polygonPoints).buffer(0)
+            outline = outline.buffer(0) - phaseOutline
+            minj = np.argmin(np.array(ts)[inds])
+            maxj = np.argmax(np.array(ts)[inds])
+            for i in range(len(phases)):
+                if boundaries[j][0] == phases[i]:
+                    phasePolyPoints[i].append(polygonPoints[:len(inds)])
+                if boundaries[j][1] == phases[i]:
+                    phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
         for i in range(len(phases)):
-            if boundaries[j][0] == phases[i]:
-                phasePolyPoints[i].append(polygonPoints[:len(inds)])
-            if boundaries[j][1] == phases[i]:
-                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-    for i in range(len(phases)):
-        segcenters = []
-        for j in range(len(phasePolyPoints[i])):
-            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-        sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-        sortedPolyPoints = []
-        for j in range(len(phasePolyPoints[i])):
-            k = segcenters.index(sortcenters[j])
-            if sortcenters[j][1] > sortcenters[j-1][1]:
-                for l in range(len(phasePolyPoints[i][k])):
-                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
-            else:
-                for l in reversed(range(len(phasePolyPoints[i][k]))):
-                    sortedPolyPoints.append(phasePolyPoints[i][k][l])
-        phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-        outline = outline - phaseOutline
+            segcenters = []
+            for j in range(len(phasePolyPoints[i])):
+                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+            sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+            sortedPolyPoints = []
+            for j in range(len(phasePolyPoints[i])):
+                k = segcenters.index(sortcenters[j])
+                if sortcenters[j][1] > sortcenters[j-1][1]:
+                    for l in range(len(phasePolyPoints[i][k])):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+                else:
+                    for l in reversed(range(len(phasePolyPoints[i][k]))):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+            phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+            outline = outline - phaseOutline
 
-    xs = []
-    ys = []
-    subres = int(np.ceil(np.sqrt(res)))
-    oxlo, otlo, oxhi, othi = outline.bounds
-    xindices = np.linspace(oxlo, oxhi, subres)
-    yindices = np.linspace(otlo, othi, subres)
-    horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
-    vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
-    for splitter in vertical_splitters:
-        outline = MultiPolygon(split(outline, splitter))
-    for splitter in horizontal_splitters:
-        outline = MultiPolygon(split(outline, splitter))
-    for tempOutline in list(outline):
-        if (tempOutline.area / (maxt-mint)) < (1 / (10*res**2)):
-            continue
-        pxlo, ptlo, pxhi, pthi = tempOutline.bounds
-        xstep = (pxhi - pxlo) / subres / 10
-        ystep = (pthi - ptlo) / subres / 10
-        xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
-        xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
-        ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
-        ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+        xs = []
+        ys = []
+        subres = int(np.ceil(np.sqrt(res)))
+        oxlo, otlo, oxhi, othi = outline.bounds
+        xindices = np.linspace(oxlo, oxhi, subres)
+        yindices = np.linspace(otlo, othi, subres)
+        horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
+        vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+        for splitter in vertical_splitters:
+            outline = MultiPolygon(split(outline, splitter))
+        for splitter in horizontal_splitters:
+            outline = MultiPolygon(split(outline, splitter))
+        for tempOutline in list(outline):
+            if (tempOutline.area / (maxt-mint)) < (1 / (10*res**2)):
+                continue
+            maxArea = max(tempOutline.area / (maxt-mint),maxArea)
+            pxlo, ptlo, pxhi, pthi = tempOutline.bounds
+            xstep = (pxhi - pxlo) / subres / 10
+            ystep = (pthi - ptlo) / subres / 10
+            xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
+            xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
 
-    if len(xs) > 0:
-        filename = 'inputs/pythonCalculationListInput.ti'
-        with open(filename, 'w') as inputFile:
-            inputFile.write('! Python-generated input file for Thermochimica\n')
-            inputFile.write('data file         = ' + datafile + '\n')
-            inputFile.write('temperature unit         = ' + tunit + '\n')
-            inputFile.write('pressure unit          = ' + punit + '\n')
-            inputFile.write('mass unit          = \'' + munit + '\'\n')
-            inputFile.write('nEl         = 2 \n')
-            inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-            inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-            for i in range(len(xs)):
-                inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-        print('Thermochimica calculation initiated.')
-        subprocess.run(['./bin/RunCalculationList',filename])
-        print('Thermochimica calculation finished.')
-        fname = 'thermoout.json'
-        mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+        if len(xs) > 0:
+            filename = 'inputs/pythonCalculationListInput.ti'
+            with open(filename, 'w') as inputFile:
+                inputFile.write('! Python-generated input file for Thermochimica\n')
+                inputFile.write('data file         = ' + datafile + '\n')
+                inputFile.write('temperature unit         = ' + tunit + '\n')
+                inputFile.write('pressure unit          = ' + punit + '\n')
+                inputFile.write('mass unit          = \'' + munit + '\'\n')
+                inputFile.write('nEl         = 2 \n')
+                inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+                inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+                for i in range(len(xs)):
+                    inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+            print('Thermochimica calculation initiated.')
+            subprocess.run(['./bin/RunCalculationList',filename])
+            print('Thermochimica calculation finished.')
+            fname = 'thermoout.json'
+            mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+
+        # Test the minimum subgrid region area to see if converged
+        if maxArea < 1 / (10*res**2):
+            break
 
     return mint, maxt, outline
 
@@ -583,7 +592,8 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
             fname = 'thermoout.json'
             mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
-        if (maxGap <= 1/res):
+        # Test the minimum difference between points to see if converged
+        if maxGap <= 1/res:
             break
 
     return mint, maxt
