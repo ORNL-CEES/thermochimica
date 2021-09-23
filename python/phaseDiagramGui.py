@@ -516,66 +516,74 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
         fname = 'thermoout.json'
         mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
-    # Create arrays again with new data
-    boundaries = []
-    b = []
-    for i in range(len(p1)):
-        # If a miscibility gap label has been used unnecessarily, remove it
-        if p1[i].find('#2') > 0:
-            if not(p1[i][0:p1[i].find('#2')] == p2[i]):
-                p1[i] = p1[i][0:p1[i].find('#2')]
-        if p2[i].find('#2') > 0:
-            if not(p2[i][0:p2[i].find('#2')] == p1[i]):
-                p2[i] = p2[i][0:p2[i].find('#2')]
-        repeat = False
+    nIt = 0
+    while nIt < 10:
+        nIt = nIt + 1
+        maxGap = 0
+        # Create arrays again with new data
+        boundaries = []
+        b = []
+        for i in range(len(p1)):
+            # If a miscibility gap label has been used unnecessarily, remove it
+            if p1[i].find('#2') > 0:
+                if not(p1[i][0:p1[i].find('#2')] == p2[i]):
+                    p1[i] = p1[i][0:p1[i].find('#2')]
+            if p2[i].find('#2') > 0:
+                if not(p2[i][0:p2[i].find('#2')] == p1[i]):
+                    p2[i] = p2[i][0:p2[i].find('#2')]
+            repeat = False
+            for j in range(len(boundaries)):
+                if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
+                    b.append(j)
+                    repeat = True
+            if not(repeat):
+                boundaries.append([p1[i],p2[i]])
+                b.append(len(boundaries)-1)
+
+        # Refine two-phase region density
+        xs = []
+        ys = []
         for j in range(len(boundaries)):
-            if (boundaries[j][0] == p1[i]) and (boundaries[j][1] == p2[i]):
-                b.append(j)
-                repeat = True
-        if not(repeat):
-            boundaries.append([p1[i],p2[i]])
-            b.append(len(boundaries)-1)
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                break
+            ttt = np.array(ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(x2)[inds]
+            x2t = x2t[sindex]
+            for i in range(len(ttt)-1):
+                gap = np.sqrt(((ttt[i]-ttt[i+1])/(maxt-mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
+                maxGap = max(gap,maxGap)
+                if gap > 1/res:
+                    step = tres*((ttt[i+1] - ttt[i])/(maxt - mint))/gap
+                    for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
+                        ys.append(k)
+                        progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
+                        xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
 
-    # Refine two-phase region density
-    xs = []
-    ys = []
-    for j in range(len(boundaries)):
-        inds = [i for i, k in enumerate(b) if k == j]
-        if len(inds) < 2:
+        if len(xs) > 0:
+            with open(filename, 'w') as inputFile:
+                inputFile.write('! Python-generated input file for Thermochimica\n')
+                inputFile.write('data file         = ' + datafile + '\n')
+                inputFile.write('temperature unit         = ' + tunit + '\n')
+                inputFile.write('pressure unit          = ' + punit + '\n')
+                inputFile.write('mass unit          = \'' + munit + '\'\n')
+                inputFile.write('nEl         = 2 \n')
+                inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+                inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+                for i in range(len(xs)):
+                    inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+            print('Thermochimica calculation initiated.')
+            subprocess.run(['./bin/RunCalculationList',filename])
+            print('Thermochimica calculation finished.')
+            fname = 'thermoout.json'
+            mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+
+        if (maxGap <= 1/res):
             break
-        ttt = np.array(ts)[inds]
-        sindex = np.argsort(ttt)
-        ttt = ttt[sindex]
-        x1t = np.array(x1)[inds]
-        x1t = x1t[sindex]
-        x2t = np.array(x2)[inds]
-        x2t = x2t[sindex]
-        for i in range(len(ttt)-1):
-            gap = np.sqrt(((ttt[i]-ttt[i+1])/(maxt-mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
-            if gap > 1/res:
-                step = tres*((ttt[i+1] - ttt[i])/(maxt - mint))/gap
-                for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
-                    ys.append(k)
-                    progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
-                    xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
-
-    if len(xs) > 0:
-        with open(filename, 'w') as inputFile:
-            inputFile.write('! Python-generated input file for Thermochimica\n')
-            inputFile.write('data file         = ' + datafile + '\n')
-            inputFile.write('temperature unit         = ' + tunit + '\n')
-            inputFile.write('pressure unit          = ' + punit + '\n')
-            inputFile.write('mass unit          = \'' + munit + '\'\n')
-            inputFile.write('nEl         = 2 \n')
-            inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-            inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-            for i in range(len(xs)):
-                inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-        print('Thermochimica calculation initiated.')
-        subprocess.run(['./bin/RunCalculationList',filename])
-        print('Thermochimica calculation finished.')
-        fname = 'thermoout.json'
-        mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
     return mint, maxt
 
@@ -718,9 +726,7 @@ while True:
         dataWindow["-FILE LIST-"].update(fnames)
     elif event == "-FILE LIST-":  # A file was chosen from the listbox
         try:
-            datafile = os.path.join(
-                folder, values["-FILE LIST-"][0]
-            )
+            datafile = os.path.join(folder, values["-FILE LIST-"][0])
             with open(datafile) as f:
                 f.readline() # read comment line
                 line = f.readline() # read first data line (# elements, # phases, n*# species)
