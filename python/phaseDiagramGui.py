@@ -225,7 +225,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                     if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
                         bEdgeLine[k][1] = True
 
-    outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
+    # outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
     # plot 2-phase region boundaries
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
@@ -313,7 +313,7 @@ def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tu
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     return mint, maxt
 
-def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile):
+def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile,outline):
     boundaries = []
     phases = []
     b = []
@@ -358,7 +358,6 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         phasePolyPoints[i].append([[1,x1data[1][j]]])
         phasePolyPoints[i].append([[1,x1data[2][j]]])
 
-    outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
     # plot 2-phase region boundaries
     for j in range(len(boundaries)):
         polygonPoints = []
@@ -377,7 +376,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         for i in reversed(range(len(inds))):
             polygonPoints.append([x2t[i],ttt[i]])
         phaseOutline = Polygon(polygonPoints).buffer(0)
-        outline = outline - phaseOutline
+        outline = outline.buffer(0) - phaseOutline
         minj = np.argmin(np.array(ts)[inds])
         maxj = np.argmax(np.array(ts)[inds])
         for i in range(len(phases)):
@@ -406,8 +405,9 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     xs = []
     ys = []
     subres = int(np.ceil(np.sqrt(res)))
-    yindices = np.linspace(mint, maxt, subres)
-    xindices = np.linspace(0, 1, subres)
+    oxlo, otlo, oxhi, othi = outline.bounds
+    xindices = np.linspace(oxlo, oxhi, subres)
+    yindices = np.linspace(otlo, othi, subres)
     horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
     vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
     for splitter in vertical_splitters:
@@ -443,7 +443,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     fname = 'thermoout.json'
     mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
-    return mint, maxt
+    return mint, maxt, outline
 
 def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile):
     # Create arrays again with new data
@@ -842,6 +842,7 @@ while True:
                     labels = []
                     mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
                     makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
+                    outline = MultiPolygon([Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])])
                     setupWindow.Element('Refine').Update(disabled = False)
                     setupWindow.Element('Auto Refine').Update(disabled = False)
                     setupWindow.Element('Auto Densify').Update(disabled = False)
@@ -900,7 +901,7 @@ while True:
                             resRef = float(resRef)
                             mint, maxt = refineLimit(0,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                             mint, maxt = refineLimit(1,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
-                            mint, maxt = autoRefine(resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile)
+                            mint, maxt, outline = autoRefine(resRef,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tunit,punit,munit,datafile,outline)
                             makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data)
                             break
                     autoRefineWindow.close()
