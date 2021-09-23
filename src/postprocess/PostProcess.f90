@@ -56,6 +56,7 @@ subroutine PostProcess
                 iAssemblage(j - 1) = iAssemblage(j)
             end do
             iAssemblage(nConPhases) = 0
+            dMolesPhase(nConPhases) = 0D0
             nConPhases = nConPhases - 1
         end do
         if (dMolesPhase(i) > 0D0) dMolesSpecies(iAssemblage(i)) = dMolesPhase(i)
