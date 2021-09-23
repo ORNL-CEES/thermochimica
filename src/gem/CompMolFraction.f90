@@ -135,7 +135,7 @@ subroutine CompMolFraction(k)
                     dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
                 end do
                 dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
-                dMolFraction(i) = DMAX1(dTemp - dStdGibbsEnergy(i),0D0)
+                dMolFraction(i) = DMIN1(dTemp - dStdGibbsEnergy(i),0D0)
                 dMolFraction(i) = DEXP(dMolFraction(i))
                 dSum = dSum + dMolFraction(i)
             end do
