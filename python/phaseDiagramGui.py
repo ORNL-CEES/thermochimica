@@ -415,6 +415,8 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
     for splitter in horizontal_splitters:
         outline = MultiPolygon(split(outline, splitter))
     for tempOutline in list(outline):
+        if (tempOutline.area / (maxt-mint)) < (1 / (10*res**2)):
+            continue
         pxlo, ptlo, pxhi, pthi = tempOutline.bounds
         xstep = (pxhi - pxlo) / subres / 10
         ystep = (pthi - ptlo) / subres / 10
@@ -423,25 +425,24 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
         ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
 
-    filename = 'inputs/pythonCalculationListInput.ti'
-
-    with open(filename, 'w') as inputFile:
-        inputFile.write('! Python-generated input file for Thermochimica\n')
-        inputFile.write('data file         = ' + datafile + '\n')
-        inputFile.write('temperature unit         = ' + tunit + '\n')
-        inputFile.write('pressure unit          = ' + punit + '\n')
-        inputFile.write('mass unit          = \'' + munit + '\'\n')
-        inputFile.write('nEl         = 2 \n')
-        inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
-        inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-        for i in range(len(xs)):
-            inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-
-    print('Thermochimica calculation initiated.')
-    subprocess.run(['./bin/RunCalculationList',filename])
-    print('Thermochimica calculation finished.')
-    fname = 'thermoout.json'
-    mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
+    if len(xs) > 0:
+        filename = 'inputs/pythonCalculationListInput.ti'
+        with open(filename, 'w') as inputFile:
+            inputFile.write('! Python-generated input file for Thermochimica\n')
+            inputFile.write('data file         = ' + datafile + '\n')
+            inputFile.write('temperature unit         = ' + tunit + '\n')
+            inputFile.write('pressure unit          = ' + punit + '\n')
+            inputFile.write('mass unit          = \'' + munit + '\'\n')
+            inputFile.write('nEl         = 2 \n')
+            inputFile.write('iEl         = ' + str(atomic_number_map.index(el1)+1) + ' ' + str(atomic_number_map.index(el2)+1) + '\n')
+            inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+            for i in range(len(xs)):
+                inputFile.write(str(ys[i]) + ' ' + str(pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
+        print('Thermochimica calculation initiated.')
+        subprocess.run(['./bin/RunCalculationList',filename])
+        print('Thermochimica calculation finished.')
+        fname = 'thermoout.json'
+        mint, maxt = processPhaseDiagramData(fname, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
 
     return mint, maxt, outline
 
