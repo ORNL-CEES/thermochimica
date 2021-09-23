@@ -908,7 +908,7 @@ while True:
                         elif event == 'Refine':
                             resRef = values['-res-']
                             if resRef == '':
-                                resRef = 100
+                                resRef = 49
                             resRef = float(resRef)
                             mint, maxt = refineLimit(0,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
                             mint, maxt = refineLimit(1,(maxt-mint)/resRef/10,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile)
