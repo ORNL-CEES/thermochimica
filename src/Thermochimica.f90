@@ -457,8 +457,12 @@ subroutine Thermochimica
     ! using the GEM method:
     if (INFOThermo == 0) call GEMSolver
 
-    ! Perform post-processing calculations of results:
-    if (INFOThermo == 0) call PostProcess
+    if (.NOT. lRetryAttempted) then
+        ! Attempt a retry by re-initializing with first phase only
+        call RetryCalculationFirstPhase
+        ! Perform post-processing calculations of results:
+        if (INFOThermo == 0) call PostProcess
+    end if
 
     return
 
