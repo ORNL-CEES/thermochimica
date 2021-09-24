@@ -631,86 +631,89 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
             ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
             else if (iSUBIMixType(l) == 6) then
-                ! Loop through constituents associated with this parameter:
-                do k = 2, n + 1
-                    ! Determine constituent and sublattice indices:
-                    c = MOD(iRegularParam(l,k), 10000)
-                    s = iRegularParam(l,k) - c
-                    s = s / 10000
-
-                    ! Compute prefactor term:
-                    dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
-
-                    if (k == 2) then
-                        ! Cation - Ci
-                        yCi = dSiteFraction(iSPI,s,c)
-                        iCi = c
-                    else if (k == 3) then
-                        ! Cation - Cj
-                        yCj = dSiteFraction(iSPI,s,c)
-                        iCj = c
-                    else if (k == 4) then
-                        ! Cation - Ck
-                        yCk = dSiteFraction(iSPI,s,c)
-                        iCk = c
-                    else if (k == 5) then
-                        ! Anion - Al
-                        yAi = dSiteFraction(iSPI,s,c)
-                        iAi = c
-                    end if
-                end do
-
-            ! Multiply prefactor term by excess Gibbs energy parameter:
-            iExponent = iRegularParam(l,n+2)
-            ! Calculate f and v
-            f = (1D0 - yCi - yCj - yCk)/3D0
-            if (iRegularParam(l,n+2) == 0) then
-                v = yCi + f
-            else if (iRegularParam(l,n+2) == 1) then
-                v = yCj + f
-            else if (iRegularParam(l,n+2) == 2) then
-                v = yCk + f
-            end if
-
-            ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Al case
-            gex = dPreFactor * v * dExcessGibbsParam(l)
-            ! Total Excess Gibbs Energy
-            gexcess = gexcess + gex
-
-            do i = 1, nConstituentSublattice(iSPI, 1)
-                ! Derivative with respect to C
-                if (i == iCi) then
-                    ! prefactor part
-                    dgdc1(i) = dgdc1(i) + gex / yCi
-                    ! f part
-                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
-                    ! other v part
-                    if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + gex / v
-                ! Derivative with respect to Cj
-                else if (i == iCj) then
-                    ! prefactor part
-                    dgdc1(i) = dgdc1(i) + gex / yCj
-                    ! f part
-                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
-                    ! other v part
-                    if (iRegularParam(l,n+2) == 1) dgdc1(i) = dgdc1(i) + gex / v
-                else if (i == iCk) then
-                    ! prefactor part
-                    dgdc1(i) = dgdc1(i) + gex / yCk
-                    ! f part
-                    dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
-                    ! other v part
-                    if (iRegularParam(l,n+2) == 2) dgdc1(i) = dgdc1(i) + gex / v
-                end if
-            end do
-
-            do i = 1, nConstituentSublattice(iSPI,2)
-              ! Derivative with respect to Bk
-                if (i == iAi) then
-                    ! prefactor part
-                    dgdc2(i) = dgdc2(i) + gex / yAi
-                end if
-            end do
+                print *, 'Unrecognized excess mixing term in SUBI phase. Case #6. ', cSolnPhaseName(iSolnIndex)
+                INFOThermo = 44
+                return
+                ! ! Loop through constituents associated with this parameter:
+                ! do k = 2, n + 1
+                !     ! Determine constituent and sublattice indices:
+                !     c = MOD(iRegularParam(l,k), 10000)
+                !     s = iRegularParam(l,k) - c
+                !     s = s / 10000
+                !
+                !     ! Compute prefactor term:
+                !     dPreFactor = dPreFactor * dSiteFraction(iSPI,s,c)
+                !
+                !     if (k == 2) then
+                !         ! Cation - Ci
+                !         yCi = dSiteFraction(iSPI,s,c)
+                !         iCi = c
+                !     else if (k == 3) then
+                !         ! Cation - Cj
+                !         yCj = dSiteFraction(iSPI,s,c)
+                !         iCj = c
+                !     else if (k == 4) then
+                !         ! Cation - Ck
+                !         yCk = dSiteFraction(iSPI,s,c)
+                !         iCk = c
+                !     else if (k == 5) then
+                !         ! Anion - Al
+                !         yAi = dSiteFraction(iSPI,s,c)
+                !         iAi = c
+                !     end if
+                ! end do
+                !
+                ! ! Multiply prefactor term by excess Gibbs energy parameter:
+                ! iExponent = iRegularParam(l,n+2)
+                ! ! Calculate f and v
+                ! f = (1D0 - yCi - yCj - yCk)/3D0
+                ! if (iRegularParam(l,n+2) == 0) then
+                !     v = yCi + f
+                ! else if (iRegularParam(l,n+2) == 1) then
+                !     v = yCj + f
+                ! else if (iRegularParam(l,n+2) == 2) then
+                !     v = yCk + f
+                ! end if
+                !
+                ! ! Excess Gibbs energy equation for L_Ci,Cj,Ck:Al case
+                ! gex = dPreFactor * v * dExcessGibbsParam(l)
+                ! ! Total Excess Gibbs Energy
+                ! gexcess = gexcess + gex
+                !
+                ! do i = 1, nConstituentSublattice(iSPI, 1)
+                !     ! Derivative with respect to C
+                !     if (i == iCi) then
+                !         ! prefactor part
+                !         dgdc1(i) = dgdc1(i) + gex / yCi
+                !         ! f part
+                !         dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                !         ! other v part
+                !         if (iRegularParam(l,n+2) == 0) dgdc1(i) = dgdc1(i) + gex / v
+                !     ! Derivative with respect to Cj
+                !     else if (i == iCj) then
+                !         ! prefactor part
+                !         dgdc1(i) = dgdc1(i) + gex / yCj
+                !         ! f part
+                !         dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                !         ! other v part
+                !         if (iRegularParam(l,n+2) == 1) dgdc1(i) = dgdc1(i) + gex / v
+                !     else if (i == iCk) then
+                !         ! prefactor part
+                !         dgdc1(i) = dgdc1(i) + gex / yCk
+                !         ! f part
+                !         dgdc1(i) = dgdc1(i) - gex / (3D0 * v)
+                !         ! other v part
+                !         if (iRegularParam(l,n+2) == 2) dgdc1(i) = dgdc1(i) + gex / v
+                !     end if
+                ! end do
+                !
+                ! do i = 1, nConstituentSublattice(iSPI,2)
+                !   ! Derivative with respect to Bk
+                !     if (i == iAi) then
+                !         ! prefactor part
+                !         dgdc2(i) = dgdc2(i) + gex / yAi
+                !     end if
+                ! end do
 
             ! Case 7: Determine the mixing parameter type: L_Ci:Aj,Dk,Dl
             else if (iSUBIMixType(l) == 7) then
@@ -960,7 +963,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     ! Derivative with respect to Va
                     else if (cConstituentNameSUB(iSPI,2,i) == 'Va') then
                         ! prefactor part
-                        dgdc2(i) = dgdc2(i) + gex * 2 / yva
+                        dgdc2(i) = dgdc2(i) + gex / yva
                         ! f part
                         dgdc2(i) = dgdc2(i) - yCi * gex / (3D0 * v)
                         ! other v part
@@ -970,77 +973,80 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
             ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
           else if (iSUBIMixType(l) == 10) then
+              print *, 'Unrecognized excess mixing term in SUBI phase. Case #6. ', cSolnPhaseName(iSolnIndex)
+              INFOThermo = 44
+              return
 
-                ! Loop through constituents associated with this parameter:
-                do k = 2, n + 1
-                    ! Determine constituent and sublattice indices:
-                    c = MOD(iRegularParam(l,k), 10000)
-                    s = iRegularParam(l,k) - c
-                    s = s / 10000
-
-                    if (k == 3) then
-                        ! neutral - Bj
-                        yBi = dSiteFraction(iSPI,s,c)
-                        iBi = c
-                    else if (k == 4) then
-                        ! neutral - Bk
-                        yBj = dSiteFraction(iSPI,s,c)
-                        iBj = c
-                    else if (k == 5) then
-                        ! neutral - Bl
-                        yBk = dSiteFraction(iSPI,s,c)
-                        iBk = c
-                    end if
-                end do
-
-                ! Compute prefactor term:
-                dPreFactor = yBi * yBj * yBk
-                ! Calculate f and v
-                f = (1D0 - yBi - yBj - yBk)/3D0
-                if (iRegularParam(l,n+2) == 0) then
-                    v = yBi + f
-                else if (iRegularParam(l,n+2) == 1) then
-                    v = yBj + f
-                else if (iRegularParam(l,n+2) == 2) then
-                    v = yBk + f
-                end if
-                ! Excess Gibbs energy equation for L_Ci:Bj,Bk,Bl case
-                gex = q * dPreFactor * v * dExcessGibbsParam(l)
-                ! Total Excess Gibbs Energy
-                gexcess = gexcess + gex
-
-                do i = 1, nConstituentSublattice(iSPI, 1)
-                    ! Q part:
-                    dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
-                end do
-
-                do i = 1, nConstituentSublattice(iSPI,2)
-                    ! Derivative with respect to Bk
-                    if (i == iBi) then
-                        ! prefactor part
-                        dgdc2(i) = dgdc2(i) + gex / yBi
-                        ! f part
-                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
-                        ! other v part
-                        if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + gex / v
-                    ! Derivative with respect to Bl
-                    else if (i == iBj) then
-                        ! prefactor part
-                        dgdc2(i) = dgdc2(i) + gex / yBj
-                        ! f part
-                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
-                        ! other v part
-                        if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + gex / v
-                    ! Derivative with respect to Va
-                    else if (i == iBk) then
-                        ! prefactor part
-                        dgdc2(i) = dgdc2(i) + gex / yBk
-                        ! f part
-                        dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
-                        ! other v part
-                        if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + gex / v
-                    end if
-                end do
+              ! ! Loop through constituents associated with this parameter:
+              ! do k = 2, n + 1
+              !     ! Determine constituent and sublattice indices:
+              !     c = MOD(iRegularParam(l,k), 10000)
+              !     s = iRegularParam(l,k) - c
+              !     s = s / 10000
+              !
+              !     if (k == 3) then
+              !         ! neutral - Bj
+              !         yBi = dSiteFraction(iSPI,s,c)
+              !         iBi = c
+              !     else if (k == 4) then
+              !         ! neutral - Bk
+              !         yBj = dSiteFraction(iSPI,s,c)
+              !         iBj = c
+              !     else if (k == 5) then
+              !         ! neutral - Bl
+              !         yBk = dSiteFraction(iSPI,s,c)
+              !         iBk = c
+              !     end if
+              ! end do
+              !
+              ! ! Compute prefactor term:
+              ! dPreFactor = yBi * yBj * yBk
+              ! ! Calculate f and v
+              ! f = (1D0 - yBi - yBj - yBk)/3D0
+              ! if (iRegularParam(l,n+2) == 0) then
+              !     v = yBi + f
+              ! else if (iRegularParam(l,n+2) == 1) then
+              !     v = yBj + f
+              ! else if (iRegularParam(l,n+2) == 2) then
+              !     v = yBk + f
+              ! end if
+              ! ! Excess Gibbs energy equation for L_Ci:Bj,Bk,Bl case
+              ! gex = q * dPreFactor * v * dExcessGibbsParam(l)
+              ! ! Total Excess Gibbs Energy
+              ! gexcess = gexcess + gex
+              !
+              ! do i = 1, nConstituentSublattice(iSPI, 1)
+              !     ! Q part:
+              !     dgdc1(i) = dgdc1(i) + gex * dSublatticeCharge(iSPI,1,i) / q
+              ! end do
+              !
+              ! do i = 1, nConstituentSublattice(iSPI,2)
+              !     ! Derivative with respect to Bk
+              !     if (i == iBi) then
+              !         ! prefactor part
+              !         dgdc2(i) = dgdc2(i) + gex / yBi
+              !         ! f part
+              !         dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+              !         ! other v part
+              !         if (iRegularParam(l,n+2) == 0) dgdc2(i) = dgdc2(i) + gex / v
+              !     ! Derivative with respect to Bl
+              !     else if (i == iBj) then
+              !         ! prefactor part
+              !         dgdc2(i) = dgdc2(i) + gex / yBj
+              !         ! f part
+              !         dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+              !         ! other v part
+              !         if (iRegularParam(l,n+2) == 1) dgdc2(i) = dgdc2(i) + gex / v
+              !     ! Derivative with respect to Va
+              !     else if (i == iBk) then
+              !         ! prefactor part
+              !         dgdc2(i) = dgdc2(i) + gex / yBk
+              !         ! f part
+              !         dgdc2(i) = dgdc2(i) - gex / (3D0 * v)
+              !         ! other v part
+              !         if (iRegularParam(l,n+2) == 2) dgdc2(i) = dgdc2(i) + gex / v
+              !     end if
+              ! end do
 
             ! Case 11: Determine the mixing parameter type: L_Ci,Cj:Ak,Dl
             else if (iSUBIMixType(l) == 11) then

@@ -146,6 +146,9 @@ subroutine ThermoDEBUG
     elseif (INFOThermo == 43) then
         print *, 'DEBUG: An unsupported type of magnetic mixing parameter is included in the data-file.'
         print *, ' Thermochimica is currently capable of handling: binary terms.'
+    elseif (INFOThermo == 44) then
+        print *, 'DEBUG: An unsupported type of excess mixing term in the SUBI phase is included in the data-file.'
+        print *, 'Please contact the developers and share this data-file.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90
