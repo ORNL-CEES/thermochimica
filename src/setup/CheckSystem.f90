@@ -361,6 +361,7 @@ subroutine CheckSystem
         end do
         nSpecies        = nSpecies + 1
         iSpeciesPass(j) = 1
+        if (iPhaseCS(j) == 0) nConPhasesSys = nConPhasesSys + 1
     end do LOOP_PureConPhases
 
     ! Re-establish the character vector representing the element names:
