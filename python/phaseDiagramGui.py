@@ -149,6 +149,30 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         if not(repeat2):
             phases.append(boundaries[i][1])
 
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            continue
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        if x1t[0] > x2t[0]:
+            dir = True
+        else:
+            dir = False
+        extraBound = []
+        for i in range(len(ttt)):
+            if (x1t[i] > x2t[i]) != dir:
+                extraBound.append(i)
+        if len(extraBound):
+            boundaries.append(boundaries[j])
+            for k in extraBound:
+                b[inds[sindex[k]]] = len(boundaries)-1
+
     # Start figure
     fig = plt.figure()
     plt.ion()
@@ -160,72 +184,107 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
         i = phases.index(x0data[0][j])
         if j > 0:
             ax.plot(0,x0data[1][j],'kv')
+            match = []
             for k in range(len(boundaries)):
                 if (x0data[0][j] in boundaries[k]) and (x0data[0][j-1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
                     bind = boundaries[k].index(x0data[0][j])
                     if bind == 0:
                         minj = np.argmin(np.array(x1)[inds])
-                        ax.plot([0,np.array(x1)[inds][minj]],[x0data[1][j],np.array(ts)[inds][minj]],'k-')
+                        length = (0 - np.array(x1)[inds][minj])**2 + (x0data[1][j] - np.array(ts)[inds][minj])**2
+                        match.append([length,k,np.array(x1)[inds][minj],np.array(ts)[inds][minj]])
                     elif bind == 1:
                         minj = np.argmin(np.array(x2)[inds])
-                        ax.plot([0,np.array(x2)[inds][minj]],[x0data[1][j],np.array(ts)[inds][minj]],'k-')
-                    if np.array(ts)[inds][minj] == np.min(np.array(ts)[inds]):
-                        bEdgeLine[k][0] = True
-                    if np.array(ts)[inds][minj] == np.max(np.array(ts)[inds]):
-                        bEdgeLine[k][1] = True
+                        length = (0 - np.array(x2)[inds][minj])**2 + (x0data[1][j] - np.array(ts)[inds][minj])**2
+                        match.append([length,k,np.array(x2)[inds][minj],np.array(ts)[inds][minj]])
+            if len(match) > 0:
+                match = np.array(match)
+                matchind = np.argmin(match[:,0])
+                k = int(match[matchind,1])
+                inds = [i for i, l in enumerate(b) if l == k]
+                ax.plot([0,match[matchind,2]],[x0data[1][j],match[matchind,3]],'k-')
+                if match[matchind,3] == np.min(np.array(ts)[inds]):
+                    bEdgeLine[k][0] = True
+                if match[matchind,3] == np.max(np.array(ts)[inds]):
+                    bEdgeLine[k][1] = True
         if j < len(x0data[1]) - 1:
             ax.plot(0,x0data[2][j],'k^')
+            match = []
             for k in range(len(boundaries)):
                 if (x0data[0][j] in boundaries[k]) and (x0data[0][j+1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
                     bind = boundaries[k].index(x0data[0][j])
                     if bind == 0:
                         minj = np.argmin(np.array(x1)[inds])
-                        ax.plot([0,np.array(x1)[inds][minj]],[x0data[2][j],np.array(ts)[inds][minj]],'k-')
+                        length = (0 - np.array(x1)[inds][minj])**2 + (x0data[2][j] - np.array(ts)[inds][minj])**2
+                        match.append([length,k,np.array(x1)[inds][minj],np.array(ts)[inds][minj]])
                     elif bind == 1:
                         minj = np.argmin(np.array(x2)[inds])
-                        ax.plot([0,np.array(x2)[inds][minj]],[x0data[2][j],np.array(ts)[inds][minj]],'k-')
-                    if np.array(ts)[inds][minj] == np.min(np.array(ts)[inds]):
-                        bEdgeLine[k][0] = True
-                    if np.array(ts)[inds][minj] == np.max(np.array(ts)[inds]):
-                        bEdgeLine[k][1] = True
+                        length = (0 - np.array(x2)[inds][minj])**2 + (x0data[2][j] - np.array(ts)[inds][minj])**2
+                        match.append([length,k,np.array(x2)[inds][minj],np.array(ts)[inds][minj]])
+            if len(match) > 0:
+                match = np.array(match)
+                matchind = np.argmin(match[:,0])
+                k = int(match[matchind,1])
+                inds = [i for i, l in enumerate(b) if l == k]
+                ax.plot([0,match[matchind,2]],[x0data[2][j],match[matchind,3]],'k-')
+                if match[matchind,3] == np.min(np.array(ts)[inds]):
+                    bEdgeLine[k][0] = True
+                if match[matchind,3] == np.max(np.array(ts)[inds]):
+                    bEdgeLine[k][1] = True
     for j in range(len(x1data[1])):
         i = phases.index(x1data[0][j])
         if j > 0:
             ax.plot(1,x1data[1][j],'kv')
+            match = []
             for k in range(len(boundaries)):
                 if (x1data[0][j] in boundaries[k]) and (x1data[0][j-1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
                     bind = boundaries[k].index(x1data[0][j])
                     if bind == 0:
                         maxj = np.argmax(np.array(x1)[inds])
-                        ax.plot([1,np.array(x1)[inds][maxj]],[x1data[1][j],np.array(ts)[inds][maxj]],'k-')
+                        length = (1 - np.array(x1)[inds][maxj])**2 + (x1data[1][j] - np.array(ts)[inds][maxj])**2
+                        match.append([length,k,np.array(x1)[inds][maxj],np.array(ts)[inds][maxj]])
                     elif bind == 1:
                         maxj = np.argmax(np.array(x2)[inds])
-                        ax.plot([1,np.array(x2)[inds][maxj]],[x1data[1][j],np.array(ts)[inds][maxj]],'k-')
-                    if np.array(ts)[inds][maxj] == np.min(np.array(ts)[inds]):
-                        bEdgeLine[k][0] = True
-                    if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
-                        bEdgeLine[k][1] = True
-        if j < len(x0data[1]) - 1:
+                        length = (1 - np.array(x2)[inds][maxj])**2 + (x1data[1][j] - np.array(ts)[inds][maxj])**2
+                        match.append([length,k,np.array(x2)[inds][maxj],np.array(ts)[inds][maxj]])
+            if len(match) > 0:
+                match = np.array(match)
+                matchind = np.argmin(match[:,0])
+                k = int(match[matchind,1])
+                inds = [i for i, l in enumerate(b) if l == k]
+                ax.plot([1,match[matchind,2]],[x1data[1][j],match[matchind,3]],'k-')
+                if match[matchind,3] == np.min(np.array(ts)[inds]):
+                    bEdgeLine[k][0] = True
+                if match[matchind,3] == np.max(np.array(ts)[inds]):
+                    bEdgeLine[k][1] = True
+        if j < len(x1data[1]) - 1:
             ax.plot(1,x1data[2][j],'k^')
+            match = []
             for k in range(len(boundaries)):
                 if (x1data[0][j] in boundaries[k]) and (x1data[0][j+1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
                     bind = boundaries[k].index(x1data[0][j])
                     if bind == 0:
                         maxj = np.argmax(np.array(x1)[inds])
-                        ax.plot([1,np.array(x1)[inds][maxj]],[x1data[2][j],np.array(ts)[inds][maxj]],'k-')
+                        length = (1 - np.array(x1)[inds][maxj])**2 + (x1data[2][j] - np.array(ts)[inds][maxj])**2
+                        match.append([length,k,np.array(x1)[inds][maxj],np.array(ts)[inds][maxj]])
                     elif bind == 1:
                         maxj = np.argmax(np.array(x2)[inds])
-                        ax.plot([1,np.array(x2)[inds][maxj]],[x1data[2][j],np.array(ts)[inds][maxj]],'k-')
-                    if np.array(ts)[inds][maxj] == np.min(np.array(ts)[inds]):
-                        bEdgeLine[k][0] = True
-                    if np.array(ts)[inds][maxj] == np.max(np.array(ts)[inds]):
-                        bEdgeLine[k][1] = True
+                        length = (1 - np.array(x2)[inds][maxj])**2 + (x1data[2][j] - np.array(ts)[inds][maxj])**2
+                        match.append([length,k,np.array(x2)[inds][maxj],np.array(ts)[inds][maxj]])
+            if len(match) > 0:
+                match = np.array(match)
+                matchind = np.argmin(match[:,0])
+                k = int(match[matchind,1])
+                inds = [i for i, l in enumerate(b) if l == k]
+                ax.plot([1,match[matchind,2]],[x1data[2][j],match[matchind,3]],'k-')
+                if match[matchind,3] == np.min(np.array(ts)[inds]):
+                    bEdgeLine[k][0] = True
+                if match[matchind,3] == np.max(np.array(ts)[inds]):
+                    bEdgeLine[k][1] = True
 
-    # outline = Polygon([[0,mint], [0, maxt], [1, maxt], [1, mint]])
     # plot 2-phase region boundaries
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
@@ -351,6 +410,32 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
             if not(repeat2):
                 phases.append(boundaries[i][1])
 
+        congruentFound = False
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = np.array(ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(x2)[inds]
+            x2t = x2t[sindex]
+            if x1t[0] > x2t[0]:
+                dir = True
+            else:
+                dir = False
+            extraBound = []
+            for i in range(len(ttt)):
+                if (x1t[i] > x2t[i]) != dir:
+                    extraBound.append(i)
+            if len(extraBound):
+                congruentFound = True
+                boundaries.append(boundaries[j])
+                for k in extraBound:
+                    b[inds[sindex[k]]] = len(boundaries)-1
+
         phasePolyPoints = [[] for i in range(len(phases))]
 
         for j in range(len(x0data[1])):
@@ -388,23 +473,26 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
                 if boundaries[j][1] == phases[i]:
                     phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-        for i in range(len(phases)):
-            segcenters = []
-            for j in range(len(phasePolyPoints[i])):
-                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-            sortedPolyPoints = []
-            for j in range(len(phasePolyPoints[i])):
-                k = segcenters.index(sortcenters[j])
-                if sortcenters[j][1] > sortcenters[j-1][1]:
-                    for l in range(len(phasePolyPoints[i][k])):
-                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                else:
-                    for l in reversed(range(len(phasePolyPoints[i][k]))):
-                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
-            phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-            outline = outline - phaseOutline
+        if congruentFound:
+            print('warning: congruent phase transformation found, auto refine will skip 1-phase regions')
+        else:
+            for i in range(len(phases)):
+                segcenters = []
+                for j in range(len(phasePolyPoints[i])):
+                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+                sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+                sortedPolyPoints = []
+                for j in range(len(phasePolyPoints[i])):
+                    k = segcenters.index(sortcenters[j])
+                    if sortcenters[j][1] > sortcenters[j-1][1]:
+                        for l in range(len(phasePolyPoints[i][k])):
+                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
+                    else:
+                        for l in reversed(range(len(phasePolyPoints[i][k]))):
+                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
+                phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+                outline = outline - phaseOutline
 
         xs = []
         ys = []
@@ -452,6 +540,8 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         # Test the minimum subgrid region area to see if converged
         if maxArea < 1 / (10*res**2):
             break
+        elif congruentFound:
+            break
 
     return mint, maxt, outline
 
@@ -475,6 +565,30 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
         if not(repeat):
             boundaries.append([p1[i],p2[i]])
             b.append(len(boundaries)-1)
+
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            continue
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        if x1t[0] > x2t[0]:
+            dir = True
+        else:
+            dir = False
+        extraBound = []
+        for i in range(len(ttt)):
+            if (x1t[i] > x2t[i]) != dir:
+                extraBound.append(i)
+        if len(extraBound):
+            boundaries.append(boundaries[j])
+            for k in extraBound:
+                b[inds[sindex[k]]] = len(boundaries)-1
 
     # Expand two-phase regions
     tres = (maxt-mint)/res
@@ -549,6 +663,30 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
             if not(repeat):
                 boundaries.append([p1[i],p2[i]])
                 b.append(len(boundaries)-1)
+
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = np.array(ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(x2)[inds]
+            x2t = x2t[sindex]
+            if x1t[0] > x2t[0]:
+                dir = True
+            else:
+                dir = False
+            extraBound = []
+            for i in range(len(ttt)):
+                if (x1t[i] > x2t[i]) != dir:
+                    extraBound.append(i)
+            if len(extraBound):
+                boundaries.append(boundaries[j])
+                for k in extraBound:
+                    b[inds[sindex[k]]] = len(boundaries)-1
 
         # Refine two-phase region density
         xs = []
@@ -632,6 +770,32 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
         if not(repeat2):
             phases.append(boundaries[i][1])
 
+    congruentFound = False
+    for j in range(len(boundaries)):
+        inds = [i for i, k in enumerate(b) if k == j]
+        if len(inds) < 2:
+            continue
+        ttt = np.array(ts)[inds]
+        sindex = np.argsort(ttt)
+        ttt = ttt[sindex]
+        x1t = np.array(x1)[inds]
+        x1t = x1t[sindex]
+        x2t = np.array(x2)[inds]
+        x2t = x2t[sindex]
+        if x1t[0] > x2t[0]:
+            dir = True
+        else:
+            dir = False
+        extraBound = []
+        for i in range(len(ttt)):
+            if (x1t[i] > x2t[i]) != dir:
+                extraBound.append(i)
+        if len(extraBound):
+            congruentFound = True
+            boundaries.append(boundaries[j])
+            for k in extraBound:
+                b[inds[sindex[k]]] = len(boundaries)-1
+
     phasePolyPoints = [[] for i in range(len(phases))]
 
     for j in range(len(x0data[1])):
@@ -668,12 +832,15 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
                 phasePolyPoints[i].append(polygonPoints[:len(inds)])
             if boundaries[j][1] == phases[i]:
                 phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-    for i in range(len(phases)):
-        segcenters = []
-        for j in range(len(phasePolyPoints[i])):
-            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-        labels.append([[center[0],center[1]],phases[i]])
+    if congruentFound:
+        print('warning: congruent phase transformation found, auto label will skip 1-phase regions')
+    else:
+        for i in range(len(phases)):
+            segcenters = []
+            for j in range(len(phasePolyPoints[i])):
+                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+            labels.append([[center[0],center[1]],phases[i]])
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
