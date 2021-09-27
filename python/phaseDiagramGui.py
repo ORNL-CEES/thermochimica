@@ -230,7 +230,7 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
         if len(inds) < 2:
-            break
+            continue
         ttt = np.array(ts)[inds]
         sindex = np.argsort(ttt)
         ttt = ttt[sindex]
@@ -367,7 +367,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
             polygonPoints = []
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
-                break
+                continue
             ttt = np.array(ts)[inds]
             sindex = np.argsort(ttt)
             ttt = ttt[sindex]
@@ -483,7 +483,7 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
         if len(inds) < 2:
-            break
+            continue
         ttt = np.array(ts)[inds]
         sindex = np.argsort(ttt)
         ttt = ttt[sindex]
@@ -556,7 +556,7 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
-                break
+                continue
             ttt = np.array(ts)[inds]
             sindex = np.argsort(ttt)
             ttt = ttt[sindex]
@@ -648,7 +648,7 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
         polygonPoints = []
         inds = [i for i, k in enumerate(b) if k == j]
         if len(inds) < 2:
-            break
+            continue
         ttt = np.array(ts)[inds]
         sindex = np.argsort(ttt)
         ttt = ttt[sindex]
