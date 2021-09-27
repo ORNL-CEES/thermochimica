@@ -105,7 +105,7 @@ subroutine GEMNewton(INFO)
 
 
     ! Determine the number of unknowns/linear equations:
-    nVar = nElements + nConPhases + nSolnPhases
+    nVar = MAX(nElements + nConPhases + nSolnPhases, nElements + 1)
 
     ! Allocate memory:
     allocate(A(nVar, nVar))
@@ -175,7 +175,7 @@ subroutine GEMNewton(INFO)
     end do
 
     ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
-    do j = nElements + nSolnPhases + 1, nVar
+    do j = nElements + nSolnPhases + 1, nElements + nConPhases + nSolnPhases
         k = j - nElements - nSolnPhases
         do i = 1, nElements
             A(i,j) = dStoichSpecies(iAssemblage(k),i)
