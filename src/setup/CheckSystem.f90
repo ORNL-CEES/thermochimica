@@ -128,6 +128,7 @@ subroutine CheckSystem
     implicit none
 
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
+    integer                                 :: mm, nn, nConstituentPass, c, s
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
@@ -326,8 +327,43 @@ subroutine CheckSystem
 
         ! Store temporary counter for the number of charged phases from the CS data-file:
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBI')) then
+            (cSolnPhaseTypeCS(i) == 'SUBI')) then
+            nCountSublatticeTemp = nCountSublatticeTemp + 1
+            k = iPhaseSublatticeCS(i)
+            ! Loop through species in phase to determine which constituents are stable:
+            do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                if (iSpeciesPass(j) > 0) then
+                    ! This species has passed.
+                    nn = j - nSpeciesPhaseCS(i-1)
+                    ! Loop through sublattices per phase:
+                    do s = 1, nSublatticePhaseCS(k)
+                        mm = iConstituentSublatticeCS(k, s, nn)
+                        if ((cSolnPhaseTypeCS(i) == 'SUBI') .AND. (s == 1)) then
+                            if (dSublatticeChargeCS(k,2,iConstituentSublatticeCS(k,2,nn)) /= 0D0) then
+                                iConstituentPass(k, s, mm) = 1
+                            end if
+                        else
+                            iConstituentPass(k, s, mm) = 1
+                        end if
+                    end do
+                end if
+            end do
+            ! If a sublattice has no constituents the whole phase should get removed
+            LOOP_CHECK_SUBLATTICES: do s = 1, nSublatticePhaseCS(k)
+                nConstituentPass = 0
+                do c = 1, nConstituentSublatticeCS(k,s)
+                    if (iConstituentPass(k,s,c) /= 0) then
+                        nConstituentPass = nConstituentPass + 1
+                    end if
+                end do
+                if (nConstituentPass < 1) then
+                    iConstituentPass(k,:,:) = 0
+                    nSpecies = nSpecies - m
+                    iSpeciesPass(nSpeciesPhaseCS(i-1) + 1:nSpeciesPhaseCS(i)) = 0
+                    exit LOOP_CHECK_SUBLATTICES
+                end if
+            end do LOOP_CHECK_SUBLATTICES
+        else if ((cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
             nCountSublatticeTemp = nCountSublatticeTemp + 1
         end if
 
