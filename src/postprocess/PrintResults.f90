@@ -287,6 +287,7 @@ subroutine PrintResultsSolnPhase
         c        = iTempSpecies(nCutOff) + iFirst - 1
         k        = LEN_TRIM(cSpeciesName(c)) - 1
         nMax     = MAX(k, nMax) + 1
+        nMax     = MIN(nMax,27)
         cDummyB  = TRIM(cSpeciesName(c))
         cDummyB(nMax+2:nMax+3) = '}'
 

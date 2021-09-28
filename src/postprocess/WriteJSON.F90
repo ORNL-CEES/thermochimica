@@ -426,6 +426,7 @@ subroutine WriteJSONMQM(iSolnIndex)
     end do
     dSumElementQuads = dMax
 
+    if (dMax == 0) iMax = 1
     dSumElementPairs = 0D0
     do m = 1, nPairsSRO(iSPI,1)
         i = iConstituentSublattice(iSPI,1,m)
