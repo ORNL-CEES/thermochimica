@@ -188,6 +188,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             for k in range(len(boundaries)):
                 if (x0data[0][j] in boundaries[k]) and (x0data[0][j-1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
+                    if len(inds) < 2:
+                        continue
                     bind = boundaries[k].index(x0data[0][j])
                     if bind == 0:
                         minj = np.argmin(np.array(x1)[inds])
@@ -213,6 +215,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             for k in range(len(boundaries)):
                 if (x0data[0][j] in boundaries[k]) and (x0data[0][j+1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
+                    if len(inds) < 2:
+                        continue
                     bind = boundaries[k].index(x0data[0][j])
                     if bind == 0:
                         minj = np.argmin(np.array(x1)[inds])
@@ -240,6 +244,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             for k in range(len(boundaries)):
                 if (x1data[0][j] in boundaries[k]) and (x1data[0][j-1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
+                    if len(inds) < 2:
+                        continue
                     bind = boundaries[k].index(x1data[0][j])
                     if bind == 0:
                         maxj = np.argmax(np.array(x1)[inds])
@@ -265,6 +271,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
             for k in range(len(boundaries)):
                 if (x1data[0][j] in boundaries[k]) and (x1data[0][j+1] in boundaries[k]):
                     inds = [i for i, l in enumerate(b) if l == k]
+                    if len(inds) < 2:
+                        continue
                     bind = boundaries[k].index(x1data[0][j])
                     if bind == 0:
                         maxj = np.argmax(np.array(x1)[inds])
@@ -410,7 +418,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
             if not(repeat2):
                 phases.append(boundaries[i][1])
 
-        congruentFound = False
+        congruentFound = [False for i in range(len(phases))]
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
@@ -431,7 +439,8 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
                 if (x1t[i] > x2t[i]) != dir:
                     extraBound.append(i)
             if len(extraBound):
-                congruentFound = True
+                congruentFound[phases.index(boundaries[j][0])] = True
+                congruentFound[phases.index(boundaries[j][1])] = True
                 boundaries.append(boundaries[j])
                 for k in extraBound:
                     b[inds[sindex[k]]] = len(boundaries)-1
@@ -473,26 +482,29 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
                 if boundaries[j][1] == phases[i]:
                     phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-        if congruentFound:
-            print('warning: congruent phase transformation found, auto refine will skip 1-phase regions')
-        else:
-            for i in range(len(phases)):
-                segcenters = []
-                for j in range(len(phasePolyPoints[i])):
-                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-                sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-                sortedPolyPoints = []
-                for j in range(len(phasePolyPoints[i])):
-                    k = segcenters.index(sortcenters[j])
-                    if sortcenters[j][1] > sortcenters[j-1][1]:
-                        for l in range(len(phasePolyPoints[i][k])):
-                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                    else:
-                        for l in reversed(range(len(phasePolyPoints[i][k]))):
-                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-                outline = outline - phaseOutline
+
+        for i in range(len(phases)):
+            if congruentFound[i]:
+                print(f'Warning: congruent phase transformation found, auto refine will skip {phases[i]}')
+                continue
+            segcenters = []
+            if len(phasePolyPoints[i]) < 2:
+                continue
+            for j in range(len(phasePolyPoints[i])):
+                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+            sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+            sortedPolyPoints = []
+            for j in range(len(phasePolyPoints[i])):
+                k = segcenters.index(sortcenters[j])
+                if sortcenters[j][1] > sortcenters[j-1][1]:
+                    for l in range(len(phasePolyPoints[i][k])):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+                else:
+                    for l in reversed(range(len(phasePolyPoints[i][k]))):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+            phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+            outline = outline - phaseOutline
 
         xs = []
         ys = []
@@ -540,7 +552,7 @@ def autoRefine(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressur
         # Test the minimum subgrid region area to see if converged
         if maxArea < 1 / (10*res**2):
             break
-        elif congruentFound:
+        elif any(congruentFound):
             break
 
     return mint, maxt, outline
@@ -770,7 +782,7 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
         if not(repeat2):
             phases.append(boundaries[i][1])
 
-    congruentFound = False
+    congruentFound = [False for i in range(len(phases))]
     for j in range(len(boundaries)):
         inds = [i for i, k in enumerate(b) if k == j]
         if len(inds) < 2:
@@ -791,7 +803,8 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
             if (x1t[i] > x2t[i]) != dir:
                 extraBound.append(i)
         if len(extraBound):
-            congruentFound = True
+            congruentFound[phases.index(boundaries[j][0])] = True
+            congruentFound[phases.index(boundaries[j][1])] = True
             boundaries.append(boundaries[j])
             for k in extraBound:
                 b[inds[sindex[k]]] = len(boundaries)-1
@@ -832,15 +845,18 @@ def autoLabel(el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,pressure,tun
                 phasePolyPoints[i].append(polygonPoints[:len(inds)])
             if boundaries[j][1] == phases[i]:
                 phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-    if congruentFound:
-        print('warning: congruent phase transformation found, auto label will skip 1-phase regions')
-    else:
-        for i in range(len(phases)):
-            segcenters = []
-            for j in range(len(phasePolyPoints[i])):
-                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            labels.append([[center[0],center[1]],phases[i]])
+
+    for i in range(len(phases)):
+        if congruentFound[i]:
+            print(f'Warning: congruent phase transformation found, auto label will skip {phases[i]}')
+            continue
+        segcenters = []
+        if len(phasePolyPoints[i]) < 2:
+            continue
+        for j in range(len(phasePolyPoints[i])):
+            segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+        center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+        labels.append([[center[0],center[1]],phases[i]])
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
