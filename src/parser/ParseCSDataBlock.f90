@@ -92,6 +92,7 @@ subroutine ParseCSDataBlock
         ! Entry 1: Read name of phase:
         read (1,111,IOSTAT = INFO) cSolnPhaseNameCS(i)
         111 FORMAT (A25)
+        cSolnPhaseNameCS(i) = TRIM(ADJUSTL(cSolnPhaseNameCS(i)))
 
         if (INFO /= 0) then
             INFO = 1100 + i
