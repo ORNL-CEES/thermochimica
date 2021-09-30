@@ -231,14 +231,7 @@ while True:
                         resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
                     else:
                         resultOutput = [[sg.Text('Output is too large to display')]]
-                    outWindow = sg.Window('Thermochimica output',resultOutput, location = [825,0])
-                    while True:
-                        event, values = outWindow.read(timeout=timeout)
-                        eventc, valuesc = calcWindow.read(timeout=timeout)
-                        eventd, valuesd = dataWindow.read(timeout=timeout)
-                        if event == sg.WIN_CLOSED or event == 'Exit' or eventd == sg.WIN_CLOSED or eventd == 'Exit'or eventc == sg.WIN_CLOSED or eventc == 'Exit':
-                            break
-                    outWindow.close()
+                    outWindow = sg.Window('Thermochimica output',resultOutput, location = [825,0], finalize=True)
             calcWindow.close()
         except:
             pass
