@@ -443,6 +443,7 @@ subroutine Thermochimica
     if (INFOThermo == 0) call CheckThermoData
 
     ! Check is load is requested and data available:
+    lReinitLoaded = .FALSE.
     if ((INFOThermo == 0) .AND. lReinitRequested .AND. lReinitAvailable) call LoadReinitData
 
     ! Estimate the equilibrium phase assemblage and other important properties
