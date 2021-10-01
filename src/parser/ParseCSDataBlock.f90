@@ -90,7 +90,9 @@ subroutine ParseCSDataBlock
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
 
         ! Entry 1: Read name of phase:
-        read (1,*,IOSTAT = INFO) cSolnPhaseNameCS(i)
+        read (1,111,IOSTAT = INFO) cSolnPhaseNameCS(i)
+        111 FORMAT (A25)
+        cSolnPhaseNameCS(i) = TRIM(ADJUSTL(cSolnPhaseNameCS(i)))
 
         if (INFO /= 0) then
             INFO = 1100 + i
