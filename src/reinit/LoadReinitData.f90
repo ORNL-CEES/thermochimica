@@ -37,7 +37,7 @@ subroutine LoadReinitData
 
   implicit none
 
-  integer                              :: i, j, con, soln
+  integer                              :: i, j
   integer,     dimension(0:168)        :: iElementsUsed
 
   ! Initialize storage variables if not allocated already
@@ -54,16 +54,6 @@ subroutine LoadReinitData
   do j = 0, (nElementsPT)
     if (iElementsUsed(j) /= iElementsUsed_Old(j)) return
   enddo
-
-  con  = 0
-  soln = 0
-  do i = 1, nElements
-      if (iAssemblage_Old(i) > 0) con  = con  + 1
-      if (iAssemblage_Old(i) < 0) soln = soln + 1
-  end do
-  if (con + soln > 2) then
-    return
-  end if
 
   ! Save old chemical potential data
   if (.NOT. allocated(dChemicalPotential)) allocate(dChemicalPotential(nSpecies))
