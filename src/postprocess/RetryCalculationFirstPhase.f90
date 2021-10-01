@@ -25,6 +25,8 @@ subroutine RetryCalculationFirstPhase
                 call ResetThermo
                 lRetryAttempted = .TRUE.
                 call Thermochimica
+            else
+                INFOThermo = 12
             end if
             lReinitRequested = oldReinit
         end if
