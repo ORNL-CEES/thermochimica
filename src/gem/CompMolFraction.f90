@@ -174,6 +174,10 @@ subroutine CompMolFraction(k)
     ! Compute the driving force for ideal mixtures (this is computed by
     ! Subminimization for other solution phases):
     if (cSolnPhaseType(k) == 'IDMX') then
+        do i = 1, nElements
+            ! phase already in assemblage should not have driving force
+            if (-iAssemblage(i) == k) dDrivingForceTemp = 0D0
+        end do
         dDrivingForceSoln(k) = dDrivingForceTemp
     end if
 
