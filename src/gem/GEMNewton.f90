@@ -103,9 +103,21 @@ subroutine GEMNewton(INFO)
     real(8), dimension(:),   allocatable :: B
     real(8), dimension(:,:), allocatable :: A
 
+    ! Count phases:
+    j = nConPhases
+    nConPhases  = 0
+    do i = 1, j
+        if (iAssemblage(i) > 0) nConPhases  = nConPhases  + 1
+    end do
+
+    j = nSolnPhases
+    nSolnPhases = 0
+    do i = nElements, nElements + 1 - j, -1
+        if (iAssemblage(i) < 0) nSolnPhases = nSolnPhases + 1
+    end do
 
     ! Determine the number of unknowns/linear equations:
-    nVar = MAX(nElements + nConPhases + nSolnPhases, nElements + 1)
+    nVar = nElements + nConPhases + nSolnPhases
 
     ! Allocate memory:
     allocate(A(nVar, nVar))
