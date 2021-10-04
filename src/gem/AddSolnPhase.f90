@@ -151,7 +151,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
         ! Check that the phase change is acceptable:
         call CheckPhaseChange(lPhasePass,INFO)
 
-        IF_CheckINFO: if (INFO > nElements + nSolnPhases) then
+        if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then
 
             ! Remove a pure condensed phase:
             k                       = INFO - nElements - nSolnPhases
@@ -179,7 +179,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
             ! This phase assemblage is acceptable.
             exit LOOP_CheckAssemblage
 
-        end if IF_CheckINFO
+        end if
 
     end do LOOP_CheckAssemblage
 

@@ -105,7 +105,7 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
 
             call CheckPhaseChange(lPhasePass,INFO)
 
-            if (INFO > nElements + nSolnPhases) then
+            if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then
                 ! A pure condensed phase should be removed.
                 k                       = INFO - nElements - nSolnPhases
                 iConPhaseLast           = iAssemblage(k)
