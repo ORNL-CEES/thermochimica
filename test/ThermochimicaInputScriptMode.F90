@@ -103,12 +103,17 @@ program ThermochimicaInputScriptMode
         close (1)
       end if
 
-      ! Reset Thermochimica:
-      call ResetThermo
-
       ! Call the debugger:
       call ThermoDebug
-      INFOThermo = 0
+
+      ! Reset Thermochimica:
+      if (INFOThermo == 0) then
+          call ResetThermo
+      else
+          call ResetThermoAll
+          call ParseCSDataFile(cThermoFileName)
+          INFOThermo = 0
+      end if
     end do
   end do
 
