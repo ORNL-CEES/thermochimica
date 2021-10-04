@@ -108,6 +108,7 @@ program ThermochimicaInputScriptMode
 
       ! Call the debugger:
       call ThermoDebug
+      INFOThermo = 0
     end do
   end do
 
