@@ -54,7 +54,11 @@ subroutine CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
     dMaxDrivingForce = 0D0
 
     ! Loop through all pure condensed phases:
-    do i = nSpeciesPhase(nSolnPhasesSys) + 1, nSpecies - nDummySpecies
+    PureConTestLOOP: do i = nSpeciesPhase(nSolnPhasesSys) + 1, nSpecies - nDummySpecies
+
+        do j = 1, nElements
+            if (iAssemblage(j) == i) cycle PureConTestLOOP
+        end do
 
         ! Compute the chemical potential of this phase as defined by the element potentials:
         dTemp = 0D0
@@ -74,7 +78,7 @@ subroutine CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
             dMaxDrivingForce = dTemp
         end if
 
-    end do
+    end do PureConTestLOOP
 
     return
 
