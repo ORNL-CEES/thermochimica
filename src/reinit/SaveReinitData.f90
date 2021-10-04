@@ -37,6 +37,8 @@ subroutine SaveReinitData
 
   implicit none
 
+  lReinitAvailable = .FALSE.
+
   ! If error has occurred, do not save
   if (INFOThermo /= 0) return
   ! If a calculation has not run, do not save
