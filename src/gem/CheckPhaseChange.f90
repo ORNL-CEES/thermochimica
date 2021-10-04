@@ -73,7 +73,7 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
             j = -iAssemblage(nElements + 1 - k)
             if (dEffStoichSolnPhase(j,i) > 0) cycle ElementCheck
         end do
-        lPhasePass = .FALSE.
+        ! lPhasePass = .FALSE.
     end do ElementCheck
 
     ! Count the number of miscible phases:
