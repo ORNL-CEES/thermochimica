@@ -54,13 +54,13 @@ subroutine CheckSystemExcess
     implicit none
 
     integer :: c, i, j, k, l, m, n, s, nCounter, pa, pb, px, py, pe, pf, nRemove, p, iIndex, iCon1, iCon2
-    integer :: iFirst, iLast
+    integer :: iFirst, iLast, nCurrentSublattice
     integer, dimension(nElementsCS**2) :: iRemove
 
 
     ! Initialize variables:
     nCounter        = 0
-    nCountSublatticeCS = 0
+    nCurrentSublattice = 0
     nCountSublattice   = 0
     if (allocated(iPhaseSublattice)) iPhaseSublattice   = 0
 
@@ -74,7 +74,7 @@ subroutine CheckSystemExcess
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
              (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
              (cSolnPhaseTypeCS(i) == 'SUBI')) then
-            nCountSublatticeCS = nCountSublatticeCS + 1
+            nCurrentSublattice = nCurrentSublattice + 1
         end if
 
         if (l > 0) then
@@ -143,12 +143,12 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
-                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCurrentSublattice)
                 j = SIZE(nConstituentSublattice,DIM=2)
                 n = nSublatticePhase(nCountSublattice)
-                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCountSublatticeCS,1:n)
+                dStoichSublattice(nCountSublattice,1:n) = dStoichSublatticeCS(nCurrentSublattice,1:n)
                 k = SIZE(iConstituentSublattice, DIM=3)
-                ! iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCountSublatticeCS,1:n,1:k)
+                ! iConstituentSublattice(nCountSublattice,1:n,1:k) = iConstituentSublatticeCS(nCurrentSublattice,1:n,1:k)
                 k = iPhaseSublatticeCS(i)
 
                 ! Loop through species in phase to determine which constituents are stable:
@@ -181,8 +181,8 @@ subroutine CheckSystemExcess
                         if (iConstituentPass(k,s,c) /= 0) then
                             iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
                             j = j + 1
-                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
-                            ! iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCurrentSublattice,s,c)
+                            ! iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCurrentSublattice,s,c)
                         end if
                     end do
                 end do
@@ -197,12 +197,12 @@ subroutine CheckSystemExcess
                     ! If not cycled above, then all constituents passed
                     j = j + 1
                     do s = 1, nSublatticePhaseCS(k)
-                        iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                        iConstituentSublattice(nCountSublattice,s,j) = iConstituentSublatticeCS(nCurrentSublattice,s,c)
                     end do
                 end do LOOP_findPassed
 
                 ! Now reduce indices to account for removed constituents
-                do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+                do s = 1, nSublatticePhaseCS(nCurrentSublattice)
                     nRemove = 0
                     iRemove = 0
                     do c = nConstituentSublatticeCS(k,s), 1, -1
@@ -273,7 +273,7 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
-                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCurrentSublattice)
                 j = SIZE(nConstituentSublattice,DIM=2)
                 n = nSublatticePhase(nCountSublattice)
                 k = SIZE(iConstituentSublattice, DIM=3)
@@ -288,7 +288,7 @@ subroutine CheckSystemExcess
                         n = j - nSpeciesPhaseCS(i-1)
 
                         ! On first sublattice check if second sublattice has neutral, don't pass if so
-                        if (dSublatticeChargeCS(nCountSublatticeCS,2,iConstituentSublatticeCS(k,2,n)) /= 0D0) then
+                        if (dSublatticeChargeCS(nCurrentSublattice,2,iConstituentSublatticeCS(k,2,n)) /= 0D0) then
                             m = iConstituentSublatticeCS(k, 1, n)
                             iConstituentPass(k, 1, m) = 1
                         end if
@@ -312,8 +312,8 @@ subroutine CheckSystemExcess
                         if (iConstituentPass(k,s,c) /= 0) then
                             iConstituentPass(k,s,c) = nConstituentSublattice(nCountSublattice,s)
                             j = j + 1
-                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCountSublatticeCS,s,c)
-                            dSublatticeCharge(nCountSublattice,s,j) = dSublatticeChargeCS(nCountSublatticeCS,s,c)
+                            cConstituentNameSUB(nCountSublattice,s,j) = cConstituentNameSUBCS(nCurrentSublattice,s,c)
+                            dSublatticeCharge(nCountSublattice,s,j) = dSublatticeChargeCS(nCurrentSublattice,s,c)
                         end if
                     end do
                 end do
@@ -327,7 +327,7 @@ subroutine CheckSystemExcess
                     j = j + 1
                     do s = 1, nSublatticePhaseCS(k)
                         iConstituentSublattice(nCountSublattice,s,j) = &
-                          iConstituentSublatticeCS(nCountSublatticeCS,s,c)
+                          iConstituentSublatticeCS(nCurrentSublattice,s,c)
                     end do
                     if (dSublatticeChargeCS(k,2,iConstituentSublatticeCS(k,2,c)) == 0D0) then
                         ! If this is a neutral, then set constituent on first sublattice to -1
@@ -353,7 +353,7 @@ subroutine CheckSystemExcess
                 end do LOOP_findPassed2
 
                 ! Now reduce indices to account for removed constituents
-                do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
+                do s = 1, nSublatticePhaseCS(nCurrentSublattice)
                     nRemove = 0
                     iRemove = 0
                     do c = nConstituentSublatticeCS(k,s), 1, -1
@@ -423,14 +423,14 @@ subroutine CheckSystemExcess
                 nCountSublattice                 = nCountSublattice + 1
                 iPhaseSublattice(nCounter)       = nCountSublattice
 
-                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCountSublatticeCS)
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCurrentSublattice)
                 do j = 1, nSublatticePhase(nCountSublattice)
                     m = 0
-                    do k = 1, nConstituentSublatticeCS(nCountSublatticeCS,j)
-                        if (iConstituentPass(nCountSublatticeCS,j,k) /= 0) then
+                    do k = 1, nConstituentSublatticeCS(nCurrentSublattice,j)
+                        if (iConstituentPass(nCurrentSublattice,j,k) /= 0) then
                             m = m + 1
-                            dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCountSublatticeCS,j,k)
-                            iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCountSublatticeCS,j,k)
+                            dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCurrentSublattice,j,k)
+                            iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCurrentSublattice,j,k)
                         end if
                     end do
                     nConstituentSublattice(nCountSublattice,j) = m
@@ -438,59 +438,59 @@ subroutine CheckSystemExcess
 
                 m = 0
                 LOOP_iConstitSubl: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
-                    iCon1 = iConstituentSublatticeCS(nCountSublatticeCS,1,k)
-                    iCon2 = iConstituentSublatticeCS(nCountSublatticeCS,2,k)
+                    iCon1 = iConstituentSublatticeCS(nCurrentSublattice,1,k)
+                    iCon2 = iConstituentSublatticeCS(nCurrentSublattice,2,k)
                     if (iCon1 == 0) cycle LOOP_iConstitSubl
                     if (iCon2 == 0) cycle LOOP_iConstitSubl
-                    if (iConstituentPass(nCountSublatticeCS,1,iCon1) == 0) cycle LOOP_iConstitSubl
-                    if (iConstituentPass(nCountSublatticeCS,2,iCon2) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCurrentSublattice,1,iCon1) == 0) cycle LOOP_iConstitSubl
+                    if (iConstituentPass(nCurrentSublattice,2,iCon2) == 0) cycle LOOP_iConstitSubl
                     m = m + 1
                     iConstituentSublattice(nCountSublattice,1,m) = iCon1
                     iConstituentSublattice(nCountSublattice,2,m) = iCon2
-                    cConstituentNameSUB(nCountSublattice,1,iCon1) = cConstituentNameSUBCS(nCountSublatticeCS,1,iCon1)
-                    cConstituentNameSUB(nCountSublattice,2,iCon2) = cConstituentNameSUBCS(nCountSublatticeCS,2,iCon2)
+                    cConstituentNameSUB(nCountSublattice,1,iCon1) = cConstituentNameSUBCS(nCurrentSublattice,1,iCon1)
+                    cConstituentNameSUB(nCountSublattice,2,iCon2) = cConstituentNameSUBCS(nCurrentSublattice,2,iCon2)
                 end do LOOP_iConstitSubl
 
                 ! Save quadruplet data corresponding to the quadruplets remaining in the system
                 k = SIZE(iPairID,DIM = 2)
-                do k = 1, nPairsSROCS(nCountSublatticeCS,2)
+                do k = 1, nPairsSROCS(nCurrentSublattice,2)
                     ! Find indices of constituents in quadruplet
                     pa = iPairIDCS(nCountSublattice,k,1)
                     pb = iPairIDCS(nCountSublattice,k,2)
-                    px = iPairIDCS(nCountSublattice,k,3) - nConstituentSublatticeCS(nCountSublatticeCS,1)
-                    py = iPairIDCS(nCountSublattice,k,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+                    px = iPairIDCS(nCountSublattice,k,3) - nConstituentSublatticeCS(nCurrentSublattice,1)
+                    py = iPairIDCS(nCountSublattice,k,4) - nConstituentSublatticeCS(nCurrentSublattice,1)
                     ! Find index of quadruplet
                     if (px == py) then
-                        p = (px - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                     * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
+                        p = (px - 1) * (nConstituentSublatticeCS(nCurrentSublattice,1) &
+                                     * (nConstituentSublatticeCS(nCurrentSublattice,1) + 1) / 2)
                     else
-                        p = (nConstituentSublatticeCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
+                        p = (nConstituentSublatticeCS(nCurrentSublattice,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nConstituentSublatticeCS(nCurrentSublattice,1) &
+                          * (nConstituentSublatticeCS(nCurrentSublattice,1) + 1) / 2)
                     end if
                     if (pa == pb) then
                         l = pa
                     else
-                        l = nConstituentSublatticeCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                        l = nConstituentSublatticeCS(nCurrentSublattice,1) + pa + ((pb-2)*(pb-1)/2)
                     end if
                     iIndex = p + l + nSpeciesPhaseCS(i - 1)
                     ! Make sure this quadruplet is still part of the system, if so save data
                     if (iSpeciesPass(iIndex) > 0) then
                         nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
                         n = nPairsSRO(nCountSublattice,2)
-                        iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCountSublatticeCS,k,1:4)
-                        dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCountSublatticeCS,k,1:4)
+                        iPairID(nCountSublattice,n,1:4) = iPairIDCS(nCurrentSublattice,k,1:4)
+                        dCoordinationNumber(nCountSublattice,n,1:4) = dCoordinationNumberCS(nCurrentSublattice,k,1:4)
                     end if
                 end do
 
                 ! Must remove unused elements from iPairID
                 nRemove = 0
                 iRemove = 0
-                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
-                    do l = nConstituentSublatticeCS(nCountSublatticeCS,j), 1, -1
-                        if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
+                do j = nSublatticePhaseCS(nCurrentSublattice), 1, -1
+                    do l = nConstituentSublatticeCS(nCurrentSublattice,j), 1, -1
+                        if (iConstituentPass(nCurrentSublattice,j,l) == 0) then
                             nRemove = nRemove + 1
-                            iRemove(nRemove) = l + ((j - 1) * nConstituentSublatticeCS(nCountSublatticeCS,1))
+                            iRemove(nRemove) = l + ((j - 1) * nConstituentSublatticeCS(nCurrentSublattice,1))
                         end if
                     end do
                 end do
@@ -506,17 +506,17 @@ subroutine CheckSystemExcess
                 end do
 
                 ! Also remove from iConstituentSublattice
-                do j = nSublatticePhaseCS(nCountSublatticeCS), 1, -1
+                do j = nSublatticePhaseCS(nCurrentSublattice), 1, -1
                     nRemove = 0
                     iRemove = 0
-                    do l = nConstituentSublatticeCS(nCountSublatticeCS,j), 1, -1
-                        if (iConstituentPass(nCountSublatticeCS,j,l) == 0) then
+                    do l = nConstituentSublatticeCS(nCurrentSublattice,j), 1, -1
+                        if (iConstituentPass(nCurrentSublattice,j,l) == 0) then
                             nRemove = nRemove + 1
                             iRemove(nRemove) = l
                         end if
                     end do
                     do k = 1, nRemove
-                        do l = 1, nConstituentSublatticeCS(nCountSublatticeCS,j)
+                        do l = 1, nConstituentSublatticeCS(nCurrentSublattice,j)
                             if (l >= iRemove(k) .AND. l < SIZE(cConstituentNameSUB,3)) then
                                 cConstituentNameSUB(nCountSublattice,j,l) = cConstituentNameSUB(nCountSublattice,j,l + 1)
                             end if
@@ -534,36 +534,36 @@ subroutine CheckSystemExcess
                 LOOP_excess: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
                     pa = iRegularParamCS(j,2)
                     pb = iRegularParamCS(j,3)
-                    px = iRegularParamCS(j,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
-                    py = iRegularParamCS(j,5) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+                    px = iRegularParamCS(j,4) - nConstituentSublatticeCS(nCurrentSublattice,1)
+                    py = iRegularParamCS(j,5) - nConstituentSublatticeCS(nCurrentSublattice,1)
                     pe = iRegularParamCS(j,10)
                     pf = iRegularParamCS(j,11)
 
                     ! If this is a ternary and the 3rd element got removed, then skip parameter
                     ! lRemoved = .TRUE.
                     if (pe > 0) then
-                        if (iConstituentPass(nCountSublatticeCS,1,pe) == 0) cycle LOOP_excess
+                        if (iConstituentPass(nCurrentSublattice,1,pe) == 0) cycle LOOP_excess
                     end if
                     ! If this is a ternary and the 3rd element got removed, then skip parameter
                     ! Making a guess at how to handle this for the other entry
                     ! lRemoved = .TRUE.
                     if (pf > 0) then
-                        pf = pf - nConstituentSublatticeCS(nCountSublatticeCS,1)
-                        if (iConstituentPass(nCountSublatticeCS,2,pf) == 0) cycle LOOP_excess
+                        pf = pf - nConstituentSublatticeCS(nCurrentSublattice,1)
+                        if (iConstituentPass(nCurrentSublattice,2,pf) == 0) cycle LOOP_excess
                     end if
 
                     if (px == py) then
-                        p = (px - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                     * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
+                        p = (px - 1) * (nConstituentSublatticeCS(nCurrentSublattice,1) &
+                                     * (nConstituentSublatticeCS(nCurrentSublattice,1) + 1) / 2)
                     else
-                        p = (nConstituentSublatticeCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
+                        p = (nConstituentSublatticeCS(nCurrentSublattice,2) + (px - 1) + ((py-2)*(py-1)/2)) &
+                          * (nConstituentSublatticeCS(nCurrentSublattice,1) &
+                          * (nConstituentSublatticeCS(nCurrentSublattice,1) + 1) / 2)
                     end if
                     if (pa == pb) then
                         l = pa
                     else
-                        l = nConstituentSublatticeCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
+                        l = nConstituentSublatticeCS(nCurrentSublattice,1) + pa + ((pb-2)*(pb-1)/2)
                     end if
                     iIndex = p + l + nSpeciesPhaseCS(i - 1)
                     if (iSpeciesPass(iIndex) > 0) then
