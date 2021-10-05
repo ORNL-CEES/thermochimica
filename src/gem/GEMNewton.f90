@@ -210,7 +210,7 @@ subroutine GEMNewton(INFO)
 
         if (iTry > 1) then
             do j = nElements + nSolnPhases + nConPhases + 1, nVar
-                k = nSpecies
+                k = nSpecies + nElements + nSolnPhases + nConPhases + 1 - j
                 do i = 1, nElements
                     A(i,j) = dStoichSpecies(k,i)
                     A(j,i) = A(i,j)
