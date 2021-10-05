@@ -64,17 +64,17 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
         call CompStoichSolnPhase(j)
     end do
     ! if we are removing any elements completely, don't allow change
-    ElementCheck: do i = 1, nElements
-        do k = 1, nConPhases
-            j = iAssemblage(k)
-            if (dStoichSpecies(j,i) > 0) cycle ElementCheck
-        end do
-        do k = 1, nSolnPhases
-            j = -iAssemblage(nElements + 1 - k)
-            if (dEffStoichSolnPhase(j,i) > 0) cycle ElementCheck
-        end do
-        ! lPhasePass = .FALSE.
-    end do ElementCheck
+    ! ElementCheck: do i = 1, nElements
+    !     do k = 1, nConPhases
+    !         j = iAssemblage(k)
+    !         if (dStoichSpecies(j,i) > 0) cycle ElementCheck
+    !     end do
+    !     do k = 1, nSolnPhases
+    !         j = -iAssemblage(nElements + 1 - k)
+    !         if (dEffStoichSolnPhase(j,i) > 0) cycle ElementCheck
+    !     end do
+    !     ! lPhasePass = .FALSE.
+    ! end do ElementCheck
 
     ! Count the number of miscible phases:
     do i = 1, nSolnPhases
