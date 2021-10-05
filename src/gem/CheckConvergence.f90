@@ -165,7 +165,7 @@ subroutine CheckConvergence
         ! Loop through pure condensed phases:
         do i = 1, nConPhases
             k = iAssemblage(i)                                  ! Absolute pure condensed phase index.
-            dResidual = dResidual + dMolesPhase(i) * dStoichSpecies(k,j)
+            if (k > 0) dResidual = dResidual + dMolesPhase(i) * dStoichSpecies(k,j)
         end do
 
         ! Compute residual or relative error term:
