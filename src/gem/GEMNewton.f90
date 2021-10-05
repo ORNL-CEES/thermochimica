@@ -215,7 +215,7 @@ subroutine GEMNewton(INFO)
                     A(i,j) = dStoichSpecies(k,i)
                     A(j,i) = A(i,j)
                 end do
-                B(j) = dStdGibbsEnergy(k)
+                B(j) = 0D0
             end do
         end if
 
