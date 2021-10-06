@@ -38,6 +38,9 @@ subroutine ResetThermoAll
     ! Reset reinit data:
     call ResetReinit
 
+    ! Reset CTZ data:
+    call ResetCTZ
+
     return
 
 end subroutine ResetThermoAll
