@@ -39,9 +39,6 @@ subroutine ResetCTZ
 
     integer :: i, INFO
 
-    lReinitAvailable = .FALSE.
-    lReinitLoaded = .FALSE.
-
     ! Initialize variables:
     i = 0
 
