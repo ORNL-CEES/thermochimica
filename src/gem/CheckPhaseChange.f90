@@ -58,6 +58,27 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     nMiscPhases = 0
     lPhasePass  = .TRUE.
 
+    ! Count phases:
+    j = nConPhases
+    nConPhases  = 0
+    CountCon: do i = 1, j
+        if (iAssemblage(i) > 0) then
+            nConPhases  = nConPhases  + 1
+        else
+            exit CountCon
+        end if
+    end do CountCon
+
+    j = nSolnPhases
+    nSolnPhases = 0
+    CountSoln: do i = nElements, nElements + 1 - j, -1
+        if (iAssemblage(i) < 0) then
+            nSolnPhases = nSolnPhases + 1
+        else
+            exit CountSoln
+        end if
+    end do CountSoln
+
     ! Count the number of miscible phases:
     do i = 1, nSolnPhases
         j = -iAssemblage(nElements - i + 1)

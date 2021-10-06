@@ -103,6 +103,26 @@ subroutine GEMNewton(INFO)
     real(8), dimension(:),   allocatable :: B
     real(8), dimension(:,:), allocatable :: A
 
+    ! Count phases:
+    j = nConPhases
+    nConPhases  = 0
+    CountCon: do i = 1, j
+        if (iAssemblage(i) > 0) then
+            nConPhases  = nConPhases  + 1
+        else
+            exit CountCon
+        end if
+    end do CountCon
+
+    j = nSolnPhases
+    nSolnPhases = 0
+    CountSoln: do i = nElements, nElements + 1 - j, -1
+        if (iAssemblage(i) < 0) then
+            nSolnPhases = nSolnPhases + 1
+        else
+            exit CountSoln
+        end if
+    end do CountSoln
 
     ! Determine the number of unknowns/linear equations:
     nVar = nElements + nConPhases + nSolnPhases
