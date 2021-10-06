@@ -1,4 +1,4 @@
-program CommonTangentZone
+subroutine CommonTangentZone
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -11,8 +11,7 @@ program CommonTangentZone
 
     integer :: i, j, k, nnlsInfo, soln, con, nSkipped, nAssemblages, tempInd
     integer :: assemblageMatch, assemblageInd
-    real(8) :: li, be, f, cs, u
-    real(8) :: tbase, range, dSum, maxNorm, tInterp, startTime, currentTime, tRange!, tempMol
+    real(8) :: dSum, maxNorm, tInterp, tRange!, tempMol
     real(8), dimension(:,:), allocatable :: stoichTemp, stoichInterp
     integer, dimension(:),   allocatable :: indx
     real(8), dimension(:),   allocatable :: dElCon, dElConTemp, x, work
