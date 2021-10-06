@@ -16,7 +16,8 @@ module ModuleCTZ
 
     SAVE
 
-    integer :: nMaxAssemblages, nMaxElements
+    integer :: nMaxAssemblages, nMaxElements, nAssemblages
+    real(8) :: maxNorm, tRange
     integer, dimension(:,:), allocatable :: assemblageHistory
     character(12), dimension(:,:), allocatable :: elementHistory
     real(8), dimension(:,:), allocatable :: assemblageTlimits

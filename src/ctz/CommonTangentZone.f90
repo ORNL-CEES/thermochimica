@@ -9,9 +9,9 @@ subroutine CommonTangentZone
 
     implicit none
 
-    integer :: i, j, k, nnlsInfo, soln, con, nSkipped, nAssemblages, tempInd
+    integer :: i, j, k, nnlsInfo, soln, con, tempInd
     integer :: assemblageMatch, assemblageInd
-    real(8) :: dSum, maxNorm, tInterp, tRange!, tempMol
+    real(8) :: dSum, tInterp!, tempMol
     real(8), dimension(:,:), allocatable :: stoichTemp, stoichInterp
     integer, dimension(:),   allocatable :: indx
     real(8), dimension(:),   allocatable :: dElCon, dElConTemp, x, work
@@ -25,24 +25,6 @@ subroutine CommonTangentZone
     reinit   = .FALSE.
     useNNLS  = .TRUE.
     override = .FALSE.
-
-    tRange  = 25D0
-    maxNorm = 1D-16
-    nMaxAssemblages = 2000
-    nMaxElements = 6
-
-    if (.NOT. lCtzInit) then
-        allocate(assemblageHistory(nMaxAssemblages+1,nMaxElements),assemblageTlimits(nMaxAssemblages,2))
-        allocate(stoichHistory(nMaxAssemblages,2,nMaxElements,nMaxElements))
-        allocate(elementHistory(nMaxAssemblages+1,nMaxElements))
-        assemblageHistory      = 0
-        assemblageTlimits(:,1) = 1D5
-        assemblageTlimits(:,2) = 0D0
-        elementHistory         = ''
-        stoichHistory          = 0D0
-        nAssemblages           = 0
-        lCtzInit = .TRUE.
-    end if
 
     trigger = .TRUE.
 
@@ -103,7 +85,7 @@ subroutine CommonTangentZone
               cycle TestAssemblages
           else
               ! dMolFraction = dMolFraction_Old
-              nSkipped = nSkipped + 1
+              ! nSkipped = nSkipped + 1
               trigger = .FALSE.
               ! print *, 'skipped'
               ! print *, assemblageHistory(assemblageInd,:)
