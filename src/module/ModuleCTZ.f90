@@ -18,6 +18,7 @@ module ModuleCTZ
 
     integer :: nMaxAssemblages, nMaxElements
     integer, dimension(:,:), allocatable :: assemblageHistory
+    character(12), dimension(:,:), allocatable :: elementHistory
     real(8), dimension(:,:), allocatable :: assemblageTlimits
     real(8), dimension(:,:,:,:), allocatable :: stoichHistory
     logical :: lCtzInit = .FALSE.

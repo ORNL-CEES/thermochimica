@@ -33,7 +33,7 @@
 subroutine ResetCTZ
 
     USE ModuleCTZ
-    USE ModuleThermoIO, ONLY: INFOThermo, lReinitAvailable, lReinitLoaded
+    USE ModuleThermoIO, ONLY: INFOThermo
 
     implicit none
 
@@ -47,6 +47,8 @@ subroutine ResetCTZ
     if (allocated(assemblageTlimits)) deallocate(assemblageTlimits, STAT = INFO)
     i = i + INFO
     if (allocated(stoichHistory)) deallocate(stoichHistory, STAT = INFO)
+    i = i + INFO
+    if (allocated(elementHistory)) deallocate(elementHistory, STAT = INFO)
     i = i + INFO
 
     lCtzInit = .FALSE.

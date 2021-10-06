@@ -15,6 +15,7 @@ subroutine CommonTangentZone
     real(8), dimension(:,:), allocatable :: stoichTemp, stoichInterp
     integer, dimension(:),   allocatable :: indx
     real(8), dimension(:),   allocatable :: dElCon, dElConTemp, x, work
+    character(12), dimension(:), allocatable :: elementTemp
     real(8)                              :: rnorm
     logical                              :: trigger, reinit, unsorted, useNNLS, override
     ! integer, dimension(0:168)            :: iElementsUsed
@@ -28,14 +29,16 @@ subroutine CommonTangentZone
     tRange  = 25D0
     maxNorm = 1D-16
     nMaxAssemblages = 2000
-    nMaxElements = 5
+    nMaxElements = 6
 
     if (.NOT. lCtzInit) then
         allocate(assemblageHistory(nMaxAssemblages+1,nMaxElements),assemblageTlimits(nMaxAssemblages,2))
         allocate(stoichHistory(nMaxAssemblages,2,nMaxElements,nMaxElements))
+        allocate(elementHistory(nMaxAssemblages+1,nMaxElements))
         assemblageHistory      = 0
         assemblageTlimits(:,1) = 1D5
         assemblageTlimits(:,2) = 0D0
+        elementHistory         = ''
         stoichHistory          = 0D0
         nAssemblages           = 0
         lCtzInit = .TRUE.
@@ -52,15 +55,21 @@ subroutine CommonTangentZone
 
       allocate(dElCon(nMaxElements),dElConTemp(nMaxElements),x(nMaxElements),work(nMaxElements),indx(nMaxElements))
       allocate(stoichInterp(nMaxElements,nMaxElements),stoichTemp(nMaxElements,nMaxElements))
+      allocate(elementTemp(nMaxElements))
       dElCon = 0D0
       dElCon(1:nElements) = dMolesElement
+      elementTemp = ''
+      elementTemp(1:nElements) = cElementName
 
       TestAssemblages: do assemblageInd = 1, nAssemblages
-          ! i = assemblageInd
-          ! if (loopInd == 76) print *, dTemperature, i, assemblageTlimits(i,1), assemblageTlimits(i,2)
+          ! If the temperature is out of range, can't use this assemblage
           if ((dTemperature < assemblageTlimits(assemblageInd,1)) .OR. (dTemperature > assemblageTlimits(assemblageInd,2))) then
               cycle TestAssemblages
           end if
+          ! If the elements don't match, can't use this assemblage
+          do i = 1, nMaxElements
+              if (elementTemp(i) /= elementHistory(assemblageInd,i)) cycle TestAssemblages
+          end do
           dElConTemp = dElCon
           x = 0D0
           ! Use temperature to interpolate into stoichiometry entries
@@ -105,6 +114,7 @@ subroutine CommonTangentZone
 
       deallocate(dElCon,dElConTemp,x,work,indx)
       deallocate(stoichInterp,stoichTemp)
+      deallocate(elementTemp)
     end if
 
     if (trigger) then
@@ -113,6 +123,9 @@ subroutine CommonTangentZone
             ! reset data
             assemblageHistory(nAssemblages + 1,:) = 0
             assemblageHistory(nAssemblages + 1,1:nElements) = iAssemblage
+            elementHistory(nAssemblages + 1,:) = ''
+            elementHistory(nAssemblages + 1,1:nElements) = cElementName(1:nElements)
+            ! print *, elementHistory(nAssemblages + 1,:)
             if (nAssemblages < nMaxAssemblages) then
                 assemblageTlimits(nAssemblages + 1,1) = 1D5
                 assemblageTlimits(nAssemblages + 1,2) = 0D0
