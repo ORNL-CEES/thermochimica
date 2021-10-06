@@ -110,8 +110,9 @@ subroutine CompMolSolnPhase
 
     ! Construct matrix A representing the "effective stoichiometry" of each solution phase:
     do j = 1, nSolnPhases
+        k = -iAssemblage(nElements - j + 1)
+        call CompStoichSolnPhase(k)
         do i = 1,nElements
-            k = -iAssemblage(nElements - j + 1)
             A(i,j) = dEffStoichSolnPhase(k,i)
         end do
     end do
