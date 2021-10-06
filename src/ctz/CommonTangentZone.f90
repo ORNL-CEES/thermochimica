@@ -27,24 +27,24 @@ subroutine CommonTangentZone
 
     tRange  = 25D0
     maxNorm = 1D-16
-
-    nAssemblages = 0
     nMaxAssemblages = 2000
     nMaxElements = 5
 
     if (.NOT. lCtzInit) then
         allocate(assemblageHistory(nMaxAssemblages+1,nMaxElements),assemblageTlimits(nMaxAssemblages,2))
         allocate(stoichHistory(nMaxAssemblages,2,nMaxElements,nMaxElements))
+        assemblageHistory      = 0
+        assemblageTlimits(:,1) = 1D5
+        assemblageTlimits(:,2) = 0D0
+        stoichHistory          = 0D0
+        nAssemblages           = 0
+        lCtzInit = .TRUE.
     end if
-
-    assemblageHistory = 0
-    assemblageTlimits(:,1) = 1D5
-    assemblageTlimits(:,2) = 0D0
-    stoichHistory          = 0D0
 
     trigger = .TRUE.
 
     if (useNNLS) then
+      dElementMassTemp = dElementMass
       call InitThermo
       call CheckSystem
       call CompThermoData
