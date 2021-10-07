@@ -11,7 +11,7 @@ endif()
 
 SET(Fortran_FLAGS
     -fno-automatic
-    -D"DATA_DIRECTORY='${${PACKAGE_NAME}_SOURCE_DIR}/data/'"
+    -D"DATA_DIRECTORY='${CMAKE_CURRENT_SOURCE_DIR}/data/'"
 )
 
 FOREACH(flag ${Fortran_FLAGS})
