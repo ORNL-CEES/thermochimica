@@ -1,3 +1,4 @@
+set(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS f90 F90)
 SET(UNIT_TEST_NAMES
       daily
 )
