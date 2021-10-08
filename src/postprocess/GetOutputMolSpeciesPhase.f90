@@ -40,7 +40,6 @@
 
 
 subroutine GetOutputMolSpeciesPhase(cPhase, lcPhase, cSpecies, lcSpecies, dMolFractionOut, INFO)
-! subroutine GetOutputMolSpeciesPhase(iPhaseReq, cSpecies, lcSpecies, dMolFractionOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -51,14 +50,14 @@ subroutine GetOutputMolSpeciesPhase(cPhase, lcPhase, cSpecies, lcSpecies, dMolFr
     integer                      :: i, j, k, iPhaseInd
     real(8),       intent(out)   :: dMolFractionOut
     character(*),  intent(in)    :: cPhase, cSpecies
-    ! character(25), intent(in)    :: cSpecies
     integer                      :: lcPhase, lcSpecies
-    ! integer                      :: lcSpecies, iPhaseReq
     character(25)                :: cTempPhase, cTempSpecies, cSearchPhase, cSearchSpecies
-    ! character(25)                :: cTempSpecies, cSearchSpecies
 
     cSearchPhase = cPhase!TRIM(cPhase(1:min(25,lcPhase)))
     cSearchSpecies = cSpecies!TRIM(cSpecies(1:min(25,lcSpecies)))
+
+    cSearchPhase = TRIM(cSearchPhase(1:min(25,lcPhase)))
+    cSearchSpecies = TRIM(cSearchSpecies(1:min(25,lcSpecies)))
 
     ! Initialize variables:
     INFO            = 0
