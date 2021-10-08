@@ -409,6 +409,7 @@ while True:
         plotWindow.Element('Export Plot Script').Update(disabled = False)
         # Start figure
         fig = plt.figure()
+        plt.ion()
         lns=[]
         if True in yen2:
             ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
@@ -428,6 +429,7 @@ while True:
         labs = [l.get_label() for l in lns]
         ax.legend(lns, labs, loc=0)
         plt.show()
+        plt.pause(0.001)
     elif event == 'Export Plot Script':
         with open('python/generatedPlotScript.py', 'w') as f:
             f.write('# Thermochimica-generated plot script\n')
