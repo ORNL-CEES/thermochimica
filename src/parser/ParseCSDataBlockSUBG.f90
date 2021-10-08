@@ -106,6 +106,12 @@ subroutine ParseCSDataBlockSUBG( i )
     ! Read in names of constituents on second sublattice: (ignore for now):
     read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
 
+    do j = 1, 2
+        do k = 1, nConstituentSublatticeCS(nCSCS,j)
+            cConstituentNameSUBCS(nCSCS,i,j) = TRIM(ADJUSTL(cConstituentNameSUBCS(nCSCS,i,j)))
+        end do
+    end do
+
     ! Read in the charge of each constituent on the first sublattice.
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
 

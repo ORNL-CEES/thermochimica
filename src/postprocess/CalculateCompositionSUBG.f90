@@ -75,6 +75,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum
     end do
+    nMax = 0
     if (lPrint) then
         do i = 1, nSub1
             cDummyB  = TRIM(cConstituentNameSUB(iSPI,1,i))
@@ -85,7 +86,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
             else
                 cDummy = '+ '
             end if
-            if (i == nSub1) cDummyB(nMax+2:nMax+3) = '}'
+            if (i == nSub1) cDummyB(nMax+2:nMax+3) = ' }'
             if (dXi(i) >= 1D-1) then
                 print '(A20,F7.5,A3,A35)', cDummy, dXi(i), ' ', cDummyB
             else
@@ -113,6 +114,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         end do
         dSum = dSum + dNi(j)
     end do
+
     if (lPrint) print *, '   Anion fractions:'
     do i = 1, nSub2
         j = i + nSub1
@@ -129,7 +131,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
             else
                 cDummy = '+ '
             end if
-            if (i == nSub2) cDummyB(nMax+2:nMax+3) = '}'
+            if (i == nSub2) cDummyB(nMax+2:nMax+3) = ' }'
             if (dXi(i) >= 1D-1) then
                 print '(A20,F7.5,A3,A35)', cDummy, dXi(j), ' ', cDummyB
             else
@@ -202,6 +204,8 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         if (PRESENT(dPair)) dPair(m) = dXij(i,j)
     end do
 
+
+    nMax = 0
     if (lPrint) then
         ! First pair:
         m = 1
@@ -234,6 +238,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         j = iConstituentSublattice(iSPI,2,m)
         k        = LEN_TRIM(cPairName(iSPI,m)) - 1
         nMax     = MAX(k, nMax) + 1
+        nMax     = MIN(nMax,27)
         cDummyB  = TRIM(cPairName(iSPI,m))
         cDummyB(nMax+2:nMax+3) = '}'
 
