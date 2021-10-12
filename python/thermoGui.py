@@ -146,7 +146,7 @@ class CalculationWindow:
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.sgw = sg.Window('Thermochimica calculation', windowLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.sgw.Element('-endtemperature-').Update(visible = False)
         self.sgw.Element('-endtemperaturelabel-').Update(visible = False)
         self.sgw.Element('-ntstep-').Update(visible = False)
