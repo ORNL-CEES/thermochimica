@@ -128,7 +128,7 @@ subroutine CheckSystem
     implicit none
 
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
-    integer                                 :: mm, nn, nConstituentPass, c, s
+    integer                                 :: mm, nn, nConstituentPass, c, s, nSpeciesCurrentPhase
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
@@ -267,7 +267,7 @@ subroutine CheckSystem
     nSpecies = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
         ! Loop through species in solution phases:
-        m = 0
+        nSpeciesCurrentPhase = 0
         LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
             do k = 1, nElemOrComp
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
@@ -289,8 +289,8 @@ subroutine CheckSystem
                 end if
             end if
             nSpecies = nSpecies + 1
-            m = m + 1
-            iSpeciesPass(j) = m
+            nSpeciesCurrentPhase = nSpeciesCurrentPhase + 1
+            iSpeciesPass(j) = nSpeciesCurrentPhase
             if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                 k = iPhaseSublatticeCS(i)
                 iCon1 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),1)
@@ -319,7 +319,7 @@ subroutine CheckSystem
                         if ((iSpeciesPass(j) > 0) .AND. DABS(dStoichSpeciesCS(j,k)) > 0D0) then
                             iSpeciesPass(j) = 0
                             nSpecies = nSpecies - 1
-                            m = m - 1
+                            nSpeciesCurrentPhase = nSpeciesCurrentPhase - 1
                         end if
                     end do
                 end if
@@ -330,7 +330,7 @@ subroutine CheckSystem
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
             (cSolnPhaseTypeCS(i) == 'SUBI')) then
             nCountSublatticeTemp = nCountSublatticeTemp + 1
-            if (m > 0) then
+            if (nSpeciesCurrentPhase > 0) then
                 k = iPhaseSublatticeCS(i)
                 ! Loop through species in phase to determine which constituents are stable:
                 do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
@@ -360,7 +360,7 @@ subroutine CheckSystem
                     end do
                     if (nConstituentPass < 1) then
                         iConstituentPass(k,:,:) = 0
-                        nSpecies = nSpecies - m
+                        nSpecies = nSpecies - nSpeciesCurrentPhase
                         iSpeciesPass(nSpeciesPhaseCS(i-1) + 1:nSpeciesPhaseCS(i)) = 0
                         exit LOOP_CHECK_SUBLATTICES
                     end if
