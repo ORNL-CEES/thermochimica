@@ -97,7 +97,8 @@ subroutine GEMNewton(INFO)
 
     implicit none
 
-    integer                              :: i, j, k, l, m, INFO, nVar, iTry
+    integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry
+    integer, dimension(nElements)        :: iErrCol
     integer, dimension(:),   allocatable :: IPIV
     real(8)                              :: dTemp
     real(8), dimension(:),   allocatable :: B
@@ -124,12 +125,16 @@ subroutine GEMNewton(INFO)
         end if
     end do CountSoln
 
+    if ((nConPhases + nSolnPhases) <= 0) return
+
     ! Determine the number of unknowns/linear equations:
     nVar = nElements + nConPhases + nSolnPhases
 
-    TryLoop: do iTry = 1, 2
+    iErrCol = 0
+    nMaxTry = nElements - (nConPhases + nSolnPhases)
+    TryLoop: do iTry = 0, nMaxTry
         ! on retry we are going to use dummy phases
-        if (iTry > 1) nVar = nElements * 2
+        if (iTry > 0) nVar = nElements * 2
 
         ! Allocate memory:
         allocate(A(nVar, nVar))
@@ -208,16 +213,14 @@ subroutine GEMNewton(INFO)
             B(j) = dStdGibbsEnergy(iAssemblage(k))
         end do
 
-        if (iTry > 1) then
-            do j = nElements + nSolnPhases + nConPhases + 1, nVar
-                k = nSpecies + nElements + nSolnPhases + nConPhases + 1 - j
-                do i = 1, nElements
-                    A(i,j) = dStoichSpecies(k,i)
-                    A(j,i) = A(i,j)
-                end do
-                B(j) = 0D0
-            end do
-        end if
+        do k = 1, iTry
+            i = iErrCol(k)
+            j = nElements + nSolnPhases + nConPhases + k
+            A(i,j) = 1D0
+            A(j,i) = A(i,j)
+            A(j,i) = A(i,j)
+            B(j) = 0D0
+        end do
 
         ! Check if the Hessian is properly structured if the system contains any charged phases:
         if (nCountSublattice > 0) then
@@ -244,11 +247,10 @@ subroutine GEMNewton(INFO)
             B(nElements + 1) = dMolesPhase(1)
         end if
 
-        if (iTry > 1) then
-            do j = nElements + nSolnPhases + nConPhases + 1, nVar
-              B(j) = 0D0
-            end do
-        end if
+        do k = 1, iTry
+            j = nElements + nSolnPhases + nConPhases + k
+            B(j) = 0D0
+        end do
 
         ! Check for a NAN:
         LOOP_CheckNan: do i = 1, nVar
@@ -258,10 +260,11 @@ subroutine GEMNewton(INFO)
             end if
         end do LOOP_CheckNan
 
-        if (iTry == 1) then
-            if (INFO == 0) then
+        if (iTry < nMaxTry) then
+            if ((INFO <= 0) .OR. (INFO > nElements)) then
                 exit TryLoop
             else
+                iErrCol(iTry+1) = INFO
                 INFO = 0
                 deallocate(A, B, IPIV)
             end if
