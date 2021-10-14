@@ -1,0 +1,239 @@
+import PySimpleGUI as sg
+import subprocess
+import math
+import os
+
+atomic_number_map = [
+    'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
+    'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
+    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh',
+    'Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
+    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re',
+    'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
+    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db',
+    'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
+]
+
+file_list_column = [
+    [
+        sg.Text("Database Folder"),
+        sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+        sg.FolderBrowse(),
+    ],
+    [
+        sg.Listbox(
+            values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+        )
+    ],
+]
+
+dataWindow = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
+folder = os.getcwd()+'/data'
+# print(folder)
+try:
+    file_list = os.listdir(folder)
+except:
+    file_list = []
+
+fnames = [
+    f
+    for f in file_list
+    if os.path.isfile(os.path.join(folder, f))
+    and f.lower().endswith((".dat", ".DAT"))
+]
+dataWindow["-FILE LIST-"].update(fnames)
+
+timeout = 50
+inputSize = 20
+
+while True:
+    event, values = dataWindow.read()
+    # print(event, values)
+    if event == sg.WIN_CLOSED or event == 'Exit':
+        break
+    elif event == "-FOLDER-":
+        folder = values["-FOLDER-"]
+        try:
+            file_list = os.listdir(folder)
+        except:
+            file_list = []
+
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(folder, f))
+            and f.lower().endswith((".dat", ".DAT"))
+        ]
+        dataWindow["-FILE LIST-"].update(fnames)
+    elif event == "-FILE LIST-":  # A file was chosen from the listbox
+        try:
+            datafile = os.path.join(
+                folder, values["-FILE LIST-"][0]
+            )
+            with open(datafile) as f:
+                f.readline() # read comment line
+                line = f.readline() # read first data line (# elements, # phases, n*# species)
+                nElements = int(line[1:5])
+                nSoln = int(line[6:10])
+                elements = []
+                for i in range(math.ceil((nSoln+3)/15)-1):
+                    f.readline() # read the rest of the # species but don't need them)
+                for i in range(math.ceil(nElements/3)):
+                    els = f.readline() # read a line of elements (3 per line)
+                    elLen = 25 # formatted 25 wide
+                    for j in range(3):
+                        elements.append(els[1+j*elLen:(1+j)*elLen].strip())
+            i = 0
+            while i < nElements:
+                try:
+                    index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
+                    # print(elements[i],index)
+                    i = i + 1
+                except ValueError:
+                    print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
+                    elements.remove(elements[i])
+                    # print(elements)
+                    nElements = nElements - 1
+            tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
+                          [sg.Text('Temperature range:')],
+                          [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
+                          [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+            presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(inputSize,1))],
+                          [sg.Text('Pressure range:')],
+                          [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
+                          [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
+                          [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
+                          ]
+            elemLayout = []
+            for i in range(nElements):
+                elemLayout.append([sg.Text(elements[i])])
+                elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(inputSize,1))])
+            if (nElements < 8):
+                calcLayout = [tempLayout,
+                              presLayout,
+                              elemLayout,
+                              [sg.Text('Mass unit')],
+                              [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                              [sg.Checkbox('Save JSON',key='-json-')],
+                              [sg.Button('Run'), sg.Exit()]]
+            else:
+                calcLayout = [tempLayout,
+                              presLayout,
+                              [sg.Column(elemLayout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
+                              [sg.Text('Mass unit')],
+                              [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                              [sg.Checkbox('Save JSON',key='-json-')],
+                              [sg.Button('Run'), sg.Exit()]]
+            calcWindow = sg.Window('Thermochimica calculation', calcLayout, location = [400,0], finalize=True)
+            calcWindow.Element('-endtemperature-').Update(visible = False)
+            calcWindow.Element('-endtemperaturelabel-').Update(visible = False)
+            calcWindow.Element('-ntstep-').Update(visible = False)
+            calcWindow.Element('-tsteplabel-').Update(visible = False)
+            calcWindow.Element('-endpressure-').Update(visible = False)
+            calcWindow.Element('-endpressurelabel-').Update(visible = False)
+            calcWindow.Element('-pstep-').Update(visible = False)
+            calcWindow.Element('-psteplabel-').Update(visible = False)
+            calcWindow.Element('-pent-').Update(disabled = True)
+            while True:
+                event, values = calcWindow.read(timeout=timeout)
+                eventd, valuesd = dataWindow.read(timeout=timeout)
+                # print(event, values)
+                if event == sg.WIN_CLOSED or event == 'Exit' or eventd == sg.WIN_CLOSED or eventd == 'Exit':
+                    break
+                elif event == '-tdis-':
+                    calcWindow.Element('-endtemperature-').Update(visible = False)
+                    calcWindow.Element('-endtemperaturelabel-').Update(visible = False)
+                    calcWindow.Element('-ntstep-').Update(visible = False)
+                    calcWindow.Element('-tsteplabel-').Update(visible = False)
+                    calcWindow.Element('-pent-').Update(disabled = True)
+                    if values['-pent-']:
+                        calcWindow.Element('-pdis-').Update(value = True)
+                        calcWindow.Element('-endpressure-').Update(visible = False)
+                        calcWindow.Element('-endpressurelabel-').Update(visible = False)
+                elif event == '-ten-':
+                    calcWindow.Element('-endtemperature-').Update(visible = True)
+                    calcWindow.Element('-endtemperaturelabel-').Update(visible = True)
+                    calcWindow.Element('-ntstep-').Update(visible = True)
+                    calcWindow.Element('-tsteplabel-').Update(visible = True)
+                    calcWindow.Element('-pent-').Update(disabled = False)
+                elif event == '-pdis-':
+                    calcWindow.Element('-endpressure-').Update(visible = False)
+                    calcWindow.Element('-endpressurelabel-').Update(visible = False)
+                    calcWindow.Element('-pstep-').Update(visible = False)
+                    calcWindow.Element('-psteplabel-').Update(visible = False)
+                elif event == '-pen-':
+                    calcWindow.Element('-endpressure-').Update(visible = True)
+                    calcWindow.Element('-endpressurelabel-').Update(visible = True)
+                    calcWindow.Element('-pstep-').Update(visible = True)
+                    calcWindow.Element('-psteplabel-').Update(visible = True)
+                elif event == '-pent-':
+                    calcWindow.Element('-endpressure-').Update(visible = True)
+                    calcWindow.Element('-endpressurelabel-').Update(visible = True)
+                    calcWindow.Element('-pstep-').Update(visible = False)
+                    calcWindow.Element('-psteplabel-').Update(visible = False)
+                elif event =='Run':
+                    temperature = values['-temperature-']
+                    pressure = values['-pressure-']
+                    filename = 'inputs/pythonInput.ti'
+                    masses = [0.0]*nElements
+                    for i in range(nElements):
+                        if values['-'+elements[i]+'-'] != '':
+                            masses[i] = values['-'+elements[i]+'-']
+                    tunit = values['-tunit-']
+                    punit = values['-punit-']
+                    munit = values['-munit-']
+                    if values['-ten-']:
+                        tend = values['-endtemperature-']
+                        ntstep = values['-ntstep-']
+                    else:
+                        ntstep = 0
+                    if values['-pen-']:
+                        pend = values['-endpressure-']
+                        npstep = values['-pstep-']
+                    elif values['-pent-']:
+                        pend = values['-endpressure-']
+                        npstep = ntstep
+                    else:
+                        npstep = 0
+                    with open(filename, 'w') as inputFile:
+                        inputFile.write('! Python-generated input file for Thermochimica\n')
+                        if float(ntstep) > 0:
+                            tstep = (float(tend)-float(temperature))/float(ntstep)
+                            inputFile.write('temperature          = ' + str(temperature) + ':' + str(tend) + ':' + str(tstep) + '\n')
+                        else:
+                            inputFile.write('temperature          = ' + str(temperature) + '\n')
+                        if float(npstep) > 0:
+                            pstep = (float(pend)-float(pressure))/float(npstep)
+                            inputFile.write('pressure          = ' + str(pressure) + ':' + str(pend) + ':' + str(pstep) + '\n')
+                        else:
+                            inputFile.write('pressure          = ' + str(pressure) + '\n')
+                        for i in range(nElements):
+                            inputFile.write('mass(' + str(atomic_number_map.index(elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
+                        inputFile.write('temperature unit         = ' + tunit + '\n')
+                        inputFile.write('pressure unit          = ' + punit + '\n')
+                        if values['-pent-']:
+                            inputFile.write('step together     = .TRUE.\n')
+                        inputFile.write('mass unit         = ' + munit + '\n')
+                        inputFile.write('data file         = ' + datafile + '\n')
+                        inputFile.write('print mode        = 2\n')
+                        inputFile.write('debug mode        = .FALSE.\n')
+                        if values['-json-']:
+                            inputFile.write('write json     = .TRUE.\n')
+                    thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
+                    nLines = thermoOut.count('\n')
+                    if (nLines < 5000):
+                        resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
+                    else:
+                        resultOutput = [[sg.Text('Output is too large to display')]]
+                    outWindow = sg.Window('Thermochimica output',resultOutput, location = [825,0], finalize=True)
+            calcWindow.close()
+        except:
+            pass
+
+dataWindow.close()

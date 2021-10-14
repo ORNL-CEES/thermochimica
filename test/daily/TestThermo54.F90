@@ -31,6 +31,9 @@ program TestThermo54
 
     implicit none
 
+    integer :: i,j,k
+    logical :: s1pass, s2pass, s3pass
+
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
@@ -50,23 +53,35 @@ program TestThermo54
     ! Call Thermochimica:
     call Thermochimica
 
+    s1pass = .FALSE.
+    s2pass = .FALSE.
+    s3pass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        if (((DABS(dMolFraction(11) - 0.93597D0)/0.93597D0) < 1D-3).AND. &
-        ((DABS(dMolFraction(18) - 0.495368D0)/0.495368D0) < 1D-3).AND. &
-        ((DABS(dGibbsEnergySys - (-1.05595D5))/(-1.05595D5)) < 1D-3))  then
-            ! The test passed:
-            print *, 'TestThermo54: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo54: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
+        if (DABS(dGibbsEnergySys - (-1.05595D5))/(-1.05595D5) < 1D-3) then
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements + 1 - i)
+                if (cSolnPhaseName(k) == 'BCCN') then
+                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
+                            if (DABS(dMolFraction(j) - 9.7175E-03)/9.7175E-03 < 1D-3) s1pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Mo') then
+                            if (DABS(dMolFraction(j) - 0.93597D0)/0.93597D0 < 1D-3) s2pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Pd') then
+                            if (DABS(dMolFraction(j) - 5.4310E-02)/5.4310E-02 < 1D-3) s3pass = .TRUE.
+                        end if
+                    end do
+                end if
+            end do
         end if
+    end if
+
+    if (s1pass .AND. s2pass .AND. s3pass) then
+        ! The test passed:
+        print *, 'TestThermo54: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo54: FAIL <---'
@@ -74,8 +89,5 @@ program TestThermo54
         call ResetThermo
         call EXIT(1)
     end if
-
-! Reset Thermochimica:
-call ResetThermo
 
 end program TestThermo54

@@ -35,7 +35,7 @@ ENDFOREACH()
 FOREACH(flag ${Fortran_FLAGS_RELEASE})
     STRING(REGEX MATCH "${flag}" ispresent "${CMAKE_Fortran_FLAGS_RELEASE}")
     IF(NOT ispresent)
-        SET(CMAKE_Fortran_FLAGS_RELEASE "${CMEAK_Fortran_FLAGS_RELEASE} ${flag}")
+        SET(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${flag}")
     ENDIF()
 ENDFOREACH()
 

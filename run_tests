@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+cd $script_dir
 
 cd bin
 
@@ -42,3 +46,7 @@ tail -1 test12out.txt
 ./TestThermo58
 ./TestThermo59
 ./TestThermo60
+./TestThermo61
+./TestThermo62
+./TestThermo63
+./TestThermo64
