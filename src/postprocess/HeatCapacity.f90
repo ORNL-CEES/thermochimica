@@ -62,4 +62,8 @@ subroutine HeatCapacity(dHeatCapacity)
     ! Heat capacity from 2nd derivative of G
     dHeatCapacity = -dtemp0*dSecondDer
 
+    call ResetThermo
+    dTemperature = dtemp0
+    call Thermochimica
+
 end subroutine HeatCapacity
