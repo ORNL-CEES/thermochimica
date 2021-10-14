@@ -13,7 +13,7 @@ subroutine HeatCapacity(dHeatCapacity)
 
     dtemp0         = dTemperature
     dGibbs0        = dGibbsEnergySys
-    dTStepSize     = 5e-1
+    dTStepSize     = 2.5e-1
     dGibbsEnergies = 0D0
     dTargetDiff    = 2.5e-4
     dGibbsDiff     = dTargetDiff
@@ -25,7 +25,7 @@ subroutine HeatCapacity(dHeatCapacity)
     if(lReinitRequested) call SaveReinitData
 
     HeatCapTrial: do k = 1, nMaxHeatCapAttempt
-        if (dGibbsDiff > 1D1*dTargetDiff) then
+        if (dGibbsDiff > 2D0*dTargetDiff) then
             dTStepSize = dTStepSize * dDecrease
         else if (dGibbsDiff < 1D-1*dTargetDiff) then
             dTStepSize = dTStepSize * dIncrease
