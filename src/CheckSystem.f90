@@ -420,14 +420,14 @@ subroutine CheckSystem
         if (i /= nSpecies) then
             ! The number of species has changed.
             deallocate(dChemicalPotential,iPhase,dSpeciesTotalAtoms,cSpeciesName,&
-                iParticlesPerMole,dStdGibbsEnergy,dStdHeatCapacity,dCoeffGibbsMagnetic,dMagGibbsEnergy, STAT = n)
+                iParticlesPerMole,dStdGibbsEnergy,dCoeffGibbsMagnetic,dMagGibbsEnergy, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
             end if
             ! Allocate memory for variables:
             allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
-            allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies),dStdHeatCapacity(nSpecies))
+            allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies))
             allocate(iParticlesPerMole(nSpecies), dCoeffGibbsMagnetic(nSpecies,4), dMagGibbsEnergy(nSpecies))
         end if
 
@@ -503,7 +503,7 @@ subroutine CheckSystem
 
         ! Allocate memory for variables:
         allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
-        allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies),dStdHeatCapacity(nSpecies))
+        allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies))
         allocate(iParticlesPerMole(nSpecies),dCoeffGibbsMagnetic(nSpecies,4),dMagGibbsEnergy(nSpecies))
         allocate(cElementName(nElements),dMolesElement(nElements))
         allocate(dAtomFractionSpecies(nSpecies,nElements),dStoichSpecies(nSpecies,nElements))
@@ -544,7 +544,6 @@ subroutine CheckSystem
     nMagParamPhase       = 0
     dChemicalPotential   = 0D0
     dStdGibbsEnergy      = 0D0
-    dStdHeatCapacity     = 0D0
     dMolesElement        = 0D0
     dAtomFractionSpecies = 0D0
     dGibbsSolnPhase      = 0D0
