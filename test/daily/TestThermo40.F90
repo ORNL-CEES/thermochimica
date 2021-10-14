@@ -32,7 +32,8 @@ program TestThermo40
     implicit none
 
     integer :: i,j,k
-    logical :: s1pass, s2pass
+    logical :: s1pass, s2pass, cppass
+    real(8) :: dHeatCapacity
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -51,9 +52,11 @@ program TestThermo40
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity(dHeatCapacity)
 
     s1pass = .FALSE.
     s2pass = .FALSE.
+    cppass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
         if (DABS(dGibbsEnergySys - (-1.44373D5))/(-1.44373E+5) < 1D-3) then
@@ -69,10 +72,11 @@ program TestThermo40
                     end do
                 end if
             end do
+            if (ABS(dHeatCapacity - 40.2724)/40.2724 < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (s1pass .AND. s2pass) then
+    if (s1pass .AND. s2pass .AND. cppass) then
         ! The test passed:
         print *, 'TestThermo40: PASS'
         ! Reset Thermochimica:
