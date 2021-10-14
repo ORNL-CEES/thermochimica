@@ -109,7 +109,7 @@ subroutine CompThermoData
     integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
     integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax, dCoay, dCobx, dCoby
-    real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2, dHeatCapTemp, dHeatCap1, dHeatCap2
+    real(8)                            :: dStdEnergyTemp, dChemPot1, dChemPot2
     real(8), dimension(6)              :: dGibbsCoeff, dHeatCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
     character(12), dimension(:),     allocatable :: cElementNameTemp
@@ -488,7 +488,6 @@ subroutine CompThermoData
         end do
 
         dStdEnergyTemp = dChemicalPotential(j)
-        dHeatCapTemp = dStdHeatCapacity(j)
 
         do k = 2, 7
             dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
@@ -537,7 +536,6 @@ subroutine CompThermoData
         ! negative) energy for pure condensed phases only!
         if (nGibbsEqSpecies(i) > 1) then
             dChemPot1 = dChemicalPotential(j)
-            dHeatCap1 = dStdHeatCapacity(j)
             if ((l1 > 0) .AND. (l1 < nGibbsEqSpecies(i))) then
                 if (dGibbsCoeffSpeciesTemp(1,l2) == dGibbsCoeffSpeciesTemp(1,l2+1)) then
                     l2 = l2 + 1
@@ -548,25 +546,16 @@ subroutine CompThermoData
                 end if
             end if
             dChemicalPotential(j) = dStdEnergyTemp
-            dStdHeatCapacity(j) = dHeatCapTemp
             do k = 2, 7
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(k,l2) * dGibbsCoeff(k-1)
-            end do
-
-            do k = 1, 4
-                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(k+3,l2) * dHeatCoeff(k)
             end do
 
             ! Compute additional standard molar Gibbs energy terms:
             if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 99) then
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) * dLogT
-                dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(5)
             else
                 dChemicalPotential(j) = dChemicalPotential(j) + dGibbsCoeffSpeciesTemp(8,l2) &
                     *dTemperature**dGibbsCoeffSpeciesTemp(9,l2)
-                if (dGibbsCoeffSpeciesTemp(9,l2) .EQ. 0.5D0) then
-                    dStdHeatCapacity(j) = dStdHeatCapacity(j) + dGibbsCoeffSpeciesTemp(8,l2) * dHeatCoeff(6)
-                end if
             end if
 
             if (dGibbsCoeffSpeciesTemp(11,l2) .EQ. 99) then
@@ -592,10 +581,8 @@ subroutine CompThermoData
             end if
 
             dChemPot2 = dChemicalPotential(j)
-            ! dHeatCap2 = dStdHeatCapacity(j)
             if (dChemPot1 > dChemPot2) then
                 dChemicalPotential(j) = dChemPot1
-                dStdHeatCapacity(j) = dHeatCap1
             end if
             ! dChemicalPotential(j) = MAX(dChemPot1,dChemPot2)
         end if
