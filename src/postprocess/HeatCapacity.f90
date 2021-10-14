@@ -51,7 +51,6 @@ subroutine HeatCapacity(dHeatCapacity)
         end if
         dGibbsEnergies(2)     = dGibbsEnergySys
         dGibbsDiff = ABS(dGibbsEnergies(2) - dGibbsEnergies(1)) / ABS(dGibbs0)
-        print *, dGibbsDiff, dTStepSize
     end do HeatCapTrial
 
     ! Second derivative from  3-point stencil
