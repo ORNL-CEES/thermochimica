@@ -5,7 +5,7 @@ subroutine HeatCapacity(dHeatCapacity)
 
     implicit none
 
-    integer   :: k
+    integer               :: k, nMaxHeatCapAttempt
     real(8), dimension(2) :: dGibbsEnergies
     real(8), intent(out)  :: dHeatCapacity
     real(8)               :: dTStepSize, dSecondDer
@@ -15,15 +15,16 @@ subroutine HeatCapacity(dHeatCapacity)
     dGibbs0        = dGibbsEnergySys
     dTStepSize     = 5e-1
     dGibbsEnergies = 0D0
-    dTargetDiff    = 5e-4
+    dTargetDiff    = 2.5e-4
     dGibbsDiff     = dTargetDiff
     dIncrease      = 1.5D0
     dDecrease      = 0.6D0
+    nMaxHeatCapAttempt = 5
 
     lReinitRequested = .FALSE.
     if(lReinitRequested) call SaveReinitData
 
-    HeatCapTrial: do k = 1, 3
+    HeatCapTrial: do k = 1, nMaxHeatCapAttempt
         if (dGibbsDiff > 1D1*dTargetDiff) then
             dTStepSize = dTStepSize * dDecrease
         else if (dGibbsDiff < 1D-1*dTargetDiff) then
