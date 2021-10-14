@@ -44,7 +44,7 @@ program TestThermo61
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 999.5D0
+    dTemperature           = 1000D0
     dElementMass(8)        = 2D0              ! O
     dElementMass(22)       = 0.5D0            ! Ti
 
@@ -85,7 +85,7 @@ program TestThermo61
         end if
     end if
 
-    if (subqPass .AND. gasPass) then
+    if (subqPass .AND. gasPass .AND. cppass) then
         ! The test passed:
         print *, 'TestThermo61: PASS'
         ! Reset Thermochimica:
