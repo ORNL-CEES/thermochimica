@@ -12,6 +12,7 @@ subroutine HeatCapacity(dHeatCapacity)
     real(8)               :: dtemp0, dGibbs0, dGibbsDiff, dTargetDiff, dIncrease, dDecrease
 
     dtemp0         = dTemperature
+    dTemperatureForLimits = dtemp0
     dGibbs0        = dGibbsEnergySys
     dTStepSize     = 2.5e-1
     dGibbsEnergies = 0D0
@@ -23,6 +24,8 @@ subroutine HeatCapacity(dHeatCapacity)
 
     lReinitRequested = .FALSE.
     if(lReinitRequested) call SaveReinitData
+
+    lHeatCapacityCurrent = .TRUE.
 
     HeatCapTrial: do k = 1, nMaxHeatCapAttempt
         if (dGibbsDiff > 2D0*dTargetDiff) then
@@ -61,6 +64,8 @@ subroutine HeatCapacity(dHeatCapacity)
 
     ! Heat capacity from 2nd derivative of G
     dHeatCapacity = -dtemp0*dSecondDer
+
+    lHeatCapacityCurrent = .FALSE.
 
     call ResetThermo
     dTemperature = dtemp0

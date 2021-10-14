@@ -137,6 +137,8 @@ subroutine CompThermoData
     dLogT            = DLOG(dTemperature)              ! ln(T)
     dLogP            = DLOG(dPressure)                 ! ln(P)
 
+    if (.NOT. lHeatCapacityCurrent) dTemperatureForLimits = dTemperature
+
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
@@ -149,7 +151,7 @@ subroutine CompThermoData
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
                     iCounterGibbsEqn = iCounterGibbsEqn + 1
-                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
+                    if ((dTemperatureForLimits <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
                         l = k
                     end if
                 end do
@@ -309,7 +311,7 @@ subroutine CompThermoData
                 ! Loop through the Gibbs energy equations to figure out which one to use:
                 do k = 1, nGibbsEqSpecies(i)
                     iCounterGibbsEqn = iCounterGibbsEqn + 1
-                    if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
+                    if ((dTemperatureForLimits <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
                         l1 = k
                     end if
                 end do
@@ -444,7 +446,7 @@ subroutine CompThermoData
         ! Loop through the Gibbs energy equations to figure out which one to use:
         do k = 1, nGibbsEqSpecies(i)
             iCounterGibbsEqn = iCounterGibbsEqn + 1
-            if ((dTemperature <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
+            if ((dTemperatureForLimits <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l1 == 0)) then
                 l1 = k
             end if
         end do
