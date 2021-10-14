@@ -41,6 +41,7 @@ subroutine HeatCapacity(dHeatCapacity)
         call Thermochimica
         if (INFOThermo /= 0) then
             INFOThermo = 0
+            dTStepSize = dTStepSize * dDecrease
             cycle HeatCapTrial
         end if
         dGibbsEnergies(1) = dGibbsEnergySys
@@ -50,6 +51,7 @@ subroutine HeatCapacity(dHeatCapacity)
         call Thermochimica
         if (INFOThermo /= 0) then
             INFOThermo = 0
+            dTStepSize = dTStepSize * dDecrease
             cycle HeatCapTrial
         end if
         dGibbsEnergies(2)     = dGibbsEnergySys
