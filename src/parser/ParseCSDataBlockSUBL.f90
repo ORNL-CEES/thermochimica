@@ -80,8 +80,9 @@ subroutine ParseCSDataBlockSUBL(i)
 
     implicit none
 
-    integer :: i, j, k, n, s
+    integer :: i, j, k, n, s, c
     logical :: lTripleTerm
+    character(75) :: cTempConstituent
 
     ! Initialize variables:
     n = 0
@@ -104,7 +105,15 @@ subroutine ParseCSDataBlockSUBL(i)
 
     ! Read in the name of each constituent for each sublattice:
     LOOP_SUBL_CONST_NAME: do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
-        read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
+        do c = 1, CEILING(REAL(nConstituentSublatticeCS(nCountSublatticeCS,s))/3D0)
+            read (1,112,IOSTAT = INFO) cTempConstituent
+            112 FORMAT (A75)
+            do j = 1, 3
+                if ((3*(c-1)+j) <= nConstituentSublatticeCS(nCountSublatticeCS,s)) then
+                    cConstituentNameSUBCS(nCountSublatticeCS,s,3*(c-1)+j) = TRIM(ADJUSTL(cTempConstituent((j-1)*25+1:j*25)))
+                end if
+            end do
+        end do
     end do LOOP_SUBL_CONST_NAME
 
     ! Record an error if necessary:

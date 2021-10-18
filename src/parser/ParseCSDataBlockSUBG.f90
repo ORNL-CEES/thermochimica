@@ -70,7 +70,7 @@ subroutine ParseCSDataBlockSUBG( i )
 
     implicit none
 
-    integer                     :: i, j, k, l, n, x, y, p, a, b, nPairs, nCSCS, nTotalConst
+    integer                     :: i, j, k, l, n, x, y, p, a, b, nPairs, nCSCS, nTotalConst, c, s
     integer                     :: xa, ya, nA2X2, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                     :: iaaxy, ibbxy, iabxx, iabyy
     integer,     dimension(10)  :: iTempVec
@@ -79,8 +79,8 @@ subroutine ParseCSDataBlockSUBG( i )
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cTempVec
     logical, dimension(:), allocatable :: lPairSet
-
     real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
+    character(75) :: cTempConstituent
 
     nCSCS = nCountSublatticeCS
 
@@ -100,11 +100,18 @@ subroutine ParseCSDataBlockSUBG( i )
 
     nPairs = nConstituentSublatticeCS(nCSCS,1) * nConstituentSublatticeCS(nCSCS,2)
 
-    ! Read in names of constituents on first sublattice:
-    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
-
-    ! Read in names of constituents on second sublattice: (ignore for now):
-    read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
+    ! Read in names of constituents:
+    do s = 1, 2
+        do c = 1, CEILING(REAL(nConstituentSublatticeCS(nCSCS,s))/3D0)
+            read (1,112,IOSTAT = INFO) cTempConstituent
+            112 FORMAT (A75)
+            do j = 1, 3
+                if ((3*(c-1)+j) <= nConstituentSublatticeCS(nCSCS,s)) then
+                    cConstituentNameSUBCS(nCSCS,s,3*(c-1)+j) = TRIM(ADJUSTL(cTempConstituent((j-1)*25+1:j*25)))
+                end if
+            end do
+        end do
+    end do
 
     ! Read in the charge of each constituent on the first sublattice.
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
