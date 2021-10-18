@@ -80,6 +80,7 @@ subroutine ParseCSDataBlockSUBI(i)
     integer                   :: c, i, j, k, n, s, v, iDummy, iSubLat
     logical                   :: lTripleTerm
     character(8)              :: cDummy
+    character(75)             :: cTempConstituent
     ! Counter to determine if there are two or more SUBI
     ! phases present for a miscibility gap.
     iMiscSUBI = iMiscSUBI + 1
@@ -110,7 +111,15 @@ subroutine ParseCSDataBlockSUBI(i)
 
     ! Read in the name of each constituent for each sublattice:
     do s = 1, nSublatticePhaseCS(nCountSublatticeCS)
-        read (1,*,IOSTAT = INFO) cConstituentNameSUBCS(nCountSublatticeCS,s,1:nConstituentSublatticeCS(nCountSublatticeCS,s))
+        do c = 1, CEILING(REAL(nConstituentSublatticeCS(nCountSublatticeCS,s))/3D0)
+            read (1,112,IOSTAT = INFO) cTempConstituent
+            112 FORMAT (A75)
+            do j = 1, 3
+                if ((3*(c-1)+j) <= nConstituentSublatticeCS(nCountSublatticeCS,s)) then
+                    cConstituentNameSUBCS(nCountSublatticeCS,s,3*(c-1)+j) = TRIM(ADJUSTL(cTempConstituent((j-1)*25+1:j*25)))
+                end if
+            end do
+        end do
     end do
 
     ! Convert Va, va, Va, and vA cases to Va
