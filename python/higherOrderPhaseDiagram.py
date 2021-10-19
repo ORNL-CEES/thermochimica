@@ -110,7 +110,8 @@ class DataWindow:
                         index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
                         i = i + 1
                     except ValueError:
-                        print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
+                        if elements[i][0] != 'e':
+                            print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
                         elements.remove(elements[i])
                         nElements = nElements - 1
                 tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],

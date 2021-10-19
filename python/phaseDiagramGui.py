@@ -940,7 +940,8 @@ while True:
                     index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
                     i = i + 1
                 except ValueError:
-                    print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
+                    if elements[i][0] != 'e':
+                        print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
                     elements.remove(elements[i])
                     nElements = nElements - 1
             elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],default_value=elements[0],key='-el1-')]],vertical_alignment='t'),
