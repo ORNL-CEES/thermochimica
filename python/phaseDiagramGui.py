@@ -179,8 +179,10 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
     ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
     bEdgeLine = [[False,False] for i in range(len(boundaries))]
-    # Plot along x=0 and x=1 boundaries
+    # Plot along x=0 and x=1 boundaries (this is the worst code I've ever written)
     for j in range(len(x0data[1])):
+        if not x0data[0][j] in phases:
+            continue
         i = phases.index(x0data[0][j])
         if j > 0:
             ax.plot(0,x0data[1][j],'kv')
@@ -237,6 +239,8 @@ def makePlot(el1, el2, ts, x1, x2, p1, p2, mint, maxt, labels, x0data, x1data):
                 if match[matchind,3] == np.max(np.array(ts)[inds]):
                     bEdgeLine[k][1] = True
     for j in range(len(x1data[1])):
+        if not x1data[0][j] in phases:
+            continue
         i = phases.index(x1data[0][j])
         if j > 0:
             ax.plot(1,x1data[1][j],'kv')
