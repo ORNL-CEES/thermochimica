@@ -104,7 +104,7 @@ subroutine CompThermoData
 
     implicit none
 
-    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
+    integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn, c
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
     integer                            :: iSublPhaseIndex, iFirst, iLast, nRemove, nA2X2, nTempSublattice
     integer                            :: iMixStart, iMixLength, nMixSets
@@ -334,6 +334,14 @@ subroutine CompThermoData
                     if (iElementSystem(k) /= 0) then
                         m = m + 1
                         dStoichSpecies(j,m) = dStoichSpeciesCS(i,k)
+                        if (cSolnPhaseTypeCS(n) == 'SUBI') then
+                            s = iPhaseSublatticeCS(n)
+                            c = i - nSpeciesPhaseCS(n-1)
+                            if (dSublatticeChargeCS(s,2,iConstituentSublatticeCS(s,2,c)) == 0D0) then
+                                dStoichSpecies(j,m) = dStoichSpecies(j,m) &
+                                                                  / dSublatticeChargeCS(s,1,iConstituentSublatticeCS(s,1,c))
+                            end if
+                        end if
                     end if
                 end do
 
