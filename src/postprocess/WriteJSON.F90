@@ -71,7 +71,7 @@ subroutine WriteJSONSolnPhase
 
     implicit none
 
-    integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
+    integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nElectron
     real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase, dTotalElements, dCurrentElement
     character(16) :: intStr
     character(25) :: tempSpeciesName
@@ -178,12 +178,14 @@ subroutine WriteJSONSolnPhase
 
         write(1,*) '      "elements": {'
         dTotalElements = 0D0
+        nElectron = 0
         do c = 1, nElements
             do i = iFirst, iLast
                 dTotalElements = dTotalElements + dStoichSpecies(i,c)*dMolFraction(i)
             end do
+            if (cElementName(c) == 'e-') nElectron = nElectron + 1
         end do
-        do c = 1, nElements
+        do c = 1, nElements - nElectron
             dCurrentElement = 0D0
             do i = iFirst, iLast
                 dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)
@@ -192,7 +194,7 @@ subroutine WriteJSONSolnPhase
             write(1,*) '          "moles of element in phase":', dCurrentElement, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
-            if (c < nElements) then
+            if (c < nElements - nElectron) then
                 write(1,*) '        },'
             else
                 write(1,*) '        }'
