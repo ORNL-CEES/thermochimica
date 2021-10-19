@@ -9,7 +9,7 @@ subroutine WriteJSON(append)
 
     logical, intent(in) :: append
     logical :: exist
-    integer :: i
+    integer :: i, c, nElectron
 
     ! Only proceed for a successful calculation:
     if (INFOThermo /= 0) return
@@ -31,12 +31,17 @@ subroutine WriteJSON(append)
     ! Print the results for pure condensed phases:
     call WriteJSONPureConPhase
 
+    nElectron = 0
+    do c = 1, nElements
+        if (cElementName(c) == 'e-') nElectron = nElectron + 1
+    end do
+
     write(1,*) '  "elements": {'
-    do i = 1, nElements
+    do i = 1, nElements - nElectron
         write(1,*) '    "', TRIM(cElementName(i)), '": {'
         write(1,*) '      "moles": ', dMolesElement(i), ','
         write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
-        if (i < nElements) then
+        if (i < nElements - nElectron) then
             write(1,*) '    },'
         else
             write(1,*) '    }'
@@ -226,7 +231,7 @@ subroutine WriteJSONPureConPhase
 
     implicit none
 
-    integer :: c, i, k, l
+    integer :: c, i, k, l, nElectron
     real(8) :: dTempMolesPhase, dTotalElements, dCurrentElement
 
     write(1,*) '  "pure condensed phases": {'
@@ -251,16 +256,18 @@ subroutine WriteJSONPureConPhase
                                                     dStoichSpecies(i,nElements), '],'
         write(1,*) '      "elements": {'
         dTotalElements = 0D0
+        nElectron = 0
         do c = 1, nElements
             dTotalElements = dTotalElements + dStoichSpecies(i,c)
+            nElectron = nElectron + 1
         end do
-        do c = 1, nElements
+        do c = 1, nElements - nElectron
             dCurrentElement = dStoichSpecies(i,c)
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
             write(1,*) '          "moles of element in phase":', dCurrentElement, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
-            if (c < nElements) then
+            if (c < nElements - nElectron) then
                 write(1,*) '        },'
             else
                 write(1,*) '        }'
