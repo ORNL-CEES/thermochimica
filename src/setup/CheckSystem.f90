@@ -257,7 +257,7 @@ subroutine CheckSystem
         end if
     end do LOOP_checkElements
 
-    ! The system requires a minimum of two elements in order to be considered:
+    ! The system requires a minimum of one element to be considered:
     if (nElements < 1 + k) then
         INFOThermo = 5
         return
