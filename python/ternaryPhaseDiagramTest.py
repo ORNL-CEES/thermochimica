@@ -35,9 +35,7 @@ def line_intersection(line1, lines):
     #     print()
     return result
 
-x = []
-p = []
-ts = []
+points = []
 
 f = open(fname,)
 data = json.load(f)
@@ -59,8 +57,6 @@ for i in list(data.keys()):
                     for element in elements:
                         tempComp.append(data[i][phaseType][phaseName]['elements'][element]['mole fraction of phase by element'])
                     phaseComps.append(tempComp)
-        boundPhases = []
-        boundComps = []
         # Loop over possible phase zone intersections with plane of interest
         for j in range(nElements):
             # Make list of phases on a (nElements-1) dimensional face through omission
@@ -87,9 +83,7 @@ for i in list(data.keys()):
                     if intersect[k+1] == 0:
                         # If none of this is used, it is not included
                         omitPhase.remove(omitPhase[k+1])
-                ts.append(data[i]['temperature'])
-                p.append(omitPhase)
-                x.append(intersect[0])
+                points.append([data[i]['temperature'],intersect[0],omitPhase])
     elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 0:
         boundPhases = []
         skipPoint = False
@@ -114,22 +108,18 @@ for i in list(data.keys()):
             if elements[e] in data[i]['elements'].keys():
                 tempComp[e] = data[i]['elements'][elements[e]]['moles']
         boundComps = np.linalg.norm(tempComp-plane[0])/np.linalg.norm(plane[1]-plane[0])
-        ts.append(data[i]['temperature'])
-        p.append(boundPhases)
-        x.append(boundComps)
-
-
+        points.append([data[i]['temperature'],boundComps,boundPhases])
 
 boundaries = []
 b = []
-for i in range(len(x)):
+for point in points:
     repeat = False
     for j in range(len(boundaries)):
         thisMatch = True
-        if not (len(p[i]) == len(boundaries[j])):
+        if not (len(point[2]) == len(boundaries[j])):
             continue
-        for k in range(len(p[i])):
-            if not (p[i][k] in boundaries[j]):
+        for phase in point[2]:
+            if not (phase in boundaries[j]):
                 thisMatch = False
                 break
         if thisMatch:
@@ -137,7 +127,7 @@ for i in range(len(x)):
             repeat = True
     if not(repeat):
         b.append(len(boundaries))
-        boundaries.append(p[i])
+        boundaries.append(point[2])
 
 # Start figure
 fig = plt.figure()
@@ -148,7 +138,9 @@ for j in range(len(boundaries)):
     inds = [i for i, k in enumerate(b) if k == j]
     if len(inds) < 2:
         continue
-    ax.plot(np.array(x)[inds],np.array(ts)[inds],'.')
+    plotPoints = np.array([[points[i][1],points[i][0]] for i, k in enumerate(b) if k == j])
+    print()
+    ax.plot(plotPoints[:,0],plotPoints[:,1],'.')
 
 ax.set_xlim(0,1)
 # ax.set_ylim(mint,maxt)
