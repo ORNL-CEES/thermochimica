@@ -196,7 +196,7 @@ subroutine WriteJSONSolnPhase
                 dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)
             end do
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,*) '          "moles of element in phase":', dCurrentElement, ','
+            write(1,*) '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements - nElectron) then
@@ -264,7 +264,7 @@ subroutine WriteJSONPureConPhase
         do c = 1, nElements - nElectron
             dCurrentElement = dStoichSpecies(i,c)
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,*) '          "moles of element in phase":', dCurrentElement, ','
+            write(1,*) '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements - nElectron) then
