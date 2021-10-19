@@ -259,7 +259,7 @@ subroutine WriteJSONPureConPhase
         nElectron = 0
         do c = 1, nElements
             dTotalElements = dTotalElements + dStoichSpecies(i,c)
-            nElectron = nElectron + 1
+            if (cElementName(c) == 'e-') nElectron = nElectron + 1
         end do
         do c = 1, nElements - nElectron
             dCurrentElement = dStoichSpecies(i,c)
