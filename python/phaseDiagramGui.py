@@ -372,14 +372,19 @@ def addLabel(filename,xlab,tlab,pressure,tunit,punit,munit,el1,el2,datafile,mint
 
 def refineLimit(x,res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,x0data,x1data,pressure,tunit,punit,munit,datafile):
     filename = 'inputs/pythonPhaseDiagramInput.ti'
+    maxit = 10
     if x == 0:
         for i in range(len(x0data[1])-1):
-            while (x0data[1][i+1] - x0data[2][i]) > res:
+            nit = 0
+            while ((x0data[1][i+1] - x0data[2][i]) > res) and (nit < maxit):
+                nit += 1
                 writeInputFile(filename,0,0.001,2,x0data[2][i],x0data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     if x == 1:
         for i in range(len(x1data[1])-1):
-            while (x1data[1][i+1] - x1data[2][i]) > res:
+            nit = 0
+            while ((x1data[1][i+1] - x1data[2][i]) > res) and (nit < maxit):
+                nit += 1
                 writeInputFile(filename,0.999,1,2,x1data[2][i],x1data[1][i+1],4,pressure,tunit,punit,munit,el1,el2,datafile)
                 mint, maxt = runCalc(el1, el2, ts, x1, x2, p1, p2, mint, maxt, x0data, x1data)
     return mint, maxt
@@ -723,10 +728,13 @@ def autoRefine2Phase(res,el1,el2,ts,x1,x2,p1,p2,mint,maxt,labels,x0data,x1data,p
                 maxGap = max(gap,maxGap)
                 if gap > 1/res:
                     step = tres*((ttt[i+1] - ttt[i])/(maxt - mint))/gap
-                    for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
-                        ys.append(k)
-                        progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
-                        xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
+                    try:
+                        for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
+                            ys.append(k)
+                            progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
+                            xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
+                    except:
+                        continue
 
         if len(xs) > 0:
             with open(filename, 'w') as inputFile:
