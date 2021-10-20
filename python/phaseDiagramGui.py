@@ -289,18 +289,8 @@ class CalculationWindow:
             xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
             tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
             labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
-            labelWindow = sg.Window('Add phase label', labelLayout, location = [400,0], finalize=True)
-            while True:
-                event, values = labelWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Cancel':
-                    break
-                elif event =='Add Label':
-                    xlab = values['-xlab-']
-                    tlab = values['-tlab-']
-                    self.addLabel(xlab,tlab)
-                    self.makePlot()
-                    self.sgw.Element('Remove Label').Update(disabled = False)
-            labelWindow.close()
+            labelWindow = LabelWindow(self,labelLayout)
+            self.children.append(labelWindow)
         elif event =='Auto Label':
             self.autoLabel()
             self.makePlot()
@@ -1205,6 +1195,30 @@ class RefineWindow():
                 self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.runCalc()
                 self.parent.makePlot()
+
+class LabelWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Add Label':
+            xlab = values['-xlab-']
+            tlab = values['-tlab-']
+            self.parent.addLabel(xlab,tlab)
+            self.parent.makePlot()
+            self.parent.sgw.Element('Remove Label').Update(disabled = False)
+
 windowList = []
 dataWindow = DataWindow()
 while len(windowList) > 0:
