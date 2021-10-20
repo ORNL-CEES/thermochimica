@@ -159,7 +159,7 @@ class CalculationWindow:
         self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.children = []
         self.labels = []
-        self.outline = []
+        self.outline = MultiPolygon([])
         self.pressure = 1
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
@@ -848,7 +848,10 @@ class CalculationWindow:
             xs = []
             ys = []
             subres = int(np.ceil(np.sqrt(res)))
-            oxlo, otlo, oxhi, othi = self.outline.bounds
+            try:
+                oxlo, otlo, oxhi, othi = self.outline.bounds
+            except:
+                continue
             xindices = np.linspace(oxlo, oxhi, subres)
             yindices = np.linspace(otlo, othi, subres)
             horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
