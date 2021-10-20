@@ -205,6 +205,19 @@ class CalculationWindow:
                     if not self.elements[i] in self.elementsUsed:
                         del masses1[i]
                         del masses2[i]
+                sum1 = sum(masses1)
+                sum2 = sum(masses2)
+                if (sum1 == 0) or (sum2 == 0) or (min(masses1) < 0) or (min(masses2) < 0):
+                    alertLayout = [[sg.Text('One or more input masses are invalid.')],[sg.Button('Continue')]]
+                    alertWindow = sg.Window('Invalid Mass Alert', alertLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = alertWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Continue':
+                            break
+                    alertWindow.close()
+                    return
+                masses1 = [mass / sum1 for mass in masses1]
+                masses2 = [mass / sum2 for mass in masses2]
                 self.plane = np.array([masses1,masses2])
                 self.nElementsUsed = len(self.elementsUsed)
                 tunit = values['-tunit-']
