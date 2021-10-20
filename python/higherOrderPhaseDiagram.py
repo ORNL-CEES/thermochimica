@@ -330,48 +330,49 @@ class CalculationWindow:
                                 tempComp[e] = data[i]['elements'][self.elementsUsed[e]]['moles']
                         boundComps = np.linalg.norm(tempComp-self.plane[0])/np.linalg.norm(self.plane[1]-self.plane[0])
                         self.points.append([data[i]['temperature'],boundComps,boundPhases])
+                self.makePlot()
+    def makePlot(self):
+        boundaries = []
+        b = []
+        for point in self.points:
+            repeat = False
+            for j in range(len(boundaries)):
+                thisMatch = True
+                if not (len(point[2]) == len(boundaries[j])):
+                    continue
+                for phase in point[2]:
+                    if not (phase in boundaries[j]):
+                        thisMatch = False
+                        break
+                if thisMatch:
+                    b.append(j)
+                    repeat = True
+            if not(repeat):
+                b.append(len(boundaries))
+                boundaries.append(point[2])
 
-                boundaries = []
-                b = []
-                for point in self.points:
-                    repeat = False
-                    for j in range(len(boundaries)):
-                        thisMatch = True
-                        if not (len(point[2]) == len(boundaries[j])):
-                            continue
-                        for phase in point[2]:
-                            if not (phase in boundaries[j]):
-                                thisMatch = False
-                                break
-                        if thisMatch:
-                            b.append(j)
-                            repeat = True
-                    if not(repeat):
-                        b.append(len(boundaries))
-                        boundaries.append(point[2])
+        # Start figure
+        fig = plt.figure()
+        plt.ion()
+        ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
-                # Start figure
-                fig = plt.figure()
-                plt.ion()
-                ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            plotPoints = np.array([[self.points[i][1],self.points[i][0]] for i, k in enumerate(b) if k == j])
+            ax.plot(plotPoints[:,0],plotPoints[:,1],'.')
 
-                for j in range(len(boundaries)):
-                    inds = [i for i, k in enumerate(b) if k == j]
-                    if len(inds) < 2:
-                        continue
-                    plotPoints = np.array([[self.points[i][1],self.points[i][0]] for i, k in enumerate(b) if k == j])
-                    ax.plot(plotPoints[:,0],plotPoints[:,1],'.')
-
-                ax.set_xlim(0,1)
-                # ax.set_ylim(mint,maxt)
-                title = " $-$ ".join(self.massLabels)
-                ax.set_title(r'{0} phase diagram'.format(title))
-                ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
-                ax.set_ylabel(r'Temperature [K]')
-                # for lab in labels:
-                #     plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
-                plt.show()
-                plt.pause(0.001)
+        ax.set_xlim(0,1)
+        # ax.set_ylim(mint,maxt)
+        title = " $-$ ".join(self.massLabels)
+        ax.set_title(r'{0} phase diagram'.format(title))
+        ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
+        ax.set_ylabel(r'Temperature [K]')
+        # for lab in labels:
+        #     plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
+        plt.show()
+        plt.pause(0.001)
     def line_intersection(self, lines):
         l1 = np.array(self.plane)
         ls = np.array(lines)
