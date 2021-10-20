@@ -180,8 +180,8 @@ class CalculationWindow:
                 self.pressure = 1
                 if values['-pressure-'] != '':
                     self.pressure = values['-pressure-']
-                self.mint = 1e5
-                self.maxt = 0
+                self.mint = tlo
+                self.maxt = thi
                 self.points = []
                 self.labels = []
                 masses1 = [0.0]*self.nElements
@@ -393,7 +393,7 @@ class CalculationWindow:
             ax.plot(plotPoints[:,0],plotPoints[:,1],'.')
 
         ax.set_xlim(0,1)
-        # ax.set_ylim(mint,maxt)
+        ax.set_ylim(self.mint,self.maxt)
         title = " $-$ ".join(self.massLabels)
         ax.set_title(r'{0} phase diagram'.format(title))
         ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
