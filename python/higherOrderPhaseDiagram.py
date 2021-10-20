@@ -24,6 +24,8 @@ buttonSize = 12
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
+# Below this tolerance, set phase fraction = 0
+phaseIncludeTol = 1e-8
 
 class DataWindow:
     def __init__(self):
@@ -297,12 +299,17 @@ class CalculationWindow:
         for i in list(data.keys()):
             self.mint = min(self.mint,data[i]['temperature'])
             self.maxt = max(self.maxt,data[i]['temperature'])
-            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == self.nElementsUsed:
+            nPhases = 0
+            for phaseType in ['solution phases','pure condensed phases']:
+                for phaseName in list(data[i][phaseType].keys()):
+                    if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
+                        nPhases += 1
+            if nPhases == self.nElementsUsed:
                 allPhases = []
                 phaseComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             allPhases.append(phaseName)
                             tempComp = []
                             for element in self.elementsUsed:
@@ -335,7 +342,7 @@ class CalculationWindow:
                                 # If none of this is used, it is not included
                                 omitPhase.remove(omitPhase[k+1])
                         self.points.append([data[i]['temperature'],intersect[0],omitPhase])
-            elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 1:
+            elif nPhases > 1:
                 boundPhases = []
                 skipPoint = False
                 phaseMoleSum = 0
@@ -344,7 +351,7 @@ class CalculationWindow:
                         phaseMoleSum += data[i][phaseType][phaseName]['moles']
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if data[i][phaseType][phaseName]['moles'] > 0:
+                        if data[i][phaseType][phaseName]['moles'] > phaseIncludeTol:
                             boundPhases.append(phaseName)
                             if phaseFractionTol < data[i][phaseType][phaseName]['moles']/phaseMoleSum < (1-phaseFractionTol):
                                 skipPoint = True
@@ -412,10 +419,10 @@ class CalculationWindow:
             exit()
         labelName = []
         for phaseName in list(data['1']['solution phases'].keys()):
-            if (data['1']['solution phases'][phaseName]['moles'] > 0):
+            if (data['1']['solution phases'][phaseName]['moles'] > phaseIncludeTol):
                 labelName.append(phaseName)
         for phaseName in list(data['1']['pure condensed phases'].keys()):
-            if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
+            if (data['1']['pure condensed phases'][phaseName]['moles'] > phaseIncludeTol):
                 labelName.append(phaseName)
         self.labels.append([[xlab,tlab],'+'.join(labelName)])
     def line_intersection(self, lines):
