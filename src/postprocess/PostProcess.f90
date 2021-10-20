@@ -50,7 +50,7 @@ subroutine PostProcess
     dElementMass    = dElementMass  * dNormalizeInput * dMassScale
 
     ! Write the moles of condensed phases to corresponding species
-    do i = 1, nConPhases
+    conCheck: do i = 1, nConPhases
         do while ((dMolesPhase(i) == 0D0) .AND. (nConPhases > 0))
             do j = i + 1, nConPhases
                 iAssemblage(j - 1) = iAssemblage(j)
@@ -59,9 +59,10 @@ subroutine PostProcess
             iAssemblage(nConPhases) = 0
             dMolesPhase(nConPhases) = 0D0
             nConPhases = nConPhases - 1
+            if (i > nConPhases) exit conCheck
         end do
         if (dMolesPhase(i) > 0D0) dMolesSpecies(iAssemblage(i)) = dMolesPhase(i)
-    end do
+    end do conCheck
 
     ! Compute the integral Gibbs energy of the system:
     do i = 1, nElements
