@@ -125,22 +125,17 @@ class DataWindow:
                     elem2Layout.append([sg.Text(elements[i])])
                     elem2Layout.append([sg.Input(key='-'+elements[i]+'2-',size=(inputSize,1))])
                 if (nElements < 8):
-                    calcLayout = [tempLayout,
-                                  presLayout,
-                                  [sg.Column(elem1Layout),sg.Column(elem2Layout)],
-                                  [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
-                                  [sg.Text('Mass unit')],
-                                  [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                                  [sg.Button('Run'), sg.Exit()]]
+                    elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
                 else:
-                    calcLayout = [tempLayout,
-                                  presLayout,
-                                  [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
-                                   sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
-                                  [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
-                                  [sg.Text('Mass unit')],
-                                  [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                                  [sg.Button('Run'), sg.Exit()]]
+                    elemLayout = [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
+                                  sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)]
+                calcLayout = [tempLayout,
+                              presLayout,
+                              elemLayout,
+                              [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
+                              [sg.Text('Mass unit')],
+                              [sg.Combo(['moles'],default_value='moles',key='-munit-')],
+                              [sg.Button('Run'), sg.Button('Refine'), sg.Exit()]]
                 calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
                 self.children.append(calcWindow)
             except:
@@ -236,8 +231,18 @@ class CalculationWindow:
                 self.runCalc(0,1,nxstep,tlo,thi,ntstep)
                 self.processPhaseDiagramData()
                 self.makePlot()
+        elif event =='Refine':
+            xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
+            tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
+            refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
+            refineWindow = RefineWindow(self, refineLayout)
+            self.children.append(refineWindow)
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
-        xs = np.array([np.linspace(self.plane[0,i],self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
+        xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
         with open(self.inputFileName, 'w') as inputFile:
             inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -378,6 +383,51 @@ class CalculationWindow:
                 sum -= ls[i][0] + mu[i+1]*(ls[i][1] - ls[i][0])
             return sum
         return scipy.optimize.least_squares(diff, [0.5 for i in range(self.nElementsUsed-1)]).x
+
+class RefineWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Phase diagram refinement', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Refine':
+            cancelRun = False
+            ntstep = 10
+            if values['-ntstepr-'] != '':
+                ntstep = int(values['-ntstepr-'])
+            nxstep = 10
+            if values['-nxstepr-'] != '':
+                nxstep = int(values['-nxstepr-'])
+            if (float(ntstep) * float(nxstep)) > 50000:
+                cancelRun = True
+                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
+                while True:
+                    event, values = confirmWindow.read(timeout=timeout)
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Continue':
+                        cancelRun = False
+                        break
+                confirmWindow.close()
+            tlo = float(values['-temperaturer-'])
+            thi = float(values['-endtemperaturer-'])
+            xhi = float(values['-xhir-'])
+            xlo = float(values['-xlor-'])
+            if not cancelRun:
+                self.parent.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
+                self.parent.processPhaseDiagramData()
+                self.parent.makePlot()
 
 windowList = []
 dataWindow = DataWindow()
