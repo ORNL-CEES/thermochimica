@@ -18,16 +18,6 @@ atomic_number_map = [
     'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
 ]
 
-def line_intersection(line1, lines, nElements):
-    l1 = np.array(line1)
-    ls = np.array(lines)
-    def diff(mu):
-        sum = l1[0] + mu[0]*(l1[1] - l1[0])
-        for i in range(nElements - 2):
-            sum -= ls[i][0] + mu[i+1]*(ls[i][1] - ls[i][0])
-        return sum
-    return scipy.optimize.least_squares(diff, [0.5 for i in range(nElements-1)]).x
-
 timeout = 50
 inputSize = 20
 
@@ -267,7 +257,7 @@ class CalculationWindow:
                             for k in range(self.nElementsUsed - 2):
                                 lineComps.append([omitComps[0],omitComps[k+1]])
                             # Calculate intersection of this face with our plane of interest
-                            intersect = line_intersection(self.plane,lineComps,self.nElementsUsed)
+                            intersect = self.line_intersection(lineComps)
                             # Check that the intersection is within the valid bounds
                             intSum = sum(intersect[1:])
                             intTest = intSum <= 1
@@ -349,6 +339,15 @@ class CalculationWindow:
                 #     plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
                 plt.show()
                 plt.pause(0.001)
+    def line_intersection(self, lines):
+        l1 = np.array(self.plane)
+        ls = np.array(lines)
+        def diff(mu):
+            sum = l1[0] + mu[0]*(l1[1] - l1[0])
+            for i in range(self.nElementsUsed - 2):
+                sum -= ls[i][0] + mu[i+1]*(ls[i][1] - ls[i][0])
+            return sum
+        return scipy.optimize.least_squares(diff, [0.5 for i in range(self.nElementsUsed-1)]).x
 
 windowList = []
 dataWindow = DataWindow()
