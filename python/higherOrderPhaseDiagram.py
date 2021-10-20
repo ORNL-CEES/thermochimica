@@ -273,7 +273,7 @@ class CalculationWindow:
                                         # If none of this is used, it is not included
                                         omitPhase.remove(omitPhase[k+1])
                                 self.points.append([data[i]['temperature'],intersect[0],omitPhase])
-                    elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 0:
+                    elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 1:
                         boundPhases = []
                         skipPoint = False
                         phaseMoleSum = 0
