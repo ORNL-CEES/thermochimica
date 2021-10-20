@@ -307,21 +307,8 @@ class CalculationWindow:
                                          sg.Text("{:.0f}".format(self.labels[i][0][1]),size = [15,1],justification='center'),
                                          sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
             removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
-            removeWindow = sg.Window('Add phase label', removeLayout, location = [400,0], finalize=True)
-            while True:
-                event, values = removeWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Cancel':
-                    break
-                if event == 'Remove Label(s)':
-                    tempLength = len(self.labels)
-                    for i in reversed(range(tempLength)):
-                        if values['-removeLabel'+str(i)+'-']:
-                            del self.labels[i]
-                    if len(self.labels) == 0:
-                        self.sgw.Element('Remove Label').Update(disabled = True)
-                    self.makePlot()
-                    break
-            removeWindow.close()
+            removeWindow = RemoveWindow(self, removeLayout)
+            self.children.append(removeWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
@@ -1218,6 +1205,31 @@ class LabelWindow():
             self.parent.addLabel(xlab,tlab)
             self.parent.makePlot()
             self.parent.sgw.Element('Remove Label').Update(disabled = False)
+
+class RemoveWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        if event == 'Remove Label(s)':
+            tempLength = len(self.parent.labels)
+            for i in reversed(range(tempLength)):
+                if values['-removeLabel'+str(i)+'-']:
+                    del self.parent.labels[i]
+            if len(self.parent.labels) == 0:
+                self.parent.sgw.Element('Remove Label').Update(disabled = True)
+            self.parent.makePlot()
 
 windowList = []
 dataWindow = DataWindow()
