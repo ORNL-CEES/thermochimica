@@ -34,8 +34,6 @@ inputSize = 20
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
 
-windowList = []
-
 class DataWindow:
     def __init__(self):
         windowList.append(self)
@@ -352,6 +350,7 @@ class CalculationWindow:
                 plt.show()
                 plt.pause(0.001)
 
+windowList = []
 dataWindow = DataWindow()
 while len(windowList) > 0:
     for window in windowList:
