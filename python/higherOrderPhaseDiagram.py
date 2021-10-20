@@ -152,7 +152,7 @@ class CalculationWindow:
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.children = []
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
