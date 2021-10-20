@@ -173,8 +173,12 @@ class CalculationWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event =='Run':
-                tstart = float(values['-temperature-'])
-                tend   = float(values['-endtemperature-'])
+                tstart = 300.0
+                if values['-temperature-'] != '':
+                    tstart = float(values['-temperature-'])
+                tend   = 1000.0
+                if values['-endtemperature-'] != '':
+                    tend   = float(values['-endtemperature-'])
                 ntstep = 10
                 if values['-ntstep-'] != '':
                     ntstep = int(values['-ntstep-'])
