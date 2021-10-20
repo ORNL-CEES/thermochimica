@@ -20,6 +20,7 @@ atomic_number_map = [
 
 timeout = 50
 inputSize = 20
+buttonSize = 12
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
@@ -135,7 +136,7 @@ class DataWindow:
                               [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                               [sg.Text('Mass unit')],
                               [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                              [sg.Button('Run'), sg.Button('Refine'), sg.Exit()]]
+                              [sg.Button('Run', size = buttonSize), sg.Button('Refine', disabled = True, size = buttonSize), sg.Exit()]]
                 calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
                 self.children.append(calcWindow)
             except:
@@ -231,6 +232,7 @@ class CalculationWindow:
                 self.runCalc(0,1,nxstep,tlo,thi,ntstep)
                 self.processPhaseDiagramData()
                 self.makePlot()
+                self.sgw.Element('Refine').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
