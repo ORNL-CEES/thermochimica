@@ -253,38 +253,12 @@ class CalculationWindow:
             self.children.append(refineWindow)
         elif event =='Auto Refine':
             autoRefineLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Refine'), sg.Exit()]]]
-            autoRefineWindow = sg.Window('Auto-refine setup', autoRefineLayout, location = [400,0], finalize=True)
-            while True:
-                event, values = autoRefineWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Exit':
-                    break
-                elif event == 'Refine':
-                    resRef = values['-res-']
-                    if resRef == '':
-                        resRef = 49
-                    resRef = float(resRef)
-                    self.refineLimit(0,(self.maxt-self.mint)/resRef/10)
-                    self.refineLimit(1,(self.maxt-self.mint)/resRef/10)
-                    self.autoRefine(resRef)
-                    self.makePlot()
-                    break
-            autoRefineWindow.close()
+            autoRefineWindow = AutoRefineWindow(self,autoRefineLayout)
+            self.children.append(autoRefineWindow)
         elif event =='Auto Densify':
             autoDensifyLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Densify'), sg.Exit()]]]
-            autoDensifyWindow = sg.Window('Auto-densify setup', autoDensifyLayout, location = [400,0], finalize=True)
-            while True:
-                event, values = autoDensifyWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Exit':
-                    break
-                elif event == 'Densify':
-                    resRef = values['-res-']
-                    if resRef == '':
-                        resRef = 100
-                    resRef = float(resRef)
-                    self.autoRefine2Phase(resRef)
-                    self.makePlot()
-                    break
-            autoDensifyWindow.close()
+            autoDensifyWindow = AutoDensifyWindow(self,autoDensifyLayout)
+            self.children.append(autoDensifyWindow)
         elif event =='Add Label':
             xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
             tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
@@ -1182,6 +1156,58 @@ class RefineWindow():
                 self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.runCalc()
                 self.parent.makePlot()
+
+class AutoRefineWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Auto-refine setup', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == 'Refine':
+            resRef = values['-res-']
+            if resRef == '':
+                resRef = 49
+            resRef = float(resRef)
+            self.parent.refineLimit(0,(self.parent.maxt-self.parent.mint)/resRef/10)
+            self.parent.refineLimit(1,(self.parent.maxt-self.parent.mint)/resRef/10)
+            self.parent.autoRefine(resRef)
+            self.parent.makePlot()
+            self.close()
+
+class AutoDensifyWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Auto-densify setup', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == 'Densify':
+            resRef = values['-res-']
+            if resRef == '':
+                resRef = 100
+            resRef = float(resRef)
+            self.parent.autoRefine2Phase(resRef)
+            self.parent.makePlot()
+            self.close()
 
 class LabelWindow():
     def __init__(self, parent, windowLayout):
