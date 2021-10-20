@@ -156,7 +156,7 @@ class CalculationWindow:
         self.p2 = []
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
-        self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.children = []
         self.labels = []
         self.outline = MultiPolygon([])
@@ -249,36 +249,8 @@ class CalculationWindow:
                           sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
             refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
-            refineWindow = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
-            while True:
-                event, values = refineWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Cancel':
-                    break
-                elif event =='Refine':
-                    cancelRun = False
-                    ntstep = values['-ntstepr-']
-                    nxstep = values['-nxstepr-']
-                    if (float(ntstep) * float(nxstep)) > 50000:
-                        cancelRun = True
-                        confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                        confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
-                        while True:
-                            event, values = confirmWindow.read(timeout=timeout)
-                            if event == sg.WIN_CLOSED or event == 'Cancel':
-                                break
-                            elif event == 'Continue':
-                                cancelRun = False
-                                break
-                        confirmWindow.close()
-                    tlo = values['-temperaturer-']
-                    thi = values['-endtemperaturer-']
-                    xhi = values['-xhir-']
-                    xlo = values['-xlor-']
-                    if not cancelRun:
-                        self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-                        self.runCalc()
-                        self.makePlot()
-            refineWindow.close()
+            refineWindow = RefineWindow(self, refineLayout)
+            self.children.append(refineWindow)
         elif event =='Auto Refine':
             autoRefineLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Refine'), sg.Exit()]]]
             autoRefineWindow = sg.Window('Auto-refine setup', autoRefineLayout, location = [400,0], finalize=True)
@@ -1193,7 +1165,46 @@ class CalculationWindow:
             center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
             self.labels.append([[center[0],center[1]],phases[i]])
 
-
+class RefineWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Phase diagram refinement', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Refine':
+            cancelRun = False
+            ntstep = values['-ntstepr-']
+            nxstep = values['-nxstepr-']
+            if (float(ntstep) * float(nxstep)) > 50000:
+                cancelRun = True
+                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
+                while True:
+                    event, values = confirmWindow.read(timeout=timeout)
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Continue':
+                        cancelRun = False
+                        break
+                confirmWindow.close()
+            tlo = values['-temperaturer-']
+            thi = values['-endtemperaturer-']
+            xhi = values['-xhir-']
+            xlo = values['-xlor-']
+            if not cancelRun:
+                self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
+                self.parent.runCalc()
+                self.parent.makePlot()
 windowList = []
 dataWindow = DataWindow()
 while len(windowList) > 0:
