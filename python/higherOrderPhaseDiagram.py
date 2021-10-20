@@ -136,7 +136,11 @@ class DataWindow:
                               [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                               [sg.Text('Mass unit')],
                               [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                              [sg.Button('Run', size = buttonSize), sg.Button('Refine', disabled = True, size = buttonSize), sg.Exit()]]
+                              [sg.Button('Run', size = buttonSize),
+                               sg.Button('Refine', disabled = True, size = buttonSize),
+                               sg.Button('Add Label', disabled = True, size = buttonSize),
+                               sg.Button('Remove Label', disabled = True, size = buttonSize),
+                               sg.Exit()]]
                 calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
                 self.children.append(calcWindow)
             except:
@@ -179,6 +183,7 @@ class CalculationWindow:
                 self.mint = 1e5
                 self.maxt = 0
                 self.points = []
+                self.labels = []
                 masses1 = [0.0]*self.nElements
                 masses2 = [0.0]*self.nElements
                 self.elementsUsed = []
@@ -233,6 +238,7 @@ class CalculationWindow:
                 self.processPhaseDiagramData()
                 self.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
+                self.sgw.Element('Add Label').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -243,6 +249,26 @@ class CalculationWindow:
             refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
             refineWindow = RefineWindow(self, refineLayout)
             self.children.append(refineWindow)
+        elif event =='Add Label':
+            xLabLayout  = [[sg.Text(f'{self.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
+            tLabLayout  = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
+            labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
+            labelWindow = LabelWindow(self,labelLayout)
+            self.children.append(labelWindow)
+        elif event =='Remove Label':
+            headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
+                               sg.Text('Concentration',size = [15,1],justification='center'),
+                               sg.Text('Temperature',  size = [15,1],justification='center'),
+                               sg.Text('Remove Label?',size = [15,1])]]
+            labelListLayout = []
+            for i in range(len(self.labels)):
+                labelListLayout.append([[sg.Text(self.labels[i][1],size = [55,1],justification='left'),
+                                         sg.Text("{:.3f}".format(self.labels[i][0][0]),size = [15,1],justification='center'),
+                                         sg.Text("{:.0f}".format(self.labels[i][0][1]),size = [15,1],justification='center'),
+                                         sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
+            removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
+            removeWindow = RemoveWindow(self, removeLayout)
+            self.children.append(removeWindow)
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
@@ -372,10 +398,26 @@ class CalculationWindow:
         ax.set_title(r'{0} phase diagram'.format(title))
         ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
         ax.set_ylabel(r'Temperature [K]')
-        # for lab in labels:
-        #     plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
+        for lab in self.labels:
+            plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
         plt.show()
         plt.pause(0.001)
+    def addLabel(self,xlab,tlab):
+        self.runCalc(xlab,xlab,1,tlab,tlab,1)
+        f = open(self.outputFileName,)
+        data = json.load(f)
+        f.close()
+        if list(data.keys())[0] != '1':
+            print('Output does not contain data series')
+            exit()
+        labelName = []
+        for phaseName in list(data['1']['solution phases'].keys()):
+            if (data['1']['solution phases'][phaseName]['moles'] > 0):
+                labelName.append(phaseName)
+        for phaseName in list(data['1']['pure condensed phases'].keys()):
+            if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
+                labelName.append(phaseName)
+        self.labels.append([[xlab,tlab],'+'.join(labelName)])
     def line_intersection(self, lines):
         l1 = np.array(self.plane)
         ls = np.array(lines)
@@ -430,6 +472,56 @@ class RefineWindow():
                 self.parent.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.processPhaseDiagramData()
                 self.parent.makePlot()
+
+class LabelWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Add Label':
+            xlab = float(values['-xlab-'])
+            tlab = float(values['-tlab-'])
+            self.parent.addLabel(xlab,tlab)
+            self.parent.processPhaseDiagramData()
+            self.parent.makePlot()
+            self.parent.sgw.Element('Remove Label').Update(disabled = False)
+
+class RemoveWindow():
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        if event == 'Remove Label(s)':
+            tempLength = len(self.parent.labels)
+            for i in reversed(range(tempLength)):
+                if values['-removeLabel'+str(i)+'-']:
+                    del self.parent.labels[i]
+            if len(self.parent.labels) == 0:
+                self.parent.sgw.Element('Remove Label').Update(disabled = True)
+            self.parent.makePlot()
+            self.close()
 
 windowList = []
 dataWindow = DataWindow()
