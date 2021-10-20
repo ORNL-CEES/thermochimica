@@ -131,7 +131,6 @@ class DataWindow:
                                   [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                                   [sg.Text('Mass unit')],
                                   [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                                  [sg.Checkbox('Save JSON',key='-json-')],
                                   [sg.Button('Run'), sg.Exit()]]
                 else:
                     calcLayout = [tempLayout,
@@ -141,7 +140,6 @@ class DataWindow:
                                   [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                                   [sg.Text('Mass unit')],
                                   [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                                  [sg.Checkbox('Save JSON',key='-json-')],
                                   [sg.Button('Run'), sg.Exit()]]
                 calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
                 self.children.append(calcWindow)
