@@ -160,6 +160,7 @@ class CalculationWindow:
         self.mint = 1e5
         self.maxt = 0
         self.points = []
+        self.massLabels = ['','']
         self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
@@ -205,6 +206,23 @@ class CalculationWindow:
                     if not self.elements[i] in self.elementsUsed:
                         del masses1[i]
                         del masses2[i]
+                self.nElementsUsed = len(self.elementsUsed)
+                self.massLabels = ['','']
+                for i in range(self.nElementsUsed):
+                    if masses1[i] > 0:
+                        self.massLabels[0] += self.elementsUsed[i]
+                        if masses1[i] != 1:
+                            if int(masses1[i]) == masses1[i]:
+                                self.massLabels[0] += f'$_{ {int(masses1[i])} }$'
+                            else:
+                                self.massLabels[0] += f'$_{ {masses1[i]} }$'
+                    if masses2[i] > 0:
+                        self.massLabels[1] += self.elementsUsed[i]
+                        if masses2[i] != 1:
+                            if int(masses2[i]) == masses2[i]:
+                                self.massLabels[1] += f'$_{ {int(masses2[i])} }$'
+                            else:
+                                self.massLabels[1] += f'$_{ {masses2[i]} }$'
                 sum1 = sum(masses1)
                 sum2 = sum(masses2)
                 if (sum1 == 0) or (sum2 == 0) or (min(masses1) < 0) or (min(masses2) < 0):
@@ -219,7 +237,6 @@ class CalculationWindow:
                 masses1 = [mass / sum1 for mass in masses1]
                 masses2 = [mass / sum2 for mass in masses2]
                 self.plane = np.array([masses1,masses2])
-                self.nElementsUsed = len(self.elementsUsed)
                 tunit = values['-tunit-']
                 punit = values['-punit-']
                 munit = values['-munit-']
@@ -349,9 +366,10 @@ class CalculationWindow:
 
                 ax.set_xlim(0,1)
                 # ax.set_ylim(mint,maxt)
-                # ax.set_title(str(el1) + ' + ' + str(el2) + ' binary phase diagram')
-                # ax.set_xlabel('Mole fraction ' + str(el2))
-                ax.set_ylabel('Temperature [K]')
+                title = " $-$ ".join(self.massLabels)
+                ax.set_title(r'{0} phase diagram'.format(title))
+                ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
+                ax.set_ylabel(r'Temperature [K]')
                 # for lab in labels:
                 #     plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
                 plt.show()
