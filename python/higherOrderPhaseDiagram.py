@@ -152,15 +152,10 @@ class CalculationWindow:
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.elementsUsed = []
-        self.plane = []
-        self.nElementsUsed = 0
-        self.mint = 1e5
-        self.maxt = 0
-        self.points = []
-        self.massLabels = ['','']
         self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
         self.children = []
+        self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
+        self.outputFileName = 'thermoout.json'
     def close(self):
         for child in self.children:
             child.close()
@@ -172,21 +167,19 @@ class CalculationWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event =='Run':
-                tstart = 300.0
+                tlo = 300.0
                 if values['-temperature-'] != '':
-                    tstart = float(values['-temperature-'])
-                tend   = 1000.0
+                    tlo = float(values['-temperature-'])
+                thi = 1000.0
                 if values['-endtemperature-'] != '':
-                    tend   = float(values['-endtemperature-'])
+                    thi = float(values['-endtemperature-'])
                 ntstep = 10
                 if values['-ntstep-'] != '':
                     ntstep = int(values['-ntstep-'])
-                temps = np.linspace(tstart,tend,ntstep)
                 nxstep = 10
-                pressure = 1
+                self.pressure = 1
                 if values['-pressure-'] != '':
-                    pressure = values['-pressure-']
-                filename = 'inputs/pythonInput.ti'
+                    self.pressure = values['-pressure-']
                 self.mint = 1e5
                 self.maxt = 0
                 self.points = []
@@ -235,102 +228,105 @@ class CalculationWindow:
                 masses1 = [mass / sum1 for mass in masses1]
                 masses2 = [mass / sum2 for mass in masses2]
                 self.plane = np.array([masses1,masses2])
-                tunit = values['-tunit-']
-                punit = values['-punit-']
-                munit = values['-munit-']
+                self.tunit = values['-tunit-']
+                self.punit = values['-punit-']
+                self.munit = values['-munit-']
                 if values['-nxstep-'] != '':
                     nxstep = int(values['-nxstep-'])
-                xs = np.array([np.linspace(masses1[i],masses2[i],nxstep) for i in range(self.nElementsUsed)]).T
-                with open(filename, 'w') as inputFile:
-                    inputFile.write('! Python-generated input file for Thermochimica\n')
-                    inputFile.write(f'data file         = {self.datafile}\n')
-                    inputFile.write(f'temperature unit         = {tunit}\n')
-                    inputFile.write(f'pressure unit          = {punit}\n')
-                    inputFile.write(f'mass unit          = \'{munit}\'\n')
-                    inputFile.write(f'nEl         = {self.nElementsUsed} \n')
-                    inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
-                    inputFile.write(f'nCalc       = {len(xs)*len(temps)}\n')
-                    for t in temps:
-                        for x in xs:
-                            inputFile.write(f'{str(t)} {pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
-                print('Thermochimica calculation initiated.')
-                subprocess.run(['./bin/RunCalculationList',filename])
-                print('Thermochimica calculation finished.')
-
-                fname = 'thermoout.json'
-                f = open(fname,)
-                data = json.load(f)
-                f.close()
-                if list(data.keys())[0] != '1':
-                    print('Output does not contain data series')
-                    exit()
-                for i in list(data.keys()):
-                    self.mint = min(self.mint,data[i]['temperature'])
-                    self.maxt = max(self.maxt,data[i]['temperature'])
-                    if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == self.nElementsUsed:
-                        allPhases = []
-                        phaseComps = []
-                        for phaseType in ['solution phases','pure condensed phases']:
-                            for phaseName in list(data[i][phaseType].keys()):
-                                if (data[i][phaseType][phaseName]['moles'] > 0):
-                                    allPhases.append(phaseName)
-                                    tempComp = []
-                                    for element in self.elementsUsed:
-                                        tempComp.append(data[i][phaseType][phaseName]['elements'][element]['mole fraction of phase by element'])
-                                    phaseComps.append(tempComp)
-                        # Loop over possible phase zone intersections with plane of interest
-                        for j in range(self.nElementsUsed):
-                            # Make list of phases on a (nElements-1) dimensional face through omission
-                            omitComps = phaseComps.copy()
-                            omitComps.remove(phaseComps[j])
-                            omitPhase = allPhases.copy()
-                            omitPhase.remove(allPhases[j])
-                            lineComps = []
-                            for k in range(self.nElementsUsed - 2):
-                                lineComps.append([omitComps[0],omitComps[k+1]])
-                            # Calculate intersection of this face with our plane of interest
-                            intersect = self.line_intersection(lineComps)
-                            # Check that the intersection is within the valid bounds
-                            intSum = sum(intersect[1:])
-                            intTest = intSum <= 1
-                            for test in range(self.nElementsUsed - 1):
-                                intTest = intTest and (0 <= intersect[test]) and (intersect[test] <= 1)
-                            if intTest:
-                                if intSum == 1:
-                                    # If we are on the far boundary, the first phase is not included
-                                    omitPhase.remove(omitPhase[0])
-                                for k in range(self.nElementsUsed - 2):
-                                    # Check all the other boundaries
-                                    if intersect[k+1] == 0:
-                                        # If none of this is used, it is not included
-                                        omitPhase.remove(omitPhase[k+1])
-                                self.points.append([data[i]['temperature'],intersect[0],omitPhase])
-                    elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 1:
-                        boundPhases = []
-                        skipPoint = False
-                        phaseMoleSum = 0
-                        for phaseType in ['solution phases','pure condensed phases']:
-                            for phaseName in list(data[i][phaseType].keys()):
-                                phaseMoleSum += data[i][phaseType][phaseName]['moles']
-                        for phaseType in ['solution phases','pure condensed phases']:
-                            for phaseName in list(data[i][phaseType].keys()):
-                                if data[i][phaseType][phaseName]['moles'] > 0:
-                                    boundPhases.append(phaseName)
-                                    if phaseFractionTol < data[i][phaseType][phaseName]['moles']/phaseMoleSum < (1-phaseFractionTol):
-                                        skipPoint = True
-                                        break
-                            if skipPoint:
-                                break
-                        if skipPoint:
-                            boundPhases = []
-                            continue
-                        tempComp = np.zeros(self.nElementsUsed)
-                        for e in range(len(self.elementsUsed)):
-                            if self.elementsUsed[e] in data[i]['elements'].keys():
-                                tempComp[e] = data[i]['elements'][self.elementsUsed[e]]['moles']
-                        boundComps = np.linalg.norm(tempComp-self.plane[0])/np.linalg.norm(self.plane[1]-self.plane[0])
-                        self.points.append([data[i]['temperature'],boundComps,boundPhases])
+                self.runCalc(0,1,nxstep,tlo,thi,ntstep)
+                self.processPhaseDiagramData()
                 self.makePlot()
+    def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
+        xs = np.array([np.linspace(self.plane[0,i],self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
+        temps = np.linspace(tlo,thi,ntstep)
+        with open(self.inputFileName, 'w') as inputFile:
+            inputFile.write('! Python-generated input file for Thermochimica\n')
+            inputFile.write(f'data file         = {self.datafile}\n')
+            inputFile.write(f'temperature unit         = {self.tunit}\n')
+            inputFile.write(f'pressure unit          = {self.punit}\n')
+            inputFile.write(f'mass unit          = \'{self.munit}\'\n')
+            inputFile.write(f'nEl         = {self.nElementsUsed} \n')
+            inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
+            inputFile.write(f'nCalc       = {len(xs)*len(temps)}\n')
+            for t in temps:
+                for x in xs:
+                    inputFile.write(f'{str(t)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
+        print('Thermochimica calculation initiated.')
+        subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+        print('Thermochimica calculation finished.')
+    def processPhaseDiagramData(self):
+        f = open(self.outputFileName,)
+        data = json.load(f)
+        f.close()
+        if list(data.keys())[0] != '1':
+            print('Output does not contain data series')
+            exit()
+        for i in list(data.keys()):
+            self.mint = min(self.mint,data[i]['temperature'])
+            self.maxt = max(self.maxt,data[i]['temperature'])
+            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == self.nElementsUsed:
+                allPhases = []
+                phaseComps = []
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                            allPhases.append(phaseName)
+                            tempComp = []
+                            for element in self.elementsUsed:
+                                tempComp.append(data[i][phaseType][phaseName]['elements'][element]['mole fraction of phase by element'])
+                            phaseComps.append(tempComp)
+                # Loop over possible phase zone intersections with plane of interest
+                for j in range(self.nElementsUsed):
+                    # Make list of phases on a (nElements-1) dimensional face through omission
+                    omitComps = phaseComps.copy()
+                    omitComps.remove(phaseComps[j])
+                    omitPhase = allPhases.copy()
+                    omitPhase.remove(allPhases[j])
+                    lineComps = []
+                    for k in range(self.nElementsUsed - 2):
+                        lineComps.append([omitComps[0],omitComps[k+1]])
+                    # Calculate intersection of this face with our plane of interest
+                    intersect = self.line_intersection(lineComps)
+                    # Check that the intersection is within the valid bounds
+                    intSum = sum(intersect[1:])
+                    intTest = intSum <= 1
+                    for test in range(self.nElementsUsed - 1):
+                        intTest = intTest and (0 <= intersect[test]) and (intersect[test] <= 1)
+                    if intTest:
+                        if intSum == 1:
+                            # If we are on the far boundary, the first phase is not included
+                            omitPhase.remove(omitPhase[0])
+                        for k in range(self.nElementsUsed - 2):
+                            # Check all the other boundaries
+                            if intersect[k+1] == 0:
+                                # If none of this is used, it is not included
+                                omitPhase.remove(omitPhase[k+1])
+                        self.points.append([data[i]['temperature'],intersect[0],omitPhase])
+            elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) > 1:
+                boundPhases = []
+                skipPoint = False
+                phaseMoleSum = 0
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        phaseMoleSum += data[i][phaseType][phaseName]['moles']
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if data[i][phaseType][phaseName]['moles'] > 0:
+                            boundPhases.append(phaseName)
+                            if phaseFractionTol < data[i][phaseType][phaseName]['moles']/phaseMoleSum < (1-phaseFractionTol):
+                                skipPoint = True
+                                break
+                    if skipPoint:
+                        break
+                if skipPoint:
+                    boundPhases = []
+                    continue
+                tempComp = np.zeros(self.nElementsUsed)
+                for e in range(len(self.elementsUsed)):
+                    if self.elementsUsed[e] in data[i]['elements'].keys():
+                        tempComp[e] = data[i]['elements'][self.elementsUsed[e]]['moles']
+                boundComps = np.linalg.norm(tempComp-self.plane[0])/np.linalg.norm(self.plane[1]-self.plane[0])
+                self.points.append([data[i]['temperature'],boundComps,boundPhases])
     def makePlot(self):
         boundaries = []
         b = []
