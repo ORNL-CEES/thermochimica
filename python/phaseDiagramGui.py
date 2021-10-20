@@ -1256,6 +1256,7 @@ class RemoveWindow():
             if len(self.parent.labels) == 0:
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.makePlot()
+            self.close()
 
 windowList = []
 dataWindow = DataWindow()
