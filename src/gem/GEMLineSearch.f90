@@ -143,7 +143,7 @@ subroutine GEMLineSearch
 
     ! Commence line search:
     iMaxWolfe = 5
-    if (iterGlobal > 200) iMaxWolfe = 50
+    if (iterGlobal > 100) iMaxWolfe = 50
     LOOP_WOLFE: do iterWolfe = 1, iMaxWolfe
 
         ! Compute the fractional change in the functional norm:
