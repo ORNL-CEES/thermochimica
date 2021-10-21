@@ -284,8 +284,15 @@ class CalculationWindow:
             inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
             inputFile.write(f'nCalc       = {len(xs)*len(temps)}\n')
             for t in temps:
+                ioff = 0
                 for x in xs:
-                    inputFile.write(f'{str(t)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
+                    if (t > tlo) and (t < thi - (thi-tlo)/ntstep):
+                        toff = ioff * ((thi-tlo)/ntstep)/10
+                        ioff += 1
+                        ioff = ioff % 10
+                        inputFile.write(f'{str(t+toff)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
+                    else:
+                        inputFile.write(f'{str(t)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
         print('Thermochimica calculation initiated.')
         subprocess.run(['./bin/RunCalculationList',self.inputFileName])
         print('Thermochimica calculation finished.')
