@@ -326,8 +326,8 @@ class CalculationWindow:
                 crossNorms = [np.linalg.norm(np.cross(phaseCompositions[k] - self.plane[0],self.plane[1] - phaseCompositions[k])) for k in range(nPhases)]
                 if max(crossNorms) < phaseIncludeTol:
                     boundComps = [np.linalg.norm(phaseCompositions[k] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for k in range(nPhases)]
-                    self.points.append([data[i]['temperature'],boundComps[0],boundPhases])
-                    self.points.append([data[i]['temperature'],boundComps[1],boundPhases])
+                    self.points.append([data[i]['temperature'],boundComps[0],boundPhases[0]])
+                    self.points.append([data[i]['temperature'],boundComps[1],boundPhases[1]])
                     continue
             if nPhases == self.nElementsUsed:
                 allPhases = []
