@@ -121,6 +121,13 @@ subroutine CheckConvergence
     lConverged      = .FALSE.
     lCompEverything = .TRUE.
     lPhaseChange    = .FALSE.
+
+    ! Reset lSolnPhases to ensure it is correct
+    lSolnPhases     = .FALSE.
+    do i = 1, nSolnPhases
+        if (iAssemblage(nElements+1-i) < 0) lSolnPhases(-iAssemblage(nElements+1-i)) = .TRUE.
+    end do
+
     ! Test if the largest relative change in species mole fraction is large
     ! This is a self-consistency check
     if (lDebugMode) print *, "Test self-consistency ", dMaxSpeciesChange
