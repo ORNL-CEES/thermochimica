@@ -304,6 +304,24 @@ class CalculationWindow:
                 for phaseName in list(data[i][phaseType].keys()):
                     if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                         nPhases += 1
+            if nPhases == 2:
+                boundPhases = []
+                phaseCompositions = np.zeros([nPhases,self.nElementsUsed])
+                iPhase = 0
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
+                            boundPhases.append(phaseName)
+                            for k in range(self.nElementsUsed):
+                                if self.elementsUsed[k] in data[i][phaseType][phaseName]['elements'].keys():
+                                    phaseCompositions[iPhase,k] = data[i][phaseType][phaseName]['elements'][self.elementsUsed[k]]["mole fraction of phase by element"]
+                            iPhase += 1
+                crossNorms = [np.linalg.norm(np.cross(phaseCompositions[k] - self.plane[0],self.plane[1] - phaseCompositions[k])) for k in range(nPhases)]
+                if max(crossNorms) < phaseIncludeTol:
+                    boundComps = [np.linalg.norm(phaseCompositions[k] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for k in range(nPhases)]
+                    self.points.append([data[i]['temperature'],boundComps[0],boundPhases])
+                    self.points.append([data[i]['temperature'],boundComps[1],boundPhases])
+                    continue
             if nPhases == self.nElementsUsed:
                 allPhases = []
                 phaseComps = []
