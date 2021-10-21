@@ -302,7 +302,7 @@ class CalculationWindow:
         f.close()
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
-            exit()
+            return
         for i in list(data.keys()):
             self.mint = min(self.mint,data[i]['temperature'])
             self.maxt = max(self.maxt,data[i]['temperature'])
@@ -439,9 +439,12 @@ class CalculationWindow:
         f = open(self.outputFileName,)
         data = json.load(f)
         f.close()
+        if len(data.keys()) == 0:
+            print('Output does not contain data series')
+            return
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
-            exit()
+            return
         labelName = []
         for phaseName in list(data['1']['solution phases'].keys()):
             if (data['1']['solution phases'][phaseName]['moles'] > phaseIncludeTol):
