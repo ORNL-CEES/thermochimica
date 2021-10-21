@@ -146,6 +146,7 @@ subroutine CheckConvergence
 
     ! TEST #2: Check to make sure that the number of moles of all phases are non-negative.
     ! ------------------------------------------------------------------------------------
+    dMolesPhase(nConPhases + 1 : nElements - nSolnPhases) = 0D0
     if (lDebugMode) print *, "Test 2 ", MINVAL(dMolesPhase)
     if (MINVAL(dMolesPhase) < 0D0) return
 
