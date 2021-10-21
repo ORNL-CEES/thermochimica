@@ -123,7 +123,7 @@ subroutine GEMLineSearch
 
     implicit none
 
-    integer                       :: iterWolfe
+    integer                       :: iterWolfe, iMaxWolfe
     real(8)                       :: dStepLength, dTemp, dWolfeFunctionNormLast
     real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
@@ -142,7 +142,9 @@ subroutine GEMLineSearch
     call InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
 
     ! Commence line search:
-    LOOP_WOLFE: do iterWolfe = 1, 5
+    iMaxWolfe = 5
+    if (iterGlobal > 200) iMaxWolfe = 50
+    LOOP_WOLFE: do iterWolfe = 1, iMaxWolfe
 
         ! Compute the fractional change in the functional norm:
         dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
