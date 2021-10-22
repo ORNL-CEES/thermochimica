@@ -11,9 +11,6 @@ subroutine WriteJSON(append)
     logical :: exist
     integer :: i, c, nElectron
 
-    ! Only proceed for a successful calculation:
-    if (INFOThermo /= 0) return
-
     inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
     if (append .AND. exist) then
         open(1, file= DATA_DIRECTORY // '../thermoout.json', &
@@ -24,6 +21,12 @@ subroutine WriteJSON(append)
     end if
 
     write(1,*) '{'
+
+    ! Only proceed for a successful calculation:
+    if (INFOThermo /= 0) then
+        write(1,*) '}'
+        return
+    end if
 
     ! Print the results for solution phases:
     call WriteJSONSolnPhase
