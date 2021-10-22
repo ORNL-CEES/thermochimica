@@ -560,7 +560,9 @@ class CalculationWindow:
                         bEdgeLine[k][1] = True
 
         # plot 2-phase region boundaries
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
         for j in range(len(boundaries)):
+            c = next(color)
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
@@ -571,8 +573,8 @@ class CalculationWindow:
             x1t = x1t[sindex]
             x2t = np.array(self.x2)[inds]
             x2t = x2t[sindex]
-            ax.plot(np.array(self.x1)[inds],np.array(self.ts)[inds],'.')
-            ax.plot(np.array(self.x2)[inds],np.array(self.ts)[inds],'.')
+            ax.plot(x1t,ttt,'-',c=c)
+            ax.plot(x2t[::-1],ttt[::-1],'-',c=c)
             minj = np.argmin(np.array(self.ts)[inds])
             maxj = np.argmax(np.array(self.ts)[inds])
             # plot invariant temperatures
