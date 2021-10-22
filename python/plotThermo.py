@@ -88,10 +88,16 @@ while True:
             yi = 0
             for j in solutionPhases:
                 phaseColumns.append([[sg.Text(j)]])
+                if data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                    molesLabel = 'moles of endmembers'
+                    speciesLabel = 'quadruplets'
+                else:
+                    molesLabel = 'moles'
+                    speciesLabel = 'species'
                 if values['-yaxis-'] == 'moles':
                     # total moles of solution phase
                     try:
-                        ykey.append(['solution phases',j,values['-yaxis-']])
+                        ykey.append(['solution phases',j,molesLabel])
                         yen.append(False)
                         phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
                         leg.append(j)
@@ -101,10 +107,6 @@ while True:
                         continue
                 else:
                     ylab = 'Chemical Potential [J]'
-                if data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                    speciesLabel = 'quadruplets'
-                else:
-                    speciesLabel = 'species'
                 for k in list(data['1']['solution phases'][j][speciesLabel].keys()):
                     try:
                         ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
