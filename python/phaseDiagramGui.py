@@ -818,9 +818,15 @@ class CalculationWindow:
             horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
             vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
             for splitter in vertical_splitters:
-                self.outline = MultiPolygon(split(self.outline, splitter))
+                try:
+                    self.outline = MultiPolygon(split(self.outline, splitter))
+                except:
+                    continue
             for splitter in horizontal_splitters:
-                self.outline = MultiPolygon(split(self.outline, splitter))
+                try:
+                    self.outline = MultiPolygon(split(self.outline, splitter))
+                except:
+                    continue
             for tempOutline in list(self.outline):
                 if (tempOutline.area / (self.maxt-self.mint)) < (1 / (10*res**2)):
                     continue
