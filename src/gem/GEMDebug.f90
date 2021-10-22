@@ -102,7 +102,7 @@ subroutine GEMDebug(iDebug)
         print *
         print *, '# of pure con phases = ', nConphases
         do i = 1, nConphases
-            print *, cSpeciesName(iAssemblage(i)), iAssemblage(i), dMolesPhase(i)
+            if (iAssemblage(i) > 0) print *, cSpeciesName(iAssemblage(i)), iAssemblage(i), dMolesPhase(i)
         end do
         print *
 
@@ -110,7 +110,7 @@ subroutine GEMDebug(iDebug)
         do i = 1, nSolnPhases
             j = nElements - i + 1
             k = -iAssemblage(j)
-            print *, cSolnPhaseName(k), k, lMiscibility(k), dMolesPhase(j)
+            if (k > 0) print *, cSolnPhaseName(k), k, lMiscibility(k), dMolesPhase(j)
         end do
         print *
 
