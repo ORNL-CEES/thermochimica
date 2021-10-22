@@ -428,8 +428,10 @@ class CalculationWindow:
             if len(inds) < 2:
                 continue
             plotPoints = np.empty([0,2])
-            plotPoints = np.append(plotPoints,np.sort(np.array([[self.points[i][0][1],self.points[i][0][0]] for i in inds])), axis=0)
-            plotPoints = np.append(plotPoints,np.flip(np.sort(np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])),0), axis=0)
+            temppoints = np.array([[self.points[i][0][1],self.points[i][0][0]] for i in inds])
+            plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
+            temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
+            plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
             ax.plot(plotPoints[:,0],plotPoints[:,1],'-')
 
         ax.set_xlim(0,1)
