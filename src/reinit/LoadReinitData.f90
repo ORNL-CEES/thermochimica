@@ -61,6 +61,7 @@ subroutine LoadReinitData
   ! Save old chemical potential data
   if (.NOT. allocated(dChemicalPotential)) allocate(dChemicalPotential(nSpecies))
   if (.NOT. allocated(dElementPotential)) allocate(dElementPotential(nElements))
+  if (.NOT. allocated(dElementPotentialBest)) allocate(dElementPotentialBest(nElements))
   dChemicalPotential  = dChemicalPotential_Old
   dElementPotential   = dElementPotential_Old
   ! Save old phase data
@@ -71,6 +72,7 @@ subroutine LoadReinitData
   if (.NOT. allocated(dMolFraction)) allocate(dMolFraction(nSpecies))
   if (.NOT. allocated(dMolFractionBest)) allocate(dMolFractionBest(nSpecies))
   iAssemblage         = iAssemblage_Old
+  iAssemblageBest     = 0
   dMolesPhase         = dMolesPhase_Old * dNormalizeInput
   dMolFraction        = dMolFraction_Old
 

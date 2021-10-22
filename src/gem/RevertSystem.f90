@@ -75,7 +75,6 @@ subroutine RevertSystem(iterSpecific)
         dMolFraction = dMolFractionBest
         dElementPotential = dElementPotentialBest
 
-
         nConPhases               = 0
         nSolnPhases              = 0
         lSolnPhases              = .FALSE.
