@@ -124,7 +124,7 @@ subroutine GEMLineSearch
     implicit none
 
     integer                       :: iterWolfe, iMaxWolfe
-    real(8)                       :: dStepLength, dTemp, dWolfeFunctionNormLast
+    real(8)                       :: dStepLength, dTemp, dWolfeFunctionNormLast, dTolWolfe
     real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
@@ -143,14 +143,14 @@ subroutine GEMLineSearch
 
     ! Commence line search:
     iMaxWolfe = 5
-    if (iterGlobal > 100) iMaxWolfe = 50
+    dTolWolfe = 1D-6
     LOOP_WOLFE: do iterWolfe = 1, iMaxWolfe
 
         ! Compute the fractional change in the functional norm:
         dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
 
         ! If the functional norm is already small, call it a day:
-        if (dGEMFunctionNorm < 1D-6) exit LOOP_WOLFE
+        if (dGEMFunctionNorm < dTolWolfe) exit LOOP_WOLFE
 
         ! If the number of moles of a solution phase is tending to zero, call it a day:
         if (MINVAL(dMolesPhase(nElements - nSolnPhases + 1: nElements)) < 1D-9) exit LOOP_WOLFE
