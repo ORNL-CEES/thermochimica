@@ -47,46 +47,58 @@ while True:
         leg = []
         plotWindow.Element('Plot').Update(disabled = True)
         if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm']:
-            ykey[0].append(values['-yaxis-'])
-            yen.append(True)
-            leg.append(values['-yaxis-'])
-            if values['-yaxis-'] == 'temperature':
-                ylab = 'Temperature [K]'
-            elif values['-yaxis-'] == 'pressure':
-                ylab = 'Pressure [atm]'
-            elif values['-yaxis-'] == 'integral Gibbs energy':
-                ylab = 'Integral Gibbs Energy [J]'
-            elif values['-yaxis-'] == 'functional norm':
-                ylab = 'Functional Norm'
-            plotWindow.Element('Plot').Update(disabled = False)
-            plotWindow.Element('-yaxis2-').Update(disabled = False)
+            try:
+                ykey[0].append(values['-yaxis-'])
+                yen.append(True)
+                leg.append(values['-yaxis-'])
+                if values['-yaxis-'] == 'temperature':
+                    ylab = 'Temperature [K]'
+                elif values['-yaxis-'] == 'pressure':
+                    ylab = 'Pressure [atm]'
+                elif values['-yaxis-'] == 'integral Gibbs energy':
+                    ylab = 'Integral Gibbs Energy [J]'
+                elif values['-yaxis-'] == 'functional norm':
+                    ylab = 'Functional Norm'
+                plotWindow.Element('Plot').Update(disabled = False)
+                plotWindow.Element('-yaxis2-').Update(disabled = False)
+            except:
+                continue
         elif values['-yaxis-'] == '# phases':
-            ykey[0].append('# solution phases')
-            yen.append(True)
-            leg.append('# of Solution Phases')
-            ykey.append([])
-            ykey[1].append('# pure condensed phases')
-            yen.append(True)
-            leg.append('# of Pure Condensed Phases')
-            ylab = 'Number of Stable Phases'
-            plotWindow.Element('Plot').Update(disabled = False)
-            plotWindow.Element('-yaxis2-').Update(disabled = False)
+            try:
+                ykey[0].append('# solution phases')
+                yen.append(True)
+                leg.append('# of Solution Phases')
+                ykey.append([])
+                ykey[1].append('# pure condensed phases')
+                yen.append(True)
+                leg.append('# of Pure Condensed Phases')
+                ylab = 'Number of Stable Phases'
+                plotWindow.Element('Plot').Update(disabled = False)
+                plotWindow.Element('-yaxis2-').Update(disabled = False)
+            except:
+                continue
         elif values['-yaxis-'] in ['moles','chemical potential']:
             ykey = []
-            solutionPhases = list(data['1']['solution phases'].keys())
-            pureCondensedPhases = list(data['1']['pure condensed phases'].keys())
+            try:
+                solutionPhases = list(data['1']['solution phases'].keys())
+                pureCondensedPhases = list(data['1']['pure condensed phases'].keys())
+            except:
+                continue
             phaseColumns = []
             yi = 0
             for j in solutionPhases:
                 phaseColumns.append([[sg.Text(j)]])
                 if values['-yaxis-'] == 'moles':
                     # total moles of solution phase
-                    ykey.append(['solution phases',j,values['-yaxis-']])
-                    yen.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                    leg.append(j)
-                    ylab = 'Moles'
-                    yi = yi + 1
+                    try:
+                        ykey.append(['solution phases',j,values['-yaxis-']])
+                        yen.append(False)
+                        phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                        leg.append(j)
+                        ylab = 'Moles'
+                        yi = yi + 1
+                    except:
+                        continue
                 else:
                     ylab = 'Chemical Potential [J]'
                 if data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
@@ -94,18 +106,24 @@ while True:
                 else:
                     speciesLabel = 'species'
                 for k in list(data['1']['solution phases'][j][speciesLabel].keys()):
-                    ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
-                    yen.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                    leg.append(j+': '+k)
-                    yi = yi + 1
+                    try:
+                        ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
+                        yen.append(False)
+                        phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                        leg.append(j+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
             phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
             for j in pureCondensedPhases:
-                ykey.append(['pure condensed phases',j,values['-yaxis-']])
-                yen.append(False)
-                phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                leg.append(j)
-                yi = yi + 1
+                try:
+                    ykey.append(['pure condensed phases',j,values['-yaxis-']])
+                    yen.append(False)
+                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                    leg.append(j)
+                    yi = yi + 1
+                except:
+                    continue
             phaseSelectLayout = [[]]
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
@@ -137,19 +155,25 @@ while True:
                 else:
                     ylab = 'Mole Fraction of Element by Phase'
                 for k in list(data['1']['solution phases'][j]['elements'].keys()):
-                    ykey.append(['solution phases',j,'elements',k,values['-yaxis-']])
-                    yen.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                    leg.append(j+': '+k)
-                    yi = yi + 1
+                    try:
+                        ykey.append(['solution phases',j,'elements',k,values['-yaxis-']])
+                        yen.append(False)
+                        phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                        leg.append(j+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
             for j in pureCondensedPhases:
                 phaseColumns.append([[sg.Text(j)]])
                 for k in list(data['1']['pure condensed phases'][j]['elements'].keys()):
-                    ykey.append(['pure condensed phases',j,'elements',k,values['-yaxis-']])
-                    yen.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                    leg.append(j+': '+k)
-                    yi = yi + 1
+                    try:
+                        ykey.append(['pure condensed phases',j,'elements',k,values['-yaxis-']])
+                        yen.append(False)
+                        phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                        leg.append(j+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
             phaseSelectLayout = [[]]
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
@@ -179,11 +203,14 @@ while True:
                 else:
                     speciesLabel = 'species'
                 for k in list(data['1']['solution phases'][j][speciesLabel].keys()):
-                    ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
-                    yen.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
-                    leg.append(j+': '+k)
-                    yi = yi + 1
+                    try:
+                        ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
+                        yen.append(False)
+                        phaseColumns[-1].append([sg.Checkbox(ykey[yi][-2],key=str(yi))])
+                        leg.append(j+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
             phaseSelectLayout = [[]]
             for j in phaseColumns:
                 phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
@@ -205,9 +232,12 @@ while True:
             ylab = 'Element Potential [J]'
             elements = list(data['1']['elements'].keys())
             for j in elements:
-                ykey.append(['elements',j,values['-yaxis-']])
-                yen.append(True)
-                leg.append(j)
+                try:
+                    ykey.append(['elements',j,values['-yaxis-']])
+                    yen.append(True)
+                    leg.append(j)
+                except:
+                    continue
             plotWindow.Element('Plot').Update(disabled = False)
             plotWindow.Element('-yaxis2-').Update(disabled = False)
     elif event == '-yaxis2-':
