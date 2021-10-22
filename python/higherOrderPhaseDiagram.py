@@ -304,8 +304,11 @@ class CalculationWindow:
             print('Output does not contain data series')
             return
         for i in list(data.keys()):
-            self.mint = min(self.mint,data[i]['temperature'])
-            self.maxt = max(self.maxt,data[i]['temperature'])
+            try:
+                self.mint = min(self.mint,data[i]['temperature'])
+                self.maxt = max(self.maxt,data[i]['temperature'])
+            except:
+                continue
             nPhases = 0
             for phaseType in ['solution phases','pure condensed phases']:
                 for phaseName in list(data[i][phaseType].keys()):
