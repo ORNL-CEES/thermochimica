@@ -383,29 +383,33 @@ while True:
         for yi in range(len(ykey2)):
             y2.append([])
         for j in data.keys():
-            if xkey == 'iteration':
-                x.append(int(j))
-                xlab = 'Iteration'
-            else:
-                x.append(data[j][xkey])
-                if xkey == 'temperature':
-                    xlab = 'Temperature [K]'
-                elif xkey == 'pressure':
-                    xlab = 'Pressure [atm]'
-            for yi in range(len(ykey)):
-                if len(ykey[yi]) == 1:
-                    y[yi].append(data[j][ykey[yi][0]])
-                elif len(ykey[yi]) == 3:
-                    y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]])
-                elif len(ykey[yi]) == 5:
-                    y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]][ykey[yi][3]][ykey[yi][4]])
-            for yi in range(len(ykey2)):
-                if len(ykey2[yi]) == 1:
-                    y2[yi].append(data[j][ykey2[yi][0]])
-                elif len(ykey2[yi]) == 3:
-                    y2[yi].append(data[j][ykey2[yi][0]][ykey2[yi][1]][ykey2[yi][2]])
-                elif len(ykey2[yi]) == 5:
-                    y2[yi].append(data[j][ykey2[yi][0]][ykey2[yi][1]][ykey2[yi][2]][ykey2[yi][3]][ykey2[yi][4]])
+            try:
+                for yi in range(len(ykey)):
+                    if len(ykey[yi]) == 1:
+                        y[yi].append(data[j][ykey[yi][0]])
+                    elif len(ykey[yi]) == 3:
+                        y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]])
+                    elif len(ykey[yi]) == 5:
+                        y[yi].append(data[j][ykey[yi][0]][ykey[yi][1]][ykey[yi][2]][ykey[yi][3]][ykey[yi][4]])
+                for yi in range(len(ykey2)):
+                    if len(ykey2[yi]) == 1:
+                        y2[yi].append(data[j][ykey2[yi][0]])
+                    elif len(ykey2[yi]) == 3:
+                        y2[yi].append(data[j][ykey2[yi][0]][ykey2[yi][1]][ykey2[yi][2]])
+                    elif len(ykey2[yi]) == 5:
+                        y2[yi].append(data[j][ykey2[yi][0]][ykey2[yi][1]][ykey2[yi][2]][ykey2[yi][3]][ykey2[yi][4]])
+                if xkey == 'iteration':
+                    x.append(int(j))
+                    xlab = 'Iteration'
+                else:
+                    x.append(data[j][xkey])
+                    if xkey == 'temperature':
+                        xlab = 'Temperature [K]'
+                    elif xkey == 'pressure':
+                        xlab = 'Pressure [atm]'
+            except:
+                # do nothing
+                continue
         plotWindow.Element('Export Plot Script').Update(disabled = False)
         # Start figure
         fig = plt.figure()
