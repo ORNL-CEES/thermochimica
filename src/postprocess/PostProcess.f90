@@ -70,6 +70,7 @@ subroutine PostProcess
     end do
     dGibbsEnergySys = dGibbsEnergySys * dIdealConstant * dTemperature
 
+    dNormalizeInput = 1D0 / dNormalizeInput
     return
 
 end subroutine PostProcess

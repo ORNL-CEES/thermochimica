@@ -461,7 +461,7 @@ subroutine Thermochimica
         ! Attempt a retry by re-initializing with first phase only
         call RetryCalculationFirstPhase
         ! Perform post-processing calculations of results:
-        if (INFOThermo == 0) call PostProcess
+        if (INFOThermo == 0 .OR. INFOThermo == 12) call PostProcess
     end if
 
     return

@@ -14,6 +14,7 @@ subroutine RetryCalculationFirstPhase
             INFOThermo = 0
             lReinitRequested = .TRUE.
             call PostProcess
+            nSolnPhases = 1
             call SaveReinitData
             if (lReinitAvailable) then
                 iAssemblage_Old = 0
@@ -27,6 +28,7 @@ subroutine RetryCalculationFirstPhase
                 call Thermochimica
             else
                 INFOThermo = 12
+                dElementMass = dElementMass * dNormalizeInput / dMassScale
             end if
             lReinitRequested = oldReinit
         end if
