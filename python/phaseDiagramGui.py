@@ -18,6 +18,7 @@ import operator
 timeout = 50
 inputSize = 20
 buttonSize = 12
+gapLimit = np.Inf
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -435,6 +436,23 @@ class CalculationWindow:
                 for k in extraBound:
                     b[inds[sindex[k]]] = len(boundaries)-1
 
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = np.array(self.ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(self.x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(self.x2)[inds]
+            x2t = x2t[sindex]
+            for i in range(len(ttt)-1):
+                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                    boundaries.append(boundaries[j])
+                    for k in range(i+1,len(ttt)):
+                        b[inds[sindex[k]]] = len(boundaries)-1
+
         # Start figure
         fig = plt.figure()
         plt.ion()
@@ -710,6 +728,23 @@ class CalculationWindow:
                     for k in extraBound:
                         b[inds[sindex[k]]] = len(boundaries)-1
 
+            for j in range(len(boundaries)):
+                inds = [i for i, k in enumerate(b) if k == j]
+                if len(inds) < 2:
+                    continue
+                ttt = np.array(self.ts)[inds]
+                sindex = np.argsort(ttt)
+                ttt = ttt[sindex]
+                x1t = np.array(self.x1)[inds]
+                x1t = x1t[sindex]
+                x2t = np.array(self.x2)[inds]
+                x2t = x2t[sindex]
+                for i in range(len(ttt)-1):
+                    if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                        boundaries.append(boundaries[j])
+                        for k in range(i+1,len(ttt)):
+                            b[inds[sindex[k]]] = len(boundaries)-1
+
             phasePolyPoints = [[] for i in range(len(phases))]
 
             for j in range(len(self.x0data[1])):
@@ -864,6 +899,23 @@ class CalculationWindow:
                 boundaries.append(boundaries[j])
                 for k in extraBound:
                     b[inds[sindex[k]]] = len(boundaries)-1
+
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = np.array(self.ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(self.x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(self.x2)[inds]
+            x2t = x2t[sindex]
+            for i in range(len(ttt)-1):
+                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                    boundaries.append(boundaries[j])
+                    for k in range(i+1,len(ttt)):
+                        b[inds[sindex[k]]] = len(boundaries)-1
 
         # Expand two-phase regions
         tres = (self.maxt-self.mint)/res
@@ -1069,6 +1121,23 @@ class CalculationWindow:
                 boundaries.append(boundaries[j])
                 for k in extraBound:
                     b[inds[sindex[k]]] = len(boundaries)-1
+
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = np.array(self.ts)[inds]
+            sindex = np.argsort(ttt)
+            ttt = ttt[sindex]
+            x1t = np.array(self.x1)[inds]
+            x1t = x1t[sindex]
+            x2t = np.array(self.x2)[inds]
+            x2t = x2t[sindex]
+            for i in range(len(ttt)-1):
+                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                    boundaries.append(boundaries[j])
+                    for k in range(i+1,len(ttt)):
+                        b[inds[sindex[k]]] = len(boundaries)-1
 
         phasePolyPoints = [[] for i in range(len(phases))]
 
