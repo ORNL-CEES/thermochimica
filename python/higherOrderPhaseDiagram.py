@@ -330,8 +330,7 @@ class CalculationWindow:
                 crossNorms = [np.linalg.norm(np.cross(phaseCompositions[k] - self.plane[0],self.plane[1] - phaseCompositions[k])) for k in range(nPhases)]
                 if max(crossNorms) < phaseIncludeTol:
                     boundComps = [np.linalg.norm(phaseCompositions[k] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for k in range(nPhases)]
-                    self.points.append([data[i]['temperature'],boundComps[0],boundPhases[0]])
-                    self.points.append([data[i]['temperature'],boundComps[1],boundPhases[1]])
+                    self.points.append([[data[i]['temperature'],boundComps[0],boundPhases],[data[i]['temperature'],boundComps[1],boundPhases]])
                     continue
             if nPhases == self.nElementsUsed:
                 allPhases = []
@@ -345,6 +344,7 @@ class CalculationWindow:
                                 tempComp.append(data[i][phaseType][phaseName]['elements'][element]['mole fraction of phase by element'])
                             phaseComps.append(tempComp)
                 # Loop over possible phase zone intersections with plane of interest
+                temppoints = []
                 for j in range(self.nElementsUsed):
                     # Make list of phases on a (nElements-1) dimensional face through omission
                     omitComps = phaseComps.copy()
@@ -362,16 +362,18 @@ class CalculationWindow:
                     for test in range(self.nElementsUsed - 1):
                         intTest = intTest and (0 <= intersect[test]) and (intersect[test] <= 1)
                     if intTest:
-                        if intSum == 1:
-                            # If we are on the far boundary, the first phase is not included
-                            omitPhase.remove(omitPhase[0])
-                        for k in range(self.nElementsUsed - 2):
-                            # Check all the other boundaries
-                            if intersect[k+1] == 0:
-                                # If none of this is used, it is not included
-                                omitPhase.remove(omitPhase[k+1])
-                        self.points.append([data[i]['temperature'],intersect[0],omitPhase])
-            elif nPhases > 1:
+                        # if intSum == 1:
+                        #     # If we are on the far boundary, the first phase is not included
+                        #     omitPhase.remove(omitPhase[0])
+                        # for k in range(self.nElementsUsed - 2):
+                        #     # Check all the other boundaries
+                        #     if intersect[k+1] == 0:
+                        #         # If none of this is used, it is not included
+                        #         omitPhase.remove(omitPhase[k+1])
+                        # self.points.append([data[i]['temperature'],intersect[0],omitPhase])
+                        temppoints.append([data[i]['temperature'],intersect[0],allPhases])
+                self.points.append(temppoints)
+            elif nPhases > 1 and False:
                 boundPhases = []
                 skipPoint = False
                 phaseMoleSum = 0
@@ -403,9 +405,9 @@ class CalculationWindow:
             repeat = False
             for j in range(len(boundaries)):
                 thisMatch = True
-                if not (len(point[2]) == len(boundaries[j])):
+                if not (len(point[0][2]) == len(boundaries[j])):
                     continue
-                for phase in point[2]:
+                for phase in point[0][2]:
                     if not (phase in boundaries[j]):
                         thisMatch = False
                         break
@@ -414,7 +416,7 @@ class CalculationWindow:
                     repeat = True
             if not(repeat):
                 b.append(len(boundaries))
-                boundaries.append(point[2])
+                boundaries.append(point[0][2])
 
         # Start figure
         fig = plt.figure()
@@ -425,8 +427,10 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            plotPoints = np.array([[self.points[i][1],self.points[i][0]] for i, k in enumerate(b) if k == j])
-            ax.plot(plotPoints[:,0],plotPoints[:,1],'.')
+            plotPoints = np.empty([0,2])
+            plotPoints = np.append(plotPoints,np.sort(np.array([[self.points[i][0][1],self.points[i][0][0]] for i in inds])), axis=0)
+            plotPoints = np.append(plotPoints,np.flip(np.sort(np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])),0), axis=0)
+            ax.plot(plotPoints[:,0],plotPoints[:,1],'-')
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
