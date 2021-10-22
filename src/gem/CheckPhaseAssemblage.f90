@@ -175,6 +175,9 @@ subroutine CheckPhaseAssemblage
 
     if ((iterGlobal <  30).AND.(iterGlobal - iterLast < 2)) return
     if ((iterGlobal >= 30).AND.(iterGlobal - iterLast < 5)) return
+    if ((iterGlobal >= 300).AND.(iterGlobal - iterLast < 50)) return
+    if ((iterGlobal >= 1000).AND.(iterGlobal - iterLast < 500)) return
+    if ((iterGlobal >= 2000).AND.(iterGlobal - iterLast < 500)) return
 
     ! Store the indices of phases in the current estimated phase assemblage in a iteration history matrix:
     iterHistory(1:nElements,iterGlobal) = iAssemblage(1:nElements)

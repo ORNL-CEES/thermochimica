@@ -69,18 +69,18 @@ subroutine InitGEMSolver
     real(8),dimension(-1:nSolnPhasesSys)::  dTempVec
     logical::                               lPhasePass, lCompEverything
 
-
+    iterGlobalMax           = 5000
     ! Check to see if allocatable arrays have already been allocated:
     if (allocated(dMolesSpecies)) then
         ! Check to see if the number of species has changed:
         i = SIZE(dMolesSpecies)
         if (i /= nSpecies) then
-            deallocate(dMolesSpecies,dMolFraction,dPartialExcessGibbs,dPartialExcessGibbsLast, STAT = l)
+            deallocate(dMolesSpecies,dMolFraction,dMolFractionBest,dPartialExcessGibbs,dPartialExcessGibbsLast, STAT = l)
             if (l /= 0) then
                 INFOThermo = 21
                 return
             end if
-            allocate(dMolFraction(nSpecies),dMolesSpecies(nSpecies))
+            allocate(dMolFraction(nSpecies),dMolFractionBest(nSpecies),dMolesSpecies(nSpecies))
             allocate(dPartialExcessGibbs(nSpecies),dPartialExcessGibbsLast(nSpecies))
         end if
 
@@ -135,15 +135,15 @@ subroutine InitGEMSolver
             ! Check to see if the number of species has changed:
             i = SIZE(dMolFraction)
             if (i /= nSpecies) then
-                deallocate(dMolFraction, STAT = l)
+                deallocate(dMolFraction,dMolFractionBest, STAT = l)
                 if (l /= 0) then
                     INFOThermo = 21
                     return
                 end if
-                allocate(dMolFraction(nSpecies))
+                allocate(dMolFraction(nSpecies),dMolFractionBest(nSpecies))
             end if
         else
-            allocate(dMolFraction(nSpecies))
+            allocate(dMolFraction(nSpecies),dMolFractionBest(nSpecies))
         end if
     end if
 
@@ -175,11 +175,13 @@ subroutine InitGEMSolver
     dMolesPhaseLast         = dMolesPhase
     dMolesPhase             = 0D0
     dMolFraction            = 0.1D0
+    dMolFractionBest        = 0.1D0
     dMolesSpecies           = 0D0
     dTempVec                = 0D0
     dPartialExcessGibbs     = 0D0
     dPartialExcessGibbsLast = 0D0
     dDrivingForceSoln       = 0D0
+    dMinGibbs               = 1D8
     lCompEverything         = .FALSE.
     lConverged              = .FALSE.
     lRevertSystem           = .FALSE.

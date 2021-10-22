@@ -66,7 +66,10 @@ subroutine LoadReinitData
   ! Save old phase data
   if (.NOT. allocated(iAssemblage)) allocate(iAssemblage(nElements))
   if (.NOT. allocated(dMolesPhase)) allocate(dMolesPhase(nElements))
+  if (.NOT. allocated(iAssemblageBest)) allocate(iAssemblageBest(nElements))
+  if (.NOT. allocated(dMolesPhaseBest)) allocate(dMolesPhaseBest(nElements))
   if (.NOT. allocated(dMolFraction)) allocate(dMolFraction(nSpecies))
+  if (.NOT. allocated(dMolFractionBest)) allocate(dMolFractionBest(nSpecies))
   iAssemblage         = iAssemblage_Old
   dMolesPhase         = dMolesPhase_Old * dNormalizeInput
   dMolFraction        = dMolFraction_Old

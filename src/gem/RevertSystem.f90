@@ -69,8 +69,42 @@ subroutine RevertSystem(iterSpecific)
     lRevertSystem = .FALSE.
 
    ! dElementPotential = dElementPotentialRevert
+    if ((iterSpecific == 2) .AND. iterGlobal > 2000) then
+        iAssemblage = iAssemblageBest
+        dMolesPhase = dMolesPhaseBest
+        dMolFraction = dMolFractionBest
+        dElementPotential = dElementPotentialBest
 
-    if (iterSpecific /= 0) then
+
+        nConPhases               = 0
+        nSolnPhases              = 0
+        lSolnPhases              = .FALSE.
+
+        ! Count the number of pure condensed phases and the number of solution phases in the system:
+        do j = 1, nElements
+            if (iAssemblage(j) > 0) then
+                nConPhases = nConPhases + 1
+            elseif (iAssemblage(j) < 0) then
+                nSolnPhases = nSolnPhases + 1
+
+                k = -iAssemblage(j)
+
+                ! Compute the number of moles of each species:
+                do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                    dMolesSpecies(i) = dMolesPhase(j) * dMolFraction(i)
+                end do
+
+                lSolnPhases(-iAssemblage(j)) = .TRUE.
+                dMolesPhaseLast(j) = dMolesPhase(j)
+            else
+                ! If iAssemblage(j) = 0, then it is an empty placeholder.
+            end if
+
+        end do
+
+        iterLast = iterGlobal
+
+    elseif (iterSpecific > 0) then
         ! Revert to a specific iteration:
 
         iWork(1:nElements) = iterHistory(1:nElements,iterSpecific)

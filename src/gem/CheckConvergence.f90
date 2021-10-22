@@ -112,10 +112,10 @@ subroutine CheckConvergence
     implicit none
 
     integer :: i, j, k, l, c, iMaxDrivingForce
-    real(8) :: dResidual, dMaxDrivingForce
+    real(8) :: dResidual, dMaxDrivingForce, dTempGibbs
     logical :: lCompEverything, lPhaseChange
 
-
+    if (lDebugMode) print *, 'Element potentials: ', dElementPotential
     ! Initialize variables:
     dResidual       = 0D0
     lConverged      = .FALSE.
@@ -185,6 +185,22 @@ subroutine CheckConvergence
             return
         end if
     end do LOOP_TEST8
+
+    dTempGibbs = 0D0
+    do i = 1, nElements
+        dTempGibbs = dTempGibbs + dElementPotential(i)*dMolesElement(i)*dTemperature*dIdealConstant
+    end do
+    if (lDebugMode) print *, "Current Gibbs ", dTempGibbs, " minimum was ", dMinGibbs
+    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 1D-2) then
+        if (lDebugMode) print *, "New Gibbs minimum"
+        dMinGibbs = dTempGibbs
+        iAssemblageBest = iAssemblage
+        dMolesPhaseBest = dMolesPhase
+        dMolFractionBest = dMolFraction
+        dElementPotentialBest = dElementPotential
+    else
+        return
+    end if
 
     ! CONVERGENCE TEST SHORTCUT
     ! -----------------------------------------------------------------------------------

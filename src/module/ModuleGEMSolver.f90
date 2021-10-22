@@ -60,10 +60,10 @@ module ModuleGEMSolver
     integer                              ::  iterLast,      iterStep, iterRevert, iterGlobal
     integer                              ::  iterLastCon,   iterLastSoln,         iterSwap,   iterLastMiscGapCheck
     integer                              ::  iConPhaseLast, iSolnPhaseLast,       iSolnSwap,  iPureConSwap
-    integer,                 parameter   ::  iterGlobalMax = 3000
+    integer                              ::  iterGlobalMax
     integer, dimension(:,:), allocatable ::  iterHistory
 
-    real(8)                              ::  dGEMFunctionNorm,    dGEMFunctionNormLast, dMaxSpeciesChange
+    real(8)                              ::  dGEMFunctionNorm, dGEMFunctionNormLast, dMaxSpeciesChange, dMinGibbs
     real(8), dimension(:),   allocatable ::  dSumMolFractionSoln, dMolesPhaseLast, dUpdateVar, dDrivingForceSoln
     real(8), dimension(:),   allocatable ::  dPartialExcessGibbs, dPartialExcessGibbsLast
     real(8), dimension(:,:), allocatable ::  dEffStoichSolnPhase

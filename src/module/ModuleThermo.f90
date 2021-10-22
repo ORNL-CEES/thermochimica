@@ -92,7 +92,8 @@ module ModuleThermo
     integer::                                     nMaxSublatticeSys, nMaxConstituentSys, nCountSublattice
     integer,       parameter::                    iTolNum = 15, nElementsPT = 118, nMaxCompounds = 50
     integer,       dimension(:),   allocatable::  iPhase, nSpeciesPhase, iParticlesPerMole, iSUBIMixType
-    integer,       dimension(:),   allocatable::  iAssemblage, nParamPhase, iElementSystem, iSpeciesPass, nMagParamPhase
+    integer,       dimension(:),   allocatable::  nParamPhase, iElementSystem, iSpeciesPass, nMagParamPhase
+    integer,       dimension(:),   allocatable::  iAssemblage, iAssemblageBest
     integer,       dimension(:),   allocatable::  nSublatticePhase, iPhaseSublattice, iPhaseElectronID
     integer,       dimension(:,:), allocatable::  iRegularParam, iterHistoryLevel, nConstituentSublattice, nPairsSRO, iMagneticParam
     integer,       dimension(:,:), allocatable::  iSUBLParamData
@@ -105,7 +106,8 @@ module ModuleThermo
     real(8),       dimension(iTolNum)::           dTolerance
     real(8),       dimension(:),   allocatable::  dStdGibbsEnergy,    dGibbsSolnPhase, dMolesSpecies, dMagGibbsEnergy
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
-    real(8),       dimension(:),   allocatable::  dElementPotential, dMolesPhase, dMolesElement, dMolFraction, dAtomicMass
+    real(8),       dimension(:),   allocatable::  dElementPotential, dElementPotentialBest, dMolesElement, dAtomicMass
+    real(8),       dimension(:),   allocatable::  dMolesPhase, dMolesPhaseBest, dMolFraction, dMolFractionBest
     real(8),       dimension(:,:), allocatable::  dAtomFractionSpecies, dStoichSublattice, dStoichSpecies, dQKTOParams
     real(8),       dimension(:,:), allocatable::  dCoeffGibbsMagnetic, dZetaSpecies, dMagneticParam
 

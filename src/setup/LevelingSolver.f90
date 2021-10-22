@@ -118,24 +118,28 @@ subroutine LevelingSolver
 
         if (i /= nElements) then
             ! The number of elements in the system has changed.
-            deallocate(dMolesPhase,dElementPotential,iAssemblage,iterHistoryLevel,dLevel, STAT = n)
+            deallocate(dMolesPhase,dElementPotential,dElementPotentialBest,iAssemblage,iterHistoryLevel,dLevel, STAT = n)
             if (n /= 0) then
                 INFOThermo = 20
                 return
             end if
-            allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
-            allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
+            allocate(iAssemblage(nElements),iAssemblageBest(nElements),dElementPotential(nElements),&
+                        dElementPotentialBest(nElements),dLevel(nElements),iterHistoryLevel(nElements,1000))
         end if
     else
         ! Allocate memory to allocatable arrays for the first time:
-        allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
-        allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
+        allocate(dMolesPhase(nElements),dMolesPhaseBest(nElements),dElementPotential(nElements),&
+                    dElementPotentialBest(nElements),dLevel(nElements))
+        allocate(iAssemblage(nElements),iAssemblageBest(nElements),iterHistoryLevel(nElements,1000))
     end if
 
     ! Initialize allocatable variables:
     dElementPotential = 0D0
+    dElementPotentialBest = 0D0
     iterHistoryLevel  = 0
     iAssemblage       = 0
+    iAssemblageBest   = 0
+    dMolesPhaseBest   = 0D0
     dLevel            = 0D0
     nConPhases        = nElements
 

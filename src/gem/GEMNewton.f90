@@ -251,13 +251,16 @@ subroutine GEMNewton(INFO)
             B(j) = 0D0
         end do
 
+        if (lDebugMode) print *, 'iTry ', iTry
+        if (lDebugMode) print *, 'B ', B
+
         ! Check for a NAN:
-        LOOP_CheckNan: do i = 1, nVar
+        do i = 1, nVar
             if (B(i) /= B(i)) then
                 INFO = 1
-                exit LOOP_CheckNan
+                exit TryLoop
             end if
-        end do LOOP_CheckNan
+        end do
 
         if (iTry < nMaxTry) then
             if ((INFO <= 0) .OR. (INFO > nElements)) then

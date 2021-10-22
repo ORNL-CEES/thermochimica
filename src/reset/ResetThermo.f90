@@ -69,6 +69,8 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(iAssemblage)) deallocate(iAssemblage, STAT = INFO)
     i = i + INFO
+    if (allocated(iAssemblageBest)) deallocate(iAssemblageBest, STAT = INFO)
+    i = i + INFO
     if (allocated(dChemicalPotential)) deallocate(dChemicalPotential, STAT = INFO)
     i = i + INFO
     if (allocated(dMolesElement)) deallocate(dMolesElement, STAT = INFO)
@@ -87,7 +89,11 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(dElementPotential)) deallocate(dElementPotential, STAT = INFO)
     i = i + INFO
+    if (allocated(dElementPotentialBest)) deallocate(dElementPotentialBest, STAT = INFO)
+    i = i + INFO
     if (allocated(dMolesPhase)) deallocate(dMolesPhase, STAT = INFO)
+    i = i + INFO
+    if (allocated(dMolesPhaseBest)) deallocate(dMolesPhaseBest, STAT = INFO)
     i = i + INFO
     if (allocated(dMolesPhaseLast)) deallocate(dMolesPhaseLast, STAT = INFO)
     i = i + INFO
@@ -110,6 +116,8 @@ subroutine ResetThermo
     if (allocated(dSumMolFractionSoln)) deallocate(dSumMolFractionSoln, STAT = INFO)
     i = i + INFO
     if (allocated(dMolFraction)) deallocate(dMolFraction, STAT = INFO)
+    i = i + INFO
+    if (allocated(dMolFractionBest)) deallocate(dMolFractionBest, STAT = INFO)
     i = i + INFO
     if (allocated(dUpdateVar)) deallocate(dUpdateVar, STAT = INFO)
     i = i + INFO
