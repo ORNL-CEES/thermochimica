@@ -1254,8 +1254,11 @@ class RemoveWindow():
         if event == 'Remove Label(s)':
             tempLength = len(self.parent.labels)
             for i in reversed(range(tempLength)):
-                if values['-removeLabel'+str(i)+'-']:
-                    del self.parent.labels[i]
+                try:
+                    if values['-removeLabel'+str(i)+'-']:
+                        del self.parent.labels[i]
+                except:
+                    continue
             if len(self.parent.labels) == 0:
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.makePlot()
