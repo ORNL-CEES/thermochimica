@@ -255,20 +255,17 @@ program RunCalculationList
         dElementMass(iEls(j)) = dEls(j)
       end do
       call Thermochimica
-      if (INFOThermo == 0) then
-        open(2, file= DATA_DIRECTORY // '../thermoout.json', &
-            status='OLD', position='append', action='write')
-        write(intStr,*) i
-        write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
-        close (2)
-        call WriteJSON(.TRUE.)
-        open(2, file= DATA_DIRECTORY // '../thermoout.json', &
-            status='OLD', position='append', action='write')
-        if (i < nCalc) write(2,*) ','
-        close (2)
-      else
-        INFOThermo = 0
-      end if
+      open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+          status='OLD', position='append', action='write')
+      write(intStr,*) i
+      write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
+      close (2)
+      call WriteJSON(.TRUE.)
+      open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+          status='OLD', position='append', action='write')
+      if (i < nCalc) write(2,*) ','
+      close (2)
+      INFOThermo = 0
       call ResetThermo
     end do
     CLOSE(3)
