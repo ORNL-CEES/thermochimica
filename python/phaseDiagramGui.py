@@ -278,8 +278,8 @@ class CalculationWindow:
             labelListLayout = []
             for i in range(len(self.labels)):
                 labelListLayout.append([[sg.Text(self.labels[i][1],size = [55,1],justification='left'),
-                                         sg.Text("{:.3f}".format(self.labels[i][0][0]),size = [15,1],justification='center'),
-                                         sg.Text("{:.0f}".format(self.labels[i][0][1]),size = [15,1],justification='center'),
+                                         sg.Text("{:.3f}".format(float(self.labels[i][0][0])),size = [15,1],justification='center'),
+                                         sg.Text("{:.0f}".format(float(self.labels[i][0][1])),size = [15,1],justification='center'),
                                          sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
             removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
             removeWindow = RemoveWindow(self, removeLayout)
