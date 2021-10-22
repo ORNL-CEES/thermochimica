@@ -25,6 +25,7 @@ subroutine WriteJSON(append)
     ! Only proceed for a successful calculation:
     if (INFOThermo /= 0) then
         write(1,*) '}'
+        close (1)
         return
     end if
 
