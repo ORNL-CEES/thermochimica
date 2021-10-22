@@ -5,6 +5,7 @@ import numpy as np
 import math
 import os
 import subprocess
+import sys
 import scipy.optimize
 
 atomic_number_map = [
@@ -561,6 +562,18 @@ class RemoveWindow():
             self.parent.makePlot()
             self.close()
 
+if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
+    errorLayout = [[sg.Text('No Thermochimica executable available.')],
+                   [sg.Text('Either Thermochimica has not been built (run make),')],
+                   [sg.Text('or this script was not executed from Thermochimica root directory.')],
+                   [sg.Button('Exit')]]
+    errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True)
+    while True:
+        event, values = errorWindow.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            break
+    errorWindow.close()
+    sys.exit()
 windowList = []
 dataWindow = DataWindow()
 while len(windowList) > 0:
