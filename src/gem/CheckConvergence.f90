@@ -198,7 +198,7 @@ subroutine CheckConvergence
         dMolesPhaseBest = dMolesPhase
         dMolFractionBest = dMolFraction
         dElementPotentialBest = dElementPotential
-    else
+    elseif (ABS((dTempGibbs-dMinGibbs)/dMinGibbs) > 1D-6) then
         return
     end if
 
