@@ -252,6 +252,7 @@ subroutine GEMNewton(INFO)
         end do
 
         if (lDebugMode) print *, 'iTry ', iTry
+        if (lDebugMode) print *, 'INFO ', INFO
         if (lDebugMode) print *, 'B ', B
 
         ! Check for a NAN:
