@@ -232,8 +232,8 @@ subroutine CheckSystem
     k = 0
     ! Normalize dElementMass to mole fraction and establish the elements of the system:
     do j = 1, nElemOrComp
-        dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
-        if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
+        dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j))
+        if ((dElementMass(iElementSystem(j)) * dNormalizeInput) < dElementMoleFractionMin) then
             ! Element j should not be considered.
             dElementMass(iElementSystem(j)) = 0
             iElementSystem(j) = 0
@@ -585,7 +585,7 @@ subroutine CheckSystem
             else
                 cElementName(i)  = cCompoundNames(i)
             end if
-            if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i))
+            if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i)) * dNormalizeInput
         end if
     end do
 

@@ -47,7 +47,7 @@ subroutine PostProcess
     dMolesPhase     = dMolesPhase   * dNormalizeInput * dMassScale
     dMolesElement   = dMolesElement * dNormalizeInput * dMassScale
     dMolesSpecies   = dMolesSpecies * dNormalizeInput * dMassScale
-    dElementMass    = dElementMass  * dNormalizeInput * dMassScale
+    dElementMass    = dElementMass  * dMassScale
 
     ! Write the moles of condensed phases to corresponding species
     conCheck: do i = 1, nConPhases
