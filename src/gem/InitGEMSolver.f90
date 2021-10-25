@@ -69,7 +69,7 @@ subroutine InitGEMSolver
     real(8),dimension(-1:nSolnPhasesSys)::  dTempVec
     logical::                               lPhasePass, lCompEverything
 
-    iterGlobalMax           = 5000
+    iterGlobalMax           = 10000
     ! Check to see if allocatable arrays have already been allocated:
     if (allocated(dMolesSpecies)) then
         ! Check to see if the number of species has changed:
