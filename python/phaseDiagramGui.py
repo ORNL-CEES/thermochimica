@@ -156,9 +156,9 @@ class CalculationWindow:
         self.nElementsUsed = 0
         self.mint = 1e5
         self.maxt = 0
-        self.ts = []
-        self.x1 = []
-        self.x2 = []
+        self.ts = np.empty([0])
+        self.x1 = np.empty([0])
+        self.x2 = np.empty([0])
         self.p1 = []
         self.p2 = []
         self.x0data = [[],[],[]]
@@ -242,9 +242,9 @@ class CalculationWindow:
             self.munit = values['-munit-']
             if not cancelRun:
                 self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-                self.ts = []
-                self.x1 = []
-                self.x2 = []
+                self.ts = np.empty([0])
+                self.x1 = np.empty([0])
+                self.x2 = np.empty([0])
                 self.p1 = []
                 self.p2 = []
                 self.x0data = [[],[],[]]
@@ -341,11 +341,14 @@ class CalculationWindow:
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
+        ts = self.ts.tolist()
+        x1 = self.x1.tolist()
+        x2 = self.x2.tolist()
         for i in list(data.keys()):
             self.mint = min(self.mint,data[i]['temperature'])
             self.maxt = max(self.maxt,data[i]['temperature'])
             if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
-                self.ts.append(data[i]['temperature'])
+                ts.append(data[i]['temperature'])
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
@@ -353,8 +356,8 @@ class CalculationWindow:
                         if (data[i][phaseType][phaseName]['moles'] > 0):
                             boundPhases.append(phaseName)
                             boundComps.append(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element'])
-                self.x1.append(boundComps[0])
-                self.x2.append(boundComps[1])
+                x1.append(boundComps[0])
+                x2.append(boundComps[1])
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
             elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
@@ -382,6 +385,18 @@ class CalculationWindow:
                     pindex = self.x1data[0].index(pname)
                     self.x1data[1][pindex] = min(self.x1data[1][pindex],data[i]['temperature'])
                     self.x1data[2][pindex] = max(self.x1data[2][pindex],data[i]['temperature'])
+
+        # Sort data here instead of repeatedly later
+        self.ts = np.array(ts)
+        self.x1 = np.array(x1)
+        self.x2 = np.array(x2)
+        sindex  = np.argsort(self.ts)
+        self.ts = self.ts[sindex]
+        self.x1 = self.x1[sindex]
+        self.x2 = self.x2[sindex]
+        self.p1 = [self.p1[i] for i in sindex]
+        self.p2 = [self.p2[i] for i in sindex]
+
         if len(self.x0data[1]) > 1:
             x0sort = [i[0] for i in sorted(enumerate(self.x0data[1]), key=lambda x:x[1])]
             phaseOrder = []
@@ -465,13 +480,9 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             if x1t[0] > x2t[0]:
                 dir = True
             else:
@@ -483,24 +494,20 @@ class CalculationWindow:
             if len(extraBound):
                 boundaries.append(boundaries[j])
                 for k in extraBound:
-                    b[inds[sindex[k]]] = len(boundaries)-1
+                    b[inds[k]] = len(boundaries)-1
 
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             for i in range(len(ttt)-1):
                 if abs(ttt[i+1] - ttt[i]) > gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
-                        b[inds[sindex[k]]] = len(boundaries)-1
+                        b[inds[k]] = len(boundaries)-1
 
         # Start figure
         fig = plt.figure()
@@ -636,22 +643,18 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             ax.plot(x1t,ttt,self.plotMarker,c=c)
             ax.plot(x2t[::-1],ttt[::-1],self.plotMarker,c=c)
-            minj = np.argmin(np.array(self.ts)[inds])
-            maxj = np.argmax(np.array(self.ts)[inds])
+            minj = np.argmin(ttt)
+            maxj = np.argmax(ttt)
             # plot invariant temperatures
-            if (np.array(self.ts)[inds][minj] > self.mint) and not(bEdgeLine[j][0]):
-                ax.plot([np.array(self.x1)[inds][minj],np.array(self.x2)[inds][minj]],[np.array(self.ts)[inds][minj],np.array(self.ts)[inds][minj]],'k-')
-            if (np.array(self.ts)[inds][maxj] < self.maxt) and not(bEdgeLine[j][1]):
-                ax.plot([np.array(self.x1)[inds][maxj],np.array(self.x2)[inds][maxj]],[np.array(self.ts)[inds][maxj],np.array(self.ts)[inds][maxj]],'k-')
+            if (ttt[minj] > self.mint) and not(bEdgeLine[j][0]):
+                ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],'k-')
+            if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
+                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'k-')
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
@@ -758,13 +761,9 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = np.array(self.ts)[inds]
-                sindex = np.argsort(ttt)
-                ttt = ttt[sindex]
-                x1t = np.array(self.x1)[inds]
-                x1t = x1t[sindex]
-                x2t = np.array(self.x2)[inds]
-                x2t = x2t[sindex]
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
                 if x1t[0] > x2t[0]:
                     dir = True
                 else:
@@ -778,24 +777,20 @@ class CalculationWindow:
                     congruentFound[phases.index(boundaries[j][1])] = True
                     boundaries.append(boundaries[j])
                     for k in extraBound:
-                        b[inds[sindex[k]]] = len(boundaries)-1
+                        b[inds[k]] = len(boundaries)-1
 
             for j in range(len(boundaries)):
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = np.array(self.ts)[inds]
-                sindex = np.argsort(ttt)
-                ttt = ttt[sindex]
-                x1t = np.array(self.x1)[inds]
-                x1t = x1t[sindex]
-                x2t = np.array(self.x2)[inds]
-                x2t = x2t[sindex]
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
                 for i in range(len(ttt)-1):
                     if abs(ttt[i+1] - ttt[i]) > gapLimit:
                         boundaries.append(boundaries[j])
                         for k in range(i+1,len(ttt)):
-                            b[inds[sindex[k]]] = len(boundaries)-1
+                            b[inds[k]] = len(boundaries)-1
 
             phasePolyPoints = [[] for i in range(len(phases))]
 
@@ -814,21 +809,17 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = np.array(self.ts)[inds]
-                sindex = np.argsort(ttt)
-                ttt = ttt[sindex]
-                x1t = np.array(self.x1)[inds]
-                x1t = x1t[sindex]
-                x2t = np.array(self.x2)[inds]
-                x2t = x2t[sindex]
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
                 for i in range(len(inds)):
                     polygonPoints.append([x1t[i],ttt[i]])
                 for i in reversed(range(len(inds))):
                     polygonPoints.append([x2t[i],ttt[i]])
                 phaseOutline = Polygon(polygonPoints).buffer(0)
                 self.outline = self.outline.buffer(0) - phaseOutline
-                minj = np.argmin(np.array(self.ts)[inds])
-                maxj = np.argmax(np.array(self.ts)[inds])
+                minj = np.argmin(ttt)
+                maxj = np.argmax(ttt)
                 for i in range(len(phases)):
                     if boundaries[j][0] == phases[i]:
                         phasePolyPoints[i].append(polygonPoints[:len(inds)])
@@ -938,13 +929,9 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             if x1t[0] > x2t[0]:
                 dir = True
             else:
@@ -956,24 +943,20 @@ class CalculationWindow:
             if len(extraBound):
                 boundaries.append(boundaries[j])
                 for k in extraBound:
-                    b[inds[sindex[k]]] = len(boundaries)-1
+                    b[inds[k]] = len(boundaries)-1
 
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             for i in range(len(ttt)-1):
                 if abs(ttt[i+1] - ttt[i]) > gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
-                        b[inds[sindex[k]]] = len(boundaries)-1
+                        b[inds[k]] = len(boundaries)-1
 
         # Expand two-phase regions
         tres = (self.maxt-self.mint)/res
@@ -983,13 +966,9 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             tbound = max(self.mint,ttt[0]-tres*3)
             for k in np.arange(tbound,max(self.mint,ttt[0]-tres/3),tres/3):
                 ys.append(k)
@@ -1052,13 +1031,9 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = np.array(self.ts)[inds]
-                sindex = np.argsort(ttt)
-                ttt = ttt[sindex]
-                x1t = np.array(self.x1)[inds]
-                x1t = x1t[sindex]
-                x2t = np.array(self.x2)[inds]
-                x2t = x2t[sindex]
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
                 if x1t[0] > x2t[0]:
                     dir = True
                 else:
@@ -1070,7 +1045,7 @@ class CalculationWindow:
                 if len(extraBound):
                     boundaries.append(boundaries[j])
                     for k in extraBound:
-                        b[inds[sindex[k]]] = len(boundaries)-1
+                        b[inds[k]] = len(boundaries)-1
 
             # Refine two-phase region density
             xs = []
@@ -1079,13 +1054,9 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = np.array(self.ts)[inds]
-                sindex = np.argsort(ttt)
-                ttt = ttt[sindex]
-                x1t = np.array(self.x1)[inds]
-                x1t = x1t[sindex]
-                x2t = np.array(self.x2)[inds]
-                x2t = x2t[sindex]
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
                 for i in range(len(ttt)-1):
                     gap = np.sqrt(((ttt[i]-ttt[i+1])/(self.maxt-self.mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
                     maxGap = max(gap,maxGap)
@@ -1158,13 +1129,9 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             if x1t[0] > x2t[0]:
                 dir = True
             else:
@@ -1178,24 +1145,20 @@ class CalculationWindow:
                 congruentFound[phases.index(boundaries[j][1])] = True
                 boundaries.append(boundaries[j])
                 for k in extraBound:
-                    b[inds[sindex[k]]] = len(boundaries)-1
+                    b[inds[k]] = len(boundaries)-1
 
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             for i in range(len(ttt)-1):
                 if abs(ttt[i+1] - ttt[i]) > gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
-                        b[inds[sindex[k]]] = len(boundaries)-1
+                        b[inds[k]] = len(boundaries)-1
 
         phasePolyPoints = [[] for i in range(len(phases))]
 
@@ -1214,13 +1177,9 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = np.array(self.ts)[inds]
-            sindex = np.argsort(ttt)
-            ttt = ttt[sindex]
-            x1t = np.array(self.x1)[inds]
-            x1t = x1t[sindex]
-            x2t = np.array(self.x2)[inds]
-            x2t = x2t[sindex]
+            ttt = self.ts[inds]
+            x1t = self.x1[inds]
+            x2t = self.x2[inds]
             for i in range(len(inds)):
                 polygonPoints.append([x1t[i],ttt[i]])
             for i in reversed(range(len(inds))):
@@ -1264,8 +1223,12 @@ class RefineWindow():
             self.close()
         elif event =='Refine':
             cancelRun = False
-            ntstep = values['-ntstepr-']
-            nxstep = values['-nxstepr-']
+            ntstep = 10
+            if values['-ntstepr-'] != '':
+                ntstep = values['-ntstepr-']
+            nxstep = 10
+            if values['-nxstepr-'] != '':
+                nxstep = values['-nxstepr-']
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
