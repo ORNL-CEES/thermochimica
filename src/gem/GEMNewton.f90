@@ -218,7 +218,6 @@ subroutine GEMNewton(INFO)
             j = nElements + nSolnPhases + nConPhases + k
             A(i,j) = 1D0
             A(j,i) = A(i,j)
-            A(j,i) = A(i,j)
             B(j) = 0D0
         end do
 
