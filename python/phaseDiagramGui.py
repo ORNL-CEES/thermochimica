@@ -102,43 +102,48 @@ class DataWindow:
                         elLen = 25 # formatted 25 wide
                         for j in range(3):
                             elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                i = 0
-                while i < nElements:
-                    try:
-                        index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
-                        i = i + 1
-                    except ValueError:
+            except:
+                return
+            i = 0
+            while i < nElements:
+                try:
+                    index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
+                    i = i + 1
+                except ValueError:
+                    if len(elements[i]) > 0:
                         if elements[i][0] != 'e':
                             print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
-                        elements.remove(elements[i])
-                        nElements = nElements - 1
-                elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],default_value=elements[0],key='-el1-')]],vertical_alignment='t'),
-                                  sg.Column([[sg.Text('Element 2')],[sg.Combo(elements[:nElements],default_value=elements[1],key='-el2-')]],vertical_alignment='t')]
-                xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
-                              [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
-                              ],vertical_alignment='t'),
-                              sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-                tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                              [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                              ],vertical_alignment='t'),
-                              sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
-                presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                              [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
-                              ]
-                setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'),
-                    sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
-                    [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                    [sg.Button('Auto Densify', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                    sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                    [sg.Button('Auto Label', disabled = True, size = buttonSize)],
-                    [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                    sg.Exit()]]
-                calcWindow = CalculationWindow(setupLayout,datafile,nElements,elements)
-                self.children.append(calcWindow)
-            except:
-                pass
+                    elements.remove(elements[i])
+                    nElements = nElements - 1
+            if nElements == 0:
+                return
+            elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],default_value=elements[0],key='-el1-')]],vertical_alignment='t'),
+                              sg.Column([[sg.Text('Element 2')],[sg.Combo(elements[:nElements],default_value=elements[1],key='-el2-')]],vertical_alignment='t')]
+            xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
+                          [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
+                          ],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
+            tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
+                          ],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+            presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
+                          ]
+            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'),
+                sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Densify', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                [sg.Button('Auto Label', disabled = True, size = buttonSize)],
+                [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
+                sg.Exit()]]
+            calcWindow = CalculationWindow(setupLayout,datafile,nElements,elements)
+            self.children.append(calcWindow)
 
 class CalculationWindow:
     def __init__(self, windowLayout, datafile, nElements, elements):
@@ -165,6 +170,7 @@ class CalculationWindow:
         self.pressure = 1
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
+        self.plotMarker = '-'
     def close(self):
         for child in self.children:
             child.close()
@@ -210,18 +216,28 @@ class CalculationWindow:
                 xlo = 0
             self.el1 = values['-el1-']
             self.el2 = values['-el2-']
-            if (str(self.el1) == str(self.el2)) or (float(tlo) == float(thi)):
-                cancelRun = True
-                repeatLayout = [[sg.Text('Values cannot be equal.')],[sg.Button('Cancel')]]
-                repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True)
+            try:
+                if (str(self.el1) == str(self.el2)) or (float(tlo) == float(thi)):
+                    cancelRun = True
+                    repeatLayout = [[sg.Text('Values cannot be equal.')],[sg.Button('Cancel')]]
+                    repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True)
+                    while True:
+                        event, values = repeatWindow.read(timeout=timeout)
+                        if event == sg.WIN_CLOSED or event == 'Cancel':
+                            break
+                        elif event == 'Continue':
+                            cancelRun = False
+                            break
+                    repeatWindow.close()
+            except ValueError:
+                errorLayout = [[sg.Text('Invalid value detected.')],[sg.Button('Cancel')]]
+                errorWindow = sg.Window('Invalid value notification', errorLayout, location = [400,0], finalize=True)
                 while True:
-                    event, values = repeatWindow.read(timeout=timeout)
+                    event, values = errorWindow.read(timeout=timeout)
                     if event == sg.WIN_CLOSED or event == 'Cancel':
                         break
-                    elif event == 'Continue':
-                        cancelRun = False
-                        break
-                repeatWindow.close()
+                errorWindow.close()
+                return
             self.munit = values['-munit-']
             if not cancelRun:
                 self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
@@ -243,6 +259,7 @@ class CalculationWindow:
                 self.sgw.Element('Auto Densify').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Auto Label').Update(disabled = False)
+                self.sgw.Element('Plot').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -285,6 +302,8 @@ class CalculationWindow:
             removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
             removeWindow = RemoveWindow(self, removeLayout)
             self.children.append(removeWindow)
+        elif event =='Plot':
+            self.makePlot()
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
@@ -591,8 +610,8 @@ class CalculationWindow:
             x1t = x1t[sindex]
             x2t = np.array(self.x2)[inds]
             x2t = x2t[sindex]
-            ax.plot(x1t,ttt,'-',c=c)
-            ax.plot(x2t[::-1],ttt[::-1],'-',c=c)
+            ax.plot(x1t,ttt,self.plotMarker,c=c)
+            ax.plot(x2t[::-1],ttt[::-1],self.plotMarker,c=c)
             minj = np.argmin(np.array(self.ts)[inds])
             maxj = np.argmax(np.array(self.ts)[inds])
             # plot invariant temperatures
