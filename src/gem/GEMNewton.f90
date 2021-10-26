@@ -252,6 +252,7 @@ subroutine GEMNewton(INFO)
         end do
 
         if (lDebugMode) print *, 'iTry ', iTry
+        if (lDebugMode) print *, 'iErrCol ', iErrCol
         if (lDebugMode) print *, 'INFO ', INFO
         if (lDebugMode) print *, 'B ', B
 
@@ -264,6 +265,7 @@ subroutine GEMNewton(INFO)
         end do
 
         if (iTry < nMaxTry) then
+            if (MAXVAL(B) > 1D25) INFO = nElements
             if ((INFO <= 0) .OR. (INFO > nElements)) then
                 exit TryLoop
             else
