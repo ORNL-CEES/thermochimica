@@ -171,6 +171,7 @@ class CalculationWindow:
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
         self.plotMarker = '-'
+        self.plotColor = 'colorful'
     def close(self):
         for child in self.children:
             child.close()
@@ -304,6 +305,35 @@ class CalculationWindow:
             self.children.append(removeWindow)
         elif event =='Plot':
             self.makePlot()
+        elif event =='Plot Settings':
+            if self.plotMarker == '-':
+                line  = True
+                point = False
+                both  = False
+            elif self.plotMarker == '.':
+                line  = False
+                point = True
+                both  = False
+            else:
+                line  = False
+                point = False
+                both  = True
+            if self.plotColor == 'colorful':
+                colorful = True
+                bland    = False
+            else:
+                colorful = False
+                bland    = True
+            settingsLayout = [[sg.Text('Marker Style:')],
+                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                             [sg.Text('Plot Colors:')],
+                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Button('Accept')]]
+            settingsWindow = SettingsWindow(self, settingsLayout)
+            self.children.append(settingsWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
@@ -599,7 +629,10 @@ class CalculationWindow:
         # plot 2-phase region boundaries
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
         for j in range(len(boundaries)):
-            c = next(color)
+            if self.plotColor == 'colorful':
+                c = next(color)
+            else:
+                c = 'k'
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
@@ -1333,7 +1366,7 @@ class RemoveWindow():
     def __init__(self, parent, windowLayout):
         self.parent = parent
         windowList.append(self)
-        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window('Remove phase label', windowLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
         for child in self.children:
@@ -1357,6 +1390,33 @@ class RemoveWindow():
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.makePlot()
             self.close()
+
+class SettingsWindow:
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Plot Settings', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Accept':
+            self.close()
+        elif event == '-mline-':
+            self.parent.plotMarker = '-'
+        elif event =='-mpoint-':
+            self.parent.plotMarker = '.'
+        elif event =='-mboth-':
+            self.parent.plotMarker = '.-'
+        elif event =='-mcolorful-':
+            self.parent.plotColor = 'colorful'
+        elif event =='-mbland-':
+            self.parent.plotColor = 'bland'
 
 if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
