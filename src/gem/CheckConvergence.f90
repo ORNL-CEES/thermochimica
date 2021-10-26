@@ -191,7 +191,7 @@ subroutine CheckConvergence
         dTempGibbs = dTempGibbs + dElementPotential(i)*dMolesElement(i)*dTemperature*dIdealConstant
     end do
     if (lDebugMode) print *, "Current Gibbs ", dTempGibbs, " minimum was ", dMinGibbs
-    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 1D-3) then
+    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 5D-4) then
         if (lDebugMode) print *, "New Gibbs minimum"
         dMinGibbs = dTempGibbs
         iAssemblageBest = iAssemblage
