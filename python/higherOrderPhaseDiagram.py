@@ -139,10 +139,12 @@ class DataWindow:
                               [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                               [sg.Text('Mass unit')],
                               [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                              [sg.Button('Run', size = buttonSize),
-                               sg.Button('Refine', disabled = True, size = buttonSize),
-                               sg.Button('Add Label', disabled = True, size = buttonSize),
-                               sg.Button('Remove Label', disabled = True, size = buttonSize),
+                              [sg.Column([[sg.Button('Run', size = buttonSize)],
+                              [sg.Button('Refine', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                               sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                              [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                               sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                              [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
                                sg.Exit()]]
                 calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
                 self.children.append(calcWindow)
@@ -159,6 +161,8 @@ class CalculationWindow:
         self.children = []
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
+        self.plotMarker = '-'
+        self.plotColor = 'colorful'
     def close(self):
         for child in self.children:
             child.close()
@@ -242,6 +246,7 @@ class CalculationWindow:
                 self.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
+                self.sgw.Element('Plot').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -272,6 +277,37 @@ class CalculationWindow:
             removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
             removeWindow = RemoveWindow(self, removeLayout)
             self.children.append(removeWindow)
+        elif event =='Plot':
+            self.makePlot()
+        elif event =='Plot Settings':
+            if self.plotMarker == '-':
+                line  = True
+                point = False
+                both  = False
+            elif self.plotMarker == '.':
+                line  = False
+                point = True
+                both  = False
+            else:
+                line  = False
+                point = False
+                both  = True
+            if self.plotColor == 'colorful':
+                colorful = True
+                bland    = False
+            else:
+                colorful = False
+                bland    = True
+            settingsLayout = [[sg.Text('Marker Style:')],
+                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                             [sg.Text('Plot Colors:')],
+                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Button('Accept')]]
+            settingsWindow = SettingsWindow(self, settingsLayout)
+            self.children.append(settingsWindow)
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
@@ -423,7 +459,12 @@ class CalculationWindow:
         plt.ion()
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
         for j in range(len(boundaries)):
+            if self.plotColor == 'colorful':
+                c = next(color)
+            else:
+                c = 'k'
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
@@ -432,7 +473,7 @@ class CalculationWindow:
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
             temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
-            ax.plot(plotPoints[:,0],plotPoints[:,1],'-')
+            ax.plot(plotPoints[:,0],plotPoints[:,1],self.plotMarker,c=c)
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
@@ -567,6 +608,33 @@ class RemoveWindow():
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.makePlot()
             self.close()
+
+class SettingsWindow:
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Plot Settings', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Accept':
+            self.close()
+        elif event == '-mline-':
+            self.parent.plotMarker = '-'
+        elif event =='-mpoint-':
+            self.parent.plotMarker = '.'
+        elif event =='-mboth-':
+            self.parent.plotMarker = '.-'
+        elif event =='-mcolorful-':
+            self.parent.plotColor = 'colorful'
+        elif event =='-mbland-':
+            self.parent.plotColor = 'bland'
 
 if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
