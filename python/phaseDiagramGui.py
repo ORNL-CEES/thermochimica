@@ -173,12 +173,20 @@ class CalculationWindow:
             self.close()
         elif event =='Run':
             cancelRun = False
-            ntstep = values['-ntstep-']
-            if ntstep == '':
-                ntstep = 10
-            nxstep = values['-nxstep-']
-            if nxstep == '':
-                nxstep = 10
+            ntstep = 10
+            try:
+                tempstep = int(values['-ntstepr-'])
+                if values['-ntstepr-'] >= 0:
+                    ntstep = tempstep
+            except:
+                pass
+            nxstep = 10
+            try:
+                tempstep = int(values['-nxstepr-'])
+                if values['-nxstepr-'] >= 0:
+                    nxstep = tempstep
+            except:
+                pass
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
@@ -1337,11 +1345,19 @@ class RefineWindow():
         elif event =='Refine':
             cancelRun = False
             ntstep = 10
-            if values['-ntstepr-'] != '':
-                ntstep = values['-ntstepr-']
+            try:
+                tempstep = int(values['-ntstepr-'])
+                if values['-ntstepr-'] >= 0:
+                    ntstep = tempstep
+            except:
+                pass
             nxstep = 10
-            if values['-nxstepr-'] != '':
-                nxstep = values['-nxstepr-']
+            try:
+                tempstep = int(values['-nxstepr-'])
+                if values['-nxstepr-'] >= 0:
+                    nxstep = tempstep
+            except:
+                pass
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
@@ -1354,26 +1370,34 @@ class RefineWindow():
                         cancelRun = False
                         break
                 confirmWindow.close()
-            tlo = 300
-            try:
-                tlo = float(values['-temperaturer-'])
-            except:
-                pass
-            thi = 1000
-            try:
-                thi = float(values['-endtemperaturer-'])
-            except:
-                pass
             xlo = 0
             try:
-                xlo = float(values['-xlor-'])
+                templo = float(values['-xlo-'])
+                if 0 <= templo <= 1:
+                    xlo = templo
             except:
                 pass
             xhi = 1
             try:
-                xhi = float(values['-xhir-'])
+                temphi = float(values['-xhi-'])
+                if 0 <= temphi <= 1:
+                    xhi = temphi
             except:
                 pass
+            tlo = 300
+            try:
+                templo = float(values['-temperature-'])
+                if 295 <= templo <= 6000:
+                    tlo = templo
+            except:
+                pass
+            thi = 1000
+            try:
+                temphi = float(values['-endtemperature-'])
+                if 295 <= temphi <= 6000:
+                    thi = temphi
+            except:
+                    pass
             if not cancelRun:
                 self.parent.makeBackup()
                 self.parent.sgw.Element('Undo').Update(disabled = False)
