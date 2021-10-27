@@ -325,8 +325,8 @@ class CalculationWindow:
                              [sg.Text('Plot Colors:')],
                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                             [sg.Text('Export Format')],
-                             [sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
@@ -1496,6 +1496,10 @@ class SettingsWindow:
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
         elif event =='Accept':
+            try:
+                self.parent.exportFileName = str(values['-filename-'])
+            except:
+                pass
             self.parent.exportFormat = values['-format-']
             try:
                 tempDPI = int(values['-dpi-'])
