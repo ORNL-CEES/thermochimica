@@ -161,6 +161,8 @@ class CalculationWindow:
         self.exportFormat = 'png'
         self.exportFileName = 'thermochimicaPhaseDiagram'
         self.exportDPI = 300
+        self.resRef = 7
+        self.resSmooth = 7
     def close(self):
         for child in self.children:
             child.close()
@@ -274,6 +276,8 @@ class CalculationWindow:
                 self.mint = 1e6
                 self.maxt = 0
                 self.labels = []
+                self.resRef = 7
+                self.resSmooth = 7
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -295,13 +299,19 @@ class CalculationWindow:
             refineWindow = RefineWindow(self, refineLayout)
             self.children.append(refineWindow)
         elif event =='Auto Refine':
-            autoRefineLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Refine'), sg.Exit()]]]
-            autoRefineWindow = AutoRefineWindow(self,autoRefineLayout)
-            self.children.append(autoRefineWindow)
+            self.makeBackup()
+            self.sgw.Element('Undo').Update(disabled = False)
+            self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
+            self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
+            self.autoRefine((self.resRef**2))
+            self.makePlot()
+            self.resRef += 1
         elif event =='Auto Smoothen':
-            autoSmoothenLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Smoothen'), sg.Exit()]]]
-            autoSmoothenWindow = AutoSmoothenWindow(self,autoSmoothenLayout)
-            self.children.append(autoSmoothenWindow)
+            self.makeBackup()
+            self.sgw.Element('Undo').Update(disabled = False)
+            self.autoRefine2Phase(self.resSmooth**2)
+            self.makePlot()
+            self.resSmooth += 1
         elif event =='Add Label':
             xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
             tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
@@ -1269,6 +1279,8 @@ class CalculationWindow:
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI
+        self.backup.resRef = self.resRef
+        self.backup.resSmooth = self.resSmooth
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1404,62 +1416,6 @@ class RefineWindow():
                 self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.runCalc()
                 self.parent.makePlot()
-
-class AutoRefineWindow():
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Auto-refine setup', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == 'Refine':
-            self.parent.makeBackup()
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            resRef = values['-res-']
-            if resRef == '':
-                resRef = 49
-            resRef = float(resRef)
-            self.parent.refineLimit(0,(self.parent.maxt-self.parent.mint)/resRef/10)
-            self.parent.refineLimit(1,(self.parent.maxt-self.parent.mint)/resRef/10)
-            self.parent.autoRefine(resRef)
-            self.parent.makePlot()
-            self.close()
-
-class AutoSmoothenWindow():
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Auto-Smoothen setup', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == 'Smoothen':
-            self.parent.makeBackup()
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            resRef = values['-res-']
-            if resRef == '':
-                resRef = 100
-            resRef = float(resRef)
-            self.parent.autoRefine2Phase(resRef)
-            self.parent.makePlot()
-            self.close()
 
 class LabelWindow():
     def __init__(self, parent, windowLayout):
