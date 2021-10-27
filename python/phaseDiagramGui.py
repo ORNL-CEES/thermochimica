@@ -192,19 +192,43 @@ class CalculationWindow:
                         break
                 confirmWindow.close()
             self.makeBackup()
-            tlo= values['-temperature-']
-            thi = values['-endtemperature-']
-            self.pressure = values['-pressure-']
-            if self.pressure == '':
-                self.pressure = 1
+            self.pressure = 1
+            try:
+                tempPress = float(values['-pressure-'])
+                if 1e-6 < tempPress < 1e6:
+                    self.pressure = float(values['-pressure-'])
+            except:
+                pass
             self.tunit = values['-tunit-']
             self.punit = values['-punit-']
-            xhi = values['-xhi-']
-            if xhi == '':
-                xhi = 1
-            xlo = values['-xlo-']
-            if xlo == '':
-                xlo = 0
+            xlo = 0
+            try:
+                templo = float(values['-xlo-'])
+                if 0 <= templo <= 1:
+                    xlo = templo
+            except:
+                pass
+            xhi = 1
+            try:
+                temphi = float(values['-xhi-'])
+                if 0 <= temphi <= 1:
+                    xhi = temphi
+            except:
+                pass
+            tlo = 300
+            try:
+                templo = float(values['-temperature-'])
+                if 295 <= templo <= 6000:
+                    tlo = templo
+            except:
+                pass
+            thi = 1000
+            try:
+                temphi = float(values['-endtemperature-'])
+                if 295 <= temphi <= 6000:
+                    thi = temphi
+            except:
+                    pass
             self.el1 = values['-el1-']
             self.el2 = values['-el2-']
             try:
