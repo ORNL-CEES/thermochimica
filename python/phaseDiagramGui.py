@@ -57,6 +57,7 @@ class DataWindow:
             if os.path.isfile(os.path.join(self.folder, f))
             and f.lower().endswith((".dat", ".DAT"))
         ]
+        fnames = sorted(fnames, key=str.lower)
         self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
@@ -83,6 +84,7 @@ class DataWindow:
                 if os.path.isfile(os.path.join(self.folder, f))
                 and f.lower().endswith((".dat", ".DAT"))
             ]
+            fnames = sorted(fnames, key=str.lower)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             try:
