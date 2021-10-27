@@ -1434,13 +1434,17 @@ class LabelWindow():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         elif event =='Add Label':
-            self.parent.makeBackup()
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            xlab = values['-xlab-']
-            tlab = values['-tlab-']
-            self.parent.addLabel(xlab,tlab)
-            self.parent.makePlot()
-            self.parent.sgw.Element('Remove Label').Update(disabled = False)
+            try:
+                xlab = float(values['-xlab-'])
+                tlab = float(values['-tlab-'])
+                if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
+                    self.parent.makeBackup()
+                    self.parent.sgw.Element('Undo').Update(disabled = False)
+                    self.parent.addLabel(xlab,tlab)
+                    self.parent.makePlot()
+                    self.parent.sgw.Element('Remove Label').Update(disabled = False)
+            except:
+                pass
 
 class RemoveWindow():
     def __init__(self, parent, windowLayout):
