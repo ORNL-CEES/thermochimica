@@ -162,17 +162,41 @@ class CalculationWindow:
             self.close()
         elif event =='Run':
                 self.makeBackup()
-                tlo = 300.0
-                if values['-temperature-'] != '':
-                    tlo = float(values['-temperature-'])
-                thi = 1000.0
-                if values['-endtemperature-'] != '':
-                    thi = float(values['-endtemperature-'])
+                tlo = 300
+                try:
+                    templo = float(values['-temperature-'])
+                    if 295 <= templo <= 6000:
+                        tlo = templo
+                except:
+                    pass
+                thi = 1000
+                try:
+                    temphi = float(values['-endtemperature-'])
+                    if 295 <= temphi <= 6000:
+                        thi = temphi
+                except:
+                        pass
                 ntstep = 10
-                if values['-ntstep-'] != '':
-                    ntstep = int(values['-ntstep-'])
+                try:
+                    tempstep = int(values['-ntstepr-'])
+                    if values['-ntstepr-'] >= 0:
+                        ntstep = tempstep
+                except:
+                    pass
                 nxstep = 10
+                try:
+                    tempstep = int(values['-nxstepr-'])
+                    if values['-nxstepr-'] >= 0:
+                        nxstep = tempstep
+                except:
+                    pass
                 self.pressure = 1
+                try:
+                    tempPress = float(values['-pressure-'])
+                    if 1e-6 < tempPress < 1e6:
+                        self.pressure = float(values['-pressure-'])
+                except:
+                    pass
                 if values['-pressure-'] != '':
                     self.pressure = values['-pressure-']
                 self.mint = tlo
@@ -611,11 +635,19 @@ class RefineWindow():
         elif event =='Refine':
             cancelRun = False
             ntstep = 10
-            if values['-ntstepr-'] != '':
-                ntstep = int(values['-ntstepr-'])
+            try:
+                tempstep = int(values['-ntstepr-'])
+                if values['-ntstepr-'] >= 0:
+                    ntstep = tempstep
+            except:
+                pass
             nxstep = 10
-            if values['-nxstepr-'] != '':
-                nxstep = int(values['-nxstepr-'])
+            try:
+                tempstep = int(values['-nxstepr-'])
+                if values['-nxstepr-'] >= 0:
+                    nxstep = tempstep
+            except:
+                pass
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
@@ -628,10 +660,34 @@ class RefineWindow():
                         cancelRun = False
                         break
                 confirmWindow.close()
-            tlo = float(values['-temperaturer-'])
-            thi = float(values['-endtemperaturer-'])
-            xhi = float(values['-xhir-'])
-            xlo = float(values['-xlor-'])
+            xlo = 0
+            try:
+                templo = float(values['-xlo-'])
+                if 0 <= templo <= 1:
+                    xlo = templo
+            except:
+                pass
+            xhi = 1
+            try:
+                temphi = float(values['-xhi-'])
+                if 0 <= temphi <= 1:
+                    xhi = temphi
+            except:
+                pass
+            tlo = 300
+            try:
+                templo = float(values['-temperature-'])
+                if 295 <= templo <= 6000:
+                    tlo = templo
+            except:
+                pass
+            thi = 1000
+            try:
+                temphi = float(values['-endtemperature-'])
+                if 295 <= temphi <= 6000:
+                    thi = temphi
+            except:
+                    pass
             if not cancelRun:
                 self.parent.makeBackup()
                 self.parent.sgw.Element('Undo').Update(disabled = False)
@@ -656,14 +712,18 @@ class LabelWindow():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         elif event =='Add Label':
-            xlab = float(values['-xlab-'])
-            tlab = float(values['-tlab-'])
-            self.parent.makeBackup()
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            self.parent.addLabel(xlab,tlab)
-            self.parent.processPhaseDiagramData()
-            self.parent.makePlot()
-            self.parent.sgw.Element('Remove Label').Update(disabled = False)
+            try:
+                xlab = float(values['-xlab-'])
+                tlab = float(values['-tlab-'])
+                if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
+                    self.parent.makeBackup()
+                    self.parent.sgw.Element('Undo').Update(disabled = False)
+                    self.parent.addLabel(xlab,tlab)
+                    self.parent.processPhaseDiagramData()
+                    self.parent.makePlot()
+                    self.parent.sgw.Element('Remove Label').Update(disabled = False)
+            except:
+                pass
 
 class RemoveWindow():
     def __init__(self, parent, windowLayout):
