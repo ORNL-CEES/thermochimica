@@ -19,7 +19,6 @@ import operator
 timeout = 50
 inputSize = 20
 buttonSize = 12
-gapLimit = np.Inf
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -163,6 +162,7 @@ class CalculationWindow:
         self.exportDPI = 300
         self.resRef = 7
         self.resSmooth = 7
+        self.gapLimit = np.Inf
     def close(self):
         for child in self.children:
             child.close()
@@ -278,6 +278,7 @@ class CalculationWindow:
                 self.labels = []
                 self.resRef = 7
                 self.resSmooth = 7
+                self.gapLimit = np.Inf
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -546,7 +547,7 @@ class CalculationWindow:
             x1t = self.x1[inds]
             x2t = self.x2[inds]
             for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
                         b[inds[k]] = len(boundaries)-1
@@ -831,7 +832,7 @@ class CalculationWindow:
                 x1t = self.x1[inds]
                 x2t = self.x2[inds]
                 for i in range(len(ttt)-1):
-                    if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                    if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
                         boundaries.append(boundaries[j])
                         for k in range(i+1,len(ttt)):
                             b[inds[k]] = len(boundaries)-1
@@ -997,7 +998,7 @@ class CalculationWindow:
             x1t = self.x1[inds]
             x2t = self.x2[inds]
             for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
                         b[inds[k]] = len(boundaries)-1
@@ -1134,6 +1135,7 @@ class CalculationWindow:
             # Test the minimum difference between points to see if converged
             if maxGap <= 1/res:
                 break
+        self.gapLimit = 2*tres
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
@@ -1201,7 +1203,7 @@ class CalculationWindow:
             x1t = self.x1[inds]
             x2t = self.x2[inds]
             for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > gapLimit:
+                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
                     boundaries.append(boundaries[j])
                     for k in range(i+1,len(ttt)):
                         b[inds[k]] = len(boundaries)-1
@@ -1281,6 +1283,7 @@ class CalculationWindow:
         self.backup.exportDPI = self.exportDPI
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
+        self.backup.gapLimit = self.gapLimit
     def activate(self):
         if not self.active:
             self.makeLayout()
