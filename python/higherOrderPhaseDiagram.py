@@ -5,6 +5,7 @@ import numpy as np
 import math
 import os
 import subprocess
+import copy
 import sys
 import scipy.optimize
 
@@ -111,60 +112,44 @@ class DataWindow:
                             print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
                         elements.remove(elements[i])
                         nElements = nElements - 1
-                tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                              [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
-                              vertical_alignment='t'),
-                              sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],
-                              [sg.Input(key='-endtemperature-',size=(inputSize,1))]],
-                              vertical_alignment='t'),
-                              sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],
-                              vertical_alignment='t')]
-                presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                              [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],
-                              vertical_alignment='t')]
-                elem1Layout = [[sg.Text('Composition 1')]]
-                elem2Layout = [[sg.Text('Composition 2')]]
-                for i in range(nElements):
-                    elem1Layout.append([sg.Text(elements[i])])
-                    elem1Layout.append([sg.Input(key='-'+elements[i]+'1-',size=(inputSize,1))])
-                for i in range(nElements):
-                    elem2Layout.append([sg.Text(elements[i])])
-                    elem2Layout.append([sg.Input(key='-'+elements[i]+'2-',size=(inputSize,1))])
-                if (nElements < 8):
-                    elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
-                else:
-                    elemLayout = [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
-                                  sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)]
-                calcLayout = [tempLayout,
-                              presLayout,
-                              elemLayout,
-                              [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
-                              [sg.Text('Mass unit')],
-                              [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                              [sg.Column([[sg.Button('Run', size = buttonSize)],
-                              [sg.Button('Refine', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                               sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                              [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                               sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                              [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
-                               sg.Exit()]]
-                calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
+                calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
                 self.children.append(calcWindow)
             except:
                 pass
 
 class CalculationWindow:
-    def __init__(self, windowLayout, datafile, nElements, elements):
-        windowList.append(self)
+    def __init__(self, parent, datafile, nElements, elements, active):
+        self.parent = parent
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
+        self.active = active
+        if self.active:
+            self.makeLayout()
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            windowList.append(self)
         self.children = []
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
         self.outputFileName = 'thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
+        self.backup = []
+        self.currentPlot = []
+        self.exportFormat = 'png'
+        self.exportFileName = 'thermochimicaPhaseDiagram'
+        self.exportDPI = 300
+        self.mint = 1e5
+        self.maxt = 0
+        self.pressure = 1
+        self.points = []
+        self.labels = []
+        self.elementsUsed = []
+        self.nElementsUsed = 0
+        self.massLabels = ['','']
+        self.plane = np.array([0,0])
+        self.tunit = 'K'
+        self.punit = 'atm'
+        self.munit = 'moles'
     def close(self):
         for child in self.children:
             child.close()
@@ -176,6 +161,7 @@ class CalculationWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event =='Run':
+                self.makeBackup()
                 tlo = 300.0
                 if values['-temperature-'] != '':
                     tlo = float(values['-temperature-'])
@@ -249,6 +235,7 @@ class CalculationWindow:
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
+                self.sgw.Element('Undo').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -310,6 +297,9 @@ class CalculationWindow:
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
+        elif event =='Undo':
+            self.backup.activate()
+            self.close()
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
@@ -515,6 +505,92 @@ class CalculationWindow:
                 sum -= ls[i][0] + mu[i+1]*(ls[i][1] - ls[i][0])
             return sum
         return scipy.optimize.least_squares(diff, [0.5 for i in range(self.nElementsUsed-1)]).x
+    def makeBackup(self):
+        self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
+        self.backup.datafile = self.datafile
+        self.backup.nElements = self.nElements
+        self.backup.elements = copy.deepcopy(self.elements)
+        self.backup.mint = self.mint
+        self.backup.maxt = self.maxt
+        self.backup.labels = copy.deepcopy(self.labels)
+        self.backup.pressure = self.pressure
+        self.backup.inputFileName = self.inputFileName
+        self.backup.outputFileName = self.outputFileName
+        self.backup.plotMarker = self.plotMarker
+        self.backup.plotColor = self.plotColor
+        self.backup.tunit = self.tunit
+        self.backup.punit = self.punit
+        self.backup.munit = self.munit
+        self.backup.exportFormat = self.exportFormat
+        self.backup.exportFileName = self.exportFileName
+        self.backup.exportDPI = self.exportDPI
+        self.backup.points = copy.deepcopy(self.points)
+        self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
+        self.backup.nElementsUsed = self.nElementsUsed
+        self.backup.massLabels = copy.deepcopy(self.massLabels)
+        self.backup.plane = copy.deepcopy(self.plane)
+    def activate(self):
+        if not self.active:
+            self.makeLayout()
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            windowList.append(self)
+            self.active = True
+            self.parent.children.append(self)
+            self.sgw.Element('Refine').Update(disabled = False)
+            self.sgw.Element('Add Label').Update(disabled = False)
+            self.sgw.Element('Plot').Update(disabled = False)
+            if len(self.labels) > 0:
+                self.sgw.Element('Remove Label').Update(disabled = False)
+    def makeLayout(self):
+        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
+                      vertical_alignment='t'),
+                      sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],
+                      [sg.Input(key='-endtemperature-',size=(inputSize,1))]],
+                      vertical_alignment='t'),
+                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],
+                      vertical_alignment='t')]
+        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],
+                      vertical_alignment='t')]
+        elem1Layout = [[sg.Text('Composition 1')]]
+        elem2Layout = [[sg.Text('Composition 2')]]
+        for i in range(self.nElements):
+            elem1Layout.append([sg.Text(self.elements[i])])
+            elem1Layout.append([sg.Input(key='-'+self.elements[i]+'1-',size=(inputSize,1))])
+        for i in range(self.nElements):
+            elem2Layout.append([sg.Text(self.elements[i])])
+            elem2Layout.append([sg.Input(key='-'+self.elements[i]+'2-',size=(inputSize,1))])
+        if (self.nElements < 8):
+            elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
+        else:
+            elemLayout = [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
+                          sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)]
+        self.layout = [tempLayout,
+                      presLayout,
+                      elemLayout,
+                      [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
+                      [sg.Text('Mass unit')],
+                      [sg.Combo(['moles'],default_value='moles',key='-munit-')],
+                      [sg.Column([[sg.Button('Run', size = buttonSize)],
+                      [sg.Button('Refine', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                      [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                      [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
+                       sg.Column([[sg.Button('Undo', disabled = True, size = buttonSize)],
+                       [sg.Exit(size = buttonSize)]],vertical_alignment='t')]]
+    def exportPlot(self):
+        try:
+            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+        except:
+            errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+            errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
+            while True:
+                event, values = errorWindow.read(timeout=timeout)
+                if event == sg.WIN_CLOSED or event == 'Continue':
+                    break
+            errorWindow.close()
 
 class RefineWindow():
     def __init__(self, parent, windowLayout):
@@ -557,6 +633,8 @@ class RefineWindow():
             xhi = float(values['-xhir-'])
             xlo = float(values['-xlor-'])
             if not cancelRun:
+                self.parent.makeBackup()
+                self.parent.sgw.Element('Undo').Update(disabled = False)
                 self.parent.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.processPhaseDiagramData()
                 self.parent.makePlot()
@@ -580,6 +658,8 @@ class LabelWindow():
         elif event =='Add Label':
             xlab = float(values['-xlab-'])
             tlab = float(values['-tlab-'])
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             self.parent.addLabel(xlab,tlab)
             self.parent.processPhaseDiagramData()
             self.parent.makePlot()
@@ -602,6 +682,8 @@ class RemoveWindow():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         if event == 'Remove Label(s)':
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             tempLength = len(self.parent.labels)
             for i in reversed(range(tempLength)):
                 if values['-removeLabel'+str(i)+'-']:
