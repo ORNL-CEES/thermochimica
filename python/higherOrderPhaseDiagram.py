@@ -102,20 +102,21 @@ class DataWindow:
                         elLen = 25 # formatted 25 wide
                         for j in range(3):
                             elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                i = 0
-                while i < nElements:
-                    try:
-                        index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
-                        i = i + 1
-                    except ValueError:
+            except:
+                return
+            i = 0
+            while i < nElements:
+                try:
+                    index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
+                    i = i + 1
+                except ValueError:
+                    if len(elements[i]) > 0:
                         if elements[i][0] != 'e':
                             print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
-                        elements.remove(elements[i])
-                        nElements = nElements - 1
-                calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
-                self.children.append(calcWindow)
-            except:
-                pass
+                    elements.remove(elements[i])
+                    nElements = nElements - 1
+            calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
+            self.children.append(calcWindow)
 
 class CalculationWindow:
     def __init__(self, parent, datafile, nElements, elements, active):
