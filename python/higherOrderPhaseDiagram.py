@@ -151,9 +151,12 @@ class CalculationWindow:
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
+        self.figureList = []
     def close(self):
         for child in self.children:
             child.close()
+        for fig in self.figureList:
+            plt.close(fig=fig)
         self.sgw.close()
         if self in windowList:
             windowList.remove(self)
@@ -508,6 +511,7 @@ class CalculationWindow:
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
+        self.figureList.append(fig)
         self.sgw.Element('Export Plot').Update(disabled = False)
     def addLabel(self,xlab,tlab):
         self.runCalc(xlab,xlab,1,tlab,tlab,1)
