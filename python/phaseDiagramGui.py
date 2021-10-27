@@ -163,9 +163,12 @@ class CalculationWindow:
         self.resRef = 7
         self.resSmooth = 7
         self.gapLimit = np.Inf
+        self.figureList = []
     def close(self):
         for child in self.children:
             child.close()
+        for fig in self.figureList:
+            plt.close(fig=fig)
         self.sgw.close()
         if self in windowList:
             windowList.remove(self)
@@ -709,6 +712,7 @@ class CalculationWindow:
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
+        self.figureList.append(fig)
         self.sgw.Element('Export Plot').Update(disabled = False)
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         with open(self.inputFileName, 'w') as inputFile:
