@@ -6,6 +6,7 @@ import math
 import os
 import sys
 import subprocess
+import copy
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -119,43 +120,15 @@ class DataWindow:
                     nElements = nElements - 1
             if nElements == 0:
                 return
-            elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(elements[:nElements],default_value=elements[0],key='-el1-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('Element 2')],[sg.Combo(elements[:nElements],default_value=elements[1],key='-el2-')]],vertical_alignment='t')]
-            xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
-                          [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
-                          ],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-            tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                          [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                          ],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
-            presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                          [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
-                          ]
-            setupLayout = [elSelectLayout,xLayout,tempLayout,presLayout,[sg.Button('Run'),
-                sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
-                [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                [sg.Button('Auto Densify', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                [sg.Button('Auto Label', disabled = True, size = buttonSize)],
-                [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
-                sg.Exit()]]
-            calcWindow = CalculationWindow(setupLayout,datafile,nElements,elements)
+            calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
             self.children.append(calcWindow)
 
 class CalculationWindow:
-    def __init__(self, windowLayout, datafile, nElements, elements):
-        windowList.append(self)
+    def __init__(self, parent, datafile, nElements, elements, active):
+        self.parent = parent
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.elementsUsed = []
-        self.plane = []
-        self.nElementsUsed = 0
         self.mint = 1e5
         self.maxt = 0
         self.ts = np.empty([0])
@@ -163,9 +136,18 @@ class CalculationWindow:
         self.x2 = np.empty([0])
         self.p1 = []
         self.p2 = []
+        self.el1 = ''
+        self.el2 = ''
+        self.tunit = 'K'
+        self.punit = 'atm'
+        self.munit = 'moles'
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
-        self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
+        self.active = active
+        if self.active:
+            self.makeLayout()
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            windowList.append(self)
         self.children = []
         self.labels = []
         self.outline = MultiPolygon([])
@@ -174,6 +156,7 @@ class CalculationWindow:
         self.outputFileName = 'thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
+        self.backup = []
     def close(self):
         for child in self.children:
             child.close()
@@ -204,6 +187,7 @@ class CalculationWindow:
                         cancelRun = False
                         break
                 confirmWindow.close()
+            self.makeBackup()
             tlo= values['-temperature-']
             thi = values['-endtemperature-']
             self.pressure = values['-pressure-']
@@ -259,10 +243,11 @@ class CalculationWindow:
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Auto Refine').Update(disabled = False)
-                self.sgw.Element('Auto Densify').Update(disabled = False)
+                self.sgw.Element('Auto Smoothen').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Auto Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
+                self.sgw.Element('Undo').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -277,10 +262,10 @@ class CalculationWindow:
             autoRefineLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Refine'), sg.Exit()]]]
             autoRefineWindow = AutoRefineWindow(self,autoRefineLayout)
             self.children.append(autoRefineWindow)
-        elif event =='Auto Densify':
-            autoDensifyLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Densify'), sg.Exit()]]]
-            autoDensifyWindow = AutoDensifyWindow(self,autoDensifyLayout)
-            self.children.append(autoDensifyWindow)
+        elif event =='Auto Smoothen':
+            autoSmoothenLayout = [[[sg.Text('Resolution')],[sg.Input(key='-res-',size=(inputSize,1))],[sg.Button('Smoothen'), sg.Exit()]]]
+            autoSmoothenWindow = AutoSmoothenWindow(self,autoSmoothenLayout)
+            self.children.append(autoSmoothenWindow)
         elif event =='Add Label':
             xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
             tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
@@ -288,6 +273,7 @@ class CalculationWindow:
             labelWindow = LabelWindow(self,labelLayout)
             self.children.append(labelWindow)
         elif event =='Auto Label':
+            self.makeBackup()
             self.autoLabel()
             self.makePlot()
             self.sgw.Element('Remove Label').Update(disabled = False)
@@ -336,6 +322,9 @@ class CalculationWindow:
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
+        elif event =='Undo':
+            self.backup.activate()
+            self.close()
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
@@ -1093,6 +1082,8 @@ class CalculationWindow:
             if maxGap <= 1/res:
                 break
     def autoLabel(self):
+        self.makeBackup()
+        self.sgw.Element('Undo').Update(disabled = False)
         boundaries = []
         phases = []
         b = []
@@ -1206,6 +1197,76 @@ class CalculationWindow:
                 segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
             center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
             self.labels.append([[center[0],center[1]],phases[i]])
+    def makeBackup(self):
+        self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
+        self.backup.datafile = self.datafile
+        self.backup.nElements = self.nElements
+        self.backup.elements = copy.deepcopy(self.elements)
+        self.backup.mint = self.mint
+        self.backup.maxt = self.maxt
+        self.backup.ts = copy.deepcopy(self.ts)
+        self.backup.x1 = copy.deepcopy(self.x1)
+        self.backup.x2 = copy.deepcopy(self.x2)
+        self.backup.p1 = copy.deepcopy(self.p1)
+        self.backup.p2 = copy.deepcopy(self.p2)
+        self.backup.x0data = copy.deepcopy(self.x0data)
+        self.backup.x1data = copy.deepcopy(self.x1data)
+        self.backup.labels = copy.deepcopy(self.labels)
+        self.backup.outline = copy.deepcopy(self.outline)
+        self.backup.pressure = self.pressure
+        self.backup.inputFileName = self.inputFileName
+        self.backup.outputFileName = self.outputFileName
+        self.backup.plotMarker = self.plotMarker
+        self.backup.plotColor = self.plotColor
+        self.backup.el1 = self.el1
+        self.backup.el2 = self.el2
+        self.backup.tunit = self.tunit
+        self.backup.punit = self.punit
+        self.backup.munit = self.munit
+    def activate(self):
+        if not self.active:
+            self.makeLayout()
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            windowList.append(self)
+            self.active = True
+            self.parent.children.append(self)
+            self.sgw.Element('Refine').Update(disabled = False)
+            self.sgw.Element('Auto Refine').Update(disabled = False)
+            self.sgw.Element('Auto Smoothen').Update(disabled = False)
+            self.sgw.Element('Add Label').Update(disabled = False)
+            self.sgw.Element('Auto Label').Update(disabled = False)
+            self.sgw.Element('Plot').Update(disabled = False)
+            if len(self.labels) > 0:
+                self.sgw.Element('Remove Label').Update(disabled = False)
+    def makeLayout(self):
+        elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
+        xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
+                      [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
+                      ],vertical_alignment='t'),
+                      sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
+        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
+                      ],vertical_alignment='t'),
+                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
+                      ]
+        self.layout = [elSelectLayout,xLayout,tempLayout,presLayout,[
+            sg.Column([[sg.Button('Run', size = buttonSize)],
+                       [sg.Button('Undo', disabled = True, size = buttonSize)],
+                       [sg.Exit(size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                       [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t')
+            ]]
 
 class RefineWindow():
     def __init__(self, parent, windowLayout):
@@ -1234,7 +1295,7 @@ class RefineWindow():
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
+                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
                 while True:
                     event, values = confirmWindow.read(timeout=timeout)
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -1243,11 +1304,29 @@ class RefineWindow():
                         cancelRun = False
                         break
                 confirmWindow.close()
-            tlo = values['-temperaturer-']
-            thi = values['-endtemperaturer-']
-            xhi = values['-xhir-']
-            xlo = values['-xlor-']
+            tlo = 300
+            try:
+                tlo = float(values['-temperaturer-'])
+            except:
+                pass
+            thi = 1000
+            try:
+                thi = float(values['-endtemperaturer-'])
+            except:
+                pass
+            xlo = 0
+            try:
+                xlo = float(values['-xlor-'])
+            except:
+                pass
+            xhi = 1
+            try:
+                xhi = float(values['-xhir-'])
+            except:
+                pass
             if not cancelRun:
+                self.parent.makeBackup()
+                self.parent.sgw.Element('Undo').Update(disabled = False)
                 self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.runCalc()
                 self.parent.makePlot()
@@ -1269,6 +1348,8 @@ class AutoRefineWindow():
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == 'Refine':
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             resRef = values['-res-']
             if resRef == '':
                 resRef = 49
@@ -1279,11 +1360,11 @@ class AutoRefineWindow():
             self.parent.makePlot()
             self.close()
 
-class AutoDensifyWindow():
+class AutoSmoothenWindow():
     def __init__(self, parent, windowLayout):
         self.parent = parent
         windowList.append(self)
-        self.sgw = sg.Window('Auto-densify setup', windowLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window('Auto-Smoothen setup', windowLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
         for child in self.children:
@@ -1295,7 +1376,9 @@ class AutoDensifyWindow():
         event, values = self.sgw.read(timeout=timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
-        elif event == 'Densify':
+        elif event == 'Smoothen':
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             resRef = values['-res-']
             if resRef == '':
                 resRef = 100
@@ -1321,6 +1404,8 @@ class LabelWindow():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         elif event =='Add Label':
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             xlab = values['-xlab-']
             tlab = values['-tlab-']
             self.parent.addLabel(xlab,tlab)
@@ -1344,6 +1429,8 @@ class RemoveWindow():
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         if event == 'Remove Label(s)':
+            self.parent.makeBackup()
+            self.parent.sgw.Element('Undo').Update(disabled = False)
             tempLength = len(self.parent.labels)
             for i in reversed(range(tempLength)):
                 try:
