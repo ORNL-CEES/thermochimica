@@ -177,15 +177,15 @@ class CalculationWindow:
             cancelRun = False
             ntstep = 10
             try:
-                tempstep = int(values['-ntstepr-'])
-                if values['-ntstepr-'] >= 0:
+                tempstep = int(values['-ntstep-'])
+                if tempstep >= 0:
                     ntstep = tempstep
             except:
                 pass
             nxstep = 10
             try:
-                tempstep = int(values['-nxstepr-'])
-                if values['-nxstepr-'] >= 0:
+                tempstep = int(values['-nxstep-'])
+                if tempstep >= 0:
                     nxstep = tempstep
             except:
                 pass
@@ -1359,14 +1359,14 @@ class RefineWindow():
             ntstep = 10
             try:
                 tempstep = int(values['-ntstepr-'])
-                if values['-ntstepr-'] >= 0:
+                if tempstep >= 0:
                     ntstep = tempstep
             except:
                 pass
             nxstep = 10
             try:
                 tempstep = int(values['-nxstepr-'])
-                if values['-nxstepr-'] >= 0:
+                if tempstep >= 0:
                     nxstep = tempstep
             except:
                 pass
@@ -1384,28 +1384,28 @@ class RefineWindow():
                 confirmWindow.close()
             xlo = 0
             try:
-                templo = float(values['-xlo-'])
+                templo = float(values['-xlor-'])
                 if 0 <= templo <= 1:
                     xlo = templo
             except:
                 pass
             xhi = 1
             try:
-                temphi = float(values['-xhi-'])
+                temphi = float(values['-xhir-'])
                 if 0 <= temphi <= 1:
                     xhi = temphi
             except:
                 pass
             tlo = 300
             try:
-                templo = float(values['-temperature-'])
+                templo = float(values['-temperaturer-'])
                 if 295 <= templo <= 6000:
                     tlo = templo
             except:
                 pass
             thi = 1000
             try:
-                temphi = float(values['-endtemperature-'])
+                temphi = float(values['-endtemperaturer-'])
                 if 295 <= temphi <= 6000:
                     thi = temphi
             except:
