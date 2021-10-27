@@ -694,9 +694,9 @@ class CalculationWindow:
             maxj = np.argmax(ttt)
             # plot invariant temperatures
             if (ttt[minj] > self.mint) and not(bEdgeLine[j][0]):
-                ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],'k-')
+                ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],self.plotMarker,c=c)
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
-                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'k-')
+                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
