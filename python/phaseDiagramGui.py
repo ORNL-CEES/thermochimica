@@ -157,6 +157,10 @@ class CalculationWindow:
         self.plotMarker = '-'
         self.plotColor = 'colorful'
         self.backup = []
+        self.currentPlot = []
+        self.exportFormat = 'png'
+        self.exportFileName = 'thermochimicaPhaseDiagram'
+        self.exportDPI = 300
     def close(self):
         for child in self.children:
             child.close()
@@ -293,6 +297,8 @@ class CalculationWindow:
             self.children.append(removeWindow)
         elif event =='Plot':
             self.makePlot()
+        elif event =='Export Plot':
+            self.exportPlot()
         elif event =='Plot Settings':
             if self.plotMarker == '-':
                 line  = True
@@ -319,6 +325,9 @@ class CalculationWindow:
                              [sg.Text('Plot Colors:')],
                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Text('Export Format')],
+                             [sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
@@ -656,6 +665,8 @@ class CalculationWindow:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
         plt.show()
         plt.pause(0.001)
+        self.currentPlot = fig
+        self.sgw.Element('Export Plot').Update(disabled = False)
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         with open(self.inputFileName, 'w') as inputFile:
             inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -1223,6 +1234,9 @@ class CalculationWindow:
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
+        self.backup.exportFormat = self.exportFormat
+        self.backup.exportFileName = self.exportFileName
+        self.backup.exportDPI = self.exportDPI
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1265,8 +1279,20 @@ class CalculationWindow:
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
                        [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                       [sg.Button('Export Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t')
             ]]
+    def exportPlot(self):
+        try:
+            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+        except:
+            errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+            errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
+            while True:
+                event, values = errorWindow.read(timeout=timeout)
+                if event == sg.WIN_CLOSED or event == 'Continue':
+                    break
+            errorWindow.close()
 
 class RefineWindow():
     def __init__(self, parent, windowLayout):
@@ -1457,7 +1483,7 @@ class SettingsWindow:
             windowList.remove(self)
     def read(self):
         event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Accept':
+        if event == sg.WIN_CLOSED:
             self.close()
         elif event == '-mline-':
             self.parent.plotMarker = '-'
@@ -1469,6 +1495,16 @@ class SettingsWindow:
             self.parent.plotColor = 'colorful'
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
+        elif event =='Accept':
+            self.parent.exportFormat = values['-format-']
+            try:
+                tempDPI = int(values['-dpi-'])
+                if tempDPI > 0 > 10000:
+                    self.parent.exportDPI = int(values['-dpi-'])
+            except:
+                pass
+            self.parent.makePlot()
+            self.close()
 
 if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
