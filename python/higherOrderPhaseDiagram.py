@@ -292,6 +292,8 @@ class CalculationWindow:
             self.children.append(removeWindow)
         elif event =='Plot':
             self.makePlot()
+        elif event =='Export Plot':
+                self.exportPlot()
         elif event =='Plot Settings':
             if self.plotMarker == '-':
                 line  = True
@@ -318,6 +320,9 @@ class CalculationWindow:
                              [sg.Text('Plot Colors:')],
                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
@@ -501,6 +506,8 @@ class CalculationWindow:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
         plt.show()
         plt.pause(0.001)
+        self.currentPlot = fig
+        self.sgw.Element('Export Plot').Update(disabled = False)
     def addLabel(self,xlab,tlab):
         self.runCalc(xlab,xlab,1,tlab,tlab,1)
         f = open(self.outputFileName,)
@@ -597,13 +604,15 @@ class CalculationWindow:
                       [sg.Text('Mass unit')],
                       [sg.Combo(['moles'],default_value='moles',key='-munit-')],
                       [sg.Column([[sg.Button('Run', size = buttonSize)],
-                      [sg.Button('Refine', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                       sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                      [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                                  [sg.Button('Undo', disabled = True, size = buttonSize)],
+                                  [sg.Exit(size = buttonSize)]],vertical_alignment='t'),
+                       sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
+                                  [sg.Button('Add Label', disabled = True, size = buttonSize)],
+                                  [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
                        sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                      [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t'),
-                       sg.Column([[sg.Button('Undo', disabled = True, size = buttonSize)],
-                       [sg.Exit(size = buttonSize)]],vertical_alignment='t')]]
+                                  [sg.Button('Export Plot', disabled = True, size = buttonSize)],
+                                  [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t')
+                       ]]
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
@@ -767,7 +776,7 @@ class SettingsWindow:
             windowList.remove(self)
     def read(self):
         event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Accept':
+        if event == sg.WIN_CLOSED:
             self.close()
         elif event == '-mline-':
             self.parent.plotMarker = '-'
@@ -779,6 +788,20 @@ class SettingsWindow:
             self.parent.plotColor = 'colorful'
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
+        elif event =='Accept':
+            try:
+                self.parent.exportFileName = str(values['-filename-'])
+            except:
+                pass
+            self.parent.exportFormat = values['-format-']
+            try:
+                tempDPI = int(values['-dpi-'])
+                if tempDPI > 0 > 10000:
+                    self.parent.exportDPI = int(values['-dpi-'])
+            except:
+                pass
+            self.parent.makePlot()
+            self.close()
 
 if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
