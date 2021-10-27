@@ -178,7 +178,7 @@ class CalculationWindow:
             if (float(ntstep) * float(nxstep)) > 50000:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
+                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
                 while True:
                     event, values = confirmWindow.read(timeout=timeout)
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -207,7 +207,7 @@ class CalculationWindow:
                 if (str(self.el1) == str(self.el2)) or (float(tlo) == float(thi)):
                     cancelRun = True
                     repeatLayout = [[sg.Text('Values cannot be equal.')],[sg.Button('Cancel')]]
-                    repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True)
+                    repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True, keep_on_top = True)
                     while True:
                         event, values = repeatWindow.read(timeout=timeout)
                         if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -218,7 +218,7 @@ class CalculationWindow:
                     repeatWindow.close()
             except ValueError:
                 errorLayout = [[sg.Text('Invalid value detected.')],[sg.Button('Cancel')]]
-                errorWindow = sg.Window('Invalid value notification', errorLayout, location = [400,0], finalize=True)
+                errorWindow = sg.Window('Invalid value notification', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
                 while True:
                     event, values = errorWindow.read(timeout=timeout)
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -1475,7 +1475,7 @@ if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
                    [sg.Text('Either Thermochimica has not been built (run make),')],
                    [sg.Text('or this script was not executed from Thermochimica root directory.')],
                    [sg.Button('Exit')]]
-    errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True)
+    errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True, keep_on_top = True)
     while True:
         event, values = errorWindow.read(timeout=timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
