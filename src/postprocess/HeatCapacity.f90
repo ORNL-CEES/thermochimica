@@ -11,6 +11,11 @@ subroutine HeatCapacity(dHeatCapacity)
     real(8)               :: dTStepSize, dSecondDer
     real(8)               :: dtemp0, dGibbs0, dGibbsDiff, dTargetDiff, dIncrease, dDecrease
 
+    if (INFOThermo /= 0) then
+        dHeatCapacity = 0D0
+        return
+    end if
+
     dtemp0         = dTemperature
     dTemperatureForLimits = dtemp0
     dGibbs0        = dGibbsEnergySys

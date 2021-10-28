@@ -26,6 +26,8 @@ subroutine RetryCalculationFirstPhase
                 call ResetThermo
                 lRetryAttempted = .TRUE.
                 call Thermochimica
+                ! Reset flag to original
+                if (INFOThermo /= 0) INFOThermo = 12
             else
                 INFOThermo = 12
                 dElementMass = dElementMass * dNormalizeInput / dMassScale
