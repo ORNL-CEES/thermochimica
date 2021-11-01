@@ -159,6 +159,25 @@ class CalculationWindow:
             self.sgw.Element('-endpressurelabel-').Update(visible = True)
             self.sgw.Element('-pstep-').Update(visible = False)
             self.sgw.Element('-psteplabel-').Update(visible = False)
+        elif event == '-mdis-':
+            self.sgw.Element('-composition2-').Update(visible = False)
+            self.sgw.Element('-ten-').Update(disabled = False)
+            self.sgw.Element('-pen-').Update(disabled = False)
+        elif event == '-men-':
+            self.sgw.Element('-composition2-').Update(visible = True)
+            self.sgw.Element('-ten-').Update(disabled = True)
+            self.sgw.Element('-endtemperature-').Update(visible = False)
+            self.sgw.Element('-endtemperaturelabel-').Update(visible = False)
+            self.sgw.Element('-ntstep-').Update(visible = False)
+            self.sgw.Element('-tsteplabel-').Update(visible = False)
+            self.sgw.Element('-pen-').Update(disabled = True)
+            self.sgw.Element('-pent-').Update(disabled = True)
+            self.sgw.Element('-endpressure-').Update(visible = False)
+            self.sgw.Element('-endpressurelabel-').Update(visible = False)
+            self.sgw.Element('-pstep-').Update(visible = False)
+            self.sgw.Element('-psteplabel-').Update(visible = False)
+            self.sgw.Element('-tdis-').Update(value = True)
+            self.sgw.Element('-pdis-').Update(value = True)
         elif event =='Run':
                 temperature = values['-temperature-']
                 pressure = values['-pressure-']
@@ -220,7 +239,7 @@ class CalculationWindow:
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-',visible=False)],
                       [sg.Input(key='-endtemperature-',size=(inputSize,1),visible=False)],
-                      [sg.Text('Temperature range:',visible=False)],
+                      [sg.Text('Temperature range:')],
                       [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
                       [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('# of steps',key='-tsteplabel-',visible=False)],[sg.Input(key='-ntstep-',size=(8,1),visible=False)]],vertical_alignment='t')]
@@ -230,7 +249,7 @@ class CalculationWindow:
                       [sg.Text('Pressure range:')],
                       [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
                       [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
-                      [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
+                      [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, disabled=True, enable_events=True, key='-pent-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('# of steps',key='-psteplabel-',visible=False)],[sg.Input(key='-pstep-',size=(8,1),visible=False)]],vertical_alignment='t')
                       ]
         elem1Layout = [[sg.Text('Composition 1')]]
@@ -241,12 +260,20 @@ class CalculationWindow:
         for el in self.elements:
             elem2Layout.append([sg.Text(el)])
             elem2Layout.append([sg.Input(key=f'-{el}2-',size=(inputSize,1))])
+        massLayout = [sg.Column([
+                        [sg.Text('Mass unit')],
+                        [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')]
+                        ],vertical_alignment='t'),
+                      sg.Column([
+                        [sg.Text('Composition range:')],
+                        [sg.Radio('Disabled', 'mrange', default=True, enable_events=True, key='-mdis-')],
+                        [sg.Radio('Enabled', 'mrange', default=False, enable_events=True, key='-men-')]
+                        ],vertical_alignment='t')]
         if (self.nElements < 8):
             self.layout = [tempLayout,
                           presLayout,
-                          [sg.Column(elem1Layout),sg.Column(elem2Layout,key='composition2',visible=False)],
-                          [sg.Text('Mass unit')],
-                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                          [sg.Column(elem1Layout),sg.Column(elem2Layout,key='-composition2-',visible=False)],
+                          massLayout,
                           [sg.Checkbox('Save JSON',key='-json-')],
                           [sg.Button('Run'), sg.Exit()]]
         else:
@@ -254,8 +281,7 @@ class CalculationWindow:
                           presLayout,
                           [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
                            sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='composition2',visible=False)],
-                          [sg.Text('Mass unit')],
-                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                          massLayout,
                           [sg.Checkbox('Save JSON',key='-json-')],
                           [sg.Button('Run'), sg.Exit()]]
 
