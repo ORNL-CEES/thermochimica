@@ -117,15 +117,6 @@ class CalculationWindow:
         self.elements = elements
         self.makeLayout()
         self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
-        self.sgw.Element('-endtemperature-').Update(visible = False)
-        self.sgw.Element('-endtemperaturelabel-').Update(visible = False)
-        self.sgw.Element('-ntstep-').Update(visible = False)
-        self.sgw.Element('-tsteplabel-').Update(visible = False)
-        self.sgw.Element('-endpressure-').Update(visible = False)
-        self.sgw.Element('-endpressurelabel-').Update(visible = False)
-        self.sgw.Element('-pstep-').Update(visible = False)
-        self.sgw.Element('-psteplabel-').Update(visible = False)
-        self.sgw.Element('-pent-').Update(disabled = True)
         self.children = []
     def close(self):
         for child in self.children:
@@ -227,19 +218,20 @@ class CalculationWindow:
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                      [sg.Text('Temperature range:')],
+                      sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-',visible=False)],
+                      [sg.Input(key='-endtemperature-',size=(inputSize,1),visible=False)],
+                      [sg.Text('Temperature range:',visible=False)],
                       [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
                       [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-',visible=False)],[sg.Input(key='-ntstep-',size=(8,1),visible=False)]],vertical_alignment='t')]
         presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
                       [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(inputSize,1))],
+                      sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-',visible=False)],[sg.Input(key='-endpressure-',size=(inputSize,1),visible=False)],
                       [sg.Text('Pressure range:')],
                       [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
                       [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
                       [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
+                      sg.Column([[sg.Text('# of steps',key='-psteplabel-',visible=False)],[sg.Input(key='-pstep-',size=(8,1),visible=False)]],vertical_alignment='t')
                       ]
         elem1Layout = [[sg.Text('Composition 1')]]
         elem2Layout = [[sg.Text('Composition 2')]]
