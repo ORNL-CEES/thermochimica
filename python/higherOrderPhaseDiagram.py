@@ -264,8 +264,6 @@ class CalculationWindow:
                 self.tunit = values['-tunit-']
                 self.punit = values['-punit-']
                 self.munit = values['-munit-']
-                if values['-nxstep-'] != '':
-                    nxstep = int(values['-nxstep-'])
                 self.runCalc(0,1,nxstep,tlo,thi,ntstep)
                 self.processPhaseDiagramData()
                 self.makePlot()
