@@ -212,10 +212,18 @@ class CalculationWindow:
                 masses2 = [0.0]*self.nElements
                 self.elementsUsed = []
                 for i in range(self.nElements):
-                    if values['-'+self.elements[i]+'1-'] != '':
-                        masses1[i] = float(values['-'+self.elements[i]+'1-'])
-                    if values['-'+self.elements[i]+'2-'] != '':
-                        masses2[i] = float(values['-'+self.elements[i]+'2-'])
+                    try:
+                        tempMass = float(values[f'-{self.elements[i]}1-'])
+                        if 0 < tempMass:
+                            masses1[i] = tempMass
+                    except:
+                        pass
+                    try:
+                        tempMass = float(values[f'-{self.elements[i]}2-'])
+                        if 0 < tempMass:
+                            masses2[i] = tempMass
+                    except:
+                        pass
                     if (masses1[i] > 0.0) or (masses2[i] > 0.0):
                         self.elementsUsed.append(self.elements[i])
                 for i in reversed(range(self.nElements)):
