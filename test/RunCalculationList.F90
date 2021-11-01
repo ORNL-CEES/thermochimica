@@ -255,6 +255,7 @@ program RunCalculationList
         dElementMass(iEls(j)) = dEls(j)
       end do
       call Thermochimica
+      call PrintResults
       open(2, file= DATA_DIRECTORY // '../thermoout.json', &
           status='OLD', position='append', action='write')
       write(intStr,*) i
