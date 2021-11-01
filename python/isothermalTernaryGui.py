@@ -278,8 +278,6 @@ class CalculationWindow:
         elif event =='Auto Refine':
             self.makeBackup()
             self.sgw.Element('Undo').Update(disabled = False)
-            self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
-            self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
             self.autoRefine((self.resRef**2))
             self.makePlot()
             self.resRef += 1
@@ -527,22 +525,6 @@ class CalculationWindow:
                 labelName.append(phaseName)
         self.labels.append([[xlab,tlab],'+'.join(labelName)])
         self.processPhaseDiagramData()
-    def refineLimit(self,x,res):
-        maxit = 10
-        if x == 0:
-            for i in range(len(self.x0data[1])-1):
-                nit = 0
-                while ((self.x0data[1][i+1] - self.x0data[2][i]) > res) and (nit < maxit):
-                    nit += 1
-                    self.writeInputFile(0,0.001,2,self.x0data[2][i],self.x0data[1][i+1],4)
-                    self.runCalc()
-        if x == 1:
-            for i in range(len(self.x1data[1])-1):
-                nit = 0
-                while ((self.x1data[1][i+1] - self.x1data[2][i]) > res) and (nit < maxit):
-                    nit += 1
-                    self.writeInputFile(0.999,1,2,self.x1data[2][i],self.x1data[1][i+1],4)
-                    self.runCalc()
     def autoRefine(self,res):
         nIt = 0
         while nIt < 10:
@@ -1180,7 +1162,7 @@ class RefineWindow():
             if not cancelRun:
                 self.parent.makeBackup()
                 self.parent.sgw.Element('Undo').Update(disabled = False)
-                self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
+                self.parent.writeInputFile(xlo1,xhi1,xlo2,xhi2,nxstep)
                 self.parent.runCalc()
                 self.parent.makePlot()
 
