@@ -103,54 +103,19 @@ class DataWindow:
                             print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
                         elements.remove(elements[i])
                         nElements = nElements - 1
-                tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                              [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                              [sg.Text('Temperature range:')],
-                              [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
-                              [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
-                presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                              [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(inputSize,1))],
-                              [sg.Text('Pressure range:')],
-                              [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
-                              [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
-                              [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
-                              sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
-                              ]
-                elemLayout = []
-                for i in range(nElements):
-                    elemLayout.append([sg.Text(elements[i])])
-                    elemLayout.append([sg.Input(key='-'+elements[i]+'-',size=(inputSize,1))])
-                if (nElements < 8):
-                    calcLayout = [tempLayout,
-                                  presLayout,
-                                  elemLayout,
-                                  [sg.Text('Mass unit')],
-                                  [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
-                                  [sg.Checkbox('Save JSON',key='-json-')],
-                                  [sg.Button('Run'), sg.Exit()]]
-                else:
-                    calcLayout = [tempLayout,
-                                  presLayout,
-                                  [sg.Column(elemLayout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
-                                  [sg.Text('Mass unit')],
-                                  [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
-                                  [sg.Checkbox('Save JSON',key='-json-')],
-                                  [sg.Button('Run'), sg.Exit()]]
-                calcWindow = CalculationWindow(calcLayout,datafile,nElements,elements)
+                calcWindow = CalculationWindow(datafile,nElements,elements)
                 self.children.append(calcWindow)
             except:
                 pass
 
 class CalculationWindow:
-    def __init__(self, windowLayout, datafile, nElements, elements):
+    def __init__(self, datafile, nElements, elements):
         windowList.append(self)
         self.datafile = datafile
         self.nElements = nElements
         self.elements = elements
-        self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(datafile)}', windowLayout, location = [400,0], finalize=True)
+        self.makeLayout()
+        self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
         self.sgw.Element('-endtemperature-').Update(visible = False)
         self.sgw.Element('-endtemperaturelabel-').Update(visible = False)
         self.sgw.Element('-ntstep-').Update(visible = False)
@@ -258,6 +223,43 @@ class CalculationWindow:
                     resultOutput = [[sg.Text('Output is too large to display')]]
                 resultWindow = ResultWindow(resultOutput)
                 self.children.append(resultWindow)
+    def makeLayout(self):
+        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
+                      [sg.Text('Temperature range:')],
+                      [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
+                      [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-')],[sg.Input(key='-endpressure-',size=(inputSize,1))],
+                      [sg.Text('Pressure range:')],
+                      [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
+                      [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
+                      [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
+                      sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
+                      ]
+        elemLayout = []
+        for i in range(self.nElements):
+            elemLayout.append([sg.Text(self.elements[i])])
+            elemLayout.append([sg.Input(key='-'+self.elements[i]+'-',size=(inputSize,1))])
+        if (self.nElements < 8):
+            self.layout = [tempLayout,
+                          presLayout,
+                          elemLayout,
+                          [sg.Text('Mass unit')],
+                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                          [sg.Checkbox('Save JSON',key='-json-')],
+                          [sg.Button('Run'), sg.Exit()]]
+        else:
+            self.layout = [tempLayout,
+                          presLayout,
+                          [sg.Column(elemLayout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
+                          [sg.Text('Mass unit')],
+                          [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
+                          [sg.Checkbox('Save JSON',key='-json-')],
+                          [sg.Button('Run'), sg.Exit()]]
 
 class ResultWindow:
     def __init__(self, layout):
