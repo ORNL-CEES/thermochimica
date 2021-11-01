@@ -3,6 +3,7 @@ import subprocess
 import math
 import os
 import sys
+import numpy as np
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -161,10 +162,12 @@ class CalculationWindow:
             self.sgw.Element('-psteplabel-').Update(visible = False)
         elif event == '-mdis-':
             self.sgw.Element('-composition2-').Update(visible = False)
+            self.sgw.Element('-xstepcol-').Update(visible = False)
             self.sgw.Element('-ten-').Update(disabled = False)
             self.sgw.Element('-pen-').Update(disabled = False)
         elif event == '-men-':
             self.sgw.Element('-composition2-').Update(visible = True)
+            self.sgw.Element('-xstepcol-').Update(visible = True)
             self.sgw.Element('-ten-').Update(disabled = True)
             self.sgw.Element('-endtemperature-').Update(visible = False)
             self.sgw.Element('-endtemperaturelabel-').Update(visible = False)
@@ -179,13 +182,36 @@ class CalculationWindow:
             self.sgw.Element('-tdis-').Update(value = True)
             self.sgw.Element('-pdis-').Update(value = True)
         elif event =='Run':
-                temperature = values['-temperature-']
-                pressure = values['-pressure-']
+                temperature = 300
+                try:
+                    templo = float(values['-temperature-'])
+                    if 295 <= templo <= 6000:
+                        temperature = templo
+                except:
+                    pass
+                pressure = 1
+                try:
+                    tempPress = float(values['-pressure-'])
+                    if 1e-6 < tempPress < 1e6:
+                        pressure = float(values['-pressure-'])
+                except:
+                    pass
                 filename = 'inputs/pythonInput.ti'
-                masses = [0.0]*self.nElements
+                masses1 = [0.0]*self.nElements
+                masses2 = [0.0]*self.nElements
                 for i in range(self.nElements):
-                    if values['-'+self.elements[i]+'-'] != '':
-                        masses[i] = values['-'+self.elements[i]+'-']
+                    try:
+                        tempMass = float(values[f'-{self.elements[i]}1-'])
+                        if 0 < tempMass:
+                            masses1[i] = tempMass
+                    except:
+                        pass
+                    try:
+                        tempMass = float(values[f'-{self.elements[i]}2-'])
+                        if 0 < tempMass:
+                            masses2[i] = tempMass
+                    except:
+                        pass
                 tunit = values['-tunit-']
                 punit = values['-punit-']
                 munit = values['-munit-']
@@ -202,31 +228,54 @@ class CalculationWindow:
                     npstep = ntstep
                 else:
                     npstep = 0
-                with open(filename, 'w') as inputFile:
-                    inputFile.write('! Python-generated input file for Thermochimica\n')
-                    if float(ntstep) > 0:
-                        tstep = (float(tend)-float(temperature))/float(ntstep)
-                        inputFile.write('temperature          = ' + str(temperature) + ':' + str(tend) + ':' + str(tstep) + '\n')
-                    else:
-                        inputFile.write('temperature          = ' + str(temperature) + '\n')
-                    if float(npstep) > 0:
-                        pstep = (float(pend)-float(pressure))/float(npstep)
-                        inputFile.write('pressure          = ' + str(pressure) + ':' + str(pend) + ':' + str(pstep) + '\n')
-                    else:
-                        inputFile.write('pressure          = ' + str(pressure) + '\n')
-                    for i in range(self.nElements):
-                        inputFile.write('mass(' + str(atomic_number_map.index(self.elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
-                    inputFile.write('temperature unit         = ' + tunit + '\n')
-                    inputFile.write('pressure unit          = ' + punit + '\n')
-                    if values['-pent-']:
-                        inputFile.write('step together     = .TRUE.\n')
-                    inputFile.write('mass unit         = ' + munit + '\n')
-                    inputFile.write('data file         = ' + self.datafile + '\n')
-                    inputFile.write('print mode        = 2\n')
-                    inputFile.write('debug mode        = .FALSE.\n')
-                    if values['-json-']:
-                        inputFile.write('write json     = .TRUE.\n')
-                thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
+                if values['-men-']:
+                    nxstep = 10
+                    try:
+                        tempstep = int(values['-nxstep-'])
+                        if tempstep >= 0:
+                            nxstep = tempstep
+                    except:
+                        pass
+                    xs = np.array([np.linspace(masses1[i],masses2[i],nxstep) for i in range(self.nElements)]).T
+                    with open(filename, 'w') as inputFile:
+                        inputFile.write('! Python-generated input file for Thermochimica\n')
+                        inputFile.write(f'data file         = {self.datafile}\n')
+                        inputFile.write(f'temperature unit         = {tunit}\n')
+                        inputFile.write(f'pressure unit          = {punit}\n')
+                        inputFile.write(f'mass unit          = \'{munit}\'\n')
+                        inputFile.write('print mode        = 2\n')
+                        inputFile.write(f'nEl         = {self.nElements} \n')
+                        inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elements])}\n')
+                        inputFile.write(f'nCalc       = {len(xs)}\n')
+                        for x in xs:
+                            inputFile.write(f'{str(temperature)} {str(pressure)} {" ".join([str(x[i]) for i in range(self.nElements)])}\n')
+                    thermoOut = subprocess.check_output(['./bin/RunCalculationList',filename]).decode("utf-8")
+                else:
+                    with open(filename, 'w') as inputFile:
+                        inputFile.write('! Python-generated input file for Thermochimica\n')
+                        if float(ntstep) > 0:
+                            tstep = (float(tend)-float(temperature))/float(ntstep)
+                            inputFile.write('temperature          = ' + str(temperature) + ':' + str(tend) + ':' + str(tstep) + '\n')
+                        else:
+                            inputFile.write('temperature          = ' + str(temperature) + '\n')
+                        if float(npstep) > 0:
+                            pstep = (float(pend)-float(pressure))/float(npstep)
+                            inputFile.write('pressure          = ' + str(pressure) + ':' + str(pend) + ':' + str(pstep) + '\n')
+                        else:
+                            inputFile.write('pressure          = ' + str(pressure) + '\n')
+                        for i in range(self.nElements):
+                            inputFile.write('mass(' + str(atomic_number_map.index(self.elements[i])+1) + ')           = ' + str(masses1[i]) + '\n')
+                        inputFile.write('temperature unit         = ' + tunit + '\n')
+                        inputFile.write('pressure unit          = ' + punit + '\n')
+                        if values['-pent-']:
+                            inputFile.write('step together     = .TRUE.\n')
+                        inputFile.write('mass unit         = ' + munit + '\n')
+                        inputFile.write('data file         = ' + self.datafile + '\n')
+                        inputFile.write('print mode        = 2\n')
+                        inputFile.write('debug mode        = .FALSE.\n')
+                        if values['-json-']:
+                            inputFile.write('write json     = .TRUE.\n')
+                    thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
                     resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
@@ -268,11 +317,13 @@ class CalculationWindow:
                         [sg.Text('Composition range:')],
                         [sg.Radio('Disabled', 'mrange', default=True, enable_events=True, key='-mdis-')],
                         [sg.Radio('Enabled', 'mrange', default=False, enable_events=True, key='-men-')]
-                        ],vertical_alignment='t')]
+                        ],vertical_alignment='t'),
+                        sg.Column([[sg.Text('# of steps')],[sg.Input(key='-xstep-',size=(8,1))]],key='-xstepcol-',visible=False,vertical_alignment='t')]
         if (self.nElements < 8):
             self.layout = [tempLayout,
                           presLayout,
-                          [sg.Column(elem1Layout),sg.Column(elem2Layout,key='-composition2-',visible=False)],
+                          [sg.Column(elem1Layout,vertical_alignment='t'),
+                           sg.Column(elem2Layout,key='-composition2-',visible=False,vertical_alignment='t')],
                           massLayout,
                           [sg.Checkbox('Save JSON',key='-json-')],
                           [sg.Button('Run'), sg.Exit()]]
