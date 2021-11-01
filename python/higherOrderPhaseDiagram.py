@@ -105,16 +105,17 @@ class DataWindow:
             except:
                 return
             i = 0
-            while i < nElements:
+            for el in elements:
                 try:
-                    index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
-                    i = i + 1
+                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
                 except ValueError:
-                    if len(elements[i]) > 0:
-                        if elements[i][0] != 'e':
-                            print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements.remove(elements[i])
-                    nElements = nElements - 1
+                    if len(el) > 0:
+                        if el[0] != 'e':
+                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
+                    elements = list(filter(lambda a: a != el, elements))
+            nElements = len(elements)
+            if nElements == 0:
+                return
             calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
             self.children.append(calcWindow)
 
@@ -591,12 +592,12 @@ class CalculationWindow:
                       vertical_alignment='t')]
         elem1Layout = [[sg.Text('Composition 1')]]
         elem2Layout = [[sg.Text('Composition 2')]]
-        for i in range(self.nElements):
-            elem1Layout.append([sg.Text(self.elements[i])])
-            elem1Layout.append([sg.Input(key='-'+self.elements[i]+'1-',size=(inputSize,1))])
-        for i in range(self.nElements):
-            elem2Layout.append([sg.Text(self.elements[i])])
-            elem2Layout.append([sg.Input(key='-'+self.elements[i]+'2-',size=(inputSize,1))])
+        for el in self.elements:
+            elem1Layout.append([sg.Text(el)])
+            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(inputSize,1))])
+        for el in self.elements:
+            elem2Layout.append([sg.Text(el)])
+            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(inputSize,1))])
         if (self.nElements < 8):
             elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
         else:

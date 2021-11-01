@@ -107,16 +107,16 @@ class DataWindow:
             except:
                 return
             i = 0
-            while i < nElements:
+            for el in elements:
                 try:
-                    index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
-                    i = i + 1
+                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
                 except ValueError:
-                    if len(elements[i]) > 0:
-                        if elements[i][0] != 'e':
-                            print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements.remove(elements[i])
-                    nElements = nElements - 1
+                    if len(el) > 0:
+                        if el[0] != 'e':
+                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
+                    elements.remove(el)
+                    elements = list(filter(lambda a: a != el, elements))
+            nElements = len(elements)
             if nElements == 0:
                 return
             calcWindow = CalculationWindow(self,datafile,nElements,elements,True)

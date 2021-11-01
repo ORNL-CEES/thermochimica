@@ -93,20 +93,21 @@ class DataWindow:
                         elLen = 25 # formatted 25 wide
                         for j in range(3):
                             elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                i = 0
-                while i < nElements:
-                    try:
-                        index = atomic_number_map.index(elements[i])+1 # get element indices in PT (i.e. # of protons)
-                        i = i + 1
-                    except ValueError:
-                        if elements[i][0] != 'e':
-                            print(elements[i]+' not in list') # if the name is bogus (or e(phase)), discard
-                        elements.remove(elements[i])
-                        nElements = nElements - 1
-                calcWindow = CalculationWindow(datafile,nElements,elements)
-                self.children.append(calcWindow)
             except:
-                pass
+                return
+            for el in elements:
+                try:
+                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
+                except ValueError:
+                    if len(el) > 0:
+                        if el[0] != 'e':
+                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
+                    elements = list(filter(lambda a: a != el, elements))
+            nElements = len(elements)
+            if nElements == 0:
+                return
+            calcWindow = CalculationWindow(datafile,nElements,elements)
+            self.children.append(calcWindow)
 
 class CalculationWindow:
     def __init__(self, datafile, nElements, elements):
@@ -240,14 +241,18 @@ class CalculationWindow:
                       [sg.Radio('Enabled, step\nwith temperature', 'prange', default=False, enable_events=True, key='-pent-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('# of steps',key='-psteplabel-')],[sg.Input(key='-pstep-',size=(8,1))]],vertical_alignment='t')
                       ]
-        elemLayout = []
-        for i in range(self.nElements):
-            elemLayout.append([sg.Text(self.elements[i])])
-            elemLayout.append([sg.Input(key='-'+self.elements[i]+'-',size=(inputSize,1))])
+        elem1Layout = [[sg.Text('Composition 1')]]
+        elem2Layout = [[sg.Text('Composition 2')]]
+        for el in self.elements:
+            elem1Layout.append([sg.Text(el)])
+            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(inputSize,1))])
+        for el in self.elements:
+            elem2Layout.append([sg.Text(el)])
+            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(inputSize,1))])
         if (self.nElements < 8):
             self.layout = [tempLayout,
                           presLayout,
-                          elemLayout,
+                          [sg.Column(elem1Layout),sg.Column(elem2Layout,key='composition2',visible=False)],
                           [sg.Text('Mass unit')],
                           [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
                           [sg.Checkbox('Save JSON',key='-json-')],
@@ -255,7 +260,8 @@ class CalculationWindow:
         else:
             self.layout = [tempLayout,
                           presLayout,
-                          [sg.Column(elemLayout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)],
+                          [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
+                           sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='composition2',visible=False)],
                           [sg.Text('Mass unit')],
                           [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')],
                           [sg.Checkbox('Save JSON',key='-json-')],
