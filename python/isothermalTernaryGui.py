@@ -389,27 +389,28 @@ class CalculationWindow:
                             boundPhases.append(phaseName)
                             tempComps = [0,0]
                             if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
-                                tempComps[0] = data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']
+                                tempComps[0] = round(float(data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']),4)
                             if self.el2 in list(data[i][phaseType][phaseName]['elements'].keys()):
-                                tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
+                                tempComps[1] = round(float(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']),4)
                             boundComps.append(tempComps)
-                # Record triplet
-                self.points.append([boundComps,boundPhases])
-                # Add first pair
-                x1.append(boundComps[0])
-                x2.append(boundComps[1])
-                self.p1.append(boundPhases[0])
-                self.p2.append(boundPhases[1])
-                # Add second pair
-                x1.append(boundComps[0])
-                x2.append(boundComps[2])
-                self.p1.append(boundPhases[0])
-                self.p2.append(boundPhases[2])
-                # Add third pair
-                x1.append(boundComps[1])
-                x2.append(boundComps[2])
-                self.p1.append(boundPhases[1])
-                self.p2.append(boundPhases[2])
+                # Record triplet (rounded values to avoid duplicating)
+                if not [boundComps,boundPhases] in self.points:
+                    self.points.append([boundComps,boundPhases])
+                    # Add first pair
+                    x1.append(boundComps[0])
+                    x2.append(boundComps[1])
+                    self.p1.append(boundPhases[0])
+                    self.p2.append(boundPhases[1])
+                    # Add second pair
+                    x1.append(boundComps[0])
+                    x2.append(boundComps[2])
+                    self.p1.append(boundPhases[0])
+                    self.p2.append(boundPhases[2])
+                    # Add third pair
+                    x1.append(boundComps[1])
+                    x2.append(boundComps[2])
+                    self.p1.append(boundPhases[1])
+                    self.p2.append(boundPhases[2])
         self.x1 = np.array(x1)
         self.x2 = np.array(x2)
     def runCalc(self):
@@ -484,7 +485,7 @@ class CalculationWindow:
         ax.set_xlabel(f'Mole fraction {self.el1}')
         ax.set_ylabel(f'Mole fraction {self.el2}')
         for lab in self.labels:
-            plt.text(float(lab[0][0]),float(lab[0][1]),lab[1])
+            plt.text(1-(lab[0][0]+lab[0][1]/2),lab[0][1],lab[1], ha='center')
         # reverse x tick labels for ternary plot
         ax.xaxis.set_major_formatter(FuncFormatter(fmt))
         ax2 = ax.twinx()
@@ -921,90 +922,13 @@ class CalculationWindow:
                 boundaries.append([self.p1[i],self.p2[i]])
                 b.append(len(boundaries)-1)
 
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1):
-                phases.append(boundaries[i][0])
-            if not(repeat2):
-                phases.append(boundaries[i][1])
-
-        congruentFound = [False for i in range(len(phases))]
+        # label 2-phase regions
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            if x1t[0] > x2t[0]:
-                dir = True
-            else:
-                dir = False
-            extraBound = []
-            for i in range(len(ttt)):
-                if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
-            if len(extraBound):
-                congruentFound[phases.index(boundaries[j][0])] = True
-                congruentFound[phases.index(boundaries[j][1])] = True
-                boundaries.append(boundaries[j])
-                for k in extraBound:
-                    b[inds[k]] = len(boundaries)-1
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                    boundaries.append(boundaries[j])
-                    for k in range(i+1,len(ttt)):
-                        b[inds[k]] = len(boundaries)-1
-
-        phasePolyPoints = [[] for i in range(len(phases))]
-
-        # plot 2-phase region boundaries
-        for j in range(len(boundaries)):
-            polygonPoints = []
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            for i in range(len(inds)):
-                polygonPoints.append([x1t[i],ttt[i]])
-            for i in reversed(range(len(inds))):
-                polygonPoints.append([x2t[i],ttt[i]])
-            phaseOutline = Polygon(polygonPoints)#.buffer(0)
-            center = list(phaseOutline.centroid.coords)[0]
-            self.labels.append([[center[0],center[1]],'+'.join(boundaries[j])])
-            for i in range(len(phases)):
-                if boundaries[j][0] == phases[i]:
-                    phasePolyPoints[i].append(polygonPoints[:len(inds)])
-                if boundaries[j][1] == phases[i]:
-                    phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-
-        for i in range(len(phases)):
-            if congruentFound[i]:
-                print(f'Warning: congruent phase transformation found, auto label will skip {phases[i]}')
-                continue
-            segcenters = []
-            if len(phasePolyPoints[i]) < 2:
-                continue
-            for j in range(len(phasePolyPoints[i])):
-                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            self.labels.append([[center[0],center[1]],phases[i]])
+            average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
+            self.labels.append([[average[0],average[1]],'+'.join(boundaries[j])])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
