@@ -734,7 +734,11 @@ class LabelWindow():
             self.close()
         elif event =='Add Label':
             try:
-                xlab = float(values['-xlab-'])
+                try:
+                    xlab = float(values['-xlab-'])
+                except ValueError:
+                    num, den = values['-xlab-'].split('/')
+                    xlab = float(num)/float(den)
                 tlab = float(values['-tlab-'])
                 if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
                     self.parent.makeBackup()
