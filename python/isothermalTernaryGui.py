@@ -362,6 +362,7 @@ class CalculationWindow:
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
         for i in list(data.keys()):
+            # 2-phase data points
             if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
                 boundPhases = []
                 boundComps = []
@@ -379,6 +380,35 @@ class CalculationWindow:
                 x2.append(boundComps[1])
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
+            # 3-phase data points
+            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 3:
+                boundPhases = []
+                boundComps = []
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                            boundPhases.append(phaseName)
+                            tempComps = [0,0]
+                            if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
+                                tempComps[0] = data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']
+                            if self.el2 in list(data[i][phaseType][phaseName]['elements'].keys()):
+                                tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
+                            boundComps.append(tempComps)
+                # Add first pair
+                x1.append(boundComps[0])
+                x2.append(boundComps[1])
+                self.p1.append(boundPhases[0])
+                self.p2.append(boundPhases[1])
+                # Add second pair
+                x1.append(boundComps[0])
+                x2.append(boundComps[2])
+                self.p1.append(boundPhases[0])
+                self.p2.append(boundPhases[2])
+                # Add third pair
+                x1.append(boundComps[1])
+                x2.append(boundComps[2])
+                self.p1.append(boundPhases[1])
+                self.p2.append(boundPhases[2])
         self.x1 = np.array(x1)
         self.x2 = np.array(x2)
     def runCalc(self):
