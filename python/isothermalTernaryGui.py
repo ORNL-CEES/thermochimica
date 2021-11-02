@@ -435,18 +435,16 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            ax.plot(1-(self.x1[inds,0]+self.x1[inds,1]/2),self.x1[inds,1],self.plotMarker,c=c)
-            ax.plot(1-(self.x2[inds,0]+self.x2[inds,1]/2),self.x2[inds,1],self.plotMarker,c=c)
-            minj = np.argmin(self.x1[inds,0])
-            maxj = np.argmax(self.x1[inds,0])
-            if minj == maxj:
-                minj = np.argmin(self.x2[inds,0])
-                maxj = np.argmax(self.x2[inds,0])
-            # plot 2-phase to 3-phase boundaries
-            ax.plot([1-(self.x1[inds,0][minj]+self.x1[inds,1][minj]/2),1-(self.x2[inds,0][minj]+self.x2[inds,1][minj]/2)],
-            [self.x1[inds,1][minj],self.x2[inds,1][minj]],self.plotMarker,c=c)
-            ax.plot([1-(self.x1[inds,0][maxj]+self.x1[inds,1][maxj]/2),1-(self.x2[inds,0][maxj]+self.x2[inds,1][maxj]/2)],
-            [self.x1[inds,1][maxj],self.x2[inds,1][maxj]],self.plotMarker,c=c)
+            average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
+            center = (average[0],average[1])
+            x1s = sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+            x2s = sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+            x1s.append([x2s[0][0],x2s[0][1]])
+            x2s.append([x1s[0][0],x1s[0][1]])
+            x1s = np.array(x1s)
+            x2s = np.array(x2s)
+            ax.plot(1-(x1s[:,0]+x1s[:,1]/2),x1s[:,1],self.plotMarker,c=c)
+            ax.plot(1-(x2s[:,0]+x2s[:,1]/2),x2s[:,1],self.plotMarker,c=c)
 
         ax.plot([0,0.5,1,0],[0,1,0,0],'k-')
         ax.set_xlim(0,1)
