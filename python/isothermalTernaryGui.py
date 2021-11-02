@@ -247,8 +247,7 @@ class CalculationWindow:
                 self.x2 = np.empty([0])
                 self.p1 = []
                 self.p2 = []
-                self.x0data = [[],[],[]]
-                self.x1data = [[],[],[]]
+                self.points = []
                 self.mint = 1e6
                 self.maxt = 0
                 self.labels = []
@@ -394,6 +393,8 @@ class CalculationWindow:
                             if self.el2 in list(data[i][phaseType][phaseName]['elements'].keys()):
                                 tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
                             boundComps.append(tempComps)
+                # Record triplet
+                self.points.append([boundComps,boundPhases])
                 # Add first pair
                 x1.append(boundComps[0])
                 x2.append(boundComps[1])
@@ -608,15 +609,6 @@ class CalculationWindow:
                             b[inds[k]] = len(boundaries)-1
 
             phasePolyPoints = [[] for i in range(len(phases))]
-
-            for j in range(len(self.x0data[1])):
-                i = phases.index(self.x0data[0][j])
-                phasePolyPoints[i].append([[0,self.x0data[1][j]]])
-                phasePolyPoints[i].append([[0,self.x0data[2][j]]])
-            for j in range(len(self.x1data[1])):
-                i = phases.index(self.x1data[0][j])
-                phasePolyPoints[i].append([[1,self.x1data[1][j]]])
-                phasePolyPoints[i].append([[1,self.x1data[2][j]]])
 
             # plot 2-phase region boundaries
             for j in range(len(boundaries)):
@@ -979,15 +971,6 @@ class CalculationWindow:
                         b[inds[k]] = len(boundaries)-1
 
         phasePolyPoints = [[] for i in range(len(phases))]
-
-        for j in range(len(self.x0data[1])):
-            i = phases.index(self.x0data[0][j])
-            phasePolyPoints[i].append([[0,self.x0data[1][j]]])
-            phasePolyPoints[i].append([[0,self.x0data[2][j]]])
-        for j in range(len(self.x1data[1])):
-            i = phases.index(self.x1data[0][j])
-            phasePolyPoints[i].append([[1,self.x1data[1][j]]])
-            phasePolyPoints[i].append([[1,self.x1data[2][j]]])
 
         # plot 2-phase region boundaries
         for j in range(len(boundaries)):
