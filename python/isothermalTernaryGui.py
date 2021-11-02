@@ -453,7 +453,7 @@ class CalculationWindow:
         # Start figure
         fig = plt.figure()
         plt.ion()
-        ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+        ax = fig.add_axes([0.125, 0.1, 0.75, 0.85])
 
         # plot 2-phase region boundaries
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
