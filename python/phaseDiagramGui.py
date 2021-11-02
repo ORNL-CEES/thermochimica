@@ -688,7 +688,7 @@ class CalculationWindow:
         ax.set_xlabel('Mole fraction ' + str(self.el2))
         ax.set_ylabel('Temperature [K]')
         for lab in self.labels:
-            plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
+            plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha='center')
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
