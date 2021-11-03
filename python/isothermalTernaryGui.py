@@ -267,12 +267,11 @@ class CalculationWindow:
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
         elif event =='Refine':
-            xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
+            xRefLayout    = [sg.Column([[sg.Text(f'Start {self.el1} Concentration')],[sg.Input(key='-xlor1-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text(f'End {self.el1} Concentration')],[sg.Input(key='-xhir1-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-            tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
+            tempRefLayout = [sg.Column([[sg.Text(f'Start {self.el2} Concentration')],[sg.Input(key='-xlor2-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text(f'End {self.el2} Concentration')],[sg.Input(key='-xhir2-',size=(inputSize,1))]],vertical_alignment='t')]
             refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
             refineWindow = RefineWindow(self, refineLayout)
             self.children.append(refineWindow)
@@ -1109,28 +1108,28 @@ class RefineWindow():
                 confirmWindow.close()
             xlo1 = 0
             try:
-                templo = float(values['-xlor-'])
+                templo = float(values['-xlor1-'])
                 if 0 <= templo <= 1:
                     xlo1 = templo
             except:
                 pass
             xhi1 = 1
             try:
-                temphi = float(values['-xhir-'])
+                temphi = float(values['-xhir1-'])
                 if 0 <= temphi <= 1:
                     xhi1 = temphi
             except:
                 pass
             xlo2 = 0
             try:
-                templo = float(values['-xlor-'])
+                templo = float(values['-xlor2-'])
                 if 0 <= templo <= 1:
                     xlo2 = templo
             except:
                 pass
             xhi2 = 1
             try:
-                temphi = float(values['-xhir-'])
+                temphi = float(values['-xhir2-'])
                 if 0 <= temphi <= 1:
                     xhi2 = temphi
             except:
