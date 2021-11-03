@@ -390,8 +390,11 @@ class CalculationWindow:
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
         for i in list(data.keys()):
-            self.mint = min(self.mint,data[i]['temperature'])
-            self.maxt = max(self.maxt,data[i]['temperature'])
+            try:
+                self.mint = min(self.mint,data[i]['temperature'])
+                self.maxt = max(self.maxt,data[i]['temperature'])
+            except:
+                continue
             if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
                 ts.append(data[i]['temperature'])
                 boundPhases = []
