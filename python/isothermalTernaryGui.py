@@ -137,6 +137,7 @@ class CalculationWindow:
         self.p1 = []
         self.p2 = []
         self.points3 = []
+        self.points1 = []
         self.el1 = ''
         self.el2 = ''
         self.el3 = ''
@@ -248,6 +249,7 @@ class CalculationWindow:
                 self.p1 = []
                 self.p2 = []
                 self.points3 = []
+                self.points1 = []
                 self.mint = 1e6
                 self.maxt = 0
                 self.labels = []
@@ -361,6 +363,23 @@ class CalculationWindow:
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
         for i in list(data.keys()):
+            # 1-phase data points (edges only)
+            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                            boundPhase = phaseName
+                            tempComps = [0,0,0]
+                            if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
+                                tempComps[0] = data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']
+                            if self.el2 in list(data[i][phaseType][phaseName]['elements'].keys()):
+                                tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
+                            if self.el3 in list(data[i][phaseType][phaseName]['elements'].keys()):
+                                tempComps[2] = data[i][phaseType][phaseName]['elements'][self.el3]['mole fraction of phase by element']
+                # only record points on a diagram boundary
+                if min(tempComps) > 0:
+                    continue
+                self.points1.append([[tempComps[0],tempComps[1]],boundPhase])
             # 2-phase data points
             if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
                 boundPhases = []
@@ -945,13 +964,16 @@ class CalculationWindow:
         for phase in phases:
             inds1 = [i for i, k in enumerate(self.p1) if k == phase]
             inds2 = [i for i, k in enumerate(self.p2) if k == phase]
-            average = np.zeros(2)
+            points = []
             if len(inds1) > 0:
-                average += np.average(self.x1[inds1],axis=0)
+                points.extend(self.x1[inds1].tolist())
             if len(inds2) > 0:
-                average += np.average(self.x2[inds2],axis=0)
-            if (len(inds1) > 0) and (len(inds2) > 0):
-                average /= 2
+                points.extend(self.x2[inds2].tolist())
+            for point in self.points1:
+                if point[1] == phase:
+                    points.append(point[0])
+            points = np.array(points)
+            average = np.average(points,axis=0)
             self.labels.append([[average[0],average[1]],phase])
 
         # label 2-phase regions
@@ -976,6 +998,7 @@ class CalculationWindow:
         self.backup.p1 = copy.deepcopy(self.p1)
         self.backup.p2 = copy.deepcopy(self.p2)
         self.backup.points3 = copy.deepcopy(self.points3)
+        self.backup.points1 = copy.deepcopy(self.points1)
         self.backup.labels = copy.deepcopy(self.labels)
         self.backup.outline = copy.deepcopy(self.outline)
         self.backup.pressure = self.pressure
