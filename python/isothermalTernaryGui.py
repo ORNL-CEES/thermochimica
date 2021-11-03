@@ -389,12 +389,16 @@ class CalculationWindow:
                             boundPhases.append(phaseName)
                             tempComps = [0,0]
                             if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
-                                tempComps[0] = round(float(data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']),4)
+                                tempComps[0] = data[i][phaseType][phaseName]['elements'][self.el1]['mole fraction of phase by element']
                             if self.el2 in list(data[i][phaseType][phaseName]['elements'].keys()):
-                                tempComps[1] = round(float(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']),4)
+                                tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
                             boundComps.append(tempComps)
-                # Record triplet (rounded values to avoid duplicating)
-                if not [boundComps,boundPhases] in self.points:
+                # Record triplet (check values to avoid duplicating)
+                if len(self.points) > 0:
+                    mindist = np.sqrt(min([np.linalg.norm(np.array(boundComps)-np.array(p[0])) for p in self.points]))
+                else:
+                    mindist = 100
+                if mindist > 1e-4:
                     self.points.append([boundComps,boundPhases])
                     # Add first pair
                     x1.append(boundComps[0])
