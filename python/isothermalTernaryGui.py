@@ -165,7 +165,6 @@ class CalculationWindow:
         self.exportDPI = 300
         self.resRef = 7
         self.resSmooth = 7
-        self.gapLimit = np.Inf
         self.figureList = []
     def close(self):
         for child in self.children:
@@ -255,7 +254,6 @@ class CalculationWindow:
                 self.labels = []
                 self.resRef = 7
                 self.resSmooth = 7
-                self.gapLimit = np.Inf
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -520,6 +518,14 @@ class CalculationWindow:
         self.figureList.append(fig)
         self.sgw.Element('Export Plot').Update(disabled = False)
     def writeInputFile(self,xlo1,xhi1,xlo2,xhi2,nxstep):
+        if xlo1 > xhi1:
+            temp = xlo1
+            xlo1 = xhi1
+            xhi1 = temp
+        if xlo2 > xhi2:
+            temp = xlo2
+            xlo2 = xhi2
+            xhi2 = temp
         with open(self.inputFileName, 'w') as inputFile:
             inputFile.write('! Python-generated input file for Thermochimica\n')
             if float(nxstep) > 0:
@@ -617,19 +623,6 @@ class CalculationWindow:
                     boundaries.append(boundaries[j])
                     for k in extraBound:
                         b[inds[k]] = len(boundaries)-1
-
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                for i in range(len(ttt)-1):
-                    if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                        boundaries.append(boundaries[j])
-                        for k in range(i+1,len(ttt)):
-                            b[inds[k]] = len(boundaries)-1
 
             phasePolyPoints = [[] for i in range(len(phases))]
 
@@ -735,104 +728,7 @@ class CalculationWindow:
             elif any(congruentFound):
                 break
     def autoRefine2Phase(self,res):
-        # Create arrays again with new data
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            if x1t[0] > x2t[0]:
-                dir = True
-            else:
-                dir = False
-            extraBound = []
-            for i in range(len(ttt)):
-                if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
-            if len(extraBound):
-                boundaries.append(boundaries[j])
-                for k in extraBound:
-                    b[inds[k]] = len(boundaries)-1
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                    boundaries.append(boundaries[j])
-                    for k in range(i+1,len(ttt)):
-                        b[inds[k]] = len(boundaries)-1
-
-        # Expand two-phase regions
-        tres = (self.maxt-self.mint)/res
-        xs = []
-        ys = []
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            tbound = max(self.mint,ttt[0]-tres*3)
-            for k in np.arange(tbound,max(self.mint,ttt[0]-tres/3),tres/3):
-                ys.append(k)
-                xs.append((x1t[0] + x2t[0])/2)
-                ys.append(k)
-                xs.append((0.99*x1t[0] + 0.01*x2t[0]))
-                ys.append(k)
-                xs.append((0.01*x1t[0] + 0.99*x2t[0]))
-            tbound = min(self.maxt,ttt[-1]+tres*3)
-            for k in np.arange(min(self.maxt,ttt[-1]+tres/3),tbound,tres/3):
-                ys.append(k)
-                xs.append((x1t[-1] + x2t[-1])/2)
-                ys.append(k)
-                xs.append((0.99*x1t[-1] + 0.01*x2t[-1]))
-                ys.append(k)
-                xs.append((0.01*x1t[-1] + 0.99*x2t[-1]))
-
-        if len(xs) > 0:
-            with open(self.inputFileName, 'w') as inputFile:
-                inputFile.write('! Python-generated input file for Thermochimica\n')
-                inputFile.write('data file         = ' + self.datafile + '\n')
-                inputFile.write('temperature unit         = ' + self.tunit + '\n')
-                inputFile.write('pressure unit          = ' + self.punit + '\n')
-                inputFile.write('mass unit          = \'' + self.munit + '\'\n')
-                inputFile.write('nEl         = 2 \n')
-                inputFile.write('iEl         = ' + str(atomic_number_map.index(self.el1)+1) + ' ' + str(atomic_number_map.index(self.el2)+1) + '\n')
-                inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-                for i in range(len(xs)):
-                    inputFile.write(str(ys[i]) + ' ' + str(self.pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-            print('Thermochimica calculation initiated.')
-            subprocess.run(['./bin/RunCalculationList',self.inputFileName])
-            print('Thermochimica calculation finished.')
-            self.processPhaseDiagramData()
-
+        # Run iteratively
         nIt = 0
         while nIt < 10:
             nIt = nIt + 1
@@ -857,26 +753,6 @@ class CalculationWindow:
                     boundaries.append([self.p1[i],self.p2[i]])
                     b.append(len(boundaries)-1)
 
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                if x1t[0] > x2t[0]:
-                    dir = True
-                else:
-                    dir = False
-                extraBound = []
-                for i in range(len(ttt)):
-                    if (x1t[i] > x2t[i]) != dir:
-                        extraBound.append(i)
-                if len(extraBound):
-                    boundaries.append(boundaries[j])
-                    for k in extraBound:
-                        b[inds[k]] = len(boundaries)-1
-
             # Refine two-phase region density
             xs = []
             ys = []
@@ -884,43 +760,22 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                for i in range(len(ttt)-1):
-                    gap = np.sqrt(((ttt[i]-ttt[i+1])/(self.maxt-self.mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
+                average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
+                center = (average[0],average[1])
+                x1s = np.array(sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
+                x2s = np.array(sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::+1]))) % 360))
+                for i in range(len(x1s)-1):
+                    gap = np.linalg.norm(x1s[i]-x1s[i+1])+np.linalg.norm(x2s[i]-x2s[i+1])
                     maxGap = max(gap,maxGap)
                     if gap > 1/res:
-                        step = tres*((ttt[i+1] - ttt[i])/(self.maxt - self.mint))/gap
-                        try:
-                            for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
-                                ys.append(k)
-                                progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
-                                xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
-                        except:
-                            continue
-
-            if len(xs) > 0:
-                with open(self.inputFileName, 'w') as inputFile:
-                    inputFile.write('! Python-generated input file for Thermochimica\n')
-                    inputFile.write('data file         = ' + self.datafile + '\n')
-                    inputFile.write('temperature unit         = ' + self.tunit + '\n')
-                    inputFile.write('pressure unit          = ' + self.punit + '\n')
-                    inputFile.write('mass unit          = \'' + self.munit + '\'\n')
-                    inputFile.write('nEl         = 2 \n')
-                    inputFile.write('iEl         = ' + str(atomic_number_map.index(self.el1)+1) + ' ' + str(atomic_number_map.index(self.el2)+1) + '\n')
-                    inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
-                    for i in range(len(xs)):
-                        inputFile.write(str(ys[i]) + ' ' + str(self.pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
-                print('Thermochimica calculation initiated.')
-                subprocess.run(['./bin/RunCalculationList',self.inputFileName])
-                print('Thermochimica calculation finished.')
-                self.processPhaseDiagramData()
+                        start = np.average([x1s[i],  x2s[i]],axis=0)
+                        end   = np.average([x1s[i+1],x2s[i+1]],axis=0)
+                        self.writeInputFile(start[0],end[0],start[1],end[1],np.ceil(gap * res))
+                        self.runCalc()
 
             # Test the minimum difference between points to see if converged
             if maxGap <= 1/res:
                 break
-        self.gapLimit = 2*tres
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
@@ -1016,7 +871,6 @@ class CalculationWindow:
         self.backup.exportDPI = self.exportDPI
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
-        self.backup.gapLimit = self.gapLimit
     def activate(self):
         if not self.active:
             self.makeLayout()
