@@ -486,6 +486,25 @@ class CalculationWindow:
                 b.append(len(boundaries))
                 boundaries.append(point[0][2])
 
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            temppoints1 =[self.points[i][0][1] for i in inds]
+            temppoints2 =[self.points[i][1][1] for i in inds]
+            if temppoints1[0] > temppoints2[0]:
+                dir = True
+            else:
+                dir = False
+            extraBound = []
+            for i in range(len(temppoints1)):
+                if (temppoints1[i] > temppoints2[i]) != dir:
+                    extraBound.append(i)
+            if len(extraBound):
+                boundaries.append(boundaries[j])
+                for k in extraBound:
+                    b[inds[k]] = len(boundaries)-1
+
         # Start figure
         fig = plt.figure()
         plt.ion()
