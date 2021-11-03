@@ -398,7 +398,7 @@ class CalculationWindow:
                     mindist = np.sqrt(min([np.linalg.norm(np.array(boundComps)-np.array(p[0])) for p in self.points]))
                 else:
                     mindist = 100
-                if mindist > 1e-4:
+                if mindist > 1e-2:
                     self.points.append([boundComps,boundPhases])
                     # Add first pair
                     x1.append(boundComps[0])
@@ -933,6 +933,11 @@ class CalculationWindow:
                 continue
             average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
             self.labels.append([[average[0],average[1]],'+'.join(boundaries[j])])
+
+        # label 3-phase regions
+        for point in self.points:
+            average = np.average(point[0],axis=0)
+            self.labels.append([[average[0],average[1]],'+'.join(point[1])])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
