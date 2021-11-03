@@ -136,7 +136,7 @@ class CalculationWindow:
         self.x2 = np.empty([0])
         self.p1 = []
         self.p2 = []
-        self.points = []
+        self.points3 = []
         self.el1 = ''
         self.el2 = ''
         self.el3 = ''
@@ -247,7 +247,7 @@ class CalculationWindow:
                 self.x2 = np.empty([0])
                 self.p1 = []
                 self.p2 = []
-                self.points = []
+                self.points3 = []
                 self.mint = 1e6
                 self.maxt = 0
                 self.labels = []
@@ -394,12 +394,12 @@ class CalculationWindow:
                                 tempComps[1] = data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element']
                             boundComps.append(tempComps)
                 # Record triplet (check values to avoid duplicating)
-                if len(self.points) > 0:
-                    mindist = np.sqrt(min([np.linalg.norm(np.array(boundComps)-np.array(p[0])) for p in self.points]))
+                if len(self.points3) > 0:
+                    mindist = np.sqrt(min([np.linalg.norm(np.array(boundComps)-np.array(p[0])) for p in self.points3]))
                 else:
                     mindist = 100
                 if mindist > 1e-2:
-                    self.points.append([boundComps,boundPhases])
+                    self.points3.append([boundComps,boundPhases])
                     # Add first pair
                     x1.append(boundComps[0])
                     x2.append(boundComps[1])
@@ -935,7 +935,7 @@ class CalculationWindow:
             self.labels.append([[average[0],average[1]],'+'.join(boundaries[j])])
 
         # label 3-phase regions
-        for point in self.points:
+        for point in self.points3:
             average = np.average(point[0],axis=0)
             self.labels.append([[average[0],average[1]],'+'.join(point[1])])
     def makeBackup(self):
@@ -947,6 +947,7 @@ class CalculationWindow:
         self.backup.x2 = copy.deepcopy(self.x2)
         self.backup.p1 = copy.deepcopy(self.p1)
         self.backup.p2 = copy.deepcopy(self.p2)
+        self.backup.points3 = copy.deepcopy(self.points3)
         self.backup.labels = copy.deepcopy(self.labels)
         self.backup.outline = copy.deepcopy(self.outline)
         self.backup.pressure = self.pressure
