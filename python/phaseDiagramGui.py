@@ -114,7 +114,6 @@ class DataWindow:
                     if len(el) > 0:
                         if el[0] != 'e':
                             print(el+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements.remove(el)
                     elements = list(filter(lambda a: a != el, elements))
             nElements = len(elements)
             if nElements == 0:
