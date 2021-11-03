@@ -906,8 +906,8 @@ class CalculationWindow:
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
+        # Make list of boundaries and points belonging to them
         boundaries = []
-        phases = []
         b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
@@ -925,6 +925,34 @@ class CalculationWindow:
             if not(repeat):
                 boundaries.append([self.p1[i],self.p2[i]])
                 b.append(len(boundaries)-1)
+
+        # Make list of phases
+        phases = []
+        for i in range(len(boundaries)):
+            repeat1 = False
+            repeat2 = False
+            for j in range(len(phases)):
+                if (boundaries[i][0] == phases[j]):
+                    repeat1 = True
+                if (boundaries[i][1] == phases[j]):
+                    repeat2 = True
+            if not(repeat1):
+                phases.append(boundaries[i][0])
+            if not(repeat2):
+                phases.append(boundaries[i][1])
+
+        # label 1-phase regions
+        for phase in phases:
+            inds1 = [i for i, k in enumerate(self.p1) if k == phase]
+            inds2 = [i for i, k in enumerate(self.p2) if k == phase]
+            average = np.zeros(2)
+            if len(inds1) > 0:
+                average += np.average(self.x1[inds1],axis=0)
+            if len(inds2) > 0:
+                average += np.average(self.x2[inds2],axis=0)
+            if (len(inds1) > 0) and (len(inds2) > 0):
+                average /= 2
+            self.labels.append([[average[0],average[1]],phase])
 
         # label 2-phase regions
         for j in range(len(boundaries)):
