@@ -249,14 +249,11 @@ class CalculationWindow:
                 self.p2 = []
                 self.points3 = []
                 self.points1 = []
-                self.mint = 1e6
-                self.maxt = 0
                 self.labels = []
                 self.resRef = 7
                 self.resSmooth = 7
                 self.runCalc()
                 self.makePlot()
-                self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Auto Refine').Update(disabled = False)
                 self.sgw.Element('Auto Smoothen').Update(disabled = False)
@@ -855,6 +852,7 @@ class CalculationWindow:
         self.backup.points1 = copy.deepcopy(self.points1)
         self.backup.labels = copy.deepcopy(self.labels)
         self.backup.outline = copy.deepcopy(self.outline)
+        self.backup.temperature = self.temperature
         self.backup.pressure = self.pressure
         self.backup.inputFileName = self.inputFileName
         self.backup.outputFileName = self.outputFileName
