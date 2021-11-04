@@ -6,6 +6,8 @@ import json
 import matplotlib.pyplot as plt
 
 timeout = 50
+inputSize = 20
+buttonSize = 12
 windowList = []
 popupLocation = [300,0]
 
@@ -102,13 +104,20 @@ class PlotWindow:
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
-                      [sg.Button('Plot', disabled = True), sg.Button('Export Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
+                      [sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                                  [sg.Button('Export Plot', disabled = True, size = buttonSize)]
+                                 ],vertical_alignment='t'),
+                      sg.Column([[sg.Button('Export Plot Script', disabled = True, size = buttonSize)],
+                                  [sg.Button('Plot Settings', size = buttonSize)]
+                                 ],vertical_alignment='t')]]
         self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
         self.children = []
         self.currentPlot = []
         self.figureList = []
         self.exportFormat = 'png'
         self.exportFileName = 'plot'
+        self.plotMarker = '-'
+        self.plotColor = 'colorful'
         self.exportDPI = 300
     def close(self):
         for child in self.children:
@@ -661,6 +670,40 @@ class PlotWindow:
                 f.write('ax.set_xlabel(xlab)\n')
                 f.write('ax.set_ylabel(ylab)\n')
                 f.write('plt.show()\n')
+        elif event =='Export Plot':
+            self.exportPlot()
+        elif event =='Plot Settings':
+            if self.plotMarker == '-':
+                line  = True
+                point = False
+                both  = False
+            elif self.plotMarker == '.':
+                line  = False
+                point = True
+                both  = False
+            else:
+                line  = False
+                point = False
+                both  = True
+            if self.plotColor == 'colorful':
+                colorful = True
+                bland    = False
+            else:
+                colorful = False
+                bland    = True
+            settingsLayout = [[sg.Text('Marker Style:')],
+                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                             [sg.Text('Plot Colors:')],
+                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                             [sg.Button('Accept')]]
+            settingsWindow = SettingsWindow(self, settingsLayout)
+            self.children.append(settingsWindow)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
@@ -672,6 +715,46 @@ class PlotWindow:
                 if event == sg.WIN_CLOSED or event == 'Continue':
                     break
             errorWindow.close()
+
+class SettingsWindow:
+    def __init__(self, parent, windowLayout):
+        self.parent = parent
+        windowList.append(self)
+        self.sgw = sg.Window('Plot Settings', windowLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED:
+            self.close()
+        elif event == '-mline-':
+            self.parent.plotMarker = '-'
+        elif event =='-mpoint-':
+            self.parent.plotMarker = '.'
+        elif event =='-mboth-':
+            self.parent.plotMarker = '.-'
+        elif event =='-mcolorful-':
+            self.parent.plotColor = 'colorful'
+        elif event =='-mbland-':
+            self.parent.plotColor = 'bland'
+        elif event =='Accept':
+            try:
+                self.parent.exportFileName = str(values['-filename-'])
+            except:
+                pass
+            self.parent.exportFormat = values['-format-']
+            try:
+                tempDPI = int(values['-dpi-'])
+                if tempDPI > 0 > 10000:
+                    self.parent.exportDPI = int(values['-dpi-'])
+            except:
+                pass
+            self.close()
 
 dataWindow = DataWindow()
 while len(windowList) > 0:
