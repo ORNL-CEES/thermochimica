@@ -4,6 +4,7 @@ import math
 import os
 import json
 import matplotlib.pyplot as plt
+import numpy as np
 
 timeout = 50
 inputSize = 20
@@ -98,7 +99,7 @@ class PlotWindow:
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
-                          [sg.Text('y-axis')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
+                          [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
@@ -116,8 +117,10 @@ class PlotWindow:
         self.figureList = []
         self.exportFormat = 'png'
         self.exportFileName = 'plot'
-        self.plotMarker = '-'
+        self.plotMarker = '.-'
+        self.plotMarker2 = '*--'
         self.plotColor = 'colorful'
+        self.plotColor2 = 'colorful'
         self.exportDPI = 300
     def close(self):
         for child in self.children:
@@ -610,18 +613,28 @@ class PlotWindow:
                 ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
             else:
                 ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.yen))))
             for yi in range(len(self.yen)):
                 if self.yen[yi]:
-                    lns = lns + ax.plot(x,y[yi],'.-',label = self.leg[yi])
+                    if self.plotColor == 'colorful':
+                        c = next(color)
+                    else:
+                        c = 'k'
+                    lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label = self.leg[yi])
             ax.set_xlabel(xlab)
             if values['-xlog-']:
                 ax.set_xscale('log')
             ax.set_ylabel(self.ylab)
             if True in self.yen2:
                 ax2 = ax.twinx()
+                color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.yen2))))
                 for yi in range(len(self.yen2)):
                     if self.yen2[yi]:
-                        lns = lns + ax2.plot(x,y2[yi],'^--',label = self.leg2[yi])
+                        if self.plotColor2 == 'colorful':
+                            c = next(color)
+                        else:
+                            c = 'k'
+                        lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label = self.leg2[yi])
                 ax2.set_ylabel(self.ylab2)
                 if values['-y2log-']:
                     ax2.set_yscale('log')
@@ -685,19 +698,48 @@ class PlotWindow:
                 line  = False
                 point = False
                 both  = True
+            if self.plotMarker2 == '--':
+                line2  = True
+                point2 = False
+                both2  = False
+            elif self.plotMarker2 == '*':
+                line2  = False
+                point2 = True
+                both2  = False
+            else:
+                line2  = False
+                point2 = False
+                both2  = True
             if self.plotColor == 'colorful':
                 colorful = True
                 bland    = False
             else:
                 colorful = False
                 bland    = True
-            settingsLayout = [[sg.Text('Marker Style:')],
-                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                             [sg.Text('Plot Colors:')],
-                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+            if self.plotColor2 == 'colorful':
+                colorful2 = True
+                bland2    = False
+            else:
+                colorful2 = False
+                bland2    = True
+            settingsLayout = [[sg.Column([[sg.Text('Marker Style:')],
+                                          [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                                          [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                                          [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')]
+                                         ],vertical_alignment='t'),
+                               sg.Column([[sg.Text('Marker Style 2:')],
+                                          [sg.Radio('Lines', 'mstyle2', default=line2,  enable_events=True, key='-mline2-')],
+                                          [sg.Radio('Points','mstyle2', default=point2, enable_events=True, key='-mpoint2-')],
+                                          [sg.Radio('Both',  'mstyle2', default=both2,  enable_events=True, key='-mboth2-')]
+                                         ],vertical_alignment='t')],
+                              [sg.Column([[sg.Text('Plot Colors:')],
+                                          [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                                          [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')]
+                                         ],vertical_alignment='t'),
+                               sg.Column([[sg.Text('Plot Colors 2:')],
+                                          [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
+                                          [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
+                                         ],vertical_alignment='t')],
                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
@@ -738,10 +780,20 @@ class SettingsWindow:
             self.parent.plotMarker = '.'
         elif event =='-mboth-':
             self.parent.plotMarker = '.-'
+        elif event == '-mline2-':
+            self.parent.plotMarker2 = '--'
+        elif event =='-mpoint2-':
+            self.parent.plotMarker2 = '*'
+        elif event =='-mboth2-':
+            self.parent.plotMarker2 = '*--'
         elif event =='-mcolorful-':
             self.parent.plotColor = 'colorful'
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
+        elif event =='-mcolorful2-':
+            self.parent.plotColor2 = 'colorful'
+        elif event =='-mbland2-':
+            self.parent.plotColor2 = 'bland'
         elif event =='Accept':
             try:
                 self.parent.exportFileName = str(values['-filename-'])
