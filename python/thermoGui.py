@@ -4,6 +4,7 @@ import math
 import os
 import sys
 import numpy as np
+import shutil
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -119,6 +120,7 @@ class CalculationWindow:
         self.makeLayout()
         self.sgw = sg.Window(f'Thermochimica calculation: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
         self.children = []
+        self.exportFileName = 'thermoout'
     def close(self):
         for child in self.children:
             child.close()
@@ -181,7 +183,7 @@ class CalculationWindow:
             self.sgw.Element('-psteplabel-').Update(visible = False)
             self.sgw.Element('-tdis-').Update(value = True)
             self.sgw.Element('-pdis-').Update(value = True)
-        elif event =='Run':
+        elif event == 'Run':
                 temperature = 300
                 try:
                     templo = float(values['-temperature-'])
@@ -285,6 +287,23 @@ class CalculationWindow:
                     resultOutput = [[sg.Text('Output is too large to display')]]
                 resultWindow = ResultWindow(resultOutput)
                 self.children.append(resultWindow)
+                if values['-json-']:
+                    shutil.copy2('thermoout.json', f'{self.exportFileName}.json')
+        elif event == 'Set name':
+            setNameLayout = [[sg.Input(key='-jsonname-',size=(inputSize,1)),sg.Text('.json')],[sg.Button('Accept'), sg.Button('Cancel')]]
+            setNameWindow = sg.Window('Set JSON name', setNameLayout, location = [400,0], finalize=True)
+            while True:
+                event, values = setNameWindow.read(timeout=timeout)
+                if event == sg.WIN_CLOSED or event == 'Cancel':
+                    break
+                elif event == 'Accept':
+                    try:
+                        if str(values['-jsonname-']) != '':
+                            self.exportFileName = str(values['-jsonname-'])
+                    except:
+                        pass
+                    break
+            setNameWindow.close()
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
@@ -327,7 +346,7 @@ class CalculationWindow:
                           [sg.Column(elem1Layout,vertical_alignment='t'),
                            sg.Column(elem2Layout,key='-composition2-',visible=False,vertical_alignment='t')],
                           massLayout,
-                          [sg.Checkbox('Save JSON',key='-json-')],
+                          [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
                           [sg.Button('Run'), sg.Exit()]]
         else:
             self.layout = [tempLayout,
@@ -335,7 +354,7 @@ class CalculationWindow:
                           [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
                            sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='composition2',visible=False)],
                           massLayout,
-                          [sg.Checkbox('Save JSON',key='-json-')],
+                          [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
                           [sg.Button('Run'), sg.Exit()]]
 
 class ResultWindow:
@@ -350,7 +369,6 @@ class ResultWindow:
         event, values = self.sgw.read(timeout=timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
-
 
 if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
