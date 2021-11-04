@@ -613,7 +613,11 @@ class PlotWindow:
                 ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
             else:
                 ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.yen))))
+            en = 0
+            for yi in range(len(self.yen)):
+                if self.yen[yi]:
+                    en += 1
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
             for yi in range(len(self.yen)):
                 if self.yen[yi]:
                     if self.plotColor == 'colorful':
@@ -627,7 +631,11 @@ class PlotWindow:
             ax.set_ylabel(self.ylab)
             if True in self.yen2:
                 ax2 = ax.twinx()
-                color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.yen2))))
+                en = 0
+                for yi in range(len(self.yen2)):
+                    if self.yen2[yi]:
+                        en += 1
+                color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
                 for yi in range(len(self.yen2)):
                     if self.yen2[yi]:
                         if self.plotColor2 == 'colorful':
