@@ -92,11 +92,11 @@ class PlotWindow:
             exit()
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
-                          [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
+                          [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
-                          [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
+                          [sg.Text('y-axis')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
@@ -301,6 +301,39 @@ class PlotWindow:
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
+            elif values['-yaxis-'] == 'vapor pressure':
+                self.ykey = []
+                self.ylab = 'Vapor Pressure [atm]'
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                phaseColumns = []
+                yi = 0
+                for j in solutionPhases:
+                    if self.data['1']['solution phases'][j]['phase model'] != 'IDMX':
+                        break
+                    for k in list(self.data['1']['solution phases'][j]['species'].keys()):
+                        try:
+                            self.ykey.append(['solution phases',j,'species',k,values['-yaxis-']])
+                            self.yen.append(False)
+                            phaseColumns.append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
+                            self.leg.append(j+': '+k)
+                            yi = yi + 1
+                        except:
+                            continue
+                    break
+                phaseSelectLayout = phaseColumns
+                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                while True:
+                    event, values = selectWindow.read()
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Accept':
+                        for yi in range(len(self.ykey)):
+                            self.yen[yi] = values[str(yi)]
+                        self.sgw.Element('Plot').Update(disabled = False)
+                        self.sgw.Element('-yaxis2-').Update(disabled = False)
+                        break
+                selectWindow.close()
             elif values['-yaxis-'] == 'element potential':
                 self.ykey = []
                 self.ylab = 'Element Potential [J]'
@@ -468,6 +501,39 @@ class PlotWindow:
                         break
                 selectWindow.close()
                 self.sgw.Element('Plot').Update(disabled = False)
+            elif values['-yaxis2-'] == 'vapor pressure':
+                self.ykey2 = []
+                self.ylab2 = 'Vapor Pressure [atm]'
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                phaseColumns = []
+                yi = 0
+                for j in solutionPhases:
+                    if self.data['1']['solution phases'][j]['phase model'] != 'IDMX':
+                        break
+                    for k in list(self.data['1']['solution phases'][j]['species'].keys()):
+                        try:
+                            self.ykey2.append(['solution phases',j,'species',k,values['-yaxis2-']])
+                            self.yen2.append(False)
+                            phaseColumns.append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
+                            self.leg2.append(j+': '+k)
+                            yi = yi + 1
+                        except:
+                            continue
+                    break
+                phaseSelectLayout = phaseColumns
+                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                while True:
+                    event, values = selectWindow.read()
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Accept':
+                        for yi in range(len(self.ykey2)):
+                            self.yen2[yi] = values[str(yi)]
+                        self.sgw.Element('Plot').Update(disabled = False)
+                        self.sgw.Element('-yaxis2-').Update(disabled = False)
+                        break
+                selectWindow.close()
             elif values['-yaxis2-'] == 'element potential':
                 self.ykey2 = []
                 self.ylab2 = 'Element Potential [J]'
@@ -494,14 +560,20 @@ class PlotWindow:
                         elif len(self.ykey[yi]) == 3:
                             y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]])
                         elif len(self.ykey[yi]) == 5:
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
+                            if self.ykey[yi][4] == 'vapor pressure':
+                                y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                            else:
+                                y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
                     for yi in range(len(self.ykey2)):
                         if len(self.ykey2[yi]) == 1:
                             y2[yi].append(self.data[j][self.ykey2[yi][0]])
                         elif len(self.ykey2[yi]) == 3:
                             y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]])
                         elif len(self.ykey2[yi]) == 5:
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
+                            if self.ykey2[yi][4] == 'vapor pressure':
+                                y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                            else:
+                                y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
                     if xkey == 'iteration':
                         x.append(int(j))
                         xlab = 'Iteration'
