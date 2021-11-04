@@ -275,6 +275,8 @@ class CalculationWindow:
                         inputFile.write('debug mode        = .FALSE.\n')
                         if values['-json-']:
                             inputFile.write('write json     = .TRUE.\n')
+                        else:
+                            inputFile.write('write json     = .FALSE.\n')
                     thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
