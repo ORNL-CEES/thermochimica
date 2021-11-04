@@ -1498,7 +1498,8 @@ class SettingsWindow:
             self.parent.plotColor = 'bland'
         elif event =='Accept':
             try:
-                self.parent.exportFileName = str(values['-filename-'])
+                if str(values['-filename-']) != '':
+                    self.parent.exportFileName = str(values['-filename-'])
             except:
                 pass
             self.parent.exportFormat = values['-format-']
