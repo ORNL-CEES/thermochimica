@@ -288,7 +288,10 @@ class CalculationWindow:
                 resultWindow = ResultWindow(resultOutput)
                 self.children.append(resultWindow)
                 if values['-json-']:
-                    shutil.copy2('thermoout.json', f'{self.exportFileName}.json')
+                    try:
+                        shutil.copy2('thermoout.json', f'{self.exportFileName}.json')
+                    except:
+                        pass
         elif event == 'Set name':
             setNameLayout = [[sg.Input(key='-jsonname-',size=(inputSize,1)),sg.Text('.json')],[sg.Button('Accept'), sg.Button('Cancel')]]
             setNameWindow = sg.Window('Set JSON name', setNameLayout, location = [400,0], finalize=True)
