@@ -670,9 +670,9 @@ class PlotWindow:
                 f.write('ax.set_xlabel(xlab)\n')
                 f.write('ax.set_ylabel(ylab)\n')
                 f.write('plt.show()\n')
-        elif event =='Export Plot':
+        elif event == 'Export Plot':
             self.exportPlot()
-        elif event =='Plot Settings':
+        elif event == 'Plot Settings':
             if self.plotMarker == '-':
                 line  = True
                 point = False
