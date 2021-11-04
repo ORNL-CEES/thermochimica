@@ -91,15 +91,15 @@ class PlotWindow:
             print('Output does not contain data series')
             exit()
         optionsLayout = [
-                          [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],
+                          [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
-                            key='-yaxis-', enable_events=True)],
+                            key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
                            'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
-                            key='-yaxis2-', enable_events=True, disabled=True)]
+                            key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
                       [sg.Button('Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
@@ -527,6 +527,8 @@ class PlotWindow:
                 if self.yen[yi]:
                     lns = lns + ax.plot(x,y[yi],'.-',label = self.leg[yi])
             ax.set_xlabel(xlab)
+            if values['-xlog-']:
+                ax.set_xscale('log')
             ax.set_ylabel(self.ylab)
             if True in self.yen2:
                 ax2 = ax.twinx()
@@ -534,7 +536,11 @@ class PlotWindow:
                     if self.yen2[yi]:
                         lns = lns + ax2.plot(x,y2[yi],'^--',label = self.leg2[yi])
                 ax2.set_ylabel(self.ylab2)
+                if values['-y2log-']:
+                    ax2.set_yscale('log')
             labs = [l.get_label() for l in lns]
+            if values['-ylog-']:
+                ax.set_yscale('log')
             ax.legend(lns, labs, loc=0)
             plt.show()
             plt.pause(0.001)
