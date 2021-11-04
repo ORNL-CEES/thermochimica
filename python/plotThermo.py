@@ -102,12 +102,19 @@ class PlotWindow:
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
-                      [sg.Button('Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
+                      [sg.Button('Plot', disabled = True), sg.Button('Export Plot', disabled = True), sg.Button('Export Plot Script', disabled = True)]]
         self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
         self.children = []
+        self.currentPlot = []
+        self.figureList = []
+        self.exportFormat = 'png'
+        self.exportFileName = 'plot'
+        self.exportDPI = 300
     def close(self):
         for child in self.children:
             child.close()
+        for fig in self.figureList:
+            plt.close(fig=fig)
         self.sgw.close()
         if self in windowList:
             windowList.remove(self)
@@ -586,7 +593,6 @@ class PlotWindow:
                 except:
                     # do nothing
                     continue
-            self.sgw.Element('Export Plot Script').Update(disabled = False)
             # Start figure
             fig = plt.figure()
             plt.ion()
@@ -616,6 +622,10 @@ class PlotWindow:
             ax.legend(lns, labs, loc=0)
             plt.show()
             plt.pause(0.001)
+            self.currentPlot = fig
+            self.figureList.append(fig)
+            self.sgw.Element('Export Plot').Update(disabled = False)
+            self.sgw.Element('Export Plot Script').Update(disabled = False)
         elif event == 'Export Plot Script':
             with open('python/generatedPlotScript.py', 'w') as f:
                 f.write('# Thermochimica-generated plot script\n')
@@ -651,6 +661,17 @@ class PlotWindow:
                 f.write('ax.set_xlabel(xlab)\n')
                 f.write('ax.set_ylabel(ylab)\n')
                 f.write('plt.show()\n')
+    def exportPlot(self):
+        try:
+            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+        except:
+            errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+            errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
+            while True:
+                event, values = errorWindow.read(timeout=timeout)
+                if event == sg.WIN_CLOSED or event == 'Continue':
+                    break
+            errorWindow.close()
 
 dataWindow = DataWindow()
 while len(windowList) > 0:
