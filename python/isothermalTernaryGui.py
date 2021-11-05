@@ -150,7 +150,7 @@ class CalculationWindow:
             windowList.append(self)
         self.children = []
         self.labels = []
-        self.outline = MultiPolygon([])
+        outline = MultiPolygon([])
         self.temperature = 300
         self.pressure = 1
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
@@ -274,9 +274,10 @@ class CalculationWindow:
         elif event =='Auto Refine':
             self.makeBackup()
             self.sgw.Element('Undo').Update(disabled = False)
-            self.writeInputFile(0,1,0,1,self.resRef**2)
+            self.autoRefine(self.resRef**2)
+            # self.writeInputFile(0,1,0,1,self.resRef**2)
+            # self.runCalc()
             self.resRef += 1
-            self.runCalc()
             self.makePlot()
         elif event =='Auto Smoothen':
             self.makeBackup()
@@ -357,12 +358,15 @@ class CalculationWindow:
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
-
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
         for i in list(data.keys()):
+            try:
+                nphases = data[i]['# solution phases'] + data[i]['# pure condensed phases']
+            except:
+                continue
             # 1-phase data points (edges only)
-            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
+            if nphases == 1:
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
                         if (data[i][phaseType][phaseName]['moles'] > 0):
@@ -379,7 +383,7 @@ class CalculationWindow:
                     continue
                 self.points1.append([[tempComps[0],tempComps[1]],boundPhase])
             # 2-phase data points
-            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
+            if nphases == 2:
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
@@ -397,7 +401,7 @@ class CalculationWindow:
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
             # 3-phase data points
-            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 3:
+            if nphases == 3:
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
@@ -578,6 +582,133 @@ class CalculationWindow:
                 labelName.append(phaseName)
         self.labels.append([[xlab,tlab],'+'.join(labelName)])
         self.processPhaseDiagramData()
+    def autoRefine(self,res):
+        outline = Polygon([[0,0],[0,1],[1,0],[0,0]])
+        maxArea = 0
+        boundaries = []
+        b = []
+        for i in range(len(self.p1)):
+            # If a miscibility gap label has been used unnecessarily, remove it
+            if self.p1[i].find('#2') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
+            if self.p2[i].find('#2') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            repeat = False
+            for j in range(len(boundaries)):
+                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
+                    b.append(j)
+                    repeat = True
+            if not(repeat):
+                boundaries.append([self.p1[i],self.p2[i]])
+                b.append(len(boundaries)-1)
+
+        # Make list of phases
+        phases = []
+        for i in range(len(boundaries)):
+            repeat1 = False
+            repeat2 = False
+            for j in range(len(phases)):
+                if (boundaries[i][0] == phases[j]):
+                    repeat1 = True
+                if (boundaries[i][1] == phases[j]):
+                    repeat2 = True
+            if not(repeat1):
+                phases.append(boundaries[i][0])
+            if not(repeat2):
+                phases.append(boundaries[i][1])
+
+        # find and subtract 1-phase regions
+        for phase in phases:
+            inds1 = [i for i, k in enumerate(self.p1) if k == phase]
+            inds2 = [i for i, k in enumerate(self.p2) if k == phase]
+            points = []
+            if len(inds1) > 0:
+                points.extend(self.x1[inds1].tolist())
+            if len(inds2) > 0:
+                points.extend(self.x2[inds2].tolist())
+            for point in self.points1:
+                if point[1] == phase:
+                    points.append(point[0])
+            average = np.average(np.array(points),axis=0)
+            sortpoints = sorted(points, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, average))[::-1]))) % 360)
+            phaseOutline = Polygon(sortpoints).buffer(0)
+            outline = outline - phaseOutline
+
+        # find and subtract 2-phase regions
+        for j in range(len(boundaries)):
+            inds = [i for i, k in enumerate(b) if k == j]
+            if len(inds) < 2:
+                continue
+            v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
+            v2 = np.array([self.x2[inds[1],0],self.x2[inds[1],1],0])
+            normal = np.cross(v1-v2,np.array([0,0,1]))
+            order = [inds[i] for i, k in sorted(enumerate(self.x1[inds].tolist()), key=lambda coord: coord[1][0]*normal[0]+coord[1][1]*normal[1])]
+            x1s = self.x1[order]
+            x2s = self.x2[order]
+            # Reverse second half and add end points from opposite side to form box
+            x2s = np.flip(x2s,axis=0)
+            x1s = np.append(x1s,x2s,axis=0)
+            x1s = np.append(x1s,[x1s[0]],axis=0)
+            phaseOutline = Polygon(x1s).buffer(0)
+            outline = outline - phaseOutline
+
+        # find and subtract 3-phase regions
+        for point in self.points3:
+            phaseOutline = Polygon(point[0])
+            outline = outline - phaseOutline
+
+        xs = []
+        ys = []
+        subres = int(np.ceil(np.sqrt(res)))
+        try:
+            oxlo, otlo, oxhi, othi = outline.bounds
+        except:
+            return
+        xindices = np.linspace(oxlo, oxhi, subres)
+        yindices = np.linspace(otlo, othi, subres)
+        horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
+        vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+        for splitter in vertical_splitters:
+            try:
+                outline = MultiPolygon(split(outline, splitter))
+            except:
+                continue
+        for splitter in horizontal_splitters:
+            try:
+                outline = MultiPolygon(split(outline, splitter))
+            except:
+                continue
+        for tempOutline in list(outline):
+            if tempOutline.area < (1 / (10*res**2)):
+                continue
+            maxArea = max(tempOutline.area,maxArea)
+            pxlo, ptlo, pxhi, pthi = tempOutline.bounds
+            xstep = (pxhi - pxlo) / subres / 10
+            ystep = (pthi - ptlo) / subres / 10
+            xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
+            xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+
+        if len(xs) > 0:
+            with open(self.inputFileName, 'w') as inputFile:
+                inputFile.write('! Python-generated input file for Thermochimica\n')
+                inputFile.write(f'data file         = {self.datafile}\n')
+                inputFile.write(f'temperature unit  = {self.tunit}\n')
+                inputFile.write(f'pressure unit     = {self.punit}\n')
+                inputFile.write(f'mass unit         = \'{self.munit}\'\n')
+                inputFile.write( 'nEl               = 3 \n')
+                inputFile.write(f'iEl               = {atomic_number_map.index(self.el1)+1} {atomic_number_map.index(self.el2)+1} {atomic_number_map.index(self.el3)+1}\n')
+                inputFile.write(f'nCalc             = {len(xs)}\n')
+                for i in range(len(xs)):
+                    inputFile.write(f'{self.temperature} {self.pressure} {xs[i]} {ys[i]} {1-xs[i]-ys[i]}\n')
+            print('Thermochimica calculation initiated.')
+            subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+            print('Thermochimica calculation finished.')
+            self.processPhaseDiagramData()
+
     def autoRefine2Phase(self,res):
         # Run iteratively
         nIt = 0
@@ -707,7 +838,6 @@ class CalculationWindow:
         self.backup.points3 = copy.deepcopy(self.points3)
         self.backup.points1 = copy.deepcopy(self.points1)
         self.backup.labels = copy.deepcopy(self.labels)
-        self.backup.outline = copy.deepcopy(self.outline)
         self.backup.temperature = self.temperature
         self.backup.pressure = self.pressure
         self.backup.inputFileName = self.inputFileName
