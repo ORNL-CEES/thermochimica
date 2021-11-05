@@ -165,6 +165,8 @@ class CalculationWindow:
         self.resRef = 4
         self.resSmooth = 4
         self.figureList = []
+        self.tielines = True
+        self.tiegap = 1/27
     def close(self):
         for child in self.children:
             child.close()
@@ -484,14 +486,26 @@ class CalculationWindow:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
-            center = (average[0],average[1])
-            x1s = sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-            x2s = sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-            x1s.append([x2s[0][0],x2s[0][1]])
-            x2s.append([x1s[0][0],x1s[0][1]])
-            x1s = np.array(x1s)
-            x2s = np.array(x2s)
+            v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
+            v2 = np.array([self.x2[inds[1],0],self.x2[inds[1],1],0])
+            normal = np.cross(v1-v2,np.array([0,0,1]))
+            order = [inds[i] for i, k in sorted(enumerate(self.x1[inds].tolist()), key=lambda coord: coord[1][0]*normal[0]+coord[1][1]*normal[1])]
+            x1s = self.x1[order]
+            x2s = self.x2[order]
+            # Draw tie lines before adding points and flipping order
+            if self.tielines:
+                lastline1 = x1s[0]
+                lastline2 = x2s[0]
+                for i in range(len(x1s)-1):
+                    gap = max(np.linalg.norm(x1s[i]-lastline1),np.linalg.norm(x2s[i]-lastline2))
+                    if gap > self.tiegap:
+                        ax.plot([1-(x1s[i,0]+x1s[i,1]/2),1-(x2s[i,0]+x2s[i,1]/2)],[x1s[i,1],x2s[i,1]],'--k')
+                        lastline1 = x1s[i]
+                        lastline2 = x2s[i]
+            # Reverse second half and add end points from opposite side to form box
+            x2s = np.flip(x2s,axis=0)
+            x1s = np.append(x1s,[x2s[0]],axis=0)
+            x2s = np.append(x2s,[x1s[0]],axis=0)
             ax.plot(1-(x1s[:,0]+x1s[:,1]/2),x1s[:,1],self.plotMarker,c=c)
             ax.plot(1-(x2s[:,0]+x2s[:,1]/2),x2s[:,1],self.plotMarker,c=c)
 
@@ -593,13 +607,12 @@ class CalculationWindow:
                 inds = [i for i, k in enumerate(b) if k == j]
                 if len(inds) < 2:
                     continue
-                average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
-                center = (average[0],average[1])
-                order = [inds[i] for i, k in sorted(enumerate(self.x1[inds].tolist()), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord[1], center))))) % 360)]
+                v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
+                v2 = np.array([self.x2[inds[1],0],self.x2[inds[1],1],0])
+                normal = np.cross(v1-v2,np.array([0,0,1]))
+                order = [inds[i] for i, k in sorted(enumerate(self.x1[inds].tolist()), key=lambda coord: coord[1][0]*normal[0]+coord[1][1]*normal[1])]
                 x1s = self.x1[order]
                 x2s = self.x2[order]
-                # x1s = np.array(sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
-                # x2s = np.array(sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::+1]))) % 360))
                 for i in range(len(x1s)-1):
                     gap = np.linalg.norm(x1s[i]-x1s[i+1])+np.linalg.norm(x2s[i]-x2s[i+1])
                     maxGap = max(gap,maxGap)
