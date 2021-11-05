@@ -21,6 +21,22 @@ timeout = 50
 inputSize = 20
 buttonSize = 12
 
+futureBlue = '#003C71'
+simcoeBlue = '#0077CA'
+techTangerine = '#E75D2A'
+coolGrey = '#A7A8AA'
+sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
+                                 'TEXT': 'white',
+                                 'INPUT': 'white',
+                                 'TEXT_INPUT': 'black',
+                                 'SCROLL': coolGrey,
+                                 'BUTTON': ('white', techTangerine),
+                                 'PROGRESS': ('#01826B', '#D0D0D0'),
+                                 'BORDER': 1,
+                                 'SLIDER_DEPTH': 0,
+                                 'PROGRESS_DEPTH': 0})
+sg.theme('OntarioTech')
+
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
     'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
@@ -40,14 +56,12 @@ class DataWindow:
         windowList.append(self)
         file_list_column = [
             [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.Text('Database Folder'),
+                sg.In(size=(25, 1), enable_events=True, key='-FOLDER-'),
                 sg.FolderBrowse(),
             ],
             [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
+                sg.Listbox(values=[], enable_events=True, size=(40, 20), key='-FILE LIST-')
             ],
         ]
         self.folder = os.getcwd()+'/data'

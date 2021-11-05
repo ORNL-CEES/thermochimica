@@ -20,7 +20,21 @@ atomic_number_map = [
 timeout = 50
 inputSize = 20
 
-windowList = []
+futureBlue = '#003C71'
+simcoeBlue = '#0077CA'
+techTangerine = '#E75D2A'
+coolGrey = '#A7A8AA'
+sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
+                                 'TEXT': 'white',
+                                 'INPUT': 'white',
+                                 'TEXT_INPUT': 'black',
+                                 'SCROLL': coolGrey,
+                                 'BUTTON': ('white', techTangerine),
+                                 'PROGRESS': ('#01826B', '#D0D0D0'),
+                                 'BORDER': 1,
+                                 'SLIDER_DEPTH': 0,
+                                 'PROGRESS_DEPTH': 0})
+sg.theme('OntarioTech')
 
 class DataWindow:
     def __init__(self):
@@ -386,6 +400,7 @@ if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
     errorWindow.close()
     sys.exit()
 
+windowList = []
 dataWindow = DataWindow()
 while len(windowList) > 0:
     for window in windowList:
