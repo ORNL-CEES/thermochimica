@@ -346,12 +346,12 @@ class CalculationWindow:
         with open(self.inputFileName, 'w') as inputFile:
             inputFile.write('! Python-generated input file for Thermochimica\n')
             inputFile.write(f'data file         = {self.datafile}\n')
-            inputFile.write(f'temperature unit         = {self.tunit}\n')
-            inputFile.write(f'pressure unit          = {self.punit}\n')
-            inputFile.write(f'mass unit          = \'{self.munit}\'\n')
-            inputFile.write(f'nEl         = {self.nElementsUsed} \n')
-            inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
-            inputFile.write(f'nCalc       = {len(xs)*len(temps)}\n')
+            inputFile.write(f'temperature unit  = {self.tunit}\n')
+            inputFile.write(f'pressure unit     = {self.punit}\n')
+            inputFile.write(f'mass unit         = \'{self.munit}\'\n')
+            inputFile.write(f'nEl               = {self.nElementsUsed} \n')
+            inputFile.write(f'iEl               = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
+            inputFile.write(f'nCalc             = {len(xs)*len(temps)}\n')
             for t in temps:
                 ioff = 0
                 for x in xs:

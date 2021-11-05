@@ -915,14 +915,13 @@ class CalculationWindow:
 
             if len(xs) > 0:
                 with open(self.inputFileName, 'w') as inputFile:
-                    inputFile.write('! Python-generated input file for Thermochimica\n')
-                    inputFile.write('data file         = ' + self.datafile + '\n')
-                    inputFile.write('temperature unit         = ' + self.tunit + '\n')
-                    inputFile.write('pressure unit          = ' + self.punit + '\n')
-                    inputFile.write('mass unit          = \'' + self.munit + '\'\n')
-                    inputFile.write('nEl         = 2 \n')
-                    inputFile.write('iEl         = ' + str(atomic_number_map.index(self.el1)+1) + ' ' + str(atomic_number_map.index(self.el2)+1) + '\n')
-                    inputFile.write('nCalc       = ' + str(len(xs)) + '\n')
+                    inputFile.write(f'data file         = {self.datafile}\n')
+                    inputFile.write(f'temperature unit  = {self.tunit}\n')
+                    inputFile.write(f'pressure unit     = {self.punit}\n')
+                    inputFile.write(f'mass unit         = \'{self.munit}\'\n')
+                    inputFile.write('nEl                = 2 \n')
+                    inputFile.write('iEl                = ' + str(atomic_number_map.index(self.el1)+1) + ' ' + str(atomic_number_map.index(self.el2)+1) + '\n')
+                    inputFile.write('nCalc              = ' + str(len(xs)) + '\n')
                     for i in range(len(xs)):
                         inputFile.write(str(ys[i]) + ' ' + str(self.pressure) + ' ' + str(1-xs[i]) + ' ' + str(xs[i]) + '\n')
                 print('Thermochimica calculation initiated.')
