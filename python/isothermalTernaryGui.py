@@ -498,8 +498,10 @@ class CalculationWindow:
             if self.tielines:
                 lastline1 = x1s[0] + (x1s[-1]-x1s[0]) * self.tiegap / 2
                 lastline2 = x2s[0] + (x2s[-1]-x2s[0]) * self.tiegap / 2
+                endline1 = x1s[-1] - (x1s[-1]-x1s[0]) * self.tiegap / 2
+                endline2 = x2s[-1] - (x2s[-1]-x2s[0]) * self.tiegap / 2
                 for i in range(len(x1s)-1):
-                    gap = max(np.linalg.norm(x1s[i]-lastline1),np.linalg.norm(x2s[i]-lastline2))
+                    gap = min(max(np.linalg.norm(x1s[i]-lastline1),np.linalg.norm(x2s[i]-lastline2)),max(np.linalg.norm(x1s[i]-endline1),np.linalg.norm(x2s[i]-endline2)))
                     if gap > self.tiegap:
                         ax.plot([1-(x1s[i,0]+x1s[i,1]/2),1-(x2s[i,0]+x2s[i,1]/2)],[x1s[i,1],x2s[i,1]],'--k')
                         lastline1 = x1s[i]
