@@ -494,8 +494,8 @@ class CalculationWindow:
             x2s = self.x2[order]
             # Draw tie lines before adding points and flipping order
             if self.tielines:
-                lastline1 = x1s[0]
-                lastline2 = x2s[0]
+                lastline1 = x1s[0] + (x1s[-1]-x1s[0]) * self.tiegap / 2
+                lastline2 = x2s[0] + (x2s[-1]-x2s[0]) * self.tiegap / 2
                 for i in range(len(x1s)-1):
                     gap = max(np.linalg.norm(x1s[i]-lastline1),np.linalg.norm(x2s[i]-lastline2))
                     if gap > self.tiegap:
