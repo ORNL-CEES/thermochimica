@@ -298,14 +298,14 @@ class CalculationWindow:
             self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Remove Label':
             headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
-                               sg.Text('Concentration',size = [15,1],justification='center'),
-                               sg.Text('Temperature',  size = [15,1],justification='center'),
+                               sg.Text(f'{self.el1} Concentration',size = [15,1],justification='center'),
+                               sg.Text(f'{self.el2} Concentration',  size = [15,1],justification='center'),
                                sg.Text('Remove Label?',size = [15,1])]]
             labelListLayout = []
             for i in range(len(self.labels)):
                 labelListLayout.append([[sg.Text(self.labels[i][1],size = [55,1],justification='left'),
                                          sg.Text("{:.3f}".format(float(self.labels[i][0][0])),size = [15,1],justification='center'),
-                                         sg.Text("{:.0f}".format(float(self.labels[i][0][1])),size = [15,1],justification='center'),
+                                         sg.Text("{:.3f}".format(float(self.labels[i][0][1])),size = [15,1],justification='center'),
                                          sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
             removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
             removeWindow = RemoveWindow(self, removeLayout)
