@@ -339,6 +339,8 @@ class CalculationWindow:
                              [sg.Text('Plot Colors:')],
                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                             [sg.Checkbox('Tielines', default=self.tielines, key='-tielines-'),
+                              sg.Text('Density:'),sg.Input(key='-tiedensity-',size=(inputSize,1))],
                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
@@ -936,6 +938,13 @@ class SettingsWindow:
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
         elif event =='Accept':
+            self.parent.tielines = values['-tielines-']
+            try:
+                tempdensity = float(values['-tiedensity-'])
+                if 0 < tempdensity < 1000:
+                    self.parent.tiegap = 1/tempdensity
+            except:
+                pass
             try:
                 self.parent.exportFileName = str(values['-filename-'])
             except:
