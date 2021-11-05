@@ -1326,7 +1326,7 @@ class CalculationWindow:
                     break
             errorWindow.close()
 
-class RefineWindow():
+class RefineWindow:
     def __init__(self, parent, windowLayout):
         self.parent = parent
         windowList.append(self)
@@ -1405,7 +1405,7 @@ class RefineWindow():
                 self.parent.runCalc()
                 self.parent.makePlot()
 
-class LabelWindow():
+class LabelWindow:
     def __init__(self, parent, windowLayout):
         self.parent = parent
         windowList.append(self)
@@ -1438,7 +1438,7 @@ class LabelWindow():
             except:
                 pass
 
-class RemoveWindow():
+class RemoveWindow:
     def __init__(self, parent, windowLayout):
         self.parent = parent
         windowList.append(self)
