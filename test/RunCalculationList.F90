@@ -258,13 +258,13 @@ program RunCalculationList
       call PrintResults
       open(2, file= DATA_DIRECTORY // '../thermoout.json', &
           status='OLD', position='append', action='write')
+      if (i > 1) write(2,*) ','
       write(intStr,*) i
       write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2)
       call WriteJSON(.TRUE.)
       open(2, file= DATA_DIRECTORY // '../thermoout.json', &
           status='OLD', position='append', action='write')
-      if (i < nCalc) write(2,*) ','
       close (2)
       INFOThermo = 0
       call ResetThermo

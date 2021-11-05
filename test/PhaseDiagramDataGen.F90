@@ -55,13 +55,13 @@ program PhaseDiagramDataGen
         if (INFOThermo == 0) then
           open(1, file= DATA_DIRECTORY // '../thermoout.json', &
               status='OLD', position='append', action='write')
+          if ((i > 0) .OR. (j > 0)) write(1,*) ','
           write(intStr,*) nSim
           write(1,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
           close (1)
           call WriteJSON(.TRUE.)
           open(1, file= DATA_DIRECTORY // '../thermoout.json', &
               status='OLD', position='append', action='write')
-          if ((i < nt) .OR. (j < nx)) write(1,*) ','
           close (1)
           nSim = nSim + 1
         else

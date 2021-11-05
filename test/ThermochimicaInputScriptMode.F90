@@ -93,13 +93,13 @@ program ThermochimicaInputScriptMode
       if (lWriteJSON) then
         open(1, file= DATA_DIRECTORY // '../thermoout.json', &
             status='OLD', position='append', action='write')
+        if ((i > 0) .OR. (j > 0)) write(1,*) ','
         write(intStr,*) nSim
         write(1,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
         close (1)
         call WriteJSON(.TRUE.)
         open(1, file= DATA_DIRECTORY // '../thermoout.json', &
             status='OLD', position='append', action='write')
-        if ((i < nT) .OR. (j < nP)) write(1,*) ','
         close (1)
       end if
 
