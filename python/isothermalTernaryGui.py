@@ -286,8 +286,8 @@ class CalculationWindow:
             self.makePlot()
             self.resSmooth += 1
         elif event =='Add Label':
-            xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
-            tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
+            xLabLayout    = [[sg.Text(f'{self.el1} Concentration')],[sg.Input(key='-x1lab-',size=(inputSize,1))]]
+            tLabLayout = [[sg.Text(f'{self.el2} Concentration')],[sg.Input(key='-x2lab-',size=(inputSize,1))]]
             labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
             labelWindow = LabelWindow(self,labelLayout)
             self.children.append(labelWindow)
@@ -564,9 +564,20 @@ class CalculationWindow:
             inputFile.write(f'mass unit        = \'{self.munit}\'\n')
             inputFile.write(f'iEl              = {str(atomic_number_map.index(self.el1)+1)} {str(atomic_number_map.index(self.el2)+1)} {str(atomic_number_map.index(self.el3)+1)}\n')
             inputFile.write(f'data file        = {self.datafile}\n')
-    def addLabel(self,xlab,tlab):
-        self.writeInputFile(xlab,xlab,0,tlab,tlab,0)
-        subprocess.run(['./bin/PhaseDiagramDataGen',self.inputFileName])
+    def addLabel(self,x1lab,x2lab):
+        with open(self.inputFileName, 'w') as inputFile:
+            inputFile.write('! Python-generated input file for Thermochimica\n')
+            inputFile.write(f'data file         = {self.datafile}\n')
+            inputFile.write(f'temperature unit  = {self.tunit}\n')
+            inputFile.write(f'pressure unit     = {self.punit}\n')
+            inputFile.write(f'mass unit         = \'{self.munit}\'\n')
+            inputFile.write( 'nEl               = 3 \n')
+            inputFile.write(f'iEl               = {atomic_number_map.index(self.el1)+1} {atomic_number_map.index(self.el2)+1} {atomic_number_map.index(self.el3)+1}\n')
+            inputFile.write(f'nCalc             = 1\n')
+            inputFile.write(f'{self.temperature} {self.pressure} {x1lab} {x2lab} {1-x1lab-x2lab}\n')
+        print('Thermochimica calculation initiated.')
+        subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+        print('Thermochimica calculation finished.')
         f = open(self.outputFileName,)
         data = json.load(f)
         f.close()
@@ -580,7 +591,7 @@ class CalculationWindow:
         for phaseName in list(data['1']['pure condensed phases'].keys()):
             if (data['1']['pure condensed phases'][phaseName]['moles'] > 0):
                 labelName.append(phaseName)
-        self.labels.append([[xlab,tlab],'+'.join(labelName)])
+        self.labels.append([[x1lab,x2lab],'+'.join(labelName)])
         self.processPhaseDiagramData()
     def autoRefine(self,res):
         outline = Polygon([[0,0],[0,1],[1,0],[0,0]])
@@ -708,7 +719,6 @@ class CalculationWindow:
             subprocess.run(['./bin/RunCalculationList',self.inputFileName])
             print('Thermochimica calculation finished.')
             self.processPhaseDiagramData()
-
     def autoRefine2Phase(self,res):
         # Run iteratively
         nIt = 0
@@ -1000,15 +1010,19 @@ class LabelWindow():
         elif event =='Add Label':
             try:
                 try:
-                    xlab = float(values['-xlab-'])
+                    x1lab = float(values['-x1lab-'])
                 except ValueError:
-                    num, den = values['-xlab-'].split('/')
-                    xlab = float(num)/float(den)
-                tlab = float(values['-tlab-'])
-                if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
+                    num, den = values['-x1lab-'].split('/')
+                    x1lab = float(num)/float(den)
+                try:
+                    x2lab = float(values['-x2lab-'])
+                except ValueError:
+                    num, den = values['-x2lab-'].split('/')
+                    x2lab = float(num)/float(den)
+                if (0 <= x1lab <= 1) and (0 <= x2lab <= (1-x1lab)):
                     self.parent.makeBackup()
                     self.parent.sgw.Element('Undo').Update(disabled = False)
-                    self.parent.addLabel(xlab,tlab)
+                    self.parent.addLabel(x1lab,x2lab)
                     self.parent.makePlot()
                     self.parent.sgw.Element('Remove Label').Update(disabled = False)
             except:
