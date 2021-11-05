@@ -37,6 +37,8 @@ sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
                                  'PROGRESS_DEPTH': 0})
 sg.theme('OntarioTech')
 
+phaseIncludeTol = 1e-8
+
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
     'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
@@ -376,14 +378,18 @@ class CalculationWindow:
         x2 = self.x2.tolist()
         for i in list(data.keys()):
             try:
-                nphases = data[i]['# solution phases'] + data[i]['# pure condensed phases']
+                nPhases = 0
+                for phaseType in ['solution phases','pure condensed phases']:
+                    for phaseName in list(data[i][phaseType].keys()):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
+                            nPhases += 1
             except:
                 continue
             # 1-phase data points (edges only)
-            if nphases == 1:
+            if nPhases == 1:
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             boundPhase = phaseName
                             tempComps = [0,0,0]
                             if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
@@ -397,12 +403,12 @@ class CalculationWindow:
                     continue
                 self.points1.append([[tempComps[0],tempComps[1]],boundPhase])
             # 2-phase data points
-            if nphases == 2:
+            if nPhases == 2:
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             boundPhases.append(phaseName)
                             tempComps = [0,0]
                             if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
@@ -415,12 +421,12 @@ class CalculationWindow:
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
             # 3-phase data points
-            if nphases == 3:
+            if nPhases == 3:
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             boundPhases.append(phaseName)
                             tempComps = [0,0]
                             if self.el1 in list(data[i][phaseType][phaseName]['elements'].keys()):
