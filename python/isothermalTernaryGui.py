@@ -595,8 +595,11 @@ class CalculationWindow:
                     continue
                 average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
                 center = (average[0],average[1])
-                x1s = np.array(sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
-                x2s = np.array(sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::+1]))) % 360))
+                order = [inds[i] for i, k in sorted(enumerate(self.x1[inds].tolist()), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord[1], center))))) % 360)]
+                x1s = self.x1[order]
+                x2s = self.x2[order]
+                # x1s = np.array(sorted(self.x1[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
+                # x2s = np.array(sorted(self.x2[inds].tolist(), key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::+1]))) % 360))
                 for i in range(len(x1s)-1):
                     gap = np.linalg.norm(x1s[i]-x1s[i+1])+np.linalg.norm(x2s[i]-x2s[i+1])
                     maxGap = max(gap,maxGap)
