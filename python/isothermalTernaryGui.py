@@ -642,6 +642,8 @@ class CalculationWindow:
             for point in self.points1:
                 if point[1] == phase:
                     points.append(point[0])
+            if len(point) < 3:
+                continue
             average = np.average(np.array(points),axis=0)
             sortpoints = sorted(points, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, average))[::-1]))) % 360)
             phaseOutline = Polygon(sortpoints).buffer(0)
