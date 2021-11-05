@@ -647,7 +647,10 @@ class CalculationWindow:
             average = np.average(np.array(points),axis=0)
             sortpoints = sorted(points, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, average))[::-1]))) % 360)
             phaseOutline = Polygon(sortpoints).buffer(0)
-            outline = outline - phaseOutline
+            try:
+                outline = outline - phaseOutline
+            except:
+                continue
 
         # find and subtract 2-phase regions
         for j in range(len(boundaries)):
@@ -665,12 +668,18 @@ class CalculationWindow:
             x1s = np.append(x1s,x2s,axis=0)
             x1s = np.append(x1s,[x1s[0]],axis=0)
             phaseOutline = Polygon(x1s).buffer(0)
-            outline = outline - phaseOutline
+            try:
+                outline = outline - phaseOutline
+            except:
+                continue
 
         # find and subtract 3-phase regions
         for point in self.points3:
             phaseOutline = Polygon(point[0])
-            outline = outline - phaseOutline
+            try:
+                outline = outline - phaseOutline
+            except:
+                continue
 
         xs = []
         ys = []
