@@ -723,6 +723,8 @@ class CalculationWindow:
         self.backup.exportDPI = self.exportDPI
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
+        self.backup.tielines = self.tielines
+        self.backup.tiegap = self.tiegap
     def activate(self):
         if not self.active:
             self.makeLayout()
