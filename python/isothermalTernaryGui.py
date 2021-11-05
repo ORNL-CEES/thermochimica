@@ -747,7 +747,7 @@ class CalculationWindow:
     def autoRefine2Phase(self,res):
         # Run iteratively
         nIt = 0
-        while nIt < 10:
+        while nIt < 3:
             nIt = nIt + 1
             maxGap = 0
             # Create arrays again with new data
