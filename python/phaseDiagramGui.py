@@ -47,6 +47,8 @@ atomic_number_map = [
     'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
 ]
 
+phaseIncludeTol = 1e-8
+
 class DataWindow:
     def __init__(self):
         windowList.append(self)
@@ -411,24 +413,29 @@ class CalculationWindow:
                 self.maxt = max(self.maxt,data[i]['temperature'])
             except:
                 continue
-            if (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 2:
+            nPhases = 0
+            for phaseType in ['solution phases','pure condensed phases']:
+                for phaseName in list(data[i][phaseType].keys()):
+                    if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
+                        nPhases += 1
+            if nPhases == 2:
                 ts.append(data[i]['temperature'])
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
                     for phaseName in list(data[i][phaseType].keys()):
-                        if (data[i][phaseType][phaseName]['moles'] > 0):
+                        if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             boundPhases.append(phaseName)
                             boundComps.append(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element'])
                 x1.append(boundComps[0])
                 x2.append(boundComps[1])
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
-            elif (data[i]['# solution phases'] + data[i]['# pure condensed phases']) == 1:
+            elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
                         for phaseName in list(data[i][phaseType].keys()):
-                            if (data[i][phaseType][phaseName]['moles'] > 0):
+                            if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                                 pname = phaseName
                     if not(pname in self.x0data[0]):
                         self.x0data[0].append(pname)
@@ -440,7 +447,7 @@ class CalculationWindow:
                 elif float(data[i]['elements'][self.el2]['moles']) == 1:
                     for phaseType in ['solution phases','pure condensed phases']:
                         for phaseName in list(data[i][phaseType].keys()):
-                            if (data[i][phaseType][phaseName]['moles'] > 0):
+                            if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                                 pname = phaseName
                     if not(pname in self.x1data[0]):
                         self.x1data[0].append(pname)
