@@ -7,7 +7,6 @@ before_install:
 
 script:
  - docker run -v $PWD:/thermochimica maxposchmann/thermochimica /bin/bash -c "make test; ./run_tests"
- - ls
 
 branches:
   only:
