@@ -3,7 +3,7 @@ services:
 
 before_install:
  - echo $PWD
- - docker pull maxposchmann/thermochimica
+ - docker pull maxposchmann/thermochimica-gcc
 
 script:
  - docker run -v $PWD:/thermochimica maxposchmann/thermochimica /bin/bash -c "make test; ./run_tests"
