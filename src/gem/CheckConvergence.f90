@@ -112,7 +112,7 @@ subroutine CheckConvergence
     implicit none
 
     integer :: i, j, k, l, c, iMaxDrivingForce
-    real(8) :: dResidual, dMaxDrivingForce, dTempGibbs
+    real(8) :: dResidual, dMaxDrivingForce, dTempGibbs, dMassNorm, dNormComponent
     logical :: lCompEverything, lPhaseChange
 
     if (lDebugMode) print *, 'Element potentials: ', dElementPotential
@@ -191,13 +191,30 @@ subroutine CheckConvergence
         dTempGibbs = dTempGibbs + dElementPotential(i)*dMolesElement(i)*dTemperature*dIdealConstant
     end do
     if (lDebugMode) print *, "Current Gibbs ", dTempGibbs, " minimum was ", dMinGibbs
-    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 5D-4) then
-        if (lDebugMode) print *, "New Gibbs minimum"
-        dMinGibbs = dTempGibbs
-        iAssemblageBest = iAssemblage
-        dMolesPhaseBest = dMolesPhase
-        dMolFractionBest = dMolFraction
-        dElementPotentialBest = dElementPotential
+    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 5D-2) then
+        dMassNorm = 0D0
+        do j = 1, nElements
+            dNormComponent = dMolesElement(j)
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements - i + 1)       ! Absolute solution phase index
+                ! Compute the stoichiometry of this solution phase:
+                call CompStoichSolnPhase(k)
+                dNormComponent = dNormComponent - dEffStoichSolnPhase(k,j) * dMolesPhase(nElements - i + 1)
+            end do
+            do i = 1,nConPhases
+                dNormComponent = dNormComponent - dMolesPhase(i) * dStoichSpecies(iAssemblage(i),j)
+            end do
+            dMassNorm = dMassNorm + (dNormComponent)**(2)
+        end do
+        dMassNorm = dMassNorm**(0.5)
+        if (dMassNorm < 1D-6) then
+            if (lDebugMode) print *, "New Gibbs minimum"
+            dMinGibbs = dTempGibbs
+            iAssemblageBest = iAssemblage
+            dMolesPhaseBest = dMolesPhase
+            dMolFractionBest = dMolFraction
+            dElementPotentialBest = dElementPotential
+        end if
     elseif (ABS((dTempGibbs-dMinGibbs)/dMinGibbs) > 1D-6) then
         return
     end if
