@@ -102,6 +102,10 @@ class PlotWindow:
         self.leg2 = []
         self.ylab = ''
         self.ylab2 = ''
+        self.x = []
+        self.y = []
+        self.y2 = []
+        self.xlab = []
         f = open(self.datafile,)
         self.data = json.load(f)
         f.close()
@@ -674,14 +678,18 @@ class PlotWindow:
             self.currentPlot = fig
             self.figureList.append(fig)
             self.sgw.Element('Export Plot').Update(disabled = False)
+            self.x = x
+            self.y = y
+            self.y2 = y2
+            self.xlab = xlab
             self.sgw.Element('Export Plot Script').Update(disabled = False)
         elif event == 'Export Plot Script':
             with open('python/generatedPlotScript.py', 'w') as f:
                 f.write('# Thermochimica-generated plot script\n')
                 f.write('import matplotlib.pyplot as plt\n')
-                f.write('x = '+"{}\n".format(x))
-                f.write('y = '+"{}\n".format(y))
-                f.write('xlab = \''+xlab+'\'\n')
+                f.write('x = '+"{}\n".format(self.x))
+                f.write('y = '+"{}\n".format(self.y))
+                f.write('xlab = \''+self.xlab+'\'\n')
                 f.write('ylab = \''+self.ylab+'\'\n')
                 f.write('yen = '+"{}\n".format(self.yen))
                 f.write('leg = '+"{}\n".format(self.leg))
@@ -696,7 +704,7 @@ class PlotWindow:
                 f.write('    if yen[yi]:\n')
                 f.write('        lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
                 if True in self.yen2:
-                    f.write('y2 = '+"{}\n".format(y2))
+                    f.write('y2 = '+"{}\n".format(self.y2))
                     f.write('ylab2 = \''+self.ylab2+'\'\n')
                     f.write('yen2 = '+"{}\n".format(self.yen2))
                     f.write('leg2 = '+"{}\n".format(self.leg2))
