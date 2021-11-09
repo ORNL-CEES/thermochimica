@@ -265,7 +265,7 @@ subroutine GEMNewton(INFO)
         end do
 
         if (iTry < nMaxTry) then
-            if (MAXVAL(B) > 1D25) INFO = nElements
+            if (MAXVAL(B) > 1D12) INFO = nElements
             if ((INFO <= 0) .OR. (INFO > nElements)) then
                 exit TryLoop
             else
