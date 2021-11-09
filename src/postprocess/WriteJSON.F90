@@ -9,7 +9,7 @@ subroutine WriteJSON(append)
 
     logical, intent(in) :: append
     logical :: exist
-    integer :: i, c, nElectron
+    integer :: i, c, nElectron, its
 
     inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
     if (append .AND. exist) then
@@ -57,6 +57,9 @@ subroutine WriteJSON(append)
     write(1,*) '  "pressure": ', dPressure, ','
     write(1,'(A27,ES25.16E3,A1)') '  "integral Gibbs energy": ', dGibbsEnergySys, ','
     write(1,*) '  "functional norm": ', dGEMFunctionNorm, ','
+    its = iterGlobal
+    if (lRetryAttempted) its = its + iterGlobalMax
+    write(1,*) '  "GEM iterations": ', iterGlobal, ','
     write(1,*) '  "# solution phases": ', nSolnPhases, ','
     write(1,*) '  "# pure condensed phases": ', nConPhases
 

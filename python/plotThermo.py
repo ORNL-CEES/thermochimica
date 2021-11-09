@@ -112,11 +112,11 @@ class PlotWindow:
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
-                           'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
+                           'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
-                           'element potential', 'integral Gibbs energy', 'functional norm', '# phases'],
+                           'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
@@ -154,7 +154,7 @@ class PlotWindow:
             self.yen = []
             self.leg = []
             self.sgw.Element('Plot').Update(disabled = True)
-            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm']:
+            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations']:
                 try:
                     self.ykey[0].append(values['-yaxis-'])
                     self.yen.append(True)
@@ -166,6 +166,8 @@ class PlotWindow:
                     elif values['-yaxis-'] == 'integral Gibbs energy':
                         self.ylab = 'Integral Gibbs Energy [J]'
                     elif values['-yaxis-'] == 'functional norm':
+                        self.ylab = 'Functional Norm'
+                    elif values['-yaxis-'] == 'GEM iterations':
                         self.ylab = 'Functional Norm'
                     self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
@@ -385,7 +387,7 @@ class PlotWindow:
             self.ykey2 = [[]]
             self.yen2 = []
             self.leg2 = []
-            if values['-yaxis2-'] in ['temperature','pressure','integral Gibbs energy','functional norm']:
+            if values['-yaxis2-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations']:
                 self.ykey2[0].append(values['-yaxis2-'])
                 self.yen2.append(True)
                 self.leg2.append(values['-yaxis2-'])
@@ -396,6 +398,8 @@ class PlotWindow:
                 elif values['-yaxis2-'] == 'integral Gibbs energy':
                     self.ylab2 = 'Integral Gibbs Energy [J]'
                 elif values['-yaxis2-'] == 'functional norm':
+                    self.ylab2 = 'Functional Norm'
+                elif values['-yaxis2-'] == 'GEM iterations':
                     self.ylab2 = 'Functional Norm'
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == '# phases':
