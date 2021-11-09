@@ -293,7 +293,7 @@ class CalculationWindow:
                             inputFile.write('write json     = .TRUE.\n')
                         else:
                             inputFile.write('write json     = .FALSE.\n')
-                    thermoOut = subprocess.check_output(['./bin/ThermochimicaInputScriptMode',filename]).decode("utf-8")
+                    thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
                     resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines))]], size = (400, 800), scrollable = True, vertical_scroll_only = True)]]
@@ -387,7 +387,7 @@ class ResultWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
 
-if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
+if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
                    [sg.Text('Either Thermochimica has not been built (run make),')],
                    [sg.Text('or this script was not executed from Thermochimica root directory.')],

@@ -1534,7 +1534,7 @@ class SettingsWindow:
             self.parent.makePlot()
             self.close()
 
-if not(os.path.isfile('bin/ThermochimicaInputScriptMode')):
+if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
                    [sg.Text('Either Thermochimica has not been built (run make),')],
                    [sg.Text('or this script was not executed from Thermochimica root directory.')],
