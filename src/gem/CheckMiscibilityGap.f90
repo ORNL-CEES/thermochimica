@@ -71,12 +71,19 @@ subroutine CheckMiscibilityGap(iSolnPhaseIndex,lAddPhase)
     dMaxMoleFraction = DMAX1(dMaxMoleFraction, 0.9D0)
     lAddPhase        = .FALSE.
 
+    if (nConstituents < 2) return
+
     ! Perform subminimization multiple times by initializing from all extremums of the domain space:
-    LOOP_Constituents: do i = 1, nConstituents
+    LOOP_Constituents: do i = 1, 2*nConstituents
 
         ! Initialize the mole fractions:
-        dMolFraction(iFirst:iLast) = dMinMoleFraction
-        dMolFraction(iFirst+i-1)   = dMaxMoleFraction
+        if (i <= nConstituents) then
+            dMolFraction(iFirst:iLast) = dMinMoleFraction
+            dMolFraction(iFirst+i-1)   = dMaxMoleFraction
+        else
+            dMolFraction(iFirst:iLast) = (1D0 - dMinMoleFraction) / DFLOAT(nConstituents - 1)
+            dMolFraction(iFirst+i-(nConstituents + 1)) = dMinMoleFraction
+        end if
 
         ! Perform subminimization:
         call Subminimization(iSolnPhaseIndex, lAddPhase)
