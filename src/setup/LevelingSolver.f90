@@ -106,12 +106,11 @@ subroutine LevelingSolver
 
     implicit none
 
-    integer :: iter, i, n, nNonDummy, INFO, j
+    integer :: i, n, nNonDummy, INFO, j, nVar
     real(8) :: rnorm, weight
-    integer,dimension(nSpecies - nDummySpecies)               :: indx
-    real(8),dimension(nSpecies - nDummySpecies)               :: dMolesElementTemp, x
-    real(8),dimension(nElements + 1,nSpecies - nDummySpecies) :: dStoichSpeciesTemp
-    real(8),dimension(nSpecies - nDummySpecies)               :: work
+    integer,dimension(:), allocatable   :: indx
+    real(8),dimension(:), allocatable   :: dMolesElementTemp, x, work
+    real(8),dimension(:,:), allocatable :: dStoichSpeciesTemp
 
     ! Initialize variables:
     n = 0
@@ -137,24 +136,6 @@ subroutine LevelingSolver
         allocate(iAssemblage(nElements),iAssemblageBest(nElements),iterHistoryLevel(nElements,1000))
     end if
 
-    nNonDummy = nSpecies - nDummySpecies
-    dMolesElementTemp = 0D0
-    dMolesElementTemp(1:nElements) = dMolesElement
-    weight = 1d-3
-    dMolesElementTemp(nElements + 1) = MINVAL(1000*dChemicalPotential*weight)
-    do i = 1, nNonDummy
-        do j = 1, nElements
-            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
-        end do
-        dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i)*weight
-    end do
-
-    call nnls(dStoichSpeciesTemp, nElements+1, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
-    print *, 'norm: ', rnorm
-    do i = 1, nNonDummy
-        print *, cSpeciesName(i), x(i)/dSpeciesTotalAtoms(i), dChemicalPotential(i)
-    end do
-
     ! Initialize allocatable variables:
     dElementPotential = 0D0
     dElementPotentialBest = 0D0
@@ -163,48 +144,98 @@ subroutine LevelingSolver
     iAssemblageBest   = 0
     dMolesPhaseBest   = 0D0
     dLevel            = 0D0
-    nConPhases        = nElements
+    nConPhases        = 0
+    nNonDummy = nSpecies
 
-    ! Establish the very first phase assemblage:
-    call GetFirstAssemblage
-
-    ! START LEVELING:
-    LOOP_Leveling: do iter = 1, 1000
-
-        ! Readjust the chemical potentials of all species and phases in the system:
-        dChemicalPotential = dChemicalPotential - MATMUL(dAtomFractionSpecies,dLevel)
-
-        ! Update the element potentials:
-        dElementPotential = dElementPotential + dLevel
-
-        ! Levelling is complete when all chemical potentials are non-negative (within tolerance):
-        if (MINVAL(dChemicalPotential) >= dTolerance(4)) exit LOOP_Leveling
-
-        ! Determine the next phase assemblage to be tested:
-        call GetNewAssemblage(iter)
-
-        ! Exit if an error has been encountered:
-        if (INFOThermo /= 0) exit LOOP_Leveling
-
-    end do LOOP_Leveling
-
-    ! If the GetFirstAssemblage subroutine determined the correct phase assemblage, then the
-    ! GetNewAssemblage subroutine was not called and the number of moles of each phase was not computed and
-    ! the number of moles of each constituent was not computed.
-    if ((iter == 1).AND.(INFOThermo == 0)) then
-
-        ! Since the phase assemblage is comprised of only pure species, the number of moles of each phase
-        ! can be easily computed (the stoichiometry matrix is a diagonal matrix) by the following:
-        do i = 1, nElements
-            dMolesPhase(i) = dMolesElement(i) / dSpeciesTotalAtoms(iAssemblage(i))
+    ! First do a weighted non-negative least squares on stoichiometry and (low-weight) chemical potential to choose assemblage
+    nVar = MAX(nElements + 1,nNonDummy)
+    allocate(dStoichSpeciesTemp(nElements + 1,nVar),dMolesElementTemp(nVar))
+    allocate(work(nVar),indx(nVar),x(nNonDummy))
+    dStoichSpeciesTemp = 0D0
+    dMolesElementTemp = 0D0
+    dMolesElementTemp(1:nElements) = dMolesElement
+    weight = 1d-4
+    dMolesElementTemp(nElements + 1) = MINVAL(1000*dChemicalPotential*weight)
+    do i = 1, nNonDummy
+        do j = 1, nElements
+            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
         end do
+        dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight
+    end do
 
+    x = 0D0
+    call nnls(dStoichSpeciesTemp, nElements+1, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
+
+    ! Find non-zero elements of solution vector x to get assemblage
+    do i = 1, nNonDummy
+        if ((x(i) > 1D-10) .AND. (nConPhases < nElements)) then
+            nConPhases = nConPhases + 1
+            iAssemblage(nConPhases) = i
+        end if
+    end do
+
+    ! With that assemblage, do NNLS again but just on stoichiometry (eliminates errors that were surprisingly important from above solve)
+    deallocate(dStoichSpeciesTemp,dMolesElementTemp)
+    deallocate(work,indx,x)
+    nVar = nConPhases
+    allocate(dStoichSpeciesTemp(nElements,nConPhases),dMolesElementTemp(nConPhases))
+    allocate(work(nConPhases),indx(nConPhases),x(nConPhases))
+    dStoichSpeciesTemp = 0D0
+    dMolesElementTemp = dMolesElement
+    do i = 1, nConPhases
+        do j = 1, nElements
+            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(iAssemblage(i),j)
+        end do
+    end do
+
+    x = 0D0
+    call nnls(dStoichSpeciesTemp, nElements, nConPhases, dMolesElementTemp, x, rnorm, work, indx, INFO)
+
+    do i = 1, nConPhases
+        dMolesPhase(i) = x(i)/dSpeciesTotalAtoms(iAssemblage(i))
+    end do
+
+    deallocate(dStoichSpeciesTemp,dMolesElementTemp)
+    deallocate(work,indx,x)
+
+    ! Now to estimate the element potentials
+    if (nConPhases == nElements) then
+        ! If assemblage is full-rank, this is easy
+        nVar = nElements
+    else
+        ! If not, the element potentials aren't uniquely defined. Use weighted LS to get a "reasonable" solution.
+        nVar = nElements + nConPhases
     end if
 
-    print *, 'level:'
-    do i = 1, nElements
-        print *, cSpeciesName(iAssemblage(i)), dMolesPhase(i)
+    allocate(dStoichSpeciesTemp(nVar, nElements),dMolesElementTemp(nVar))
+    allocate(work(2*(nVar)))
+    dStoichSpeciesTemp = 0D0
+    dMolesElementTemp  = 0D0
+
+    ! Stoichiometry * element potential = chemical potential
+    do i = 1, nConPhases
+        do j = 1, nElements
+            dStoichSpeciesTemp(i,j) = dAtomFractionSpecies(iAssemblage(i),j)
+        end do
+        dMolesElementTemp(i) = dChemicalPotential(iAssemblage(i))
     end do
+
+    ! For weighted solve (if necessary), ask for element potentials to be near the mean value.
+    if (nConPhases < nElements) then
+        do j = 1, nElements
+            dStoichSpeciesTemp(nConPhases + j,j) = 1D0 * weight
+            dMolesElementTemp(nConPhases + j) = (SUM(dMolesElementTemp(1:nConPhases)) / DFLOAT(nConPhases)) * weight
+        end do
+    end if
+
+    call DGELS('N',nVar,nElements,1,dStoichSpeciesTemp,nVar,&
+                            dMolesElementTemp,nVar,work,2*(nVar),INFO)
+    do j = 1, nElements
+        dElementPotential(j) = dMolesElementTemp(j)
+    end do
+
+    deallocate(dStoichSpeciesTemp,dMolesElementTemp)
+    deallocate(work)
 
     return
 
