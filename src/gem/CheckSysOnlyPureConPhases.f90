@@ -116,27 +116,26 @@ subroutine CheckSysOnlyPureConPhases
     if (nConPhases > 1) then
         ! Store the stoichiometry matrix:
         AA = A
-
         ! Call the linear equation solver to solve the number of moles of each phase:
         call DGESV( nElements, 1, A, nElements, IPIV, B, nElements, INFO )
+        if (MAXVAL(B) > 1D12) INFO = nElements
+        if (INFO == 0) then
+            ! Compute the residual vector:
+            BB = dMolesElement - MATMUL(AA,B)
 
-        ! Compute the residual vector:
-        BB = dMolesElement - MATMUL(AA,B)
+            ! Perform an additional calculation to refine the number of moles of each phase
+            ! (this reduces numerical errors):
+            call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
+            if (MAXVAL(BB) > 1D12) INFO = nElements
 
-        ! Perform an additional calculation to refine the number of moles of each phase
-        ! (this reduces numerical errors):
-        call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
-
-        ! Update the number of moles of the pure condensed phases:
-        if (INFO == 0) dMolesPhase = BB + B
+            ! Update the number of moles of the pure condensed phases:
+            if (INFO == 0) dMolesPhase = BB + B
+        end if
 
         ! Compute the mole fractions of all solution phase constituents:
         do i = 1, nSolnPhasesSys
-
             call CompMolFraction(i)
-
         end do
-
     end if
 
     ! Compute functional norm:
