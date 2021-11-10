@@ -103,6 +103,7 @@ subroutine GEMNewton(INFO)
     real(8)                              :: dTemp
     real(8), dimension(:),   allocatable :: B
     real(8), dimension(:,:), allocatable :: A
+    logical                              :: lMaxB
 
     ! Count phases:
     j = nConPhases
@@ -133,6 +134,7 @@ subroutine GEMNewton(INFO)
     iErrCol = 0
     nMaxTry = nElements - (nConPhases + nSolnPhases)
     TryLoop: do iTry = 0, nMaxTry
+        lMaxB = .FALSE.
         ! on retry we are going to use dummy phases
         if (iTry > 0) nVar = nElements * 2
 
@@ -264,8 +266,11 @@ subroutine GEMNewton(INFO)
             end if
         end do
 
+        if (MAXVAL(B) > 1D12) then
+            INFO = nElements
+            lMaxB = .TRUE.
+        end if
         if (iTry < nMaxTry) then
-            if (MAXVAL(B) > 1D12) INFO = nElements
             if ((INFO <= 0) .OR. (INFO > nElements)) then
                 exit TryLoop
             else
@@ -289,6 +294,8 @@ subroutine GEMNewton(INFO)
         lRevertSystem = .TRUE.
         dUpdateVar    = 0D0
     end if
+
+    if (lMaxB) INFO = 0
 
     ! Deallocate memory of local variables:
     i = 0
