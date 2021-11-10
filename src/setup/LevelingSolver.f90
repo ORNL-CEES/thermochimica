@@ -106,8 +106,12 @@ subroutine LevelingSolver
 
     implicit none
 
-    integer :: iter, i, n
-
+    integer :: iter, i, n, nNonDummy, INFO, j
+    real(8) :: rnorm, weight
+    integer,dimension(nSpecies - nDummySpecies)               :: indx
+    real(8),dimension(nSpecies - nDummySpecies)               :: dMolesElementTemp, x
+    real(8),dimension(nElements + 1,nSpecies - nDummySpecies) :: dStoichSpeciesTemp
+    real(8),dimension(nSpecies - nDummySpecies)               :: work
 
     ! Initialize variables:
     n = 0
@@ -132,6 +136,24 @@ subroutine LevelingSolver
                     dElementPotentialBest(nElements),dLevel(nElements))
         allocate(iAssemblage(nElements),iAssemblageBest(nElements),iterHistoryLevel(nElements,1000))
     end if
+
+    nNonDummy = nSpecies - nDummySpecies
+    dMolesElementTemp = 0D0
+    dMolesElementTemp(1:nElements) = dMolesElement
+    weight = 1d-3
+    dMolesElementTemp(nElements + 1) = MINVAL(1000*dChemicalPotential*weight)
+    do i = 1, nNonDummy
+        do j = 1, nElements
+            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
+        end do
+        dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i)*weight
+    end do
+
+    call nnls(dStoichSpeciesTemp, nElements+1, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
+    print *, 'norm: ', rnorm
+    do i = 1, nNonDummy
+        print *, cSpeciesName(i), x(i)/dSpeciesTotalAtoms(i), dChemicalPotential(i)
+    end do
 
     ! Initialize allocatable variables:
     dElementPotential = 0D0
@@ -178,6 +200,11 @@ subroutine LevelingSolver
         end do
 
     end if
+
+    print *, 'level:'
+    do i = 1, nElements
+        print *, cSpeciesName(iAssemblage(i)), dMolesPhase(i)
+    end do
 
     return
 
