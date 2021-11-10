@@ -104,7 +104,8 @@ module ModuleThermo
 
     real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput, dMassScale, dTemperatureForLimits
     real(8),       dimension(iTolNum)::           dTolerance
-    real(8),       dimension(:),   allocatable::  dStdGibbsEnergy,    dGibbsSolnPhase, dMolesSpecies, dMagGibbsEnergy
+    real(8),       dimension(:),   allocatable::  dStdGibbsEnergy, dGibbsSolnPhase, dMolesSpecies, dMagGibbsEnergy
+    real(8),       dimension(:),   allocatable::  dChemPotSolnPhase
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms
     real(8),       dimension(:),   allocatable::  dElementPotential, dElementPotentialBest, dMolesElement, dAtomicMass
     real(8),       dimension(:),   allocatable::  dMolesPhase, dMolesPhaseBest, dMolFraction, dMolFractionBest

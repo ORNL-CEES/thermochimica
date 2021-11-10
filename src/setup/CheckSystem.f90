@@ -474,7 +474,7 @@ subroutine CheckSystem
         if (k /= nSolnPhasesSys) then
             ! The number of solution phases in the system has changed.
             deallocate(nSpeciesPhase,nParamPhase,cSolnPhaseType,cSolnPhaseName,lSolnPhases,dGibbsSolnPhase, &
-                lMiscibility,nMagParamPhase, STAT = n)
+                lMiscibility,dChemPotSolnPhase, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
@@ -483,6 +483,7 @@ subroutine CheckSystem
             allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
             allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
             allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
+            allocate(dChemPotSolnPhase(nSolnPhasesSys))
 
         end if
 
@@ -522,6 +523,7 @@ subroutine CheckSystem
         allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
         allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
+        allocate(dChemPotSolnPhase(nSolnPhasesSys))
 
         ! Only allocate if there are charged phases:
         if (nCountSublattice > 0) then
@@ -559,6 +561,7 @@ subroutine CheckSystem
     dMolesElement        = 0D0
     dAtomFractionSpecies = 0D0
     dGibbsSolnPhase      = 0D0
+    dChemPotSolnPhase    = 0D0
     dCoeffGibbsMagnetic  = 0D0
     dMagGibbsEnergy      = 0D0
     dQKTOParams          = 0D0

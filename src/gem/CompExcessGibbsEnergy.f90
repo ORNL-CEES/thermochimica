@@ -75,6 +75,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
         do i = iFirst, iLast
             dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75))
             dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
         end do
 
     case ('QKTO')
@@ -86,6 +87,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
         do i = iFirst, iLast
             dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dPartialExcessGibbs(i)
             dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
         end do
 
     case ('RKMP','RKMPM')
@@ -101,6 +103,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
             dChemicalPotential(i)       = dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i), 1D-75)) + dMagGibbsEnergy(i) &
                 + dPartialExcessGibbs(i)
             dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
         end do
 
     case ('SUBL','SUBLM')
@@ -112,6 +115,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
         do i = iFirst, iLast
             dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i) + dMagGibbsEnergy(i)
             dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
         end do
 
     case ('SUBG','SUBQ')
@@ -123,6 +127,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
         do i = iFirst, iLast
             dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
             dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+            dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
         end do
 
         case ('SUBI')
@@ -134,6 +139,7 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
             do i = iFirst, iLast
                 dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
                 dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+                dChemPotSolnPhase(iSolnIndex) = dChemPotSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolFraction(i)
             end do
 
         case default

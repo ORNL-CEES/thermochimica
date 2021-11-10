@@ -59,6 +59,7 @@ subroutine CompChemicalPotential(lCompEverything)
     ! Initialize variables:
     dChemicalPotential  = 0D0
     dGibbsSolnPhase     = 0D0
+    dChemPotSolnPhase   = 0D0
     dPartialExcessGibbs = 0D0
 
     ! Compute the mole fractions of species in solution phases expected to be stable:

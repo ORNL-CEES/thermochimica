@@ -137,7 +137,7 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(lSolnPhases)) deallocate(lSolnPhases, STAT = INFO)
     i = i + INFO
-    if (allocated(dGibbsSolnPhase)) deallocate(dGibbsSolnPhase, STAT = INFO)
+    if (allocated(dChemPotSolnPhase)) deallocate(dChemPotSolnPhase, STAT = INFO)
     i = i + INFO
     if (allocated(lMiscibility)) deallocate(lMiscibility, STAT = INFO)
     i = i + INFO
