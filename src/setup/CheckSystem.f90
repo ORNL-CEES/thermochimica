@@ -128,13 +128,12 @@ subroutine CheckSystem
     implicit none
 
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
-    integer                                 :: mm, nn, nConstituentPass, c, s, nSpeciesCurrentPhase
+    integer                                 :: mm, nn, nConstituentPass, c, s, nSpeciesCurrentPhase, nMinSpeciesPhase
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
     character(12)                           :: cDummy
     logical                                 :: lPos, lNeg
-
 
     ! Check to see if the allocatable arrays have already been allocated
     if (allocated(iElementSystem)) then
@@ -263,6 +262,13 @@ subroutine CheckSystem
         return
     end if
 
+    ! Set the minimum number of species per phase depending on the number of elements
+    if (nElements <= 2) then
+        nMinSpeciesPhase = 1
+    else
+        nMinSpeciesPhase = 2
+    end if
+
     ! Check to see if the system has to be re-adjusted:
     nSpecies = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
@@ -372,7 +378,7 @@ subroutine CheckSystem
 
         ! Count the number of solution phases in the system:
         iTempVec(nSolnPhasesSys+1) = nSpecies
-        if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 0) then
+        if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) >= nMinSpeciesPhase) then
             nSolnPhasesSys = nSolnPhasesSys + 1
             nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
             ! Check if this is a charged phase:
@@ -386,6 +392,11 @@ subroutine CheckSystem
                 m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
                 nMaxConstituentSys = MAX(nMaxConstituentSys,m)
             end if
+        else if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
+            ! There is only one species in this solution phase.  This solution phase should not be considered with >1 element.
+            iSpeciesPass(nSpeciesPhaseCS(i-1) + 1 : nSpeciesPhaseCS(i))          = 0
+            nSpecies                 = nSpecies - 1
+            iTempVec(nSolnPhasesSys) = nSpecies
         end if
     end do LOOP_SolnPhases
 
