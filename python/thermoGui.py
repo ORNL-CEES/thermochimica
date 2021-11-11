@@ -356,7 +356,7 @@ class CalculationWindow:
                         [sg.Radio('Disabled', 'mrange', default=True, enable_events=True, key='-mdis-')],
                         [sg.Radio('Enabled', 'mrange', default=False, enable_events=True, key='-men-')]
                         ],vertical_alignment='t'),
-                        sg.Column([[sg.Text('# of steps')],[sg.Input(key='-xstep-',size=(8,1))]],key='-xstepcol-',visible=False,vertical_alignment='t')]
+                        sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],key='-xstepcol-',visible=False,vertical_alignment='t')]
         if (self.nElements < 8):
             self.layout = [tempLayout,
                           presLayout,
