@@ -115,11 +115,11 @@ class PlotWindow:
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
-                           'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
+                           'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
-                           'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase',
+                           'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
@@ -341,6 +341,42 @@ class PlotWindow:
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
+            elif values['-yaxis-'] == 'mole fraction of endmembers':
+                self.ykey = []
+                self.ylab = 'Mole Fraction'
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                phaseColumns = []
+                yi = 0
+                for j in solutionPhases:
+                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                        phaseColumns.append([[sg.Text(j)]])
+                        for k in list(self.data['1']['solution phases'][j]['endmembers'].keys()):
+                            try:
+                                self.ykey.append(['solution phases',j,'endmembers',k,'mole fraction'])
+                                self.yen.append(False)
+                                phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
+                                self.leg.append(j+': '+k)
+                                yi = yi + 1
+                            except:
+                                continue
+                    else:
+                        continue
+                phaseSelectLayout = [[]]
+                for j in phaseColumns:
+                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
+                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                while True:
+                    event, values = selectWindow.read()
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Accept':
+                        for yi in range(len(self.ykey)):
+                            self.yen[yi] = values[str(yi)]
+                        self.sgw.Element('Plot').Update(disabled = False)
+                        self.sgw.Element('-yaxis2-').Update(disabled = False)
+                        break
+                selectWindow.close()
             elif values['-yaxis-'] == 'vapor pressure':
                 self.ykey = []
                 self.ylab = 'Vapor Pressure [atm]'
@@ -543,6 +579,41 @@ class PlotWindow:
                         break
                 selectWindow.close()
                 self.sgw.Element('Plot').Update(disabled = False)
+            elif values['-yaxis2-'] == 'mole fraction of endmembers':
+                self.ykey2 = []
+                self.ylab2 = 'Mole Fraction'
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                phaseColumns = []
+                yi = 0
+                for j in solutionPhases:
+                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                        phaseColumns.append([[sg.Text(j)]])
+                        for k in list(self.data['1']['solution phases'][j]['endmembers'].keys()):
+                            try:
+                                self.ykey2.append(['solution phases',j,'endmembers',k,'mole fraction'])
+                                self.yen2.append(False)
+                                phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
+                                self.leg2.append(j+': '+k)
+                                yi = yi + 1
+                            except:
+                                continue
+                    else:
+                        continue
+                phaseSelectLayout = [[]]
+                for j in phaseColumns:
+                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
+                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                while True:
+                    event, values = selectWindow.read()
+                    if event == sg.WIN_CLOSED or event == 'Cancel':
+                        break
+                    elif event == 'Accept':
+                        for yi in range(len(self.ykey2)):
+                            self.yen2[yi] = values[str(yi)]
+                        self.sgw.Element('Plot').Update(disabled = False)
+                        break
+                selectWindow.close()
             elif values['-yaxis2-'] == 'vapor pressure':
                 self.ykey2 = []
                 self.ylab2 = 'Vapor Pressure [atm]'
