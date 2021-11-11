@@ -73,7 +73,7 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
     integer::                       i, j, k, l, iterBack, iterFirst
     integer,dimension(nElements)::  iAssemblageTest, iAssemblageLast
-    logical::                       lSwapLater, lNewAssemblage, lNewAssemblage2
+    logical::                       lSwapLater
 
     ! Initialize variables:
     lSwapLater      = .FALSE.
@@ -81,30 +81,8 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
     ! Record the last successful phase assemblage from iterGlobal:
     LOOP_Last: do i = iterGlobal, 1, -1
-        OuterElements: do k = 1, nElements
-            lNewAssemblage = .TRUE.
-            do j = 1, nElements
-                if (iterHistory(k,i) == iAssemblage(j)) then
-                    lNewAssemblage = .FALSE.
-                    cycle OuterElements
-                end if
-            end do
-            exit OuterElements
-        end do OuterElements
-
-        ! Do the reverse also to catch phase deletion
-        OuterElements2: do k = 1, nElements
-            lNewAssemblage2 = .TRUE.
-            do j = 1, nElements
-                if (iterHistory(j,i) == iAssemblage(k)) then
-                    lNewAssemblage2 = .FALSE.
-                    cycle OuterElements2
-                end if
-            end do
-            exit OuterElements2
-        end do OuterElements2
-
-        if ((lNewAssemblage .OR. lNewAssemblage2) .AND. (SUM(iterHistory(1:nElements,i)) /= 0)) then
+        if ((SUM(iterHistory(1:nElements,i) - iAssemblageTest(1:nElements)) /= 0) .AND. &
+            (SUM(iterHistory(1:nElements,i)) /= 0)) then
             ! Store the last successful phase assemblage:
             iAssemblageLast(1:nElements) = iterHistory(1:nElements,i)
             exit LOOP_Last
