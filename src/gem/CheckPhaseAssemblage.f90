@@ -162,8 +162,8 @@ subroutine CheckPhaseAssemblage
 
     implicit none
 
-    integer      :: nPhasesCheck, j
-    real(8)      :: dMolesPhaseChange, dMaxChange
+    integer      :: nPhasesCheck, j, iMaxDrivingForce
+    real(8)      :: dMolesPhaseChange, dMaxChange, dMaxDrivingForce
     logical      :: lAddPhase
     integer :: i, k, nVar, INFO, iterBack, nSolnPhasesTemp, nConPhasesTemp, nNonDummy
     real(8) :: rnorm, weight
@@ -171,7 +171,7 @@ subroutine CheckPhaseAssemblage
     integer,dimension(:), allocatable   :: indx
     real(8),dimension(:), allocatable   :: dMolesElementTemp, x, work
     real(8),dimension(:,:), allocatable :: dStoichSpeciesTemp
-    logical :: lSwapLater
+    logical :: lSwapLater, lNewAssemblage
 
     ! Initialize variables:
     nPhasesCheck      = 0
@@ -332,14 +332,44 @@ subroutine CheckPhaseAssemblage
                     end if
                 end do LOOP_AddPhase
 
-                call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
+                OuterElements: do i = 1, nElements
+                    lNewAssemblage = .TRUE.
+                    do j = 1, nElements
+                        if (iAssemblageTest(i) == iAssemblage(j)) then
+                            lNewAssemblage = .FALSE.
+                            cycle OuterElements
+                        end if
+                    end do
+                    exit OuterElements
+                end do OuterElements
 
-                if (.NOT.(lSwapLater)) then
-                    ! Switch to new assemblage
-                    nSolnPhases                 = nSolnPhasesTemp
-                    nConPhases                  = nConPhasesTemp
-                    iAssemblage                 = iAssemblageTest
+                if (lNewAssemblage) then
+                    call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
+                    if (lDebugMode) print *, iMaxDrivingForce, dMaxDrivingForce
+                    ! Determine whether a pure condensed phase should be considered first or a solution phase.
+                    ! This decision is based on whether the lowest driving force of a pure condensed phase is less
+                    ! than that of all solution phases:
+                    IF_AddOrder: if (dMaxDrivingForce < MINVAL(dDrivingForceSoln)) then
+                        ! 4A) Check if a pure condensed phase should be added/swapped:
+                        if (iterGlobal /= iterLast) call CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
+                        ! 5A) Check if a solution phase should be added/swapped:
+                        if (iterGlobal /= iterLast) call CheckSolnPhaseAdd
+                    else
+                        ! 4B) Check if a solution phase should be added/swapped:
+                        if (iterGlobal /= iterLast) call CheckSolnPhaseAdd
+                        ! 5B) Check if a pure condensed phase should be added/swapped:
+                        if (iterGlobal /= iterLast) call CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
+                    end if IF_AddOrder
                 end if
+
+                ! call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
+                !
+                ! if (.NOT.(lSwapLater)) then
+                !     ! Switch to new assemblage
+                !     nSolnPhases                 = nSolnPhasesTemp
+                !     nConPhases                  = nConPhasesTemp
+                !     iAssemblage                 = iAssemblageTest
+                ! end if
 
             end if IF_CheckStagnant
 
