@@ -162,12 +162,12 @@ subroutine CheckPhaseAssemblage
 
     implicit none
 
-    integer      :: nPhasesCheck, j, iMaxDrivingForce
-    real(8)      :: dMolesPhaseChange, dMaxChange, dMaxDrivingForce
+    integer      :: nPhasesCheck, j
+    real(8)      :: dMolesPhaseChange, dMaxChange
     logical      :: lAddPhase
-    integer :: i, k, nVar, INFO, iterBack, nSolnPhasesTemp, nConPhasesTemp
-    real(8) :: rnorm, weight, dSum
-    integer, dimension(nElements) :: iAssemblageTest
+    integer :: i, k, nVar, INFO, iterBack, nSolnPhasesTemp, nConPhasesTemp, nNonDummy
+    real(8) :: rnorm, weight
+    integer, dimension(nElements) :: iAssemblageTest, iAssemblageLevel
     integer,dimension(:), allocatable   :: indx
     real(8),dimension(:), allocatable   :: dMolesElementTemp, x, work
     real(8),dimension(:,:), allocatable :: dStoichSpeciesTemp
@@ -245,94 +245,92 @@ subroutine CheckPhaseAssemblage
             ! AND the system is stagnant:
             IF_CheckStagnant: if ((dMaxChange <= 0.95D0).AND.((nPhasesCheck == 0).OR.(iterGlobal - iterLast >= 30))) then
 
-                ! Compute the driving force for all pure condensed phases:
-                call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
-
-                if (lDebugMode) print *, 'condensed phase driving forces:', iMaxDrivingForce, dMaxDrivingForce
-
                 ! Loop through all metastable solution phases to compute the mole fractions of constituents
                 ! and the driving force of each solution phase:
                 do j = 1, nSolnPhasesSys
-
                     ! The determination of the driving force in the CheckConvergence subroutine is more rigorous
                     ! than in CompMolFraction.  If the current driving force is negative and the functional norm
                     ! is very small, then cycle to the next solution phase and use the current driving force.
                     if ((iterLastMiscGapCheck == iterGlobal - 1).AND.(dDrivingForceSoln(j) < 0D0)) cycle
-
                     ! Only compute the mole fractions of constituents belonging to unstable phases:
                     if (.NOT.(lSolnPhases(j))) then
-
                         if (lMiscibility(j)) then
-
                             ! This phase may contain a miscibility gap.  Periodically check for a miscibility gap:
                             if (iterGlobal - iterLastMiscGapCheck >= 50) then
-
                                 ! Check for a miscibility gap:
                                 call CheckMiscibilityGap(j,lAddPhase)
                             else
                                 call CompMolFraction(j)
                             end if
-
                         else
                             ! This is phase does not contain a miscibility gap.  Compute the mole fractions:
                             call CompMolFraction(j)
-
                         end if
                     end if
-
                 end do
 
                 if (lDebugMode) print *, 'solution phase driving forces:', MINLOC(dDrivingForceSoln), MINVAL(dDrivingForceSoln)
 
                 ! First do a weighted non-negative least squares on stoichiometry and (low-weight) chemical potential to choose assemblage
-                nVar = MAX(nElements + 1,nSolnPhasesSys + nConPhasesSys)
+                nNonDummy = nSpecies - nDummySpecies
+                nVar = MAX(nElements + 1,nNonDummy)
                 allocate(dStoichSpeciesTemp(nElements + 1,nVar),dMolesElementTemp(nVar))
-                allocate(work(nVar),indx(nVar),x(nSolnPhasesSys + nConPhasesSys))
+                allocate(work(nVar),indx(nVar),x(nNonDummy))
                 dStoichSpeciesTemp = 0D0
                 dMolesElementTemp = 0D0
                 dMolesElementTemp(1:nElements) = dMolesElement
                 weight = 1d-4
-                ! Solution phase part
-                do i = 1, nSolnPhasesSys
-                    call CompStoichSolnPhase(i)
-                    dSum = SUM(dEffStoichSolnPhase(i,1:nElements))
+                do i = 1, nNonDummy
+                    ! print *, cSpeciesName(i), dChemicalPotential(i), dSpeciesTotalAtoms(i)
                     do j = 1, nElements
-                        dStoichSpeciesTemp(j,i) = dEffStoichSolnPhase(i,j) / dSum
+                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
                     end do
-                    dStoichSpeciesTemp(nElements+1,i) = dChemPotSolnPhase(i) * weight / dSum
+                    if (i <= nSpeciesPhase(nSolnPhasesSys)) then
+                        ! Solution phase species
+                        dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight / dSpeciesTotalAtoms(i)
+                    else
+                        ! Pure condensed phases
+                        dStoichSpeciesTemp(nElements+1,i) = dStdGibbsEnergy(i) * weight / dSpeciesTotalAtoms(i)
+                    end if
                 end do
-                ! Pure condensed phase part
-                do i = 1 + nSolnPhasesSys, nConPhasesSys + nSolnPhasesSys
-                    k = i + nSpeciesPhase(nSolnPhasesSys) - nSolnPhasesSys
-                    do j = 1, nElements
-                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(k,j)
-                    end do
-                    dStoichSpeciesTemp(nElements+1,i) = dStdGibbsEnergy(k) * weight / dSpeciesTotalAtoms(k)
-                end do
-                dMolesElementTemp(nElements + 1) = 1000 * &
-                                      MINVAL(dStoichSpeciesTemp(nElements+1,1:nConPhasesSys + nSolnPhasesSys)) * weight
+                dMolesElementTemp(nElements + 1) = 1000 * MINVAL(dStoichSpeciesTemp(nElements+1,:))
 
                 x = 0D0
-                call nnls(dStoichSpeciesTemp,nElements+1,nSolnPhasesSys+nConPhasesSys,dMolesElementTemp,x,rnorm,work,indx,INFO)
+                call nnls(dStoichSpeciesTemp, nElements+1, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
 
                 ! Find non-zero elements of solution vector x to get assemblage
                 nSolnPhasesTemp = 0
                 nConPhasesTemp = 0
-                iAssemblageTest = 0
-                do i = 1, nSolnPhasesSys + nConPhasesSys
-                    if ((x(i) > 1D-10) .AND. (nSolnPhasesTemp + nConPhasesTemp < nElements)) then
-                        if (i <= nSolnPhasesSys) then
-                            iAssemblageTest(nElements - nSolnPhasesTemp) = -i
-                            nSolnPhasesTemp = nSolnPhasesTemp + 1
-                        else
-                            nConPhasesTemp = nConPhasesTemp + 1
-                            iAssemblageTest(nConPhasesTemp) = i
-                        end if
+                iAssemblageLevel = 0
+                do i = 1, nNonDummy
+                    if ((x(i) > 1D-10) .AND. (nConPhasesTemp < nElements)) then
+                        nConPhasesTemp = nConPhasesTemp + 1
+                        iAssemblageLevel(nConPhasesTemp) = i
                     end if
                 end do
 
                 deallocate(dStoichSpeciesTemp,dMolesElementTemp)
                 deallocate(work,indx,x)
+
+                nConPhasesTemp = 0
+                iAssemblageTest = 0
+                LOOP_AddPhase: do i = 1, nElements
+                    if (iAssemblageLevel(i) <= 0) exit LOOP_AddPhase
+                    if ((iPhase(iAssemblageLevel(i)) == 0).AND.(nSolnPhasesTemp + nConPhasesTemp < nElements)) then
+                        nConPhasesTemp              = nConPhasesTemp + 1
+                        iAssemblageTest(nConPhasesTemp) = iAssemblageLevel(i)
+                    elseif ((iPhase(iAssemblageLevel(i)) > 0).AND.(nSolnPhasesTemp + nConPhasesTemp < nElements)) then
+                        do j = 1, nSolnPhasesTemp
+                            k = nElements - j + 1
+                            ! Ensure that this solution phase is not already stored:
+                            if (iAssemblageTest(k) == -iPhase(iAssemblageLevel(i))) cycle LOOP_AddPhase
+                        end do
+                        nSolnPhasesTemp = nSolnPhasesTemp + 1
+                        j = nElements - nSolnPhasesTemp + 1
+                        k = iPhase(iAssemblageLevel(i))
+                        iAssemblageTest(j) = -k
+                    end if
+                end do LOOP_AddPhase
 
                 call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
@@ -342,27 +340,6 @@ subroutine CheckPhaseAssemblage
                     nConPhases                  = nConPhasesTemp
                     iAssemblage                 = iAssemblageTest
                 end if
-
-                ! Determine whether a pure condensed phase should be considered first or a solution phase.
-                ! This decision is based on whether the lowest driving force of a pure condensed phase is less
-                ! than that of all solution phases:
-                ! IF_AddOrder: if (dMaxDrivingForce < MINVAL(dDrivingForceSoln)) then
-                !
-                !     ! 4A) Check if a pure condensed phase should be added/swapped:
-                !     if (iterGlobal /= iterLast) call CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
-                !
-                !     ! 5A) Check if a solution phase should be added/swapped:
-                !     if (iterGlobal /= iterLast) call CheckSolnPhaseAdd
-                !
-                ! else
-                !
-                !     ! 4B) Check if a solution phase should be added/swapped:
-                !     if (iterGlobal /= iterLast) call CheckSolnPhaseAdd
-                !
-                !     ! 5B) Check if a pure condensed phase should be added/swapped:
-                !     if (iterGlobal /= iterLast) call CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
-                !
-                ! end if IF_AddOrder
 
             end if IF_CheckStagnant
 
