@@ -332,16 +332,19 @@ subroutine CheckPhaseAssemblage
                     end if
                 end do LOOP_AddPhase
 
-                OuterElements: do i = 1, nElements
-                    lNewAssemblage = .TRUE.
-                    do j = 1, nElements
-                        if (iAssemblageTest(i) == iAssemblage(j)) then
-                            lNewAssemblage = .FALSE.
-                            cycle OuterElements
-                        end if
-                    end do
-                    exit OuterElements
-                end do OuterElements
+                lNewAssemblage = .TRUE.
+                if ((nConPhases == nConPhasesTemp) .AND. (nSolnPhases == nSolnPhasesTemp)) then
+                    OuterElements: do i = 1, nElements
+                        lNewAssemblage = .TRUE.
+                        do j = 1, nElements
+                            if (iAssemblageTest(i) == iAssemblage(j)) then
+                                lNewAssemblage = .FALSE.
+                                cycle OuterElements
+                            end if
+                        end do
+                        exit OuterElements
+                    end do OuterElements
+                end if
 
                 if (lNewAssemblage) then
                     call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)

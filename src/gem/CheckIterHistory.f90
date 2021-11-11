@@ -73,8 +73,7 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
     integer::                       i, j, k, l, iterBack, iterFirst
     integer,dimension(nElements)::  iAssemblageTest, iAssemblageLast
-    logical::                       lSwapLater
-
+    logical::                       lSwapLater, lNewAssemblage, lNewAssemblage2
 
     ! Initialize variables:
     lSwapLater      = .FALSE.
@@ -82,13 +81,32 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
 
     ! Record the last successful phase assemblage from iterGlobal:
     LOOP_Last: do i = iterGlobal, 1, -1
+        OuterElements: do k = 1, nElements
+            lNewAssemblage = .TRUE.
+            do j = 1, nElements
+                if (iterHistory(k,i) == iAssemblage(j)) then
+                    lNewAssemblage = .FALSE.
+                    cycle OuterElements
+                end if
+            end do
+            exit OuterElements
+        end do OuterElements
 
-        if ((SUM(iterHistory(1:nElements,i) - iAssemblageTest(1:nElements)) /= 0).AND. &
-            (SUM(iterHistory(1:nElements,i)) /= 0)) then
+        ! Do the reverse also to catch phase deletion
+        OuterElements2: do k = 1, nElements
+            lNewAssemblage2 = .TRUE.
+            do j = 1, nElements
+                if (iterHistory(j,i) == iAssemblage(k)) then
+                    lNewAssemblage2 = .FALSE.
+                    cycle OuterElements2
+                end if
+            end do
+            exit OuterElements2
+        end do OuterElements2
 
+        if ((lNewAssemblage .OR. lNewAssemblage2) .AND. (SUM(iterHistory(1:nElements,i)) /= 0)) then
             ! Store the last successful phase assemblage:
             iAssemblageLast(1:nElements) = iterHistory(1:nElements,i)
-
             exit LOOP_Last
         end if
     end do LOOP_Last
@@ -97,32 +115,23 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
     iterFirst = MAX (50, iterGlobal - iterBack)
 
     LOOP_History: do j = (iterGlobal - 1), iterFirst, -1
-
         ! Quick check:
         IF_Quick_Check: if (SUM(iAssemblageTest(1:nElements) - iterHistory(1:nElements,j)) == 0) then
-
             ! Double check that this phase assemblage is consistent:
-            LOOP_Outter: do k = 1, nElements        ! Loop through current phase assemblage.
-
+            LOOP_Outer: do k = 1, nElements        ! Loop through current phase assemblage.
                 LOOP_Inner: do l = 1, nElements     ! Loop through previous phase assemblage.
-
                     ! The phase indices are consistent; move on to the next phase in the current phase assemblage:
                     if (iterHistory(l,j) == iAssemblageTest(k)) cycle LOOP_Outter
-
                 end do LOOP_Inner
-
                 ! There is a discrepancy between the two phase assemblages.
                 ! Move on to the next assemblage in the iteraiton history:
                 cycle LOOP_History
-
             end do LOOP_Outter
 
             ! CONSIDER THIS TEMPORARY TO CONSIDER:
             if (iterGlobal <= 1000) then
-
                 lSwapLater = .TRUE.
                 exit LOOP_History
-
             end if
 
             ! The current phase assemblage is the same as the assemblage corresponding to iteration j.
@@ -130,13 +139,10 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
             IF_Last_Assemblage: if (SUM(iAssemblageLast) /= 0) then
                 k = MAX(1,iterFirst - 10)
                 LOOP_A: do i = j, k, -1
-
                     ! Cycle if the row is full of zeros:
                     if ((iterHistory(1,i) == 0).AND.(iterHistory(nElements,i) == 0)) cycle LOOP_A
-
                     ! Check for a change in the estimated phase assemblage:
                     if (SUM(iterHistory(1:nElements,i) - iterHistory(1:nElements,j)) /= 0) then
-
                         ! The last successful phase assemblage before iteration j is at iteration i.
                         ! Test if this is the same as the phase assemblage iAssemblageLast:
                         if (SUM(iAssemblageLast(1:nElements) - iterHistory(1:nElements,i)) == 0) then
@@ -147,15 +153,10 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
                             ! This phase assemblage has not been previously considered.  Do not swap later.
                             cycle LOOP_History
                         end if
-
                     end if
-
                 end do LOOP_A
-
             end if IF_Last_Assemblage
-
         end if IF_Quick_Check
-
     end do LOOP_History
 
     return
