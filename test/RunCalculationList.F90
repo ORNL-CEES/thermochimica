@@ -256,6 +256,7 @@ program RunCalculationList
       end do
       call Thermochimica
       call PrintResults
+      if (iPrintResultsMode > 0) call ThermoDebug
       open(2, file= DATA_DIRECTORY // '../thermoout.json', &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
