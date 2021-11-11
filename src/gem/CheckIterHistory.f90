@@ -121,12 +121,12 @@ subroutine CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
             LOOP_Outer: do k = 1, nElements        ! Loop through current phase assemblage.
                 LOOP_Inner: do l = 1, nElements     ! Loop through previous phase assemblage.
                     ! The phase indices are consistent; move on to the next phase in the current phase assemblage:
-                    if (iterHistory(l,j) == iAssemblageTest(k)) cycle LOOP_Outter
+                    if (iterHistory(l,j) == iAssemblageTest(k)) cycle LOOP_Outer
                 end do LOOP_Inner
                 ! There is a discrepancy between the two phase assemblages.
                 ! Move on to the next assemblage in the iteraiton history:
                 cycle LOOP_History
-            end do LOOP_Outter
+            end do LOOP_Outer
 
             ! CONSIDER THIS TEMPORARY TO CONSIDER:
             if (iterGlobal <= 1000) then
