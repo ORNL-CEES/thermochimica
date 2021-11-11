@@ -108,9 +108,10 @@ subroutine LevelingSolver
 
     integer :: i, n, nNonDummy, INFO, j, nVar
     real(8) :: rnorm, weight
-    integer,dimension(:), allocatable   :: indx
-    real(8),dimension(:), allocatable   :: dMolesElementTemp, x, work
-    real(8),dimension(:,:), allocatable :: dStoichSpeciesTemp
+    integer, dimension(nElements)        :: iAssemblageUpdate
+    integer, dimension(:), allocatable   :: indx
+    real(8), dimension(:), allocatable   :: dMolesElementTemp, x, work
+    real(8), dimension(:,:), allocatable :: dStoichSpeciesTemp
 
     ! Initialize variables:
     n = 0
@@ -191,9 +192,18 @@ subroutine LevelingSolver
     x = 0D0
     call nnls(dStoichSpeciesTemp, nElements, nConPhases, dMolesElementTemp, x, rnorm, work, indx, INFO)
 
+    j = 0
+    iAssemblageUpdate = 0
     do i = 1, nConPhases
-        dMolesPhase(i) = x(i)/dSpeciesTotalAtoms(iAssemblage(i))
+        if (x(i) > 0D0) then
+            j = j + 1
+            dMolesPhase(j) = x(i)/dSpeciesTotalAtoms(iAssemblage(i))
+            iAssemblageUpdate(j) = iAssemblage(i)
+        end if
     end do
+    ! Some moles of species may have become zero, so need to update assemblage
+    iAssemblage = iAssemblageUpdate
+    nConPhases = j
 
     deallocate(dStoichSpeciesTemp,dMolesElementTemp)
     deallocate(work,indx,x)
