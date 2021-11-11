@@ -320,17 +320,6 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         dMaxDecrease = 0.85D0
     end if
 
-    ! TEMPORARY: I should figure out a better and more permanent solution. My gut tells me that
-    ! I need to go away from constraining the maximum change to the element potentials and a more
-    ! elegant approach would be leaving it to the Wolfe conditions. For now, do this:
-    if (iterGlobal > 1000) then
-        dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
-        dMaxGamma = DMIN1(dMaxGamma,5D0)
-        dMaxGamma = DMAX1(dMaxGamma,1D0)
-    else
-        dMaxGamma = 100D0
-    end if
-
     ! Update the number of moles of pure condensed phases:
     do i = 1, nConPhases
         j = nElements + nSolnPhases + i
@@ -384,6 +373,17 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
             dMolesSpecies(i) = dMolesSpecies(i) * dMolFraction(i)
         end do
     end do
+
+    ! TEMPORARY: I should figure out a better and more permanent solution. My gut tells me that
+    ! I need to go away from constraining the maximum change to the element potentials and a more
+    ! elegant approach would be leaving it to the Wolfe conditions. For now, do this:
+    if (iterGlobal > 1000) then
+        dMaxGamma = (5D0 - 1D0) / (100D0 - 25D0) * (dGEMFunctionNorm - 100D0) + 5D0
+        dMaxGamma = DMIN1(dMaxGamma,5D0)
+        dMaxGamma = DMAX1(dMaxGamma,1D0)
+    else
+        dMaxGamma = 100D0
+    end if
 
     ! Initialize the steplength (constrain the element potentials to only
     ! change by dMaxGamma):
@@ -536,9 +536,9 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
     end do
 
     ! Dampen the element potentials:
-    LOOP_Gamma: do i = 1, nElements
-        dElementPotential(i) = dStepLength * dElementPotential(i) + (1D0 - dStepLength) * dElementPotentialLast(i)
-    end do LOOP_Gamma
+    ! LOOP_Gamma: do i = 1, nElements
+    !     dElementPotential(i) = dStepLength * dElementPotential(i) + (1D0 - dStepLength) * dElementPotentialLast(i)
+    ! end do LOOP_Gamma
 
 end subroutine UpdateSystemVariables
 
