@@ -172,8 +172,14 @@ subroutine CompExcessGibbsEnergyRKMP(iSolnIndex)
                         ! This species contributes to the parameter.
                         xi = dMolFraction(i)
 
-                        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
-                            xprod * (((1d0 / xi) - 3D0) * ((1D0 - x1 - x2 - x3)/3D0 + xj) + KD)
+                        if (xi > 0) then
+                            dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
+                                xprod * (((1d0 / xi) - 3D0) * ((1D0 - x1 - x2 - x3)/3D0 + xj) + KD)
+                        else
+                            ! Arbitrary value if xi == 0
+                            dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
+                                xprod * ((  (1d3)    - 3D0) * ((1D0 - x1 - x2 - x3)/3D0 + xj) + KD)
+                        end if
                     else
                         ! This species does not contribute to the parameter.
                         dPartialExcessGibbs(i) = dPartialExcessGibbs(i) + dExcessGibbsParam(iParam) * &
