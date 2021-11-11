@@ -165,13 +165,13 @@ subroutine CheckPhaseAssemblage
     integer      :: nPhasesCheck, j, iMaxDrivingForce
     real(8)      :: dMolesPhaseChange, dMaxChange, dMaxDrivingForce
     logical      :: lAddPhase
-    integer :: i, k, nVar, INFO, iterBack, nSolnPhasesTemp, nConPhasesTemp, nNonDummy
+    integer :: i, k, nVar, INFO, nSolnPhasesTemp, nConPhasesTemp, nNonDummy
     real(8) :: rnorm, weight
     integer, dimension(nElements) :: iAssemblageTest, iAssemblageLevel
     integer,dimension(:), allocatable   :: indx
     real(8),dimension(:), allocatable   :: dMolesElementTemp, x, work
     real(8),dimension(:,:), allocatable :: dStoichSpeciesTemp
-    logical :: lSwapLater, lNewAssemblage
+    logical :: lNewAssemblage
 
     ! Initialize variables:
     nPhasesCheck      = 0
@@ -364,20 +364,8 @@ subroutine CheckPhaseAssemblage
                         if (iterGlobal /= iterLast) call CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
                     end if IF_AddOrder
                 end if
-
-                ! call CheckIterHistory(iAssemblageTest,iterBack,lSwapLater)
-                !
-                ! if (.NOT.(lSwapLater)) then
-                !     ! Switch to new assemblage
-                !     nSolnPhases                 = nSolnPhasesTemp
-                !     nConPhases                  = nConPhasesTemp
-                !     iAssemblage                 = iAssemblageTest
-                ! end if
-
             end if IF_CheckStagnant
-
         end if IF_CheckPhaseAdd
-
     end if IF_CheckRevert
 
     ! If the phase assemblage has changed, relax the functional norm for the following iteration:
