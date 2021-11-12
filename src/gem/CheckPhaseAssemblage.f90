@@ -281,16 +281,25 @@ subroutine CheckPhaseAssemblage
                 dMolesElementTemp(1:nElements) = dMolesElement
                 weight = 1d-4
                 do i = 1, nNonDummy
-                    ! print *, cSpeciesName(i), dChemicalPotential(i), dSpeciesTotalAtoms(i)
                     do j = 1, nElements
                         dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
                     end do
                     if (i <= nSpeciesPhase(nSolnPhasesSys)) then
                         ! Solution phase species
                         dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight / dSpeciesTotalAtoms(i)
+                        do j = 1, i - 1
+                            if (ALL(dStoichSpeciesTemp(:,i) == dStoichSpeciesTemp(:,j))) then
+                                dStoichSpeciesTemp(nElements+1,i) = 0D0
+                            end if
+                        end do
                     else
                         ! Pure condensed phases
                         dStoichSpeciesTemp(nElements+1,i) = dStdGibbsEnergy(i) * weight / dSpeciesTotalAtoms(i)
+                        do j = 1, i - 1
+                            if (ALL(dStoichSpeciesTemp(:,i) == dStoichSpeciesTemp(:,j))) then
+                                dStoichSpeciesTemp(nElements+1,j) = 0D0
+                            end if
+                        end do
                     end if
                 end do
                 dMolesElementTemp(nElements + 1) = 1000 * MINVAL(dStoichSpeciesTemp(nElements+1,:))
