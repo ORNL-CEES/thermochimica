@@ -55,7 +55,7 @@ subroutine WriteJSON(append)
 
     write(1,*) '  "temperature": ', dTemperature, ','
     write(1,*) '  "pressure": ', dPressure, ','
-    write(1,'(A27,ES25.16E3,A1)') '  "integral Gibbs energy": ', dGibbsEnergySys, ','
+    write(1,'(A28,ES25.16E3,A1)') '  "integral Gibbs energy": ', dGibbsEnergySys, ','
     write(1,*) '  "functional norm": ', dGEMFunctionNorm, ','
     its = iterGlobal
     if (lRetryAttempted) its = its + iterGlobalMax
@@ -109,7 +109,7 @@ subroutine WriteJSONSolnPhase
             if (-iAssemblage(k) == j) l = k
         end do
         if (l > 0) then
-            write(1,'(A15,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
+            write(1,'(A16,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
             dTempMolesPhase = dMolesPhase(l)
         else
             write(1,*) '      "moles": 0.0,'
@@ -143,7 +143,7 @@ subroutine WriteJSONSolnPhase
                 100 FORMAT (A25)
                 write(1,*) '        "', TRIM(ADJUSTL(tempSpeciesName)), '": {'
                 write(1,*) '          "mole fraction":', dMolFraction(i), ','
-                write(1,'(A18,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ','
+                write(1,'(A19,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ','
                 write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
                 write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                             dStoichSpecies(i,nElements), ']'
@@ -203,7 +203,7 @@ subroutine WriteJSONSolnPhase
                 dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)
             end do
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,'(A38,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
+            write(1,'(A39,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements - nElectron) then
@@ -252,7 +252,7 @@ subroutine WriteJSONPureConPhase
             if (iAssemblage(k) == i) l = k
         end do
         if (l > 0) then
-            write(1,'(A15,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
+            write(1,'(A16,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
             dTempMolesPhase = dMolesPhase(l)
         else
             write(1,*) '      "moles": 0.0,'
@@ -271,7 +271,7 @@ subroutine WriteJSONPureConPhase
         do c = 1, nElements - nElectron
             dCurrentElement = dStoichSpecies(i,c)
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,'(A38,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
+            write(1,'(A39,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
             if (c < nElements - nElectron) then
@@ -494,7 +494,7 @@ subroutine WriteJSONMQM(iSolnIndex)
         y = iPairID(iSPI, k, 4) - nConstituentSublattice(iSPI,1)
         write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         write(1,*) '          "mole fraction":', dMolFraction(i), ","
-        write(1,'(A18,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
+        write(1,'(A19,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
         write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
         write(1,*) '          "constituents": [ "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,a))), '", "', &
                                                     TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,b))), '", "', &
