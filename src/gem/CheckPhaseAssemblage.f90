@@ -277,16 +277,16 @@ subroutine CheckPhaseAssemblage
                 allocate(dStoichSpeciesTemp(nElements + 1,nVar),dMolesElementTemp(nVar))
                 allocate(work(nVar),indx(nVar),x(nNonDummy))
                 dStoichSpeciesTemp = 0D0
-                dMolesElementTemp = 0D0
-                dMolesElementTemp(1:nElements) = dMolesElement
-                weight = 1d-4
+                dMolesElementTemp = 1D0
+                weight = 1d-7
                 do i = 1, nNonDummy
                     do j = 1, nElements
-                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
+                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j) / dMolesElement(j)
                     end do
                     if (i <= nSpeciesPhase(nSolnPhasesSys)) then
                         ! Solution phase species
                         dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight / dSpeciesTotalAtoms(i)
+                        ! Check for repeat species (usually for 1-element phases), don't use multiple
                         do j = 1, i - 1
                             if (ALL(dStoichSpeciesTemp(:,i) == dStoichSpeciesTemp(:,j))) then
                                 dStoichSpeciesTemp(nElements+1,i) = 0D0
@@ -295,6 +295,7 @@ subroutine CheckPhaseAssemblage
                     else
                         ! Pure condensed phases
                         dStoichSpeciesTemp(nElements+1,i) = dStdGibbsEnergy(i) * weight / dSpeciesTotalAtoms(i)
+                        ! Check for repeat species (usually for 1-element phases), don't use multiple
                         do j = 1, i - 1
                             if (ALL(dStoichSpeciesTemp(:,i) == dStoichSpeciesTemp(:,j))) then
                                 dStoichSpeciesTemp(nElements+1,j) = 0D0
@@ -302,7 +303,7 @@ subroutine CheckPhaseAssemblage
                         end do
                     end if
                 end do
-                dMolesElementTemp(nElements + 1) = 1000 * MINVAL(dStoichSpeciesTemp(nElements+1,:))
+                dMolesElementTemp(nElements + 1) = dNormalizeSum * MINVAL(dStoichSpeciesTemp(nElements+1,:))
 
                 x = 0D0
                 call nnls(dStoichSpeciesTemp, nElements+1, nNonDummy, dMolesElementTemp, x, rnorm, work, indx, INFO)
@@ -312,10 +313,12 @@ subroutine CheckPhaseAssemblage
                 nConPhasesTemp = 0
                 iAssemblageLevel = 0
                 do i = 1, nNonDummy
-                    if ((x(i) > 1D-10) .AND. (nConPhasesTemp < nElements)) then
+                    k = MAXLOC(x,1)
+                    if ((x(k) > 0) .AND. (nConPhasesTemp < nElements)) then
                         nConPhasesTemp = nConPhasesTemp + 1
-                        iAssemblageLevel(nConPhasesTemp) = i
+                        iAssemblageLevel(nConPhasesTemp) = k
                     end if
+                    x(k) = 0D0
                 end do
 
                 deallocate(dStoichSpeciesTemp,dMolesElementTemp)

@@ -106,7 +106,7 @@ subroutine LevelingSolver
 
     implicit none
 
-    integer :: i, n, nNonDummy, INFO, j, nVar
+    integer :: i, n, nNonDummy, INFO, j, nVar, k
     real(8) :: rnorm, weight
     integer, dimension(nElements)        :: iAssemblageUpdate
     integer, dimension(:), allocatable   :: indx
@@ -154,12 +154,12 @@ subroutine LevelingSolver
     allocate(work(nVar),indx(nVar),x(nNonDummy))
     dStoichSpeciesTemp = 0D0
     dMolesElementTemp = 0D0
-    dMolesElementTemp(1:nElements) = dMolesElement
-    weight = 1d-4
-    dMolesElementTemp(nElements + 1) = 1000 * MINVAL(dChemicalPotential) * weight
+    dMolesElementTemp(1:nElements) = 1D0 !dMolesElement
+    weight = 1d-7
+    dMolesElementTemp(nElements + 1) = dNormalizeSum * MINVAL(dChemicalPotential) * weight
     do i = 1, nNonDummy
         do j = 1, nElements
-            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
+            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j) / dMolesElement(j)
         end do
         dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight
     end do
@@ -169,10 +169,12 @@ subroutine LevelingSolver
 
     ! Find non-zero elements of solution vector x to get assemblage
     do i = 1, nNonDummy
-        if ((x(i) > 1D-10) .AND. (nConPhases < nElements)) then
+        k = MAXLOC(x,1)
+        if ((x(k) > 1D-10) .AND. (nConPhases < nElements)) then
             nConPhases = nConPhases + 1
-            iAssemblage(nConPhases) = i
+            iAssemblage(nConPhases) = k
         end if
+        x(k) = 0D0
     end do
 
     ! With that assemblage, do NNLS again but just on stoichiometry (eliminates errors that were surprisingly important from above solve)
@@ -195,11 +197,13 @@ subroutine LevelingSolver
     j = 0
     iAssemblageUpdate = 0
     do i = 1, nConPhases
-        if (x(i) > 0D0) then
+        k = MAXLOC(x,1)
+        if (x(k) > 0D0) then
             j = j + 1
-            dMolesPhase(j) = x(i)/dSpeciesTotalAtoms(iAssemblage(i))
-            iAssemblageUpdate(j) = iAssemblage(i)
+            dMolesPhase(j) = x(k)/dSpeciesTotalAtoms(iAssemblage(k))
+            iAssemblageUpdate(j) = iAssemblage(k)
         end if
+        x(k) = 0D0
     end do
     ! Some moles of species may have become zero, so need to update assemblage
     iAssemblage = iAssemblageUpdate
