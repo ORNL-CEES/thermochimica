@@ -455,25 +455,12 @@ subroutine CheckSystemExcess
                 k = SIZE(iPairID,DIM = 2)
                 do k = 1, nPairsSROCS(nCountSublatticeCS,2)
                     ! Find indices of constituents in quadruplet
-                    pa = iPairIDCS(nCountSublattice,k,1)
-                    pb = iPairIDCS(nCountSublattice,k,2)
-                    px = iPairIDCS(nCountSublattice,k,3) - nConstituentSublatticeCS(nCountSublatticeCS,1)
-                    py = iPairIDCS(nCountSublattice,k,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
-                    ! Find index of quadruplet
-                    if (px == py) then
-                        p = (px - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                     * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
-                    else
-                        p = (nConstituentSublatticeCS(nCountSublatticeCS,2) + (px - 1) + ((py-2)*(py-1)/2)) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                          * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)
-                    end if
-                    if (pa == pb) then
-                        l = pa
-                    else
-                        l = nConstituentSublatticeCS(nCountSublatticeCS,1) + pa + ((pb-2)*(pb-1)/2)
-                    end if
-                    iIndex = p + l + nSpeciesPhaseCS(i - 1)
+                    pa = iPairIDCS(nCountSublatticeCS,k,1)
+                    pb = iPairIDCS(nCountSublatticeCS,k,2)
+                    px = iPairIDCS(nCountSublatticeCS,k,3) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+                    py = iPairIDCS(nCountSublatticeCS,k,4) - nConstituentSublatticeCS(nCountSublatticeCS,1)
+
+                    iIndex = k + nSpeciesPhaseCS(i - 1)
                     ! Make sure this quadruplet is still part of the system, if so save data
                     if (iSpeciesPass(iIndex) > 0) then
                         nPairsSRO(nCountSublattice,2) = nPairsSRO(nCountSublattice,2) + 1
