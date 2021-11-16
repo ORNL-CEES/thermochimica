@@ -108,22 +108,24 @@ class DataWindow:
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             try:
-                datafile = os.path.join(
-                    self.folder, values["-FILE LIST-"][0]
-                )
+                datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
                 with open(datafile) as f:
                     f.readline() # read comment line
                     line = f.readline() # read first data line (# elements, # phases, n*# species)
                     nElements = int(line[1:5])
                     nSoln = int(line[6:10])
                     elements = []
-                    for i in range(math.ceil((nSoln+3)/15)-1):
-                        f.readline() # read the rest of the # species but don't need them)
+                    while True:
+                        line = f.readline() # read the rest of the # species but don't need them)
+                        if any(c.isalpha() for c in line):
+                            break
+                    elLen = 25 # element names are formatted 25 wide
+                    els = line # get the first line with letters in it
                     for i in range(math.ceil(nElements/3)):
-                        els = f.readline() # read a line of elements (3 per line)
-                        elLen = 25 # formatted 25 wide
                         for j in range(3):
                             elements.append(els[1+j*elLen:(1+j)*elLen].strip())
+                        els = f.readline() # read a line of elements (3 per line)
+                        # It doesn't matter now, but this reads one more line than required
             except:
                 return
             i = 0
