@@ -106,11 +106,10 @@ subroutine CompThermoData
 
     integer                            :: i, j, k, l, m, n, s, iCounterGibbsEqn, nCounter, l1, l2, nn
     integer                            :: ii, jj, kk, ll, ka, la, iax, iay, ibx, iby, ia2x2, ia2y2, ib2x2, ib2y2
-    integer                            :: iSublPhaseIndex, iFirst, nRemove, nA2X2, iIndex
+    integer                            :: iSublPhaseIndex, iFirst, iLast, nRemove, nA2X2, nTempSublattice
     integer                            :: iMixStart, iMixLength, nMixSets
     integer, dimension(nElementsCS**2) :: iRemove
     real(8)                            :: dLogT, dLogP, dTemp, dQx, dQy, dZa, dZb, dZx, dZy, dCoax
-    real(8)                            :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
     real(8)                            :: dStdEnergyTemp
     real(8), dimension(6)              :: dGibbsCoeff
     real(8), dimension(nSpeciesCS)     :: dChemicalPotentialTemp
@@ -126,6 +125,7 @@ subroutine CompThermoData
     nCounter         = 0
     dTemp            = 1D0 / (dIdealConstant * dTemperature)
     iSUBIMixType     = 0
+    nTempSublattice  = 0
 
     ! Compute Gibbs energy coefficients:
     dGibbsCoeff(1)   = 1D0                             ! A
@@ -139,6 +139,17 @@ subroutine CompThermoData
 
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
+        iFirst = nSpeciesPhaseCS(n-1) + 1
+        iLast  = nSpeciesPhaseCS(n)
+        l = MAXVAL(iSpeciesPass(iFirst:iLast))
+        if (l > 0) then
+            if ((cSolnPhaseTypeCS(n) == 'SUBL').OR.(cSolnPhaseTypeCS(n) == 'SUBLM').OR. &
+                 (cSolnPhaseTypeCS(n) == 'SUBG').OR.(cSolnPhaseTypeCS(n) == 'SUBQ').OR. &
+                 (cSolnPhaseTypeCS(n) == 'SUBI')) then
+                nTempSublattice = nTempSublattice + 1
+            end if
+        end if
+
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
             iSublPhaseIndex = iPhaseSublatticeCS(n)
             iFirst = nSpeciesPhaseCS(n - 1) + 1
@@ -195,32 +206,24 @@ subroutine CompThermoData
 
                 ! Check if pair should be saved - only worry about zeta here, LOOP_nSUBGQCS will take care
                 ! of only using the necessary reference energy terms.
-                ! This is the same check as in CheckSystemExcess but A = B = ii and X = Y = kk are assured
-                ii = iConstituentSublatticeCS(iSublPhaseIndex,1,i - iFirst + 1)
-                kk = iConstituentSublatticeCS(iSublPhaseIndex,2,i - iFirst + 1)
-                iIndex = ii + ((kk - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2)) &
-                            + iFirst - 1
-                if (iSpeciesPass(iIndex) > 0) then
-                    nPairsSRO(iSublPhaseIndex,1) = nPairsSRO(iSublPhaseIndex,1) + 1
-                    jj = jj + 1
-                    dZetaSpecies(iSublPhaseIndex,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
-                    dConstituentCoefficients(iSublPhaseIndex,jj,1:5) = dConstituentCoefficientsCS(iSublPhaseIndex,i-iFirst+1,1:5)
-                    cPairName(iSublPhaseIndex,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
-                    m = 0
-                    do k = 1, nElemOrComp
-                        if (iElementSystem(k) /= 0) then
-                            m = m + 1
-                            dStoichPairs(iSublPhaseIndex,jj,m) = dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k)
-                        end if
-                    end do
-                end if
+                nPairsSRO(nTempSublattice,1) = nPairsSRO(nTempSublattice,1) + 1
+                jj = jj + 1
+                dZetaSpecies(nTempSublattice,jj) = dZetaSpeciesCS(iSublPhaseIndex,i - iFirst + 1)
+                dConstituentCoefficients(nTempSublattice,jj,1:5) = &
+                                    dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1:5)
+                cPairName(nTempSublattice,jj) = cPairNameCS(iSublPhaseIndex,i - iFirst + 1)
+                m = 0
+                do k = 1, nElemOrComp
+                    if (iElementSystem(k) /= 0) then
+                        m = m + 1
+                        dStoichPairs(nTempSublattice,jj,m) = dStoichPairsCS(iSublPhaseIndex,i - iFirst + 1,k)
+                    end if
+                end do
 
-                ! I have set these to be g^_A2/X2 because it helps me to follow,
+                ! I have set these to be g_A2/X2 * Z^A_A2/X2 because it helps me to follow,
                 ! this is not the most computationally efficient option.
                 dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1)
-                dZa = dCoordinationNumberCS(iSublPhaseIndex,iIndex - iFirst + 1,1)
-                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dZa / dCoax
+                dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dCoax
             end do LOOP_SROPairs
 
             LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
@@ -282,25 +285,20 @@ subroutine CompThermoData
                     end if
                 end do
 
-                ia2x2 = ii + ((ka - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
-                ib2x2 = jj + ((ka - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
-                ia2y2 = ii + ((la - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
-                ib2y2 = jj + ((la - 1) * (nConstituentSublatticeCS(nCountSublatticeCS,1) &
-                                        * (nConstituentSublatticeCS(nCountSublatticeCS,1) + 1) / 2))
-
-                dZaA2X2 = dCoordinationNumberCS(iSublPhaseIndex,ia2x2,1)
-                dZbB2X2 = dCoordinationNumberCS(iSublPhaseIndex,ib2x2,1)
-                dZaA2Y2 = dCoordinationNumberCS(iSublPhaseIndex,ia2y2,1)
-                dZbB2Y2 = dCoordinationNumberCS(iSublPhaseIndex,ib2y2,1)
+                ia2x2 = ii + ((ka - 1) * (nConstituentSublatticeCS(iSublPhaseIndex,1) &
+                                        * (nConstituentSublatticeCS(iSublPhaseIndex,1) + 1) / 2))
+                ib2x2 = jj + ((ka - 1) * (nConstituentSublatticeCS(iSublPhaseIndex,1) &
+                                        * (nConstituentSublatticeCS(iSublPhaseIndex,1) + 1) / 2))
+                ia2y2 = ii + ((la - 1) * (nConstituentSublatticeCS(iSublPhaseIndex,1) &
+                                        * (nConstituentSublatticeCS(iSublPhaseIndex,1) + 1) / 2))
+                ib2y2 = jj + ((la - 1) * (nConstituentSublatticeCS(iSublPhaseIndex,1) &
+                                        * (nConstituentSublatticeCS(iSublPhaseIndex,1) + 1) / 2))
 
                 ! This is equation 17.38 in Pelton's book
-                dChemicalPotential(j) = (((dQx * dZaA2X2) * dChemicalPotentialTemp(iax + iFirst - 1) / (2D0 * dZa * dZx))  &
-                                       + ((dQx * dZbB2X2) * dChemicalPotentialTemp(ibx + iFirst - 1) / (2D0 * dZb * dZx))  &
-                                       + ((dQy * dZaA2Y2) * dChemicalPotentialTemp(iay + iFirst - 1) / (2D0 * dZa * dZy))  &
-                                       + ((dQy * dZbB2Y2) * dChemicalPotentialTemp(iby + iFirst - 1) / (2D0 * dZb * dZy))) &
+                dChemicalPotential(j) = ((dQx * dChemicalPotentialTemp(iax + iFirst - 1) / (2D0 * dZa * dZx))  &
+                                       + (dQx * dChemicalPotentialTemp(ibx + iFirst - 1) / (2D0 * dZb * dZx))  &
+                                       + (dQy * dChemicalPotentialTemp(iay + iFirst - 1) / (2D0 * dZa * dZy))  &
+                                       + (dQy * dChemicalPotentialTemp(iby + iFirst - 1) / (2D0 * dZb * dZy))) &
                                        / ((dQx/dZx) + (dQy/dZy))
             end do LOOP_nSUBGQCS
         else
