@@ -84,6 +84,7 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
     ! Loop through all interaction parameters in this phase:
     do iParam = nParamPhase(iSolnIndex-1)+1, nParamPhase(iSolnIndex)
         ! Compute the partial molar excess Gibbs energy of each sub-system in a regular solution phase:
+        ! Now also performs interpolation
         call PolyRegularQKTO(iSolnIndex,iParam)
     end do
 
@@ -145,7 +146,7 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
     do i = 1, iRegularParam(iParam,1)
         j  = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
         k  = iRegularParam(iParam,1) + 1 + i
-        xT = xT + dMolFraction(j)
+        xT = xT + dMolFraction(j) * dQKTOParams(j,1)
         zT = zT + iRegularParam(iParam,k)
     end do
 
@@ -153,23 +154,25 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
     do i = 1, iRegularParam(iParam,1)
         j       = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
         k       = iRegularParam(iParam,1) + 1 + i
-        y(i)    = dMolFraction(j) / xT
+        y(i)    = dMolFraction(j) * dQKTOParams(j,1) / xT
         dGParam = dGParam * (y(i) ** iRegularParam(iParam,k))
     end do
 
+    ! Include xT factor:
+    dGParam = dGParam * xT
+
     ! Compute the partial excess Gibbs energy of mixing per equivalent mole in the sub-system:
     do i = 1, iRegularParam(iParam,1)
+        ! k is exponent for current species
         k = iRegularParam(iParam,iRegularParam(iParam,1) + 1 + i)
-        dPartialGParam(i) = dExcessGibbsParam(iParam) * (DFLOAT(k) * y(i)**(k - 1) + (1D0 - DFLOAT(zT)) * y(i)**k)
+        dPartialGParam(i) = dExcessGibbsParam(iParam) * (DFLOAT(k) * y(i)**(-1) + (1D0 - DFLOAT(zT)))
 
-        ! Loop through parameters:
+        ! Loop through participating species:
         do j = 1, iRegularParam(iParam,1)
-            ! Cycle if it is the same parameter:
-            if (j == i) cycle
+            ! m is exponent for species
             m = iRegularParam(iParam,iRegularParam(iParam,1) + 1 + j)
             dPartialGParam(i) = dPartialGParam(i) * y(j)**m
         end do
-
     end do
 
     ! Store the number of components in the sub-system (i.e., binary, ternary or quaternary):
@@ -178,8 +181,8 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
     ! Compute the partial molar excess Gibbs energy of mixing using the Kohler interpolation scheme:
     do i = 1, iRegularParam(iParam,1)
         j = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
-        dPartialExcessGibbs(j) = dPartialExcessGibbs(j) + (xT**(k-1)) * (dPartialGParam(i) + &
-            dGParam * (1D0 - xT) * (DFLOAT(k)-1D0))
+        dPartialExcessGibbs(j) = dPartialExcessGibbs(j) + (xT**(k-1)) * (dQKTOParams(j,1)*dPartialGParam(i) + &
+            dGParam * (1D0/xT - 1D0) * (DFLOAT(k)-1D0))
     end do
 
     ! Compute the equivalent excess Gibbs energy of mixing of species that are not part of the sub-system:
@@ -188,7 +191,7 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
         do m = 1,k
             if (j == iRegularParam(iParam,m+1)) cycle LOOP_A
         end do
-        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) - (xT**(k)) * (dGParam * (DFLOAT(k)-1D0))
+        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) - (xT**(k-1)) * (dGParam * (DFLOAT(k)-1D0))
     end do LOOP_A
 
     return
