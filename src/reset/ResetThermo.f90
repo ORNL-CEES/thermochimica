@@ -187,6 +187,8 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(iSUBIMixType)) deallocate(iSUBIMixType, STAT = INFO)
     i = i + INFO
+    if (allocated(dQKTOParams)) deallocate(dQKTOParams, STAT = INFO)
+    i = i + INFO
 
     lRetryAttempted = .FALSE.
 
