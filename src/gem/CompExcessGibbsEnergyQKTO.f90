@@ -197,7 +197,7 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
     ! Calculate g^excess for binary part
     dGex = dExcessGibbsParam(iParam) * (dXi1**p) * (dXi2**q) / (dXiDen ** (p + q))
-    dGex = dGex * xT
+    dGex = dGex
 
     ! Include ternary factor if present
     if (nSpeciesParam == 3) then
