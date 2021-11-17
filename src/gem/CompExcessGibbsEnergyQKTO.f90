@@ -99,3 +99,163 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
     return
 
 end subroutine CompExcessGibbsEnergyQKTO
+
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    ! Purpose
+    ! =======
+    !
+    !> \details The purpose of this subroutine is to compute the partial molar excess Gibbs energy of
+    !! mixing of species in a regular sub-system.  Note that the effective quantity (i.e., "y") is represented
+    !! relative to the particular parameter of interest and differs from that of the phase as a whole.
+    !!
+    !! For more information on the derivation of the thermodynamic equations used in this subroutine,
+    !! refer to the following paper:
+    !!
+    !!        A.D. Pelton and C.W. Bale, "Computational Techniques for the Treatment
+    !!        of Thermodynamic Data in Multicomponent Systems and the Calculation of
+    !!        Phase Equilibria," CALPHAD, V. 1, N. 3 (1977) 253-273.
+    !!
+    !
+    ! Pertinent Variables
+    ! ===================
+    !
+    !> \param[in]  iSolnIndex       Integer scalar of the solution index.
+    !> \param[in]  iParam           Integer scalar of the parameter index.
+    !> \param[out] xT               Sum of mole fractions of actual constituents in solution phase
+    !> \param[out] dGParam          Excess Gibbs energy of sub-system
+    !> \param[out] dPartialGParam   Partial excess Gibbs energy of a constituent in the sub-system
+    !
+    ! y                             A double real vector representing the equivalent mole fractions of each
+    !                                constituent in the sub-system (parameter).
+    ! zT                            A double real scalar representing the sum of exponents in the sub-system.
+    !
+    !-------------------------------------------------------------------------------------------------------------
+
+subroutine PolyRegularQKTO(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
+
+    USE ModuleThermo
+    USE ModuleGEMSolver
+
+    implicit None
+
+    integer                      :: i, j, k, m, zT, iParam, iSolnIndex
+    real(8)                      :: xT, dGParam
+    real(8),dimension(nMaxParam) :: y, dPartialGParam
+
+
+    ! Initialize variables:
+    xT             = 0D0
+    y              = 0D0
+    zT             = 0
+    dGParam        = dExcessGibbsParam(iParam)
+    dPartialGParam = 0D0
+
+    ! Compute the sum of mole fractions of real components and the sum of their exponents in the sub-system:
+    do i = 1, iRegularParam(iParam,1)
+        j  = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
+        k  = iRegularParam(iParam,1) + 1 + i
+        xT = xT + dMolFraction(j)
+        zT = zT + iRegularParam(iParam,k)
+    end do
+
+    ! Compute the equivalent mole fractions of components and the integral excess Gibbs energy of the sub-system:
+    do i = 1, iRegularParam(iParam,1)
+        j       = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
+        k       = iRegularParam(iParam,1) + 1 + i
+        y(i)    = dMolFraction(j) / xT
+        dGParam = dGParam * (y(i) ** iRegularParam(iParam,k))
+    end do
+
+    ! Compute the partial excess Gibbs energy of mixing per equivalent mole in the sub-system:
+    do i = 1, iRegularParam(iParam,1)
+        k = iRegularParam(iParam,iRegularParam(iParam,1) + 1 + i)
+        dPartialGParam(i) = dExcessGibbsParam(iParam) * (DFLOAT(k) * y(i)**(k - 1) + (1D0 - DFLOAT(zT)) * y(i)**k)
+
+        ! Loop through parameters:
+        do j = 1, iRegularParam(iParam,1)
+            ! Cycle if it is the same parameter:
+            if (j == i) cycle
+            m = iRegularParam(iParam,iRegularParam(iParam,1) + 1 + j)
+            dPartialGParam(i) = dPartialGParam(i) * y(j)**m
+        end do
+
+    end do
+
+    return
+
+end subroutine PolyRegularQKTO
+
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    ! Purpose:
+    ! ========
+    !
+    !> \details The purpose of this subroutine is to perform a Kohler interpolation of binary/ternary/quaternary
+    !! model parameters (provided by PolyRegular.f90) in multi-component phases and return the partial molar
+    !! excess Gibbs energy of mixing of a species in a non-ideal solution phase (QKTO).
+    !
+    !
+    ! References:
+    ! ===========
+    !
+    !> \details For more information regarding the Kohler interpolation method and the derivation of the
+    !! equations used in this subroutine, refer to the following paper:
+    !!
+    !!    A.D. Pelton and C.W. Bale, "Computational Techniques for the Treatment
+    !!    of Thermodynamic Data in Multicomponent Systems and the Calculation of
+    !!    Phase Equilibria," CALPHAD, V. 1, N. 3 (1977) 253-273.
+    !
+    !
+    ! Pertinent variables:
+    ! ====================
+    !
+    !> \param[in] iSolnIndex        An integer scalar representing the index of a solution phase.
+    !> \param[in] iParam            An integer scalar representing the mixing parameter index.
+    !> \param[in] xT                Sum of mole fractions of actual species in solution phase
+    !> \param[in] dGParam           Excess Gibbs energy of sub-system
+    !> \param[in] dPartialGParam    Partial excess Gibbs energy of species in sub-system
+    !
+    ! dPartialExcessGibbs           Partial molar excess Gibbs energy of mixing of a species.
+    ! nSpeciesPhase                 An integer vector representing the number of species in each solution phase.
+    ! iRegularParam                 An integer matrix representing information pertient to regular solution
+    !                                models.  The first coefficient represents the number of components in the
+    !                                sub-system and the other coefficients represent the indices of components
+    !                                in the sub-system.
+    !
+    !-------------------------------------------------------------------------------------------------------------
+
+subroutine KohlerInterpolate(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
+
+    USE ModuleThermo
+    USE ModuleGEMSolver
+
+    implicit none
+
+    integer                       :: i, j, k, m, iSolnIndex, iParam
+    real(8)                       :: xT, dGParam
+    real(8), dimension(nMaxParam) :: dPartialGParam
+
+
+    ! Store the number of components in the sub-system (i.e., binary, ternary or quaternary):
+    k = iRegularParam(iParam,1)
+
+    ! Compute the partial molar excess Gibbs energy of mixing using the Kohler interpolation scheme:
+    do i = 1, iRegularParam(iParam,1)
+        j = nSpeciesPhase(iSolnIndex-1) + iRegularParam(iParam,i+1)
+        dPartialExcessGibbs(j) = dPartialExcessGibbs(j) + (xT**(k-1)) * (dPartialGParam(i) + &
+            dGParam * (1D0 - xT) * (DFLOAT(k)-1D0))
+    end do
+
+    ! Compute the equivalent excess Gibbs energy of mixing of species that are not part of the sub-system:
+    LOOP_A: do i = nSpeciesPhase(iSolnIndex-1)+1, nSpeciesPhase(iSolnIndex)
+        j = i - nSpeciesPhase(iSolnIndex-1)
+        do m = 1,k
+            if (j == iRegularParam(iParam,m+1)) cycle LOOP_A
+        end do
+        dPartialExcessGibbs(i) = dPartialExcessGibbs(i) - (xT**(k)) * (dGParam * (DFLOAT(k)-1D0))
+    end do LOOP_A
+
+    return
+
+end subroutine KohlerInterpolate
