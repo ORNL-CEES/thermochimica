@@ -76,9 +76,6 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
     implicit none
 
     integer                       :: iParam, iSolnIndex
-    real(8)                       :: dGParam, xT
-    real(8), dimension(nMaxParam) :: dPartialGParam
-
 
     ! Return control to the parent subroutine if there aren't any interaction parameters for this phase:
     if ((nParamPhase(iSolnIndex) - nParamPhase(iSolnIndex-1) == 0).OR. &
@@ -86,14 +83,8 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
 
     ! Loop through all interaction parameters in this phase:
     do iParam = nParamPhase(iSolnIndex-1)+1, nParamPhase(iSolnIndex)
-
         ! Compute the partial molar excess Gibbs energy of each sub-system in a regular solution phase:
-        call PolyRegularQKTO(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
-
-        ! Perform a Kohler interpolation amoungst the sub-systems to compute the overall partial molar
-        ! excess Gibbs energy of mixing:
-        call KohlerInterpolate(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
-
+        call PolyRegularQKTO(iSolnIndex,iParam)
     end do
 
     return
@@ -132,7 +123,7 @@ end subroutine CompExcessGibbsEnergyQKTO
     !
     !-------------------------------------------------------------------------------------------------------------
 
-subroutine PolyRegularQKTO(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
+subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
     USE ModuleThermo
     USE ModuleGEMSolver
@@ -142,7 +133,6 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
     integer                      :: i, j, k, m, zT, iParam, iSolnIndex
     real(8)                      :: xT, dGParam
     real(8),dimension(nMaxParam) :: y, dPartialGParam
-
 
     ! Initialize variables:
     xT             = 0D0
@@ -182,61 +172,6 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
 
     end do
 
-    return
-
-end subroutine PolyRegularQKTO
-
-    !-------------------------------------------------------------------------------------------------------------
-    !
-    ! Purpose:
-    ! ========
-    !
-    !> \details The purpose of this subroutine is to perform a Kohler interpolation of binary/ternary/quaternary
-    !! model parameters (provided by PolyRegular.f90) in multi-component phases and return the partial molar
-    !! excess Gibbs energy of mixing of a species in a non-ideal solution phase (QKTO).
-    !
-    !
-    ! References:
-    ! ===========
-    !
-    !> \details For more information regarding the Kohler interpolation method and the derivation of the
-    !! equations used in this subroutine, refer to the following paper:
-    !!
-    !!    A.D. Pelton and C.W. Bale, "Computational Techniques for the Treatment
-    !!    of Thermodynamic Data in Multicomponent Systems and the Calculation of
-    !!    Phase Equilibria," CALPHAD, V. 1, N. 3 (1977) 253-273.
-    !
-    !
-    ! Pertinent variables:
-    ! ====================
-    !
-    !> \param[in] iSolnIndex        An integer scalar representing the index of a solution phase.
-    !> \param[in] iParam            An integer scalar representing the mixing parameter index.
-    !> \param[in] xT                Sum of mole fractions of actual species in solution phase
-    !> \param[in] dGParam           Excess Gibbs energy of sub-system
-    !> \param[in] dPartialGParam    Partial excess Gibbs energy of species in sub-system
-    !
-    ! dPartialExcessGibbs           Partial molar excess Gibbs energy of mixing of a species.
-    ! nSpeciesPhase                 An integer vector representing the number of species in each solution phase.
-    ! iRegularParam                 An integer matrix representing information pertient to regular solution
-    !                                models.  The first coefficient represents the number of components in the
-    !                                sub-system and the other coefficients represent the indices of components
-    !                                in the sub-system.
-    !
-    !-------------------------------------------------------------------------------------------------------------
-
-subroutine KohlerInterpolate(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
-
-    USE ModuleThermo
-    USE ModuleGEMSolver
-
-    implicit none
-
-    integer                       :: i, j, k, m, iSolnIndex, iParam
-    real(8)                       :: xT, dGParam
-    real(8), dimension(nMaxParam) :: dPartialGParam
-
-
     ! Store the number of components in the sub-system (i.e., binary, ternary or quaternary):
     k = iRegularParam(iParam,1)
 
@@ -258,4 +193,4 @@ subroutine KohlerInterpolate(iSolnIndex,iParam,xT,dGParam,dPartialGParam)
 
     return
 
-end subroutine KohlerInterpolate
+end subroutine PolyRegularQKTO
