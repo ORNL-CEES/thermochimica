@@ -281,7 +281,8 @@ subroutine CheckPhaseAssemblage
                 weight = 1d-7
                 do i = 1, nNonDummy
                     do j = 1, nElements
-                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j) / dMolesElement(j)
+                        dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
+                        if (dMolesElement(j) > 0D0) dStoichSpeciesTemp(j,i) = dStoichSpeciesTemp(j,i) / dMolesElement(j)
                     end do
                     if (i <= nSpeciesPhase(nSolnPhasesSys)) then
                         ! Solution phase species

@@ -159,7 +159,8 @@ subroutine LevelingSolver
     dMolesElementTemp(nElements + 1) = dNormalizeSum * MINVAL(dChemicalPotential) * weight
     do i = 1, nNonDummy
         do j = 1, nElements
-            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j) / dMolesElement(j)
+            dStoichSpeciesTemp(j,i) = dAtomFractionSpecies(i,j)
+            if (dMolesElement(j) > 0D0) dStoichSpeciesTemp(j,i) = dStoichSpeciesTemp(j,i) / dMolesElement(j)
         end do
         dStoichSpeciesTemp(nElements+1,i) = dChemicalPotential(i) * weight
     end do
