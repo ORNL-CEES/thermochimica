@@ -132,7 +132,7 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
     implicit None
 
-    integer                       :: i, j, zT, iParam, iSolnIndex, iGroup1, iGroup2, iGroupTemp, nSpeciesParam, p, q, r, a, b
+    integer                       :: i, j, zT, iParam, iSolnIndex, iGroup1, iGroup2, iGroupTemp, nSpeciesParam, p, q, r, a, b, c
     real(8)                       :: xT, dGex, dXi1, dXi2, dXiDen, dDgex
     real(8), dimension(nSpeciesPhase(iSolnIndex) - nSpeciesPhase(iSolnIndex-1)) :: y, dPartialGParam
     logical, dimension(nSpeciesPhase(iSolnIndex) - nSpeciesPhase(iSolnIndex-1)) :: lAsymmetric1, lAsymmetric2
@@ -151,6 +151,13 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
     b = iRegularParam(iParam,3)
     p = iRegularParam(iParam,nSpeciesParam+2)
     q = iRegularParam(iParam,nSpeciesParam+3)
+    ! Set ternary parameters initially to 0, so that they may be used for any case
+    c = 0
+    r = 0
+    if (nSpeciesParam == 3) then
+        c = iRegularParam(iParam,4)
+        r = iRegularParam(iParam,nSpeciesParam+4)
+    end if
 
     ! Get chemical groups of first two species
     iGroup1 = INT(dQKTOParams(nSpeciesPhase(iSolnIndex-1) + a,2))
@@ -197,29 +204,49 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
     dXiDen = dXi1 + dXi2
 
+    ! ChemSage guide says only symmetric ternaries are allowed, but I'm not sure if this is still true
+    ! Anyway, we haven't seen any others yet
+    ! Also the textbook equations for ternaries don't reproduce the symmetry in FactSage, so for now
+    ! I'm just implementing symmetric ternary explicitly
+    ! I will still try to make this easy to change later
+    if (nSpeciesParam == 3) then
+        dXi1 = y(a)
+        dXi2 = y(b)
+        dXiDen = y(a) + y(b) + y(c)
+    end if
+
     ! Calculate g^excess for binary part
-    dGex = dExcessGibbsParam(iParam) * (dXi1**(p-1)) * (dXi2**(q-1)) / (dXiDen ** (p + q - 2))
+    dGex = dExcessGibbsParam(iParam) * (dXi1**(p - 1)) * (dXi2**(q - 1)) / (dXiDen ** (p + q + r - nSpeciesParam))
     dGex = dGex * y(a) * y(b) * xT
 
     ! Include ternary factor if present
     if (nSpeciesParam == 3) then
-        r = iRegularParam(iParam,nSpeciesParam+4)
-        dGex = dGex * (1D0 - dXi1 - dXi2)**r
-        dGex = dGex * y(iRegularParam(iParam,2)) * y(iRegularParam(iParam,3)) * y(iRegularParam(iParam,4))
+        ! Trying to write this parallel to binary
+        dGex = dGex * y(c)**(r - 1)
+        dGex = dGex * y(c)
     end if
 
     do j = nSpeciesPhase(iSolnIndex-1) + 1, nSpeciesPhase(iSolnIndex)
         i = j - nSpeciesPhase(iSolnIndex-1)
         dDgex = -1D0 / xT
         if      (lAsymmetric1(i)) then
-            dDgex = dDgex + (p - 1) / dXi1 - (p + q - 2) / dXiDen
+            dDgex = dDgex + (p - 1) / dXi1 - (p + q + r - nSpeciesParam) / dXiDen
         else if (lAsymmetric2(i)) then
-            dDgex = dDgex + (q - 1) / dXi2 - (p + q - 2) / dXiDen
+            dDgex = dDgex + (q - 1) / dXi2 - (p + q + r - nSpeciesParam) / dXiDen
         end if
         if      (i == a) then
             dDgex = dDgex + 1D0 / y(a) / xT
         else if (i == b) then
             dDgex = dDgex + 1D0 / y(b) / xT
+        else if (i == c) then
+            dDgex = dDgex + 1D0 / y(c) / xT
+        end if
+        ! Ternary part of derivative
+        if (nSpeciesParam == 3) then
+            dDgex = dDgex - 1D0 / xT
+            if (i == c) then
+                dDgex = dDgex + (r - 1) / y(c) - (p + q + r - nSpeciesParam) / dXiDen
+            end if
         end if
         dPartialExcessGibbs(j) = dPartialExcessGibbs(j) + dDgex * dGex * dQKTOParams(j,1)
     end do
