@@ -213,6 +213,11 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
         dXi1 = y(a)
         dXi2 = y(b)
         dXiDen = y(a) + y(b) + y(c)
+        ! Force reset of all symmetry arrays, this will enforce the ternary is treated as symmetric no matter the groups
+        lAsymmetric1   = .FALSE.
+        lAsymmetric2   = .FALSE.
+        lAsymmetric1(a) = .TRUE.
+        lAsymmetric2(b) = .TRUE.
     end if
 
     ! Calculate g^excess for binary part
