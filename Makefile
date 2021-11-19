@@ -52,7 +52,7 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
-SRC_SDR     = debug gem module parser postprocess reinit reset setup
+SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
@@ -66,7 +66,7 @@ VPATH				= $(SHARED_DIR)
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o CalculateCompositionSUBG.o
+MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o ModuleCTZ.o CalculateCompositionSUBG.o
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
