@@ -295,12 +295,12 @@ class CalculationWindow:
                 self.p2 = []
                 self.x0data = [[],[],[]]
                 self.x1data = [[],[],[]]
-                self.mint = 1e6
-                self.maxt = 0
+                self.mint = tlo
+                self.maxt = thi
                 self.labels = []
                 self.resRef = 7
                 self.resSmooth = 7
-                self.gapLimit = np.Inf
+                self.gapLimit = (self.maxt - self.mint) / 2
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -556,11 +556,16 @@ class CalculationWindow:
             ttt = self.ts[inds]
             x1t = self.x1[inds]
             x2t = self.x2[inds]
-            for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                    boundaries.append(boundaries[j])
-                    for k in range(i+1,len(ttt)):
-                        b[inds[k]] = len(boundaries)-1
+            loc = False
+            firstLoc = True
+            for i in range(1,len(ttt)):
+                if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
+                    loc = not(loc)
+                    if firstLoc:
+                        boundaries.append(boundaries[j])
+                        firstLoc = False
+                if loc:
+                    b[inds[i]] = len(boundaries)-1
 
         # Start figure
         fig = plt.figure()
@@ -776,7 +781,7 @@ class CalculationWindow:
                     self.runCalc()
     def autoRefine(self,res):
         nIt = 0
-        while nIt < 10:
+        while nIt < 4:
             nIt = nIt + 1
             maxArea = 0
             boundaries = []
@@ -842,11 +847,16 @@ class CalculationWindow:
                 ttt = self.ts[inds]
                 x1t = self.x1[inds]
                 x2t = self.x2[inds]
-                for i in range(len(ttt)-1):
-                    if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                        boundaries.append(boundaries[j])
-                        for k in range(i+1,len(ttt)):
-                            b[inds[k]] = len(boundaries)-1
+                loc = False
+                firstLoc = True
+                for i in range(1,len(ttt)):
+                    if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
+                        loc = not(loc)
+                        if firstLoc:
+                            boundaries.append(boundaries[j])
+                            firstLoc = False
+                    if loc:
+                        b[inds[i]] = len(boundaries)-1
 
             phasePolyPoints = [[] for i in range(len(phases))]
 
@@ -1017,11 +1027,16 @@ class CalculationWindow:
             ttt = self.ts[inds]
             x1t = self.x1[inds]
             x2t = self.x2[inds]
-            for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                    boundaries.append(boundaries[j])
-                    for k in range(i+1,len(ttt)):
-                        b[inds[k]] = len(boundaries)-1
+            loc = False
+            firstLoc = True
+            for i in range(1,len(ttt)):
+                if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
+                    loc = not(loc)
+                    if firstLoc:
+                        boundaries.append(boundaries[j])
+                        firstLoc = False
+                if loc:
+                    b[inds[i]] = len(boundaries)-1
 
         # Expand two-phase regions
         tres = (self.maxt-self.mint)/res
@@ -1069,7 +1084,7 @@ class CalculationWindow:
             self.processPhaseDiagramData()
 
         nIt = 0
-        while nIt < 10:
+        while nIt < 4:
             nIt = nIt + 1
             maxGap = 0
             # Create arrays again with new data
@@ -1111,6 +1126,24 @@ class CalculationWindow:
                     boundaries.append(boundaries[j])
                     for k in extraBound:
                         b[inds[k]] = len(boundaries)-1
+
+            for j in range(len(boundaries)):
+                inds = [i for i, k in enumerate(b) if k == j]
+                if len(inds) < 2:
+                    continue
+                ttt = self.ts[inds]
+                x1t = self.x1[inds]
+                x2t = self.x2[inds]
+                loc = False
+                firstLoc = True
+                for i in range(1,len(ttt)):
+                    if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
+                        loc = not(loc)
+                        if firstLoc:
+                            boundaries.append(boundaries[j])
+                            firstLoc = False
+                    if loc:
+                        b[inds[i]] = len(boundaries)-1
 
             # Refine two-phase region density
             xs = []
@@ -1155,7 +1188,7 @@ class CalculationWindow:
             # Test the minimum difference between points to see if converged
             if maxGap <= 1/res:
                 break
-        self.gapLimit = 2*tres
+        self.gapLimit = 3*tres
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
@@ -1222,11 +1255,16 @@ class CalculationWindow:
             ttt = self.ts[inds]
             x1t = self.x1[inds]
             x2t = self.x2[inds]
-            for i in range(len(ttt)-1):
-                if abs(ttt[i+1] - ttt[i]) > self.gapLimit:
-                    boundaries.append(boundaries[j])
-                    for k in range(i+1,len(ttt)):
-                        b[inds[k]] = len(boundaries)-1
+            loc = False
+            firstLoc = True
+            for i in range(1,len(ttt)):
+                if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
+                    loc = not(loc)
+                    if firstLoc:
+                        boundaries.append(boundaries[j])
+                        firstLoc = False
+                if loc:
+                    b[inds[i]] = len(boundaries)-1
 
         phasePolyPoints = [[] for i in range(len(phases))]
 
