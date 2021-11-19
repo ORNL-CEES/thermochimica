@@ -84,7 +84,7 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
         call CheckPhaseChange(lPhasePass,INFO)
 
-        if (INFO > nElements + nSolnPhases) then
+        if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then
             ! A pure condensed phase should be removed.
             j = INFO - nElements - nSolnPhases
             iAssemblage(j)          = iAssemblage(nConPhases)

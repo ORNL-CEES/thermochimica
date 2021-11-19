@@ -128,12 +128,12 @@ subroutine CheckSystem
     implicit none
 
     integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
+    integer                                 :: mm, nn, nConstituentPass, c, s, nSpeciesCurrentPhase, nMinSpeciesPhase
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
     character(3),dimension(0:nElementsPT)   :: cElementNamePT
     character(12)                           :: cDummy
     logical                                 :: lPos, lNeg
-
 
     ! Check to see if the allocatable arrays have already been allocated
     if (allocated(iElementSystem)) then
@@ -231,8 +231,8 @@ subroutine CheckSystem
     k = 0
     ! Normalize dElementMass to mole fraction and establish the elements of the system:
     do j = 1, nElemOrComp
-        dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j)) * dNormalizeInput
-        if (dElementMass(iElementSystem(j)) < dElementMoleFractionMin) then
+        dElementMass(iElementSystem(j)) = dElementMass(iElementSystem(j))
+        if ((dElementMass(iElementSystem(j)) * dNormalizeInput) < dElementMoleFractionMin) then
             ! Element j should not be considered.
             dElementMass(iElementSystem(j)) = 0
             iElementSystem(j) = 0
@@ -256,17 +256,24 @@ subroutine CheckSystem
         end if
     end do LOOP_checkElements
 
-    ! The system requires a minimum of two elements in order to be considered:
-    if (nElements < 2 + k) then
+    ! The system requires a minimum of one element to be considered:
+    if (nElements < 1 + k) then
         INFOThermo = 5
         return
+    end if
+
+    ! Set the minimum number of species per phase depending on the number of elements
+    if (nElements <= 2) then
+        nMinSpeciesPhase = 1
+    else
+        nMinSpeciesPhase = 1
     end if
 
     ! Check to see if the system has to be re-adjusted:
     nSpecies = 0
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
         ! Loop through species in solution phases:
-        m = 0
+        nSpeciesCurrentPhase = 0
         LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
             do k = 1, nElemOrComp
                 if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
@@ -288,8 +295,8 @@ subroutine CheckSystem
                 end if
             end if
             nSpecies = nSpecies + 1
-            m = m + 1
-            iSpeciesPass(j) = m
+            nSpeciesCurrentPhase = nSpeciesCurrentPhase + 1
+            iSpeciesPass(j) = nSpeciesCurrentPhase
             if (cSolnPhaseTypeCS(i) == 'SUBG' .OR. cSolnPhaseTypeCS(i) == 'SUBQ') then
                 k = iPhaseSublatticeCS(i)
                 iCon1 = iPairIDCS(k,j-nSpeciesPhaseCS(i-1),1)
@@ -318,6 +325,7 @@ subroutine CheckSystem
                         if ((iSpeciesPass(j) > 0) .AND. DABS(dStoichSpeciesCS(j,k)) > 0D0) then
                             iSpeciesPass(j) = 0
                             nSpecies = nSpecies - 1
+                            nSpeciesCurrentPhase = nSpeciesCurrentPhase - 1
                         end if
                     end do
                 end if
@@ -326,14 +334,51 @@ subroutine CheckSystem
 
         ! Store temporary counter for the number of charged phases from the CS data-file:
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBI')) then
+            (cSolnPhaseTypeCS(i) == 'SUBI')) then
+            nCountSublatticeTemp = nCountSublatticeTemp + 1
+            if (nSpeciesCurrentPhase > 0) then
+                k = iPhaseSublatticeCS(i)
+                ! Loop through species in phase to determine which constituents are stable:
+                do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
+                    if (iSpeciesPass(j) > 0) then
+                        ! This species has passed.
+                        nn = j - nSpeciesPhaseCS(i-1)
+                        ! Loop through sublattices per phase:
+                        do s = 1, nSublatticePhaseCS(k)
+                            mm = iConstituentSublatticeCS(k, s, nn)
+                            if ((cSolnPhaseTypeCS(i) == 'SUBI') .AND. (s == 1)) then
+                                if (dSublatticeChargeCS(k,2,iConstituentSublatticeCS(k,2,nn)) /= 0D0) then
+                                    iConstituentPass(k, s, mm) = 1
+                                end if
+                            else
+                                iConstituentPass(k, s, mm) = 1
+                            end if
+                        end do
+                    end if
+                end do
+                ! If a sublattice has no constituents the whole phase should get removed
+                LOOP_CHECK_SUBLATTICES: do s = 1, nSublatticePhaseCS(k)
+                    nConstituentPass = 0
+                    do c = 1, nConstituentSublatticeCS(k,s)
+                        if (iConstituentPass(k,s,c) /= 0) then
+                            nConstituentPass = nConstituentPass + 1
+                        end if
+                    end do
+                    if (nConstituentPass < 1) then
+                        iConstituentPass(k,:,:) = 0
+                        nSpecies = nSpecies - nSpeciesCurrentPhase
+                        iSpeciesPass(nSpeciesPhaseCS(i-1) + 1:nSpeciesPhaseCS(i)) = 0
+                        exit LOOP_CHECK_SUBLATTICES
+                    end if
+                end do LOOP_CHECK_SUBLATTICES
+            end if
+        else if ((cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
             nCountSublatticeTemp = nCountSublatticeTemp + 1
         end if
 
         ! Count the number of solution phases in the system:
         iTempVec(nSolnPhasesSys+1) = nSpecies
-        if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) > 1) then
+        if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) >= nMinSpeciesPhase) then
             nSolnPhasesSys = nSolnPhasesSys + 1
             nMaxSpeciesPhase = MAX(nMaxSpeciesPhase, iTempVec(nSolnPhasesSys) - iTempVec(nSolnPhasesSys-1))
             ! Check if this is a charged phase:
@@ -347,14 +392,11 @@ subroutine CheckSystem
                 m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
                 nMaxConstituentSys = MAX(nMaxConstituentSys,m)
             end if
-        elseif (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
-            ! There is only one species in this solution phase.  This solution phase should not be considered.
+        else if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then
+            ! There is only one species in this solution phase.  This solution phase should not be considered with >1 element.
             iSpeciesPass(nSpeciesPhaseCS(i-1) + 1 : nSpeciesPhaseCS(i))          = 0
             nSpecies                 = nSpecies - 1
             iTempVec(nSolnPhasesSys) = nSpecies
-        else
-            ! Do nothing.  The number of species in this solution phase is zero and this phase will not be
-            ! considered.
         end if
     end do LOOP_SolnPhases
 
@@ -369,6 +411,7 @@ subroutine CheckSystem
         end do
         nSpecies        = nSpecies + 1
         iSpeciesPass(j) = 1
+        if (iPhaseCS(j) == 0) nConPhasesSys = nConPhasesSys + 1
     end do LOOP_PureConPhases
 
     ! Re-establish the character vector representing the element names:
@@ -553,7 +596,7 @@ subroutine CheckSystem
             else
                 cElementName(i)  = cCompoundNames(i)
             end if
-            if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i))
+            if (iElementSystem(i) > 0) dMolesElement(j) = dElementMass(iElementSystem(i)) * dNormalizeInput
         end if
     end do
 

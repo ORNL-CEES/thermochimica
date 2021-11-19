@@ -309,7 +309,7 @@ subroutine InitGEMSolver
 
                 if (k == 0) then
                     exit LOOP_CheckPhaseAssemblage
-                elseif (k > nElements + nSolnPhases) then
+                elseif ((k > nElements + nSolnPhases) .AND. (nConPhases > 0)) then
                     ! A pure condensed phase should be removed.
                     k = k - nElements - nSolnPhases
                     iAssemblage(k)          = iAssemblage(nConPhases)

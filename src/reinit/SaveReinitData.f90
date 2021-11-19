@@ -37,6 +37,8 @@ subroutine SaveReinitData
 
   implicit none
 
+  lReinitAvailable = .FALSE.
+
   ! If error has occurred, do not save
   if (INFOThermo /= 0) return
   ! If a calculation has not run, do not save
@@ -47,6 +49,8 @@ subroutine SaveReinitData
 
   ! Initialize storage variables if not allocated already
   if (.NOT. lReinitAvailable) then
+    if (allocated(dMolesPhase_Old)) deallocate(dMolesPhase_Old,dChemicalPotential_Old,dElementPotential_Old,&
+                                               dMolFraction_Old,iAssemblage_Old)
     allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
     dMolFraction_Old(nSpecies))
     allocate(iAssemblage_Old(nElements))

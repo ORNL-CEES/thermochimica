@@ -57,7 +57,6 @@
     !!      P. Chartrand and A. Pelton, "On the Choice of 'Geometric' Thermodynamic Models",
     !!      Journal of Phase Equilibria, 21, 2 (2000) 141-147.
     !!
-
     !
     ! Pertinent variables:
     ! ====================

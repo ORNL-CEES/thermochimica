@@ -33,8 +33,8 @@ program TestThermo58
     implicit none
 
     integer :: i, j, k, l
-    real(8) :: gibbsCheck, p1check, p2check, s1check, s2check
-    logical :: subqPass, gasPass
+    real(8) :: gibbsCheck, p1check, p2check, s1check, s2check, dHeatCapacity, dHeatCapacityCheck
+    logical :: subqPass, gasPass, cppass
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -54,15 +54,18 @@ program TestThermo58
     p2check    = 0.14544D0
     s1check    = 5.1547D-2
     s2check    = 2.9406D-7
+    dHeatCapacityCheck = 105.954
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     if (INFOThermo == 0)        call Thermochimica
+    call HeatCapacity(dHeatCapacity)
 
     subqPass = .FALSE.
-    gasPass = .FALSE.
+    gasPass  = .FALSE.
+    cppass   = .FALSE.
     if (INFOThermo == 0) then
         if (DABS((dGibbsEnergySys - gibbsCheck)/gibbsCheck) < 1D-3) then
             do i = 1, nSolnPhases
@@ -84,10 +87,11 @@ program TestThermo58
                     end if
                 end if
             end do
+            if (ABS(dHeatCapacity - dHeatCapacityCheck)/dHeatCapacityCheck < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (subqPass .AND. gasPass) then
+    if (subqPass .AND. gasPass .AND. cppass) then
         ! The test passed:
         print *, 'TestThermo58: PASS'
         ! Reset Thermochimica:

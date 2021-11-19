@@ -97,7 +97,8 @@ subroutine GEMNewton(INFO)
 
     implicit none
 
-    integer                              :: i, j, k, l, m, INFO, nVar
+    integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry
+    integer, dimension(nElements)        :: iErrCol
     integer, dimension(:),   allocatable :: IPIV
     real(8)                              :: dTemp
     real(8), dimension(:),   allocatable :: B
@@ -124,118 +125,150 @@ subroutine GEMNewton(INFO)
         end if
     end do CountSoln
 
+    if ((nConPhases + nSolnPhases) <= 0) return
+
     ! Determine the number of unknowns/linear equations:
     nVar = nElements + nConPhases + nSolnPhases
 
-    ! Allocate memory:
-    allocate(A(nVar, nVar))
-    allocate(B(nVar))
-    allocate(IPIV(nVar))
+    iErrCol = 0
+    nMaxTry = nElements - (nConPhases + nSolnPhases)
+    TryLoop: do iTry = 0, nMaxTry
+        ! on retry we are going to use dummy phases
+        if (iTry > 0) nVar = nElements * 2
 
-    ! Initialize variables:
-    IPIV                = 0
-    INFO                = 0
-    A                   = 0D0
-    B                   = 0D0
-    dUpdateVar          = 0D0
-    dEffStoichSolnPhase = 0D0
+        ! Allocate memory:
+        allocate(A(nVar, nVar))
+        allocate(B(nVar))
+        allocate(IPIV(nVar))
 
-    do k = 1, nSolnPhases
-        ! Absolute solution phase index:
-        m = -iAssemblage(nElements - k + 1)
-        ! Loop through species in phase:
-        do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
-            dMolesSpecies(l) = dMolesPhase(nElements - k + 1) * dMolFraction(l)
-            dMolesSpecies(l) = DMAX1(dMolesSpecies(l), dTolerance(8))
+        ! Initialize variables:
+        IPIV                = 0
+        INFO                = 0
+        A                   = 0D0
+        B                   = 0D0
+        dUpdateVar          = 0D0
+        dEffStoichSolnPhase = 0D0
+
+        do k = 1, nSolnPhases
+            ! Absolute solution phase index:
+            m = -iAssemblage(nElements - k + 1)
+            ! Loop through species in phase:
+            do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+                dMolesSpecies(l) = dMolesPhase(nElements - k + 1) * dMolFraction(l)
+                dMolesSpecies(l) = DMAX1(dMolesSpecies(l), dTolerance(8))
+            end do
         end do
-    end do
 
-    ! Construct the Hessian matrix (elements):
-    do j = 1, nElements
-        do i = j, nElements
-            do k = 1, nSolnPhases
-                ! Absolute solution phase index:
-                m = -iAssemblage(nElements - k + 1)
-                ! Loop through species in phase:
-                do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
-                    dTemp  = dStoichSpecies(l,i) * dStoichSpecies(l,j) * dMolesSpecies(l)
-                    A(i,j) = A(i,j) + dTemp / (DFLOAT(iParticlesPerMole(l))**2)
+        ! Construct the Hessian matrix (elements):
+        do j = 1, nElements
+            do i = j, nElements
+                do k = 1, nSolnPhases
+                    ! Absolute solution phase index:
+                    m = -iAssemblage(nElements - k + 1)
+                    ! Loop through species in phase:
+                    do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+                        dTemp  = dStoichSpecies(l,i) * dStoichSpecies(l,j) * dMolesSpecies(l)
+                        A(i,j) = A(i,j) + dTemp / (DFLOAT(iParticlesPerMole(l))**2)
+                    end do
+                end do
+                ! Apply symmetry:
+                A(j,i) = A(i,j)
+            end do
+        end do
+
+        ! Compute the constraint vector (elements):
+        do j = 1, nElements
+            B(j) = dMolesElement(j)
+            do l = 1, nSolnPhases
+                k = -iAssemblage(nElements - l + 1)
+                do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                    dTemp = dStoichSpecies(i,j) * dMolesSpecies(i) * (dChemicalPotential(i) - 1D0)
+                    B(j)  = B(j) + dTemp / DFLOAT(iParticlesPerMole(i))
                 end do
             end do
-            ! Apply symmetry:
-            A(j,i) = A(i,j)
         end do
-    end do
 
-    ! Compute the constraint vector (elements):
-    do j = 1, nElements
-        B(j) = dMolesElement(j)
-        do l = 1, nSolnPhases
-            k = -iAssemblage(nElements - l + 1)
-            do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                dTemp = dStoichSpecies(i,j) * dMolesSpecies(i) * (dChemicalPotential(i) - 1D0)
-                B(j)  = B(j) + dTemp / DFLOAT(iParticlesPerMole(i))
+        ! Construct the Hessian matrix and constraint vector (contribution from solution phases):
+        do j = nElements + 1, nElements + nSolnPhases
+            l = 2 * nElements - j + 1       ! Relative solution phase index (in iAssemblage vector).
+            k = -iAssemblage(l)             ! Absolute solution phase index.
+
+            ! Compute the stoichiometry of this phase:
+            call CompStoichSolnPhase(k)
+
+            do i = 1,nElements
+                A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
+                A(j,i) = A(i,j)
             end do
+            B(j) = dGibbsSolnPhase(k)
         end do
-    end do
 
-    ! Construct the Hessian matrix and constraint vector (contribution from solution phases):
-    do j = nElements + 1, nElements + nSolnPhases
-        l = 2 * nElements - j + 1       ! Relative solution phase index (in iAssemblage vector).
-        k = -iAssemblage(l)             ! Absolute solution phase index.
-
-        ! Compute the stoichiometry of this phase:
-        call CompStoichSolnPhase(k)
-
-        do i = 1,nElements
-            A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
-            A(j,i) = A(i,j)
-        end do
-        B(j) = dGibbsSolnPhase(k)
-    end do
-
-    ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
-    do j = nElements + nSolnPhases + 1, nVar
-        k = j - nElements - nSolnPhases
-        do i = 1, nElements
-            A(i,j) = dStoichSpecies(iAssemblage(k),i)
-            A(j,i) = A(i,j)
-        end do
-        B(j) = dStdGibbsEnergy(iAssemblage(k))
-    end do
-
-    ! Check if the Hessian is properly structured if the system contains any charged phases:
-    if (nCountSublattice > 0) then
-        ! Loop through elements
-        LOOP_SUB: do j = nElements, nElements - nChargedConstraints + 1, -1
-            dTemp = 0D0
-            ! Loop through coefficients along column:
+        ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
+        do j = nElements + nSolnPhases + 1, nElements + nConPhases + nSolnPhases
+            k = j - nElements - nSolnPhases
             do i = 1, nElements
-                dTemp = dTemp + DABS(A(i,j))
-                if (dTemp > 0D0) cycle LOOP_SUB
+                A(i,j) = dStoichSpecies(iAssemblage(k),i)
+                A(j,i) = A(i,j)
             end do
-            ! The phase corresponding to this electron is not stable.
-            A(j,j) = 1D0
-        end do LOOP_SUB
-    end if
-
-    ! Call the linear equation solver:
-    if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
-        call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
-    else
-        do i = 1, nElements
-            B(i) = dElementPotential(i)
+            B(j) = dStdGibbsEnergy(iAssemblage(k))
         end do
-        B(nElements + 1) = dMolesPhase(1)
-    end if
 
-    ! Check for a NAN:
-    LOOP_CheckNan: do i = 1, nVar
-        if (B(i) /= B(i)) then
-            INFO = 1
-            exit LOOP_CheckNan
+        do k = 1, iTry
+            i = iErrCol(k)
+            j = nElements + nSolnPhases + nConPhases + k
+            A(i,j) = 1D0
+            A(j,i) = A(i,j)
+            B(j) = 0D0
+        end do
+
+        ! Check if the Hessian is properly structured if the system contains any charged phases:
+        if (nCountSublattice > 0) then
+            ! Loop through elements
+            LOOP_SUB: do j = nElements, nElements - nChargedConstraints + 1, -1
+                dTemp = 0D0
+                ! Loop through coefficients along column:
+                do i = 1, nElements
+                    dTemp = dTemp + DABS(A(i,j))
+                    if (dTemp > 0D0) cycle LOOP_SUB
+                end do
+                ! The phase corresponding to this electron is not stable.
+                A(j,j) = 1D0
+            end do LOOP_SUB
         end if
-    end do LOOP_CheckNan
+
+        ! Call the linear equation solver:
+        if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
+            call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
+        else
+            do i = 1, nElements
+                B(i) = dElementPotential(i)
+            end do
+            B(nElements + 1) = dMolesPhase(1)
+        end if
+
+        do k = 1, iTry
+            j = nElements + nSolnPhases + nConPhases + k
+            B(j) = 0D0
+        end do
+
+        ! Check for a NAN:
+        LOOP_CheckNan: do i = 1, nVar
+            if (B(i) /= B(i)) then
+                INFO = 1
+                exit LOOP_CheckNan
+            end if
+        end do LOOP_CheckNan
+
+        if (iTry < nMaxTry) then
+            if ((INFO <= 0) .OR. (INFO > nElements)) then
+                exit TryLoop
+            else
+                iErrCol(iTry+1) = INFO
+                INFO = 0
+                deallocate(A, B, IPIV)
+            end if
+        end if
+    end do TryLoop
 
     ! Store the updated variables if LAPACK is successful:
     if (INFO == 0) then

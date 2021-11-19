@@ -9,10 +9,7 @@ subroutine WriteJSON(append)
 
     logical, intent(in) :: append
     logical :: exist
-    integer :: i
-
-    ! Only proceed for a successful calculation:
-    if (INFOThermo /= 0) return
+    integer :: i, c, nElectron, its
 
     inquire(file= DATA_DIRECTORY // '../thermoout.json', exist=exist)
     if (append .AND. exist) then
@@ -25,18 +22,30 @@ subroutine WriteJSON(append)
 
     write(1,*) '{'
 
+    ! Only proceed for a successful calculation:
+    if (INFOThermo /= 0) then
+        write(1,*) '}'
+        close (1)
+        return
+    end if
+
     ! Print the results for solution phases:
     call WriteJSONSolnPhase
 
     ! Print the results for pure condensed phases:
     call WriteJSONPureConPhase
 
+    nElectron = 0
+    do c = 1, nElements
+        if (cElementName(c) == 'e-') nElectron = nElectron + 1
+    end do
+
     write(1,*) '  "elements": {'
-    do i = 1, nElements
+    do i = 1, nElements - nElectron
         write(1,*) '    "', TRIM(cElementName(i)), '": {'
         write(1,*) '      "moles": ', dMolesElement(i), ','
         write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
-        if (i < nElements) then
+        if (i < nElements - nElectron) then
             write(1,*) '    },'
         else
             write(1,*) '    }'
@@ -46,8 +55,11 @@ subroutine WriteJSON(append)
 
     write(1,*) '  "temperature": ', dTemperature, ','
     write(1,*) '  "pressure": ', dPressure, ','
-    write(1,*) '  "integral Gibbs energy": ', dGibbsEnergySys, ','
+    write(1,'(A28,ES25.16E3,A1)') '  "integral Gibbs energy": ', dGibbsEnergySys, ','
     write(1,*) '  "functional norm": ', dGEMFunctionNorm, ','
+    its = iterGlobal
+    if (lRetryAttempted) its = its + iterGlobalMax
+    write(1,*) '  "GEM iterations": ', iterGlobal, ','
     write(1,*) '  "# solution phases": ', nSolnPhases, ','
     write(1,*) '  "# pure condensed phases": ', nConPhases
 
@@ -71,7 +83,7 @@ subroutine WriteJSONSolnPhase
 
     implicit none
 
-    integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID
+    integer :: c, i, j, k, l, s, iFirst, iLast, iChargedPhaseID, nElectron
     real(8) :: Tcritical, B, StructureFactor, dTempMolesPhase, dTotalElements, dCurrentElement
     character(16) :: intStr
     character(25) :: tempSpeciesName
@@ -86,14 +98,18 @@ subroutine WriteJSONSolnPhase
         iLast  = nSpeciesPhase(j)
 
         ! Print solution phase name:
-        write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
+        if (lMiscibility(j)) then
+            write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '#2": {'
+        else
+            write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
+        end if
         write(1,*) '      "phase model": "', TRIM(ADJUSTL(cSolnPhaseType(j))), '",'
         l = 0
         do k = 1, nElements
             if (-iAssemblage(k) == j) l = k
         end do
         if (l > 0) then
-            write(1,*) '      "moles": ', dMolesPhase(l), ','
+            write(1,'(A16,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
             dTempMolesPhase = dMolesPhase(l)
         else
             write(1,*) '      "moles": 0.0,'
@@ -127,7 +143,7 @@ subroutine WriteJSONSolnPhase
                 100 FORMAT (A25)
                 write(1,*) '        "', TRIM(ADJUSTL(tempSpeciesName)), '": {'
                 write(1,*) '          "mole fraction":', dMolFraction(i), ','
-                write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ','
+                write(1,'(A19,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ','
                 write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
                 write(1,*) '          "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                             dStoichSpecies(i,nElements), ']'
@@ -174,21 +190,23 @@ subroutine WriteJSONSolnPhase
 
         write(1,*) '      "elements": {'
         dTotalElements = 0D0
+        nElectron = 0
         do c = 1, nElements
             do i = iFirst, iLast
                 dTotalElements = dTotalElements + dStoichSpecies(i,c)*dMolFraction(i)
             end do
+            if (cElementName(c) == 'e-') nElectron = nElectron + 1
         end do
-        do c = 1, nElements
+        do c = 1, nElements - nElectron
             dCurrentElement = 0D0
             do i = iFirst, iLast
                 dCurrentElement = dCurrentElement + dStoichSpecies(i,c)*dMolFraction(i)
             end do
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,*) '          "moles of element in phase":', dCurrentElement, ','
+            write(1,'(A39,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
-            if (c < nElements) then
+            if (c < nElements - nElectron) then
                 write(1,*) '        },'
             else
                 write(1,*) '        }'
@@ -220,7 +238,7 @@ subroutine WriteJSONPureConPhase
 
     implicit none
 
-    integer :: c, i, k, l
+    integer :: c, i, k, l, nElectron
     real(8) :: dTempMolesPhase, dTotalElements, dCurrentElement
 
     write(1,*) '  "pure condensed phases": {'
@@ -234,7 +252,7 @@ subroutine WriteJSONPureConPhase
             if (iAssemblage(k) == i) l = k
         end do
         if (l > 0) then
-            write(1,*) '      "moles": ', dMolesPhase(l), ','
+            write(1,'(A16,ES25.16E3,A1)') '      "moles": ', dMolesPhase(l), ','
             dTempMolesPhase = dMolesPhase(l)
         else
             write(1,*) '      "moles": 0.0,'
@@ -245,16 +263,18 @@ subroutine WriteJSONPureConPhase
                                                     dStoichSpecies(i,nElements), '],'
         write(1,*) '      "elements": {'
         dTotalElements = 0D0
+        nElectron = 0
         do c = 1, nElements
             dTotalElements = dTotalElements + dStoichSpecies(i,c)
+            if (cElementName(c) == 'e-') nElectron = nElectron + 1
         end do
-        do c = 1, nElements
+        do c = 1, nElements - nElectron
             dCurrentElement = dStoichSpecies(i,c)
             write(1,*) '        "', TRIM(cElementName(c)), '": {'
-            write(1,*) '          "moles of element in phase":', dCurrentElement, ','
+            write(1,'(A39,ES25.16E3,A1)') '          "moles of element in phase":', dCurrentElement*dTempMolesPhase, ','
             write(1,*) '          "mole fraction of phase by element":', dCurrentElement / dTotalElements, ','
             write(1,*) '          "mole fraction of element by phase":', dCurrentElement*dTempMolesPhase / dMolesElement(c)
-            if (c < nElements) then
+            if (c < nElements - nElectron) then
                 write(1,*) '        },'
             else
                 write(1,*) '        }'
@@ -474,7 +494,7 @@ subroutine WriteJSONMQM(iSolnIndex)
         y = iPairID(iSPI, k, 4) - nConstituentSublattice(iSPI,1)
         write(1,*) '        "', TRIM(ADJUSTL(cSpeciesName(i))), '": {'
         write(1,*) '          "mole fraction":', dMolFraction(i), ","
-        write(1,*) '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
+        write(1,'(A19,ES25.16E3,A1)') '          "moles":', dMolFraction(i)*dTempMolesPhase, ","
         write(1,*) '          "chemical potential":', dChemicalPotential(i)*dIdealConstant*dTemperature, ','
         write(1,*) '          "constituents": [ "', TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,a))), '", "', &
                                                     TRIM(ADJUSTL(cConstituentNameSUB(iSPI,1,b))), '", "', &

@@ -40,6 +40,9 @@ subroutine LoadReinitData
   integer                              :: i, j
   integer,     dimension(0:168)        :: iElementsUsed
 
+
+  lReinitLoaded = .FALSE.
+
   ! Initialize storage variables if not allocated already
   if (.NOT. lReinitAvailable) then
     print *, 'Reinit requested but data not available'

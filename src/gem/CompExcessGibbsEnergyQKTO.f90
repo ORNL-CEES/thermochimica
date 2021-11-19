@@ -185,6 +185,7 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
         i = j - nSpeciesPhase(iSolnIndex-1)
         xT = xT + dMolFraction(j) * dQKTOParams(j,1)
     end do
+    if (xT <= 0D0) return
 
     ! Compute the equivalent mole fractions
     do j = nSpeciesPhase(iSolnIndex-1) + 1, nSpeciesPhase(iSolnIndex)

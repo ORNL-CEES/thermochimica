@@ -49,13 +49,16 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     integer,       intent(out)   :: INFO
     integer                      :: i, j, k, iPhaseInd
     real(8),       intent(out)   :: dMolesOut
-    character(25), intent(in)    :: cPhase
-    character(3),  intent(in)    :: cElement
+    character(*), intent(in)    :: cPhase
+    character(*),  intent(in)    :: cElement
     integer, intent(in)          :: lcPhase, lcElement
     character(25)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement
 
-    cSearchPhase = TRIM(cPhase(1:min(25,lcPhase)))
-    cSearchElement = TRIM(cElement(1:min(3,lcElement)))
+    cSearchPhase = cPhase !TRIM(cPhase(1:min(25,lcPhase)))
+    cSearchPhase = TRIM(cSearchPhase(1:min(25,lcPhase)))
+    cSearchElement = cElement! TRIM(cElement(1:min(3,lcElement)))
+    cSearchElement = TRIM(cSearchElement(1:min(3,lcElement)))
+
 
     ! Initialize variables:
     INFO            = 0
@@ -71,7 +74,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     end do LOOP_Elements
 
     if (k == 0) then
-       ! This solution phase was not found.  Report an error:
+       ! This element phase was not found.  Report an error:
        INFO = 1
        return
     end if
@@ -94,6 +97,8 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
                 end do LOOP_Species
                 exit LOOP_PHASE
             end if
+
+            INFO = 2
 
         end do LOOP_PHASE
 

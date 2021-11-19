@@ -23,7 +23,7 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++11
 
 UNAME_S := $(shell uname -s)
@@ -31,16 +31,16 @@ ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
     LDLOC   = -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
     # link flags for linux users:
-    LDFLAGS = -O0 -g -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fno-automatic -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
-    LDFLAGS = -O0 -framework Accelerate -g -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -framework Accelerate -fno-automatic -fbounds-check
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
     LDLOC   =  -llapack -lblas -lgfortran
     # link flags for Windows users:
-    LDFLAGS =  -O0 -g -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fno-automatic -fbounds-check
 endif
 
 ## ====================
@@ -52,7 +52,7 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
-SRC_SDR     = debug gem module parser postprocess reinit reset setup
+SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
@@ -66,7 +66,7 @@ VPATH				= $(SHARED_DIR)
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o CalculateCompositionSUBG.o
+MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o ModuleCTZ.o CalculateCompositionSUBG.o
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
@@ -232,4 +232,12 @@ $(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
 ## ===========
 ## BOTH TESTS:
 ## ===========
-test: dailytest weeklytest
+test: all dailytest weeklytest
+
+## ===========
+## DEBUG:
+## ===========
+setdebug:
+	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'")
+
+debug: setdebug all dailytest weeklytest

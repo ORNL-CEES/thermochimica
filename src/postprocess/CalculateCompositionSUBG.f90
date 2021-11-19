@@ -191,7 +191,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
     if ((dMolesPairs >= 999.95).OR.(dMolesPairs <= 1D-1)) then
         if (lPrint) print '(A4,ES10.4,A15)', '    ', dMolesPairs, ' Moles of pairs'
     else
-        if (lPrint) print '(A7,F7.5,A15)', '       ', dMolesPairs, ' Moles of pairs'
+        if (lPrint) print '(A5,F9.5,A15)', '       ', dMolesPairs, ' Moles of pairs'
     end if
     if (lPrint) print *, '   Pair fractions:'
     do m = 1, nPairsSRO(iSPI,1)

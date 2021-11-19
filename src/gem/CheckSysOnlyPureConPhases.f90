@@ -128,7 +128,7 @@ subroutine CheckSysOnlyPureConPhases
         call DGESV( nElements, 1, AA, nElements, IPIV, BB, nElements, INFO )
 
         ! Update the number of moles of the pure condensed phases:
-        dMolesPhase = BB + B
+        if (INFO == 0) dMolesPhase = BB + B
 
         ! Compute the mole fractions of all solution phase constituents:
         do i = 1, nSolnPhasesSys

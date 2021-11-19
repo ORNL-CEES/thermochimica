@@ -69,7 +69,8 @@ subroutine CheckThermoData
     integer,dimension(nSpecies,nElements) :: iAtomFractionSpecies
     integer,dimension(nElements)          :: iTempVec
     integer,dimension(nSpecies - nDummySpecies)           :: indx
-    real(8),dimension(nSpecies - nDummySpecies)           :: dMolesElementTemp, x
+    real(8),dimension(nElements)                          :: dMolesElementTemp
+    real(8),dimension(nSpecies - nDummySpecies)           :: x
     real(8),dimension(nElements,nSpecies - nDummySpecies) :: dStoichSpeciesTemp
     real(8),dimension(nSpecies - nDummySpecies)           :: work
 
@@ -86,12 +87,6 @@ subroutine CheckThermoData
         if (cElementName(i) == 'e-') cycle
         if (iTempVec(i) == 0) INFOThermo = 9
     end do
-
-    ! Check if there are enough species in the system
-    if (nElements > (nSpecies - nDummySpecies)) then
-        INFOThermo = 99
-        return
-    end if
 
     ! Check if the input masses can be represented in terms of the available species
     nNonDummy = nSpecies - nDummySpecies

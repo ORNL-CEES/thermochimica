@@ -33,9 +33,7 @@ program ThermoTest12
     ! Initialize variables:
     dTemperature            = 300D0
     dPressure               = 1D0
-    dElementMass            = 1D0
-    ! Add one to few chemical elements
-    dElementMass(6)         = 0
+    dElementMass            = 0D0
 
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'

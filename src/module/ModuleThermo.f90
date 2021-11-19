@@ -99,7 +99,9 @@ module ModuleThermo
     integer,       dimension(:,:,:),allocatable:: iConstituentPass, iConstituentSublattice, iPairID
     integer,       dimension(:,:,:),allocatable:: iChemicalGroup
 
-    real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput, dMassScale
+    logical::                                     lHeatCapacityCurrent = .FALSE.
+
+    real(8)::                                     dIdealConstant, dNormalizeSum, dNormalizeInput, dMassScale, dTemperatureForLimits
     real(8),       dimension(iTolNum)::           dTolerance
     real(8),       dimension(:),   allocatable::  dStdGibbsEnergy,    dGibbsSolnPhase, dMolesSpecies, dMagGibbsEnergy
     real(8),       dimension(:),   allocatable::  dChemicalPotential, dExcessGibbsParam, dLevel, dSpeciesTotalAtoms

@@ -424,7 +424,6 @@ subroutine Thermochimica
 
     implicit none
 
-
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
 
@@ -448,7 +447,7 @@ subroutine Thermochimica
 
     ! Estimate the equilibrium phase assemblage and other important properties
     ! using the Leveling algorithm:
-    if ((INFOThermo == 0) .AND. (.NOT. lReinitLoaded)) call LevelingSolver
+    if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
 
     ! Improve estimates from the Leveling subroutine using the Post-Leveling
     ! algorithm:
@@ -462,7 +461,7 @@ subroutine Thermochimica
         ! Attempt a retry by re-initializing with first phase only
         call RetryCalculationFirstPhase
         ! Perform post-processing calculations of results:
-        if (INFOThermo == 0) call PostProcess
+        if (INFOThermo == 0 .OR. INFOThermo == 12) call PostProcess
     end if
 
     return

@@ -238,7 +238,7 @@ subroutine CheckPhaseAssemblage
                 ! Compute the driving force for all pure condensed phases:
                 call CompDrivingForce(iMaxDrivingForce,dMaxDrivingForce)
 
-                if (lDebugMode) print *, iMaxDrivingForce, dMaxDrivingForce
+                if (lDebugMode) print *, 'condensed phase driving forces:', iMaxDrivingForce, dMaxDrivingForce
 
                 ! Loop through all metastable solution phases to compute the mole fractions of constituents
                 ! and the driving force of each solution phase:
@@ -272,7 +272,7 @@ subroutine CheckPhaseAssemblage
 
                 end do
 
-                if (lDebugMode) print *, 'driving forces:', MINLOC(dDrivingForceSoln), MINVAL(dDrivingForceSoln)
+                if (lDebugMode) print *, 'solution phase driving forces:', MINLOC(dDrivingForceSoln), MINVAL(dDrivingForceSoln)
 
 
                 ! Determine whether a pure condensed phase should be considered first or a solution phase.
