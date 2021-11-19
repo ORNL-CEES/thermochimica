@@ -406,6 +406,7 @@ class CalculationWindow:
             f.close()
         except:
             f.close()
+            print('Data load failed, aborting phase diagram update')
             return
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
