@@ -401,8 +401,12 @@ class CalculationWindow:
             self.close()
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
-        data = json.load(f)
-        f.close()
+        try:
+            data = json.load(f)
+            f.close()
+        except:
+            f.close()
+            return
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
