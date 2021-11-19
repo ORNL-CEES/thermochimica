@@ -79,7 +79,6 @@ subroutine ParseCSDataBlockSUBG( i )
     real(8),     dimension(20)  :: dTempVec
     character(8),dimension(20)  :: cTempVec
     logical, dimension(:), allocatable :: lPairSet
-    real(8), dimension(nSpeciesCS,nElementsCS) :: dStoichSpeciesOld
     character(75) :: cTempConstituent
 
     nCSCS = nCountSublatticeCS
@@ -110,6 +109,12 @@ subroutine ParseCSDataBlockSUBG( i )
                     cConstituentNameSUBCS(nCSCS,s,3*(c-1)+j) = TRIM(ADJUSTL(cTempConstituent((j-1)*25+1:j*25)))
                 end if
             end do
+        end do
+    end do
+
+    do j = 1, 2
+        do k = 1, nConstituentSublatticeCS(nCSCS,j)
+            cConstituentNameSUBCS(nCSCS,j,k) = TRIM(ADJUSTL(cConstituentNameSUBCS(nCSCS,j,k)))
         end do
     end do
 
@@ -274,7 +279,6 @@ subroutine ParseCSDataBlockSUBG( i )
     ! quadruplet data calculated below.
     cPairNameCS(nCSCS,1:nPairsSROCS(nCSCS,1)) = &
                 cSpeciesNameCS((nSpeciesPhaseCS(i-1)+1):(nSpeciesPhaseCS(i-1)+nPairsSROCS(nCSCS,1)))
-    dStoichSpeciesOld = dStoichSpeciesCS(1:nSpeciesCS,1:nElementsCS)
     dStoichPairsCS(nCSCS,1:nPairsSROCS(nCSCS,2),1:nElementsCS) &
                   = dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS)
     dStoichSpeciesCS((nSpeciesPhaseCS(i-1) + 1):nSpeciesPhaseCS(i),1:nElementsCS) = 0D0

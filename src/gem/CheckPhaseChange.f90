@@ -58,23 +58,26 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
     nMiscPhases = 0
     lPhasePass  = .TRUE.
 
-    ! Get current effective stoichiometry matrix
-    do k = 1, nSolnPhases
-        j = -iAssemblage(nElements + 1 - k)
-        call CompStoichSolnPhase(j)
-    end do
-    ! if we are removing any elements completely, don't allow change
-    ! ElementCheck: do i = 1, nElements
-    !     do k = 1, nConPhases
-    !         j = iAssemblage(k)
-    !         if (dStoichSpecies(j,i) > 0) cycle ElementCheck
-    !     end do
-    !     do k = 1, nSolnPhases
-    !         j = -iAssemblage(nElements + 1 - k)
-    !         if (dEffStoichSolnPhase(j,i) > 0) cycle ElementCheck
-    !     end do
-    !     ! lPhasePass = .FALSE.
-    ! end do ElementCheck
+    ! Count phases:
+    j = nConPhases
+    nConPhases  = 0
+    CountCon: do i = 1, j
+        if (iAssemblage(i) > 0) then
+            nConPhases  = nConPhases  + 1
+        else
+            exit CountCon
+        end if
+    end do CountCon
+
+    j = nSolnPhases
+    nSolnPhases = 0
+    CountSoln: do i = nElements, nElements + 1 - j, -1
+        if (iAssemblage(i) < 0) then
+            nSolnPhases = nSolnPhases + 1
+        else
+            exit CountSoln
+        end if
+    end do CountSoln
 
     ! Count the number of miscible phases:
     do i = 1, nSolnPhases
