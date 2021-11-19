@@ -851,13 +851,19 @@ class CalculationWindow:
             phasePolyPoints = [[] for i in range(len(phases))]
 
             for j in range(len(self.x0data[1])):
-                i = phases.index(self.x0data[0][j])
-                phasePolyPoints[i].append([[0,self.x0data[1][j]]])
-                phasePolyPoints[i].append([[0,self.x0data[2][j]]])
+                try:
+                    i = phases.index(self.x0data[0][j])
+                    phasePolyPoints[i].append([[0,self.x0data[1][j]]])
+                    phasePolyPoints[i].append([[0,self.x0data[2][j]]])
+                except:
+                    continue
             for j in range(len(self.x1data[1])):
-                i = phases.index(self.x1data[0][j])
-                phasePolyPoints[i].append([[1,self.x1data[1][j]]])
-                phasePolyPoints[i].append([[1,self.x1data[2][j]]])
+                try:
+                    i = phases.index(self.x1data[0][j])
+                    phasePolyPoints[i].append([[1,self.x1data[1][j]]])
+                    phasePolyPoints[i].append([[1,self.x1data[2][j]]])
+                except:
+                    continue
 
             # plot 2-phase region boundaries
             for j in range(len(boundaries)):
@@ -902,8 +908,9 @@ class CalculationWindow:
                     else:
                         for l in reversed(range(len(phasePolyPoints[i][k]))):
                             sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-                self.outline = self.outline - phaseOutline
+                if len(sortedPolyPoints) > 2:
+                    phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+                    self.outline = self.outline - phaseOutline
 
             xs = []
             ys = []
@@ -1221,13 +1228,19 @@ class CalculationWindow:
         phasePolyPoints = [[] for i in range(len(phases))]
 
         for j in range(len(self.x0data[1])):
-            i = phases.index(self.x0data[0][j])
-            phasePolyPoints[i].append([[0,self.x0data[1][j]]])
-            phasePolyPoints[i].append([[0,self.x0data[2][j]]])
+            try:
+                i = phases.index(self.x0data[0][j])
+                phasePolyPoints[i].append([[0,self.x0data[1][j]]])
+                phasePolyPoints[i].append([[0,self.x0data[2][j]]])
+            except:
+                continue
         for j in range(len(self.x1data[1])):
-            i = phases.index(self.x1data[0][j])
-            phasePolyPoints[i].append([[1,self.x1data[1][j]]])
-            phasePolyPoints[i].append([[1,self.x1data[2][j]]])
+            try:
+                i = phases.index(self.x1data[0][j])
+                phasePolyPoints[i].append([[1,self.x1data[1][j]]])
+                phasePolyPoints[i].append([[1,self.x1data[2][j]]])
+            except:
+                continue
 
         # plot 2-phase region boundaries
         for j in range(len(boundaries)):
