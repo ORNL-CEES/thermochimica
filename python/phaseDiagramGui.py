@@ -910,7 +910,10 @@ class CalculationWindow:
                             sortedPolyPoints.append(phasePolyPoints[i][k][l])
                 if len(sortedPolyPoints) > 2:
                     phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-                    self.outline = self.outline - phaseOutline
+                    try:
+                        self.outline = self.outline - phaseOutline
+                    except:
+                        pass
 
             xs = []
             ys = []
