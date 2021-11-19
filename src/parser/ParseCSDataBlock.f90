@@ -212,16 +212,9 @@ subroutine ParseCSDataBlock
               call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
             endif
 
-            ! Entry 6: Definition of temperature and pressure dependence terms (I don't understand the reasoning):
+            ! Mole/equivalent fraction conversion and group number:
             if (cSolnPhaseTypeCS(i) == 'QKTO') then
-                dTempVec = 0D0
-                read (1,*,IOSTAT = INFO) dTempVec(1:2)
-                dTempVec(1:2) = INT(dTempVec(1:2)) - (/1, 1/)
-
-                if (SUM(dTempVec(1:2)) /= 0) then
-                    INFO = 1600 + i
-                    return
-                end if
+                read (1,*,IOSTAT = INFO) dQKTOParamsCS(j,1:2)
             end if
 
             if (INFO /= 0) return
