@@ -266,7 +266,7 @@ subroutine CheckSystem
     if (nElements <= 2) then
         nMinSpeciesPhase = 1
     else
-        nMinSpeciesPhase = 2
+        nMinSpeciesPhase = 1
     end if
 
     ! Check to see if the system has to be re-adjusted:
