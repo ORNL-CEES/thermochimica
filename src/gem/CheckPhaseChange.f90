@@ -48,7 +48,7 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
 
     implicit none
 
-    integer  ::  i, j, k, INFO, nMiscPhases
+    integer  ::  i, j, INFO, nMiscPhases
     real(8)  ::  dTemp
     logical  ::  lPhasePass
 
