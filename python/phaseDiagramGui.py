@@ -276,10 +276,8 @@ class CalculationWindow:
                         event, values = repeatWindow.read(timeout=timeout)
                         if event == sg.WIN_CLOSED or event == 'Cancel':
                             break
-                        elif event == 'Continue':
-                            cancelRun = False
-                            break
                     repeatWindow.close()
+                    return
             except ValueError:
                 errorLayout = [[sg.Text('Invalid value detected.')],[sg.Button('Cancel')]]
                 errorWindow = sg.Window('Invalid value notification', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
