@@ -183,6 +183,10 @@ class CalculationWindow:
         self.resSmooth = 7
         self.gapLimit = np.Inf
         self.figureList = []
+        self.boundaries = []
+        self.phases = []
+        self.b = []
+        self.congruentFound = [False for i in range(len(self.phases))]
     def close(self):
         for child in self.children:
             child.close()
@@ -500,10 +504,10 @@ class CalculationWindow:
         subprocess.run(['./bin/PhaseDiagramDataGen',self.inputFileName])
         print('Thermochimica calculation finished.')
         self.processPhaseDiagramData()
-    def makePlot(self):
-        boundaries = []
-        phases = []
-        b = []
+    def phaseBoundaries(self):
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
             if self.p1[i].find('#2') > 0:
@@ -513,29 +517,30 @@ class CalculationWindow:
                 if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
                     self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
             repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
+            for j in range(len(self.boundaries)):
+                if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                    self.b.append(j)
                     repeat = True
             if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
+                self.boundaries.append([self.p1[i],self.p2[i]])
+                self.b.append(len(self.boundaries)-1)
 
-        for i in range(len(boundaries)):
+        for i in range(len(self.boundaries)):
             repeat1 = False
             repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
+            for j in range(len(self.phases)):
+                if (self.boundaries[i][0] == self.phases[j]):
                     repeat1 = True
-                if (boundaries[i][1] == phases[j]):
+                if (self.boundaries[i][1] == self.phases[j]):
                     repeat2 = True
             if not(repeat1):
-                phases.append(boundaries[i][0])
+                self.phases.append(self.boundaries[i][0])
             if not(repeat2):
-                phases.append(boundaries[i][1])
+                self.phases.append(self.boundaries[i][1])
 
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        self.congruentFound = [False for i in range(len(self.phases))]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             ttt = self.ts[inds]
@@ -550,12 +555,14 @@ class CalculationWindow:
                 if (x1t[i] > x2t[i]) != dir:
                     extraBound.append(i)
             if len(extraBound):
-                boundaries.append(boundaries[j])
+                self.congruentFound[self.phases.index(self.boundaries[j][0])] = True
+                self.congruentFound[self.phases.index(self.boundaries[j][1])] = True
+                self.boundaries.append(self.boundaries[j])
                 for k in extraBound:
-                    b[inds[k]] = len(boundaries)-1
+                    self.b[inds[k]] = len(self.boundaries)-1
 
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             ttt = self.ts[inds]
@@ -567,31 +574,32 @@ class CalculationWindow:
                 if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
                     loc = not(loc)
                     if firstLoc:
-                        boundaries.append(boundaries[j])
+                        self.boundaries.append(self.boundaries[j])
                         firstLoc = False
                 if loc:
-                    b[inds[i]] = len(boundaries)-1
-
+                    self.b[inds[i]] = len(self.boundaries)-1
+    def makePlot(self):
+        self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
         plt.ion()
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
-        bEdgeLine = [[False,False] for i in range(len(boundaries))]
-        # Plot along x=0 and x=1 boundaries (this is the worst code I've ever written)
+        bEdgeLine = [[False,False] for i in range(len(self.boundaries))]
+        # Plot along x=0 and x=1 self.boundaries (this is the worst code I've ever written)
         for j in range(len(self.x0data[1])):
-            if not self.x0data[0][j] in phases:
+            if not self.x0data[0][j] in self.phases:
                 continue
-            i = phases.index(self.x0data[0][j])
+            i = self.phases.index(self.x0data[0][j])
             if j > 0:
                 ax.plot(0,self.x0data[1][j],'kv')
                 match = []
-                for k in range(len(boundaries)):
-                    if (self.x0data[0][j] in boundaries[k]) and (self.x0data[0][j-1] in boundaries[k]):
-                        inds = [i for i, l in enumerate(b) if l == k]
+                for k in range(len(self.boundaries)):
+                    if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j-1] in self.boundaries[k]):
+                        inds = [i for i, l in enumerate(self.b) if l == k]
                         if len(inds) < 2:
                             continue
-                        bind = boundaries[k].index(self.x0data[0][j])
+                        bind = self.boundaries[k].index(self.x0data[0][j])
                         if bind == 0:
                             minj = np.argmin(np.array(self.x1)[inds])
                             length = (0 - np.array(self.x1)[inds][minj])**2 + (self.x0data[1][j] - np.array(self.ts)[inds][minj])**2
@@ -604,7 +612,7 @@ class CalculationWindow:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
-                    inds = [i for i, l in enumerate(b) if l == k]
+                    inds = [i for i, l in enumerate(self.b) if l == k]
                     ax.plot([0,match[matchind,2]],[self.x0data[1][j],match[matchind,3]],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
@@ -613,12 +621,12 @@ class CalculationWindow:
             if j < len(self.x0data[1]) - 1:
                 ax.plot(0,self.x0data[2][j],'k^')
                 match = []
-                for k in range(len(boundaries)):
-                    if (self.x0data[0][j] in boundaries[k]) and (self.x0data[0][j+1] in boundaries[k]):
-                        inds = [i for i, l in enumerate(b) if l == k]
+                for k in range(len(self.boundaries)):
+                    if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j+1] in self.boundaries[k]):
+                        inds = [i for i, l in enumerate(self.b) if l == k]
                         if len(inds) < 2:
                             continue
-                        bind = boundaries[k].index(self.x0data[0][j])
+                        bind = self.boundaries[k].index(self.x0data[0][j])
                         if bind == 0:
                             minj = np.argmin(np.array(self.x1)[inds])
                             length = (0 - np.array(self.x1)[inds][minj])**2 + (self.x0data[2][j] - np.array(self.ts)[inds][minj])**2
@@ -631,25 +639,25 @@ class CalculationWindow:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
-                    inds = [i for i, l in enumerate(b) if l == k]
+                    inds = [i for i, l in enumerate(self.b) if l == k]
                     ax.plot([0,match[matchind,2]],[self.x0data[2][j],match[matchind,3]],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
                         bEdgeLine[k][1] = True
         for j in range(len(self.x1data[1])):
-            if not self.x1data[0][j] in phases:
+            if not self.x1data[0][j] in self.phases:
                 continue
-            i = phases.index(self.x1data[0][j])
+            i = self.phases.index(self.x1data[0][j])
             if j > 0:
                 ax.plot(1,self.x1data[1][j],'kv')
                 match = []
-                for k in range(len(boundaries)):
-                    if (self.x1data[0][j] in boundaries[k]) and (self.x1data[0][j-1] in boundaries[k]):
-                        inds = [i for i, l in enumerate(b) if l == k]
+                for k in range(len(self.boundaries)):
+                    if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j-1] in self.boundaries[k]):
+                        inds = [i for i, l in enumerate(self.b) if l == k]
                         if len(inds) < 2:
                             continue
-                        bind = boundaries[k].index(self.x1data[0][j])
+                        bind = self.boundaries[k].index(self.x1data[0][j])
                         if bind == 0:
                             maxj = np.argmax(np.array(self.x1)[inds])
                             length = (1 - np.array(self.x1)[inds][maxj])**2 + (self.x1data[1][j] - np.array(self.ts)[inds][maxj])**2
@@ -662,7 +670,7 @@ class CalculationWindow:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
-                    inds = [i for i, l in enumerate(b) if l == k]
+                    inds = [i for i, l in enumerate(self.b) if l == k]
                     ax.plot([1,match[matchind,2]],[self.x1data[1][j],match[matchind,3]],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
@@ -671,12 +679,12 @@ class CalculationWindow:
             if j < len(self.x1data[1]) - 1:
                 ax.plot(1,self.x1data[2][j],'k^')
                 match = []
-                for k in range(len(boundaries)):
-                    if (self.x1data[0][j] in boundaries[k]) and (self.x1data[0][j+1] in boundaries[k]):
-                        inds = [i for i, l in enumerate(b) if l == k]
+                for k in range(len(self.boundaries)):
+                    if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j+1] in self.boundaries[k]):
+                        inds = [i for i, l in enumerate(self.b) if l == k]
                         if len(inds) < 2:
                             continue
-                        bind = boundaries[k].index(self.x1data[0][j])
+                        bind = self.boundaries[k].index(self.x1data[0][j])
                         if bind == 0:
                             maxj = np.argmax(np.array(self.x1)[inds])
                             length = (1 - np.array(self.x1)[inds][maxj])**2 + (self.x1data[2][j] - np.array(self.ts)[inds][maxj])**2
@@ -689,7 +697,7 @@ class CalculationWindow:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
-                    inds = [i for i, l in enumerate(b) if l == k]
+                    inds = [i for i, l in enumerate(self.b) if l == k]
                     ax.plot([1,match[matchind,2]],[self.x1data[2][j],match[matchind,3]],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
@@ -697,13 +705,13 @@ class CalculationWindow:
                         bEdgeLine[k][1] = True
 
         # plot 2-phase region boundaries
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
-        for j in range(len(boundaries)):
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.boundaries))))
+        for j in range(len(self.boundaries)):
             if self.plotColor == 'colorful':
                 c = next(color)
             else:
                 c = 'k'
-            inds = [i for i, k in enumerate(b) if k == j]
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             ttt = self.ts[inds]
@@ -789,101 +797,29 @@ class CalculationWindow:
         while nIt < 4:
             nIt = nIt + 1
             maxArea = 0
-            boundaries = []
-            phases = []
-            b = []
-            for i in range(len(self.p1)):
-                # If a miscibility gap label has been used unnecessarily, remove it
-                if self.p1[i].find('#2') > 0:
-                    if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                        self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-                if self.p2[i].find('#2') > 0:
-                    if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                        self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-                repeat = False
-                for j in range(len(boundaries)):
-                    if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                        b.append(j)
-                        repeat = True
-                if not(repeat):
-                    boundaries.append([self.p1[i],self.p2[i]])
-                    b.append(len(boundaries)-1)
+            self.phaseBoundaries()
 
-            for i in range(len(boundaries)):
-                repeat1 = False
-                repeat2 = False
-                for j in range(len(phases)):
-                    if (boundaries[i][0] == phases[j]):
-                        repeat1 = True
-                    if (boundaries[i][1] == phases[j]):
-                        repeat2 = True
-                if not(repeat1):
-                    phases.append(boundaries[i][0])
-                if not(repeat2):
-                    phases.append(boundaries[i][1])
-
-            congruentFound = [False for i in range(len(phases))]
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                if x1t[0] > x2t[0]:
-                    dir = True
-                else:
-                    dir = False
-                extraBound = []
-                for i in range(len(ttt)):
-                    if (x1t[i] > x2t[i]) != dir:
-                        extraBound.append(i)
-                if len(extraBound):
-                    congruentFound[phases.index(boundaries[j][0])] = True
-                    congruentFound[phases.index(boundaries[j][1])] = True
-                    boundaries.append(boundaries[j])
-                    for k in extraBound:
-                        b[inds[k]] = len(boundaries)-1
-
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                loc = False
-                firstLoc = True
-                for i in range(1,len(ttt)):
-                    if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
-                        loc = not(loc)
-                        if firstLoc:
-                            boundaries.append(boundaries[j])
-                            firstLoc = False
-                    if loc:
-                        b[inds[i]] = len(boundaries)-1
-
-            phasePolyPoints = [[] for i in range(len(phases))]
+            phasePolyPoints = [[] for i in range(len(self.phases))]
 
             for j in range(len(self.x0data[1])):
                 try:
-                    i = phases.index(self.x0data[0][j])
+                    i = self.phases.index(self.x0data[0][j])
                     phasePolyPoints[i].append([[0,self.x0data[1][j]]])
                     phasePolyPoints[i].append([[0,self.x0data[2][j]]])
                 except:
                     continue
             for j in range(len(self.x1data[1])):
                 try:
-                    i = phases.index(self.x1data[0][j])
+                    i = self.phases.index(self.x1data[0][j])
                     phasePolyPoints[i].append([[1,self.x1data[1][j]]])
                     phasePolyPoints[i].append([[1,self.x1data[2][j]]])
                 except:
                     continue
 
             # plot 2-phase region boundaries
-            for j in range(len(boundaries)):
+            for j in range(len(self.boundaries)):
                 polygonPoints = []
-                inds = [i for i, k in enumerate(b) if k == j]
+                inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
                 ttt = self.ts[inds]
@@ -897,15 +833,15 @@ class CalculationWindow:
                 self.outline = self.outline.buffer(0) - phaseOutline
                 minj = np.argmin(ttt)
                 maxj = np.argmax(ttt)
-                for i in range(len(phases)):
-                    if boundaries[j][0] == phases[i]:
+                for i in range(len(self.phases)):
+                    if self.boundaries[j][0] == self.phases[i]:
                         phasePolyPoints[i].append(polygonPoints[:len(inds)])
-                    if boundaries[j][1] == phases[i]:
+                    if self.boundaries[j][1] == self.phases[i]:
                         phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
 
-            for i in range(len(phases)):
-                if congruentFound[i]:
-                    print(f'Warning: congruent phase transformation found, auto refine will skip {phases[i]}')
+            for i in range(len(self.phases)):
+                if self.congruentFound[i]:
+                    print(f'Warning: congruent phase transformation found, auto refine will skip {self.phases[i]}')
                     continue
                 segcenters = []
                 if len(phasePolyPoints[i]) < 2:
@@ -982,73 +918,16 @@ class CalculationWindow:
             # Test the minimum subgrid region area to see if converged
             if maxArea < 1 / (10*res**2):
                 break
-            elif any(congruentFound):
+            elif any(self.congruentFound):
                 break
     def autoRefine2Phase(self,res):
-        # Create arrays again with new data
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            if x1t[0] > x2t[0]:
-                dir = True
-            else:
-                dir = False
-            extraBound = []
-            for i in range(len(ttt)):
-                if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
-            if len(extraBound):
-                boundaries.append(boundaries[j])
-                for k in extraBound:
-                    b[inds[k]] = len(boundaries)-1
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            loc = False
-            firstLoc = True
-            for i in range(1,len(ttt)):
-                if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
-                    loc = not(loc)
-                    if firstLoc:
-                        boundaries.append(boundaries[j])
-                        firstLoc = False
-                if loc:
-                    b[inds[i]] = len(boundaries)-1
-
+        self.phaseBoundaries()
         # Expand two-phase regions
         tres = (self.maxt-self.mint)/res
         xs = []
         ys = []
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             ttt = self.ts[inds]
@@ -1092,69 +971,12 @@ class CalculationWindow:
         while nIt < 4:
             nIt = nIt + 1
             maxGap = 0
-            # Create arrays again with new data
-            boundaries = []
-            b = []
-            for i in range(len(self.p1)):
-                # If a miscibility gap label has been used unnecessarily, remove it
-                if self.p1[i].find('#2') > 0:
-                    if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                        self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-                if self.p2[i].find('#2') > 0:
-                    if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                        self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-                repeat = False
-                for j in range(len(boundaries)):
-                    if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                        b.append(j)
-                        repeat = True
-                if not(repeat):
-                    boundaries.append([self.p1[i],self.p2[i]])
-                    b.append(len(boundaries)-1)
-
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                if x1t[0] > x2t[0]:
-                    dir = True
-                else:
-                    dir = False
-                extraBound = []
-                for i in range(len(ttt)):
-                    if (x1t[i] > x2t[i]) != dir:
-                        extraBound.append(i)
-                if len(extraBound):
-                    boundaries.append(boundaries[j])
-                    for k in extraBound:
-                        b[inds[k]] = len(boundaries)-1
-
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
-                loc = False
-                firstLoc = True
-                for i in range(1,len(ttt)):
-                    if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
-                        loc = not(loc)
-                        if firstLoc:
-                            boundaries.append(boundaries[j])
-                            firstLoc = False
-                    if loc:
-                        b[inds[i]] = len(boundaries)-1
-
+            self.phaseBoundaries()
             # Refine two-phase region density
             xs = []
             ys = []
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
+            for j in range(len(self.boundaries)):
+                inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
                 ttt = self.ts[inds]
@@ -1197,101 +1019,29 @@ class CalculationWindow:
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
-        boundaries = []
-        phases = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
+        self.phaseBoundaries()
 
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1):
-                phases.append(boundaries[i][0])
-            if not(repeat2):
-                phases.append(boundaries[i][1])
-
-        congruentFound = [False for i in range(len(phases))]
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            if x1t[0] > x2t[0]:
-                dir = True
-            else:
-                dir = False
-            extraBound = []
-            for i in range(len(ttt)):
-                if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
-            if len(extraBound):
-                congruentFound[phases.index(boundaries[j][0])] = True
-                congruentFound[phases.index(boundaries[j][1])] = True
-                boundaries.append(boundaries[j])
-                for k in extraBound:
-                    b[inds[k]] = len(boundaries)-1
-
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            loc = False
-            firstLoc = True
-            for i in range(1,len(ttt)):
-                if np.sqrt((ttt[i] - ttt[i-1])**2 + ((self.maxt - self.mint)*(x1t[i] - x1t[i-1]))**2 + ((self.maxt - self.mint)*(x2t[i] - x2t[i-1]))**2) > self.gapLimit:
-                    loc = not(loc)
-                    if firstLoc:
-                        boundaries.append(boundaries[j])
-                        firstLoc = False
-                if loc:
-                    b[inds[i]] = len(boundaries)-1
-
-        phasePolyPoints = [[] for i in range(len(phases))]
+        phasePolyPoints = [[] for i in range(len(self.phases))]
 
         for j in range(len(self.x0data[1])):
             try:
-                i = phases.index(self.x0data[0][j])
+                i = self.phases.index(self.x0data[0][j])
                 phasePolyPoints[i].append([[0,self.x0data[1][j]]])
                 phasePolyPoints[i].append([[0,self.x0data[2][j]]])
             except:
                 continue
         for j in range(len(self.x1data[1])):
             try:
-                i = phases.index(self.x1data[0][j])
+                i = self.phases.index(self.x1data[0][j])
                 phasePolyPoints[i].append([[1,self.x1data[1][j]]])
                 phasePolyPoints[i].append([[1,self.x1data[2][j]]])
             except:
                 continue
 
         # plot 2-phase region boundaries
-        for j in range(len(boundaries)):
+        for j in range(len(self.boundaries)):
             polygonPoints = []
-            inds = [i for i, k in enumerate(b) if k == j]
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             ttt = self.ts[inds]
@@ -1303,16 +1053,16 @@ class CalculationWindow:
                 polygonPoints.append([x2t[i],ttt[i]])
             phaseOutline = Polygon(polygonPoints)#.buffer(0)
             center = list(phaseOutline.centroid.coords)[0]
-            self.labels.append([[center[0],center[1]],'+'.join(boundaries[j])])
-            for i in range(len(phases)):
-                if boundaries[j][0] == phases[i]:
+            self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
+            for i in range(len(self.phases)):
+                if self.boundaries[j][0] == self.phases[i]:
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
-                if boundaries[j][1] == phases[i]:
+                if self.boundaries[j][1] == self.phases[i]:
                     phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
 
-        for i in range(len(phases)):
-            if congruentFound[i]:
-                print(f'Warning: congruent phase transformation found, auto label will skip {phases[i]}')
+        for i in range(len(self.phases)):
+            if self.congruentFound[i]:
+                print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
                 continue
             segcenters = []
             if len(phasePolyPoints[i]) < 2:
@@ -1320,7 +1070,7 @@ class CalculationWindow:
             for j in range(len(phasePolyPoints[i])):
                 segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
             center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            self.labels.append([[center[0],center[1]],phases[i]])
+            self.labels.append([[center[0],center[1]],self.phases[i]])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
