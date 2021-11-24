@@ -264,9 +264,6 @@ program RunCalculationList
       write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2)
       call WriteJSON(.TRUE.)
-      open(2, file= DATA_DIRECTORY // '../thermoout.json', &
-          status='OLD', position='append', action='write')
-      close (2)
       INFOThermo = 0
       call ResetThermo
     end do

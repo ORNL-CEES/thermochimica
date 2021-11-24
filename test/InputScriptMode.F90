@@ -98,9 +98,6 @@ program ThermochimicaInputScriptMode
         write(1,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
         close (1)
         call WriteJSON(.TRUE.)
-        open(1, file= DATA_DIRECTORY // '../thermoout.json', &
-            status='OLD', position='append', action='write')
-        close (1)
       end if
 
       ! Call the debugger:
