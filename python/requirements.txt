@@ -1,0 +1,6 @@
+descartes>=1.1.0
+matplotlib>=3.4.3
+numpy>=1.21.2
+PySimpleGUI>=4.47.0
+scipy>=1.7.1
+Shapely>=1.7.1
