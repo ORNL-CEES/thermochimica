@@ -65,7 +65,9 @@ program Phase3DiagramDataGen
           call WriteJSON(.TRUE.)
           nSim = nSim + 1
         else
+          call ResetThermoAll
           INFOThermo = 0
+          call ParseCSDataFile(cThermoFileName)
         end if
 
         ! Perform post-processing of results:

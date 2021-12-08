@@ -108,8 +108,8 @@ program ThermochimicaInputScriptMode
           call ResetThermo
       else
           call ResetThermoAll
-          call ParseCSDataFile(cThermoFileName)
           INFOThermo = 0
+          call ParseCSDataFile(cThermoFileName)
       end if
     end do
   end do

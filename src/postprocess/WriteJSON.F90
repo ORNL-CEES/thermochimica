@@ -44,7 +44,7 @@ subroutine WriteJSON(append)
     do i = 1, nElements - nElectron
         write(1,*) '    "', TRIM(cElementName(i)), '": {'
         write(1,*) '      "moles": ', dMolesElement(i), ','
-        write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
+        write(1,'(A28,ES25.16E3)') '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
         if (i < nElements - nElectron) then
             write(1,*) '    },'
         else
