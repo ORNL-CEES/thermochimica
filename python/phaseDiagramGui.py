@@ -590,7 +590,7 @@ class CalculationWindow:
                 continue
             i = self.phases.index(self.x0data[0][j])
             if j > 0:
-                ax.plot(0,self.x0data[1][j],'kv')
+                # ax.plot(0,self.x0data[1][j],'kv')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j-1] in self.boundaries[k]):
@@ -617,7 +617,7 @@ class CalculationWindow:
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
                         bEdgeLine[k][1] = True
             if j < len(self.x0data[1]) - 1:
-                ax.plot(0,self.x0data[2][j],'k^')
+                # ax.plot(0,self.x0data[2][j],'k^')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j+1] in self.boundaries[k]):
@@ -648,7 +648,7 @@ class CalculationWindow:
                 continue
             i = self.phases.index(self.x1data[0][j])
             if j > 0:
-                ax.plot(1,self.x1data[1][j],'kv')
+                # ax.plot(1,self.x1data[1][j],'kv')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j-1] in self.boundaries[k]):
@@ -675,7 +675,7 @@ class CalculationWindow:
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
                         bEdgeLine[k][1] = True
             if j < len(self.x1data[1]) - 1:
-                ax.plot(1,self.x1data[2][j],'k^')
+                # ax.plot(1,self.x1data[2][j],'k^')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j+1] in self.boundaries[k]):
