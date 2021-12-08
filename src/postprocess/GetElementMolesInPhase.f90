@@ -83,7 +83,6 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     if (INFOThermo == 0) then
         ! Remove trailing blanks:
         LOOP_PHASE: do i = 1, nSolnPhases
-
             iPhaseInd = -iAssemblage(nElements + 1 - i)
             ! iPhaseInd = iPhaseReq
             ! Remove leading blanks:
@@ -97,10 +96,21 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
                 end do LOOP_Species
                 exit LOOP_PHASE
             end if
-
             INFO = 2
-
         end do LOOP_PHASE
+
+        if (INFO == 2) then
+            INFO = 0
+            LOOP_Stoich: do i = 1, nConPhases
+                iPhaseInd = iAssemblage(i)
+                cTempPhase = ADJUSTL(cSpeciesName(iPhaseInd))
+                if (cTempPhase == cSearchPhase) then
+                    dMolesOut = dMolesPhase(i) * dStoichSpecies(iPhaseInd,k)
+                    exit LOOP_Stoich
+                end if
+                INFO = 2
+            end do LOOP_Stoich
+        end if
 
     else
         ! Record an error with INFO if INFOThermo /= 0.

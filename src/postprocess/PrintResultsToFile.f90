@@ -185,12 +185,9 @@ subroutine PrintResultsSolnPhaseToFile
         allocate(iTempSpecies(k), dTempSpecies(k))
         nCutOff = k
         select case (cSolnPhaseType(l))
-
             case ('IDMX', 'RKMP', 'RKMPM', 'QKTO')
-
                 ! Initialize temporary variables:
                 dTempSpecies(1:k) = dmolFraction(iFirst:iLast)
-
                 ! Sort species in phase:
                 call SortPick(k, dTempSpecies, iTempSpecies)
 
@@ -209,51 +206,31 @@ subroutine PrintResultsSolnPhaseToFile
                 do i = 1, k
                     iTempSpecies(i) = i
                 end do
-
         end select
 
-        ! The minimum number of species that will be printed is 2:
-        nCutOff = MAX(nCutOff, 2)
-
-        ! First species:
-        c = iTempSpecies(1) + iFirst - 1
-        if (dmolFraction(c) >= 1D-1) then
-            write(1,'(A20,F7.5,A3,A35)') '{ ', dmolFraction(c), ' ', cSpeciesName(c)
-        else
-            write(1,'(A20,ES10.4,A35)') '{ ', dmolFraction(c), cSpeciesName(c)
-        end if
-
-        k    = LEN_TRIM(cSpeciesName(iFirst)) - 1
-        nMax = MAX(k, nMax)
-
         ! Print middle species:
-        do i = iFirst + 1, iFirst + nCutOff - 2
+        do i = iFirst, iLast
             c = iTempSpecies(i-iFirst+1) + iFirst - 1
-            if (dmolFraction(c) >= 1D-1) then
-                write(1,'(A20,F7.5,A3,A35)') '+ ', dmolFraction(c), ' ', cSpeciesName(c)
-            else
-                write(1,'(A20,ES10.4,A35)') '+ ', dmolFraction(c), cSpeciesName(c)
-            end if
-            k        = LEN_TRIM(cSpeciesName(c)) - 1
+            cDummyB  = TRIM(cSpeciesName(c))
+            k    = LEN_TRIM(cSpeciesName(c)) - 1
             nMax = MAX(k, nMax)
+            if (i == iFirst) then
+                cDummy = '{ '
+            else
+                cDummy = '+ '
+            end if
+            if (i == iLast) cDummyB(nMax+2:nMax+3) = '}'
+            if (dmolFraction(c) >= 1D-1) then
+                write(1,'(A20,F7.5,A3,A35)') cDummy, dMolFraction(c), ' ', cDummyB
+            else
+                write(1,'(A20,ES10.4,A35)') cDummy, dMolFraction(c), cDummyB
+            end if
         end do
-
-        ! Print last species:
-        c        = iTempSpecies(nCutOff) + iFirst - 1
-        k        = LEN_TRIM(cSpeciesName(c)) - 1
-        nMax     = MAX(k, nMax) + 1
-        cDummyB  = TRIM(cSpeciesName(c))
-        cDummyB(nMax+2:nMax+3) = '}'
-
-        if (dmolFraction(c) >= 1D-1) then
-            write(1,'(A20,F7.5,A3,A35)') '+ ', dmolFraction(c), ' ', cDummyB
-        else
-            write(1,'(A20,ES10.4,A35)') '+ ', dmolFraction(c), cDummyB
-        end if
-        write(1,*)
+        print *
 
         ! Check if this phase is represented by the Compound Energy Formalism:
-        IF_SUBL: if ((csolnPhaseType(l) == 'SUBL').OR.(csolnPhaseType(l) == 'SUBLM')) then
+        IF_SUBL: if ((csolnPhaseType(l) == 'SUBL') .OR. (csolnPhaseType(l) == 'SUBLM') .OR. &
+        (csolnPhaseType(l) == 'SUBI')) then
 
             ! Store the index # of the charged phase:
             iChargedPhaseID = iPhaseSublattice(l)

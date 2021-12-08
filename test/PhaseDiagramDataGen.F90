@@ -60,9 +60,6 @@ program PhaseDiagramDataGen
           write(1,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
           close (1)
           call WriteJSON(.TRUE.)
-          open(1, file= DATA_DIRECTORY // '../thermoout.json', &
-              status='OLD', position='append', action='write')
-          close (1)
           nSim = nSim + 1
         else
           INFOThermo = 0
