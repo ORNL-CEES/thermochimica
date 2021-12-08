@@ -62,7 +62,9 @@ program PhaseDiagramDataGen
           call WriteJSON(.TRUE.)
           nSim = nSim + 1
         else
+          call ResetThermoAll
           INFOThermo = 0
+          call ParseCSDataFile(cThermoFileName)
         end if
         call ResetThermo
       end do
