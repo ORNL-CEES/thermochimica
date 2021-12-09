@@ -885,7 +885,7 @@ class CalculationWindow:
                     self.outline = MultiPolygon(split(self.outline, splitter))
                 except:
                     continue
-            for tempOutline in list(self.outline):
+            for tempOutline in list(self.outline.geoms):
                 if (tempOutline.area / (self.maxt-self.mint)) < (1 / (10*res**2)):
                     continue
                 maxArea = max(tempOutline.area / (self.maxt-self.mint),maxArea)
