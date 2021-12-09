@@ -85,7 +85,7 @@ subroutine PrintResults
         end if
         print *
         print *, ' System Component | Mass [mol] | Chemical potential [J/mol]'
-        print *, ' ---------------- | ---------- | --------------------------'
+        print *, '------------------|------------|---------------------------'
         do i = 1, nElements
             print '(A18,A3,ES10.4,A3, ES14.6)', cElementName(i), ' | ', dMolesElement(i), ' | ', &
                 dElementPotential(i) * dIdealConstant * dTemperature
