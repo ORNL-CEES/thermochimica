@@ -60,9 +60,9 @@ subroutine PrintResults
     IF_PASS: if (INFOThermo == 0) then
 
         print *
-        print *, '======================================================='
-        print *, '|                THERMOCHIMICA RESULTS                |'
-        print *, '======================================================='
+        print *, '==========================================================='
+        print *, '|                  THERMOCHIMICA RESULTS                  |'
+        print *, '==========================================================='
         print *
 
         ! Print the results for solution phases:
@@ -71,9 +71,9 @@ subroutine PrintResults
         ! Print the results for pure condensed phases:
         call PrintResultsPureConPhase
 
-        print *, '======================================================='
-        print *, '|                  System properties                  |'
-        print *, '======================================================='
+        print *, '==========================================================='
+        print *, '|                    System properties                    |'
+        print *, '==========================================================='
         print *
 
         if ((dPressure < 1D3).AND.(dPressure > 1D-1)) then
@@ -84,10 +84,10 @@ subroutine PrintResults
             print '(A16,ES11.3,A6)', 'Pressure    = ', dPressure, ' [atm]'
         end if
         print *
-        print *, ' System Component ', ' Mass [mol]  ', 'Chemical potential [J/mol]'
-        print *, ' ---------------- ', ' ----------  ', '--------------------------'
+        print *, ' System Component | Mass [mol] | Chemical potential [J/mol]'
+        print *, ' ---------------- | ---------- | --------------------------'
         do i = 1, nElements
-            print '(A14,A1,ES15.4,A1, ES14.6)', cElementName(i), ' ', dMolesElement(i), ' ', &
+            print '(A18,A3,ES10.4,A3, ES14.6)', cElementName(i), ' | ', dMolesElement(i), ' | ', &
                 dElementPotential(i) * dIdealConstant * dTemperature
         end do
         print *
@@ -106,7 +106,7 @@ subroutine PrintResults
         end if
 
         print *
-        print *, '======================================================='
+        print *, '==========================================================='
         print *
 
     else
