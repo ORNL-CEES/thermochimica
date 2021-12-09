@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=PhaseDiagramGUI
+Icon=utilities-terminal
+Exec=gnome-terminal -x bash -c 'cd "$(dirname %k)"/.. && scripts/PhaseDiagramGUI.sh'
+Categories=Application;
