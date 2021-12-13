@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Terminal=true
-Name=PlotGUI
-Icon=utilities-terminal
-Exec=gnome-terminal -x bash -c 'cd "$(dirname %k)"/.. && scripts/PlotGUI.sh'
-Categories=Application;
