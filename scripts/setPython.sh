@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-export python_for_thermochimica=python3.9
+if [ -z ${python_for_thermochimica+x} ]; then export python_for_thermochimica=python3; fi
