@@ -53,7 +53,7 @@ subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, 
     real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
     character(*),  intent(in)    :: cSolnOut, cSpeciesOut
     integer,       intent(in)    :: lcSolnOut, lcSpeciesOut
-    character(25)                :: cTemp
+    character(30)                :: cTemp
 
     character(15)                :: cSolnOutLen, cSpeciesOutLen
 
