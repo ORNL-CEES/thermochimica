@@ -51,13 +51,13 @@ subroutine GetOutputMolSpeciesPhase(cPhase, lcPhase, cSpecies, lcSpecies, dMolFr
     real(8),       intent(out)   :: dMolFractionOut
     character(*),  intent(in)    :: cPhase, cSpecies
     integer                      :: lcPhase, lcSpecies
-    character(25)                :: cTempPhase, cTempSpecies, cSearchPhase, cSearchSpecies
+    character(30)                :: cTempPhase, cTempSpecies, cSearchPhase, cSearchSpecies
 
-    cSearchPhase = cPhase!TRIM(cPhase(1:min(25,lcPhase)))
-    cSearchSpecies = cSpecies!TRIM(cSpecies(1:min(25,lcSpecies)))
+    cSearchPhase = cPhase!TRIM(cPhase(1:min(30,lcPhase)))
+    cSearchSpecies = cSpecies!TRIM(cSpecies(1:min(30,lcSpecies)))
 
-    cSearchPhase = TRIM(cSearchPhase(1:min(25,lcPhase)))
-    cSearchSpecies = TRIM(cSearchSpecies(1:min(25,lcSpecies)))
+    cSearchPhase = TRIM(cSearchPhase(1:min(30,lcPhase)))
+    cSearchSpecies = TRIM(cSearchSpecies(1:min(30,lcSpecies)))
 
     ! Initialize variables:
     INFO            = 0

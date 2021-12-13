@@ -17,7 +17,11 @@ test/doc/
 *.mod
 *.a
 *.ti
+*.png
+*.jpg
+*.jpeg
 # some of these will occasionally require manual override
 data/
 test/
 python/
+private_tests
