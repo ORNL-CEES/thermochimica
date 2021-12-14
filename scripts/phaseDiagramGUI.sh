@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-make test > make.out
+make > make.out
 
 source scripts/setPython.sh
 
