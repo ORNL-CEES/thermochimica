@@ -185,6 +185,9 @@ class CalculationWindow:
         self.figureList = []
         self.tielines = True
         self.tiegap = 1/27
+        self.boundaries = []
+        self.phases = []
+        self.b = []
     def close(self):
         for child in self.children:
             child.close()
@@ -465,10 +468,10 @@ class CalculationWindow:
         subprocess.run(['./bin/Phase3DiagramDataGen',self.inputFileName])
         print('Thermochimica calculation finished.')
         self.processPhaseDiagramData()
-    def makePlot(self):
-        boundaries = []
-        phases = []
-        b = []
+    def phaseBoundaries(self):
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
             if self.p1[i].find('#') > 0:
@@ -478,40 +481,41 @@ class CalculationWindow:
                 if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
                     self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
+            for j in range(len(self.boundaries)):
+                if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                    self.b.append(j)
                     repeat = True
             if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
+                self.boundaries.append([self.p1[i],self.p2[i]])
+                self.b.append(len(self.boundaries)-1)
 
-        for i in range(len(boundaries)):
+        for i in range(len(self.boundaries)):
             repeat1 = False
             repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
+            for j in range(len(self.phases)):
+                if (self.boundaries[i][0] == self.phases[j]):
                     repeat1 = True
-                if (boundaries[i][1] == phases[j]):
+                if (self.boundaries[i][1] == self.phases[j]):
                     repeat2 = True
-            if not(repeat1 or boundaries[i][0].find('#') > 0):
-                phases.append(boundaries[i][0])
-            if not(repeat2 or boundaries[i][1].find('#') > 0):
-                phases.append(boundaries[i][1])
-
+            if not(repeat1 or self.boundaries[i][0].find('#') > 0):
+                self.phases.append(self.boundaries[i][0])
+            if not(repeat2 or self.boundaries[i][1].find('#') > 0):
+                self.phases.append(self.boundaries[i][1])
+    def makePlot(self):
+        self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
         plt.ion()
         ax = fig.add_axes([0.125, 0.1, 0.75, 0.85])
 
-        # plot 2-phase region boundaries
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
-        for j in range(len(boundaries)):
+        # plot 2-phase region self.boundaries
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.boundaries))))
+        for j in range(len(self.boundaries)):
             if self.plotColor == 'colorful':
                 c = next(color)
             else:
                 c = 'k'
-            inds = [i for i, k in enumerate(b) if k == j]
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -618,42 +622,10 @@ class CalculationWindow:
     def autoRefine(self,res):
         outline = Polygon([[0,0],[0,1],[1,0],[0,0]])
         maxArea = 0
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
-            if self.p2[i].find('#') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        # Make list of phases
-        phases = []
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1 or boundaries[i][0].find('#') > 0):
-                phases.append(boundaries[i][0])
-            if not(repeat2 or boundaries[i][1].find('#') > 0):
-                phases.append(boundaries[i][1])
+        self.phaseBoundaries()
 
         # find and subtract 1-phase regions
-        for phase in phases:
+        for phase in self.phases:
             inds1 = [i for i, k in enumerate(self.p1) if k == phase]
             inds2 = [i for i, k in enumerate(self.p2) if k == phase]
             points = []
@@ -675,8 +647,8 @@ class CalculationWindow:
                 continue
 
         # find and subtract 2-phase regions
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -759,30 +731,13 @@ class CalculationWindow:
             nIt = nIt + 1
             maxGap = 0
             # Create arrays again with new data
-            boundaries = []
-            b = []
-            for i in range(len(self.p1)):
-                # If a miscibility gap label has been used unnecessarily, remove it
-                if self.p1[i].find('#') > 0:
-                    if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
-                        self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
-                if self.p2[i].find('#') > 0:
-                    if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
-                        self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
-                repeat = False
-                for j in range(len(boundaries)):
-                    if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                        b.append(j)
-                        repeat = True
-                if not(repeat):
-                    boundaries.append([self.p1[i],self.p2[i]])
-                    b.append(len(boundaries)-1)
+            self.phaseBoundaries()
 
             # Refine two-phase region density
             xs = []
             ys = []
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
+            for j in range(len(self.boundaries)):
+                inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
                 v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -806,43 +761,11 @@ class CalculationWindow:
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
-        # Make list of boundaries and points belonging to them
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
-            if self.p2[i].find('#') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        # Make list of phases
-        phases = []
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1 or boundaries[i][0].find('#') > 0):
-                phases.append(boundaries[i][0])
-            if not(repeat2 or boundaries[i][1].find('#') > 0):
-                phases.append(boundaries[i][1])
+        # Make list of self.boundaries and points belonging to them
+        self.phaseBoundaries()
 
         # label 1-phase regions
-        for phase in phases:
+        for phase in self.phases:
             inds1 = [i for i, k in enumerate(self.p1) if k == phase]
             inds2 = [i for i, k in enumerate(self.p2) if k == phase]
             points = []
@@ -858,12 +781,12 @@ class CalculationWindow:
             self.labels.append([[average[0],average[1]],phase])
 
         # label 2-phase regions
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
-            self.labels.append([[average[0],average[1]],'+'.join(boundaries[j])])
+            self.labels.append([[average[0],average[1]],'+'.join(self.boundaries[j])])
 
         # label 3-phase regions
         for point in self.points3:
