@@ -12,6 +12,7 @@ from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
 from shapely.geometry import LineString
+from shapely.geometry import GeometryCollection
 from shapely.prepared import prep
 from shapely.ops import split
 from functools import reduce
@@ -686,6 +687,10 @@ class CalculationWindow:
         yindices = np.linspace(otlo, othi, subres)
         horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
         vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+        # If the outline contains non-polygon shapes (like lines) it will be a GeometryCollection instead
+        # and we need to remove those non-polygon shapes so it can be a MultiPolygon again
+        if isinstance(outline,GeometryCollection):
+            outline = MultiPolygon([shape for shape in list(outline.geoms) if isinstance(shape,Polygon)])
         for splitter in vertical_splitters:
             try:
                 outline = MultiPolygon(split(outline, splitter))
@@ -696,7 +701,7 @@ class CalculationWindow:
                 outline = MultiPolygon(split(outline, splitter))
             except:
                 continue
-        for tempOutline in list(outline):
+        for tempOutline in list(outline.geoms):
             if tempOutline.area < (1 / (10*res**2)):
                 continue
             maxArea = max(tempOutline.area,maxArea)
