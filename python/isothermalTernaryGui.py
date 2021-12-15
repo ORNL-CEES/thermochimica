@@ -189,6 +189,9 @@ class CalculationWindow:
         self.boundaries = []
         self.phases = []
         self.b = []
+        self.label1phase = True
+        self.label2phase = True
+        self.label3phase = True
     def close(self):
         for child in self.children:
             child.close()
@@ -356,18 +359,22 @@ class CalculationWindow:
                 colorful = False
                 bland    = True
             settingsLayout = [[sg.Text('Marker Style:')],
-                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                             [sg.Text('Plot Colors:')],
-                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                             [sg.Checkbox('Tielines', default=self.tielines, key='-tielines-'),
-                              sg.Text('Density:'),sg.Input(key='-tiedensity-',size=(inputSize,1))],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
-                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
-                             [sg.Button('Accept')]]
+                              [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                              [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                              [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                              [sg.Text('Plot Colors:')],
+                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                              [sg.Checkbox('Tielines', default=self.tielines, key='-tielines-'),
+                               sg.Text('Density:'),sg.Input(key='-tiedensity-',size=(inputSize,1))],
+                              [sg.Text('Auto-Label Settings:')],
+                              [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
+                               sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-'),
+                               sg.Checkbox('3-Phase Regions', default=self.label3phase, key='-label3phase-')],
+                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
         elif event =='Undo':
@@ -770,33 +777,36 @@ class CalculationWindow:
         self.phaseBoundaries()
 
         # label 1-phase regions
-        for phase in self.phases:
-            inds1 = [i for i, k in enumerate(self.p1) if k == phase]
-            inds2 = [i for i, k in enumerate(self.p2) if k == phase]
-            points = []
-            if len(inds1) > 0:
-                points.extend(self.x1[inds1].tolist())
-            if len(inds2) > 0:
-                points.extend(self.x2[inds2].tolist())
-            for point in self.points1:
-                if point[1] == phase:
-                    points.append(point[0])
-            points = np.array(points)
-            average = np.average(points,axis=0)
-            self.labels.append([[average[0],average[1]],phase])
+        if self.label1phase:
+            for phase in self.phases:
+                inds1 = [i for i, k in enumerate(self.p1) if k == phase]
+                inds2 = [i for i, k in enumerate(self.p2) if k == phase]
+                points = []
+                if len(inds1) > 0:
+                    points.extend(self.x1[inds1].tolist())
+                if len(inds2) > 0:
+                    points.extend(self.x2[inds2].tolist())
+                for point in self.points1:
+                    if point[1] == phase:
+                        points.append(point[0])
+                points = np.array(points)
+                average = np.average(points,axis=0)
+                self.labels.append([[average[0],average[1]],phase])
 
         # label 2-phase regions
-        for j in range(len(self.boundaries)):
-            inds = [i for i, k in enumerate(self.b) if k == j]
-            if len(inds) < 2:
-                continue
-            average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
-            self.labels.append([[average[0],average[1]],'+'.join(self.boundaries[j])])
+        if self.label2phase:
+            for j in range(len(self.boundaries)):
+                inds = [i for i, k in enumerate(self.b) if k == j]
+                if len(inds) < 2:
+                    continue
+                average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
+                self.labels.append([[average[0],average[1]],'+'.join(self.boundaries[j])])
 
         # label 3-phase regions
-        for point in self.points3:
-            average = np.average(point[0],axis=0)
-            self.labels.append([[average[0],average[1]],'+'.join(point[1])])
+        if self.label3phase:
+            for point in self.points3:
+                average = np.average(point[0],axis=0)
+                self.labels.append([[average[0],average[1]],'+'.join(point[1])])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
@@ -828,6 +838,9 @@ class CalculationWindow:
         self.backup.resSmooth = self.resSmooth
         self.backup.tielines = self.tielines
         self.backup.tiegap = self.tiegap
+        self.backup.label1phase = self.label1phase
+        self.backup.label2phase = self.label2phase
+        self.backup.label3phase = self.label3phase
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1048,6 +1061,9 @@ class SettingsWindow:
             self.parent.plotColor = 'bland'
         elif event =='Accept':
             self.parent.tielines = values['-tielines-']
+            self.parent.label1phase = values['-label1phase-']
+            self.parent.label2phase = values['-label2phase-']
+            self.parent.label3phase = values['-label3phase-']
             try:
                 tempdensity = float(values['-tiedensity-'])
                 if 0 < tempdensity < 1000:
