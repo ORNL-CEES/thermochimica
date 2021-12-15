@@ -508,12 +508,12 @@ class CalculationWindow:
         self.b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
             for j in range(len(self.boundaries)):
                 if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
@@ -531,9 +531,9 @@ class CalculationWindow:
                     repeat1 = True
                 if (self.boundaries[i][1] == self.phases[j]):
                     repeat2 = True
-            if not(repeat1):
+            if not(repeat1 or self.boundaries[i][0].find('#') > 0):
                 self.phases.append(self.boundaries[i][0])
-            if not(repeat2):
+            if not(repeat2 or self.boundaries[i][1].find('#') > 0):
                 self.phases.append(self.boundaries[i][1])
 
         self.congruentFound = [False for i in range(len(self.phases))]
@@ -551,7 +551,13 @@ class CalculationWindow:
             extraBound = []
             for i in range(len(ttt)):
                 if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
+                    # for miscibility gap, just flip them
+                    if self.boundaries[j][0].find('#') > 0 or self.boundaries[j][1].find('#') > 0:
+                        temp = self.x1[inds[i]]
+                        self.x1[inds[i]] = self.x2[inds[i]]
+                        self.x2[inds[i]] = temp
+                    else:
+                        extraBound.append(i)
             if len(extraBound):
                 self.congruentFound[self.phases.index(self.boundaries[j][0])] = True
                 self.congruentFound[self.phases.index(self.boundaries[j][1])] = True

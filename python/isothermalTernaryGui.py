@@ -471,12 +471,12 @@ class CalculationWindow:
         b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
             for j in range(len(boundaries)):
                 if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
@@ -494,9 +494,9 @@ class CalculationWindow:
                     repeat1 = True
                 if (boundaries[i][1] == phases[j]):
                     repeat2 = True
-            if not(repeat1):
+            if not(repeat1 or boundaries[i][0].find('#') > 0):
                 phases.append(boundaries[i][0])
-            if not(repeat2):
+            if not(repeat2 or boundaries[i][1].find('#') > 0):
                 phases.append(boundaries[i][1])
 
         # Start figure
@@ -622,12 +622,12 @@ class CalculationWindow:
         b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
             for j in range(len(boundaries)):
                 if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
@@ -647,9 +647,9 @@ class CalculationWindow:
                     repeat1 = True
                 if (boundaries[i][1] == phases[j]):
                     repeat2 = True
-            if not(repeat1):
+            if not(repeat1 or boundaries[i][0].find('#') > 0):
                 phases.append(boundaries[i][0])
-            if not(repeat2):
+            if not(repeat2 or boundaries[i][1].find('#') > 0):
                 phases.append(boundaries[i][1])
 
         # find and subtract 1-phase regions
@@ -763,12 +763,12 @@ class CalculationWindow:
             b = []
             for i in range(len(self.p1)):
                 # If a miscibility gap label has been used unnecessarily, remove it
-                if self.p1[i].find('#2') > 0:
-                    if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                        self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-                if self.p2[i].find('#2') > 0:
-                    if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                        self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+                if self.p1[i].find('#') > 0:
+                    if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                        self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+                if self.p2[i].find('#') > 0:
+                    if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                        self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
                 repeat = False
                 for j in range(len(boundaries)):
                     if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
@@ -811,12 +811,12 @@ class CalculationWindow:
         b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
             for j in range(len(boundaries)):
                 if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
@@ -836,9 +836,9 @@ class CalculationWindow:
                     repeat1 = True
                 if (boundaries[i][1] == phases[j]):
                     repeat2 = True
-            if not(repeat1):
+            if not(repeat1 or boundaries[i][0].find('#') > 0):
                 phases.append(boundaries[i][0])
-            if not(repeat2):
+            if not(repeat2 or boundaries[i][1].find('#') > 0):
                 phases.append(boundaries[i][1])
 
         # label 1-phase regions
