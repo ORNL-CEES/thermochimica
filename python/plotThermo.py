@@ -784,10 +784,16 @@ class PlotWindow:
                     f.write('    if yen2[yi]:\n')
                     f.write('        lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
                     f.write('ax2.set_ylabel(ylab2)\n')
+                    if values['-y2log-']:
+                        f.write("ax2.set_yscale('log')\n")
                 f.write('labs = [l.get_label() for l in lns]\n')
                 f.write('ax.legend(lns, labs, loc=0)\n')
                 f.write('ax.set_xlabel(xlab)\n')
                 f.write('ax.set_ylabel(ylab)\n')
+                if values['-xlog-']:
+                    f.write("ax.set_xscale('log')\n")
+                if values['-ylog-']:
+                    f.write("ax.set_yscale('log')\n")
                 f.write('plt.show()\n')
         elif event == 'Export Plot':
             self.exportPlot()
