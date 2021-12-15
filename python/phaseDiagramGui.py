@@ -188,6 +188,8 @@ class CalculationWindow:
         self.phases = []
         self.b = []
         self.congruentFound = [False for i in range(len(self.phases))]
+        self.label1phase = True
+        self.label2phase = True
     def close(self):
         for child in self.children:
             child.close()
@@ -387,16 +389,19 @@ class CalculationWindow:
                 colorful = False
                 bland    = True
             settingsLayout = [[sg.Text('Marker Style:')],
-                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                             [sg.Text('Plot Colors:')],
-                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
-                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
-                             [sg.Button('Accept')]]
+                              [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                              [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                              [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                              [sg.Text('Plot Colors:')],
+                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                              [sg.Text('Auto-Label Settings:')],
+                              [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
+                               sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-')],
+                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
         elif event =='Undo':
@@ -1062,24 +1067,26 @@ class CalculationWindow:
                 polygonPoints.append([x2t[i],ttt[i]])
             phaseOutline = Polygon(polygonPoints)#.buffer(0)
             center = list(phaseOutline.centroid.coords)[0]
-            self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
+            if self.label2phase:
+                self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
             for i in range(len(self.phases)):
                 if self.boundaries[j][0] == self.phases[i]:
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
                 if self.boundaries[j][1] == self.phases[i]:
                     phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
 
-        for i in range(len(self.phases)):
-            if self.congruentFound[i]:
-                print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
-                continue
-            segcenters = []
-            if len(phasePolyPoints[i]) < 2:
-                continue
-            for j in range(len(phasePolyPoints[i])):
-                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            self.labels.append([[center[0],center[1]],self.phases[i]])
+        if self.label1phase:
+            for i in range(len(self.phases)):
+                if self.congruentFound[i]:
+                    print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
+                    continue
+                segcenters = []
+                if len(phasePolyPoints[i]) < 2:
+                    continue
+                for j in range(len(phasePolyPoints[i])):
+                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+                self.labels.append([[center[0],center[1]],self.phases[i]])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
@@ -1112,6 +1119,8 @@ class CalculationWindow:
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
         self.backup.gapLimit = self.gapLimit
+        self.backup.label1phase = self.label1phase
+        self.backup.label2phase = self.label2phase
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1339,6 +1348,8 @@ class SettingsWindow:
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
         elif event =='Accept':
+            self.parent.label1phase = values['-label1phase-']
+            self.parent.label2phase = values['-label2phase-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.exportFileName = str(values['-filename-'])
