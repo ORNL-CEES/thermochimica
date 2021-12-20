@@ -1,15 +1,13 @@
 ---
 ---
 
-html{font-size : 62.5% } body {
-display:
-  flex;
+body {
+  display : flex;
   flex-direction : column;
   justify-content : space-between;
   min-height : 100vh;
   background-color : var(--main-bg-color);
-color:
-  var(--color-text-normal);
+  color : var(--color-text-normal);
   padding-bottom : var(--navbar-eight);
   font-family : var(--font-family-body);
   font-weight : var(--font-weight-body-regular);
