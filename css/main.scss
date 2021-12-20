@@ -8,12 +8,6 @@ body {
   min-height : 100vh;
   background-color : var(--main-bg-color);
   color : var(--color-text-normal);
-  padding-bottom : var(--navbar-eight);
-  font-family : var(--font-family-body);
-  font-weight : var(--font-weight-body-regular);
-  --line-height : var(--line-height-base);
-  font-size : var(--font-size-base);
-  line-height : var(--line-height)
 }
 
 html, html[data-theme="light"] {
