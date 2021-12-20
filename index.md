@@ -1,3 +1,4 @@
+{% include styles.html %}
 # Installation instructions
 ## General
 
