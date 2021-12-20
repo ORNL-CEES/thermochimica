@@ -1,0 +1,1642 @@
+html {
+  --font - size - xs : 1.4rem;
+  --line - height - xs : 2.6rem;
+  --font - size - sm : clamp(1.4rem, 3.5vw, 1.6rem);
+  --line - height - sm : clamp(2.6rem, 6.5vw, 2.8rem);
+  --font - size - base : clamp(1.6rem, 4vw, 1.8rem);
+  --line - height - base : clamp(2.8rem, 7vw, 3rem);
+  --font - size - md : clamp(1.8rem, 4.5vw, 2.2rem);
+  --line - height - md : clamp(3rem, 7.5vw, 3.5rem);
+  --font - size - lg : clamp(2.2rem, 5.5vw, 2.6rem);
+  --line - height - lg : clamp(3.5rem, 8.75vw, 3.8rem);
+  --font - size - xl : clamp(2.6rem, 6.5vw, 3.2rem);
+  --line - height - xl : clamp(3.8rem, 9.5vw, 4.4rem);
+  --font - size - xxl : clamp(3.2rem, 8vw, 3.6rem);
+  --line - height - xxl : clamp(4.4rem, 11vw, 4.8rem);
+  --font - size - xxxl : clamp(3.6rem, 9vw, 4.8rem);
+  --line - height - xxxl : clamp(4.8rem, 12vw, 6rem);
+  --transition - duration : 0.2s;
+  --transition - timing - function : ease;
+  --page - max - width : 81rem;
+  --navbar - height : clamp(6.4rem, 16vw, 7.6rem)
+}
+html[data - theme = light] {
+  color - scheme : light;
+  --color - surface - 1 : white;
+  --color - surface - 2 : hsl(0deg 0 % 95 %);
+  --color - surface - 3 : hsl(0deg 0 % 92 %);
+  --color - surface - 4 : hsl(0deg 0 % 20 %);
+  --color - surface - 5 : hsl(0deg 0 % 10 %);
+  --color - text - normal : black;
+  --color - text - soft : hsl(0deg 0 % 35 %);
+  --color - text - emphasis : black;
+  --color - text - inverted : white;
+  --color - border - focus : hsl(0deg 0 % 30 %);
+  --color - border : hsl(0deg 0 % 80 %);
+  --aside - bg - color : var(--color - surface - 2);
+  --button - bg - color - focus : var(--color - surface - 4);
+  --button - bg - color : var(--color - surface - 5);
+  --card - bg - color : var(--color - surface - 1);
+  --code - block - box - shadow : none;
+  --form - bg - color : var(--color - surface - 2);
+  --footer - bg - color : var(--color - surface - 5);
+  --hover - bg - color : var(--color - surface - 2);
+  --inline - code - bg - color : var(--color - surface - 2);
+  --input - bg - color : var(--color - surface - 1);
+  --main - bg - color : var(--color - surface - 1);
+  --navbar - bg - color : var(--color - surface - 5);
+  --navbar - box - shadow : none;
+  --navbar - text - color : white;
+  --navbar - text - bg - color - focus : var(--color - surface - 4);
+  --scrollbar - thumb - bg - color : hsl(0deg 0 % 70 %);
+  --scrollbar - track - bg - color : var(--color - surface - 3);
+  --selection - bg - color : black;
+  --table - header - bg - color : var(--color - surface - 3);
+  --pill - bg - color - focus : var(--color - surface - 5);
+  --pill - bg - color : var(--color - surface - 3);
+  --color - code - background : hsl(0deg 0 % 95 %);
+  --color - code - overlay - 1 : hsl(0deg 0 % 88 %);
+  --color - code - overlay - 2 : hsl(0deg 0 % 80 %);
+  --color - code - selection : hsl(243.9deg 80.3 % 33.9 % / 20 %);
+  --color - code - comment : hsl(0deg 0 % 43 %);
+  --color - code - text : hsl(0deg 0 % 0 %);
+  --color - code - keyword : hsl(233deg 100 % 38 %);
+  --color - code - number : hsl(111deg 100 % 24 %);
+  --color - code - attribute : var(--color - code - text);
+  --color - code - string : hsl(8deg 100 % 38 %);
+  --color - code - variable : var(--color - code - keyword);
+  --color - code - tag : var(--color - code - keyword);
+  --color - code - constant : var(--color - code - number);
+  --color - code - punctuation : hsl(0deg 0 % 43 %);
+  --color - code - selector : var(--color - code - string)
+}
+html[data - theme = dark] {
+  color - scheme : dark;
+  --color - surface - 1 : hsl(0deg 0 % 8 %);
+  --color - surface - 2 : hsl(0deg 0 % 12 %);
+  --color - surface - 3 : hsl(0deg 0 % 20 %);
+  --color - surface - 4 : hsl(0deg 0 % 60 %);
+  --color - surface - 5 : hsl(0deg 0 % 80 %);
+  --color - text - normal : hsl(0deg 0 % 87 %);
+  --color - text - soft : hsl(0deg 0 % 70 %);
+  --color - text - emphasis : white;
+  --color - text - inverted : black;
+  --color - border : hsl(0deg 0 % 30 %);
+  --color - border - focus : hsl(0deg 0 % 80 %);
+  --aside - bg - color : var(--color - surface - 3);
+  --button - bg - color - focus : white;
+  --button - bg - color : var(--color - surface - 5);
+  --card - bg - color : var(--color - surface - 2);
+  --code - block - box - shadow : 0 0.2rem 0.8rem 0 hsl(0deg 0 % 0 % / 40 %);
+  --form - bg - color : var(--color - surface - 2);
+  --footer - bg - color : var(--color - surface - 2);
+  --hover - bg - color : var(--color - surface - 2);
+  --inline - code - bg - color : var(--color - surface - 3);
+  --input - bg - color : var(--color - surface - 3);
+  --main - bg - color : var(--color - surface - 1);
+  --navbar - bg - color : var(--color - surface - 2);
+  --navbar - box - shadow : 0 - 0.2rem 0.8rem hsl(0deg 0 % 0 % / 40 %);
+  --navbar - text - color : white;
+  --navbar - text - bg - color - focus : var(--color - surface - 3);
+  --scrollbar - thumb - bg - color : var(--color - surface - 4);
+  --scrollbar - track - bg - color : var(--color - surface - 3);
+  --selection - bg - color : white;
+  --table - header - bg - color : var(--color - surface - 2);
+  --pill - bg - color - focus : var(--color - surface - 5);
+  --pill - bg - color : var(--color - surface - 3);
+  --color - code - background : hsl(0deg 0 % 12 %);
+  --color - code - overlay - 1 : hsl(0deg 0 % 25 %);
+  --color - code - overlay - 2 : hsl(0deg 0 % 60 %);
+  --color - code - selection : hsl(210deg 100 % 84 % / 15 %);
+  --color - code - comment : hsl(101deg 29 % 47 %);
+  --color - code - text : hsl(0deg 0 % 83 %);
+  --color - code - keyword : hsl(207deg 61 % 59 %);
+  --color - code - number : hsl(99deg 28 % 73 %);
+  --color - code - attribute : hsl(201deg 98 % 80 %);
+  --color - code - string : hsl(17deg 47 % 64 %);
+  --color - code - variable : var(--color - code - keyword);
+  --color - code - tag : var(--color - code - keyword);
+  --color - code - constant : var(--color - code - number);
+  --color - code - punctuation : #8a8a8a;
+  --color - code - selector : hsl(41deg 53 % 67 %)
+}
+.skip - navigation {
+top:
+  50 % ;
+transform:
+  translate(0.8rem, -50 %);
+padding:
+  .8rem;
+color:
+  var(--navbar - text - color);
+  z - index : 11
+}
+.navbar {
+position:
+  relative;
+width:
+  100 % ;
+height:
+  100 % ;
+display:
+  flex;
+  align - items : center;
+  justify - content : space - between;
+gap:
+  .4rem;
+padding:
+  0 .8rem;
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - regular)
+}
+.navbar - header {
+position:
+  fixed;
+bottom:
+  0;
+left:
+  0;
+width:
+  100 % ;
+display:
+  flex;
+  align - items : center;
+  background - color : var(--navbar - bg - color);
+  box - shadow : var(--navbar - box - shadow);
+  min - height : var(--navbar - height);
+  overflow - x : auto;
+  z - index : 10
+}
+.navbar - logo {
+width:
+  2.8rem;
+height:
+  2.8rem
+}
+.navbar - site - name {
+display:
+  none;
+color:
+  var(--navbar - text - color)
+}
+.navbar - branding {
+  flex - shrink : 0;
+display:
+  none;
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold)
+}
+.navbar - branding : focus{outline : none}.navbar - branding : focus - visible {
+outline:
+  solid .2rem #fff;
+  outline - offset : .4rem
+}
+.navbar - links {
+  background - color : var(--navbar - bg - color);
+display:
+  flex;
+  align - items : center;
+  justify - content : space - between;
+width:
+  100 %
+}
+.navbar - item {
+  text - align : center;
+display:
+  flex;
+  justify - content : center;
+flex:
+  1 0 0
+}
+.navbar - link {
+padding:
+  .4rem clamp(1.2rem, 3vw, 1.6rem);
+display:
+  flex;
+  align - items : center;
+  justify - content : center;
+width:
+  100 % ;
+color:
+  var(--navbar - text - color)
+}
+.skip - navigation : focus, .navbar - link : is([aria - current = page],
+                                                : hover,
+                                                : focus) {
+  background - color : var(--navbar - text - bg - color - focus)
+}
+#theme - toggle - container {
+display:
+  flex;
+height:
+  4.8rem;
+  justify - content : center
+}
+.lamp {
+  --lamp - lightness : 60 % ;
+  --lamp - color : hsl(0deg 0 % var(--lamp - lightness));
+width:
+  45px;
+height:
+  45px;
+  background - color : transparent;
+position:
+  relative;
+transform:
+  scale(0.711);
+  transform - style : preserve - 3d
+}
+.lamp : focus{outline : none}.lamp : focus - visible {
+outline:
+  solid .2rem #fff;
+  outline - offset : .4rem
+}
+.lamp - base {
+position:
+  absolute;
+bottom:
+  0;
+right:
+  5px;
+width:
+  30px;
+height:
+  7px;
+  background - color : var(--lamp - color);
+  border - radius : 4px 4px 0 0;
+  transform - style : preserve - 3d;
+  box - shadow : inset 0 .5px 2px rgba(0, 0, 0, .6)
+}
+.lamp - base::after {
+content:
+  "";
+position:
+  absolute;
+transform:
+  translateZ(-1px);
+width:
+  6px;
+height:
+  6px;
+top:
+  -2px;
+left:
+  4px;
+  border - radius : 1px 1px 0 0;
+  background - color : #fff
+}
+.lamp > *{display : block}.lamp : active.lamp -
+            base::after{top : -0.5px}[data - theme = dark]
+                .lamp{filter : brightness(0.75)}
+                .lamp -
+            neck {
+width:
+  4px;
+height:
+  20px;
+  background - color : var(--lamp - color);
+position:
+  absolute;
+transform:
+  translateZ(-1px) rotate(20deg);
+right:
+  8px;
+bottom:
+  5px
+}
+.lamp - neck::after {
+content:
+  "";
+  background - color : var(--lamp - color);
+width:
+  4px;
+height:
+  20px;
+position:
+  absolute;
+transform:
+  rotate(-60deg);
+left:
+  -8px;
+top:
+  -14px
+}
+.lamp - head {
+  --lamp - color - light : hsl(0deg 0 % calc(var(--lamp - lightness) - 5 %));
+width:
+  20px;
+height:
+  10px;
+  background - image : linear -
+                       gradient(to bottom, var(--lamp - color - light) 5 %,
+                                var(--lamp - color) 90 %,
+                                var(--lamp - color - light) 5 %);
+  border - radius : 100px 100px 0 0;
+transform:
+  rotate(45deg);
+position:
+  absolute;
+left:
+  10px;
+top:
+  4px;
+  transform - style : preserve - 3d;
+  z - index : 2;
+  box - shadow : 0 4px 4px - 2px #e6e6e6
+}
+.lamp - head::before {
+content:
+  "";
+display:
+  block;
+position:
+  absolute;
+width:
+  6px;
+height:
+  6px;
+  background - color : var(--lamp - color);
+  border - radius : 50 % ;
+right:
+  6px;
+top:
+  -4px;
+transform:
+  translateZ(-1px)
+}
+.lamp - head::after {
+content:
+  "";
+position:
+  absolute;
+width:
+  20px;
+height:
+  40px;
+background:
+  linear - gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.35),
+                    rgba(255, 255, 255, 0.05));
+  clip - path : polygon(30 % 0, 70 % 0, 100 % 100 %, 0 100 %);
+transform:
+  translateZ(-1px);
+right:
+  0;
+top:
+  10px
+}
+[data - theme = dark].lamp -
+    head{box - shadow : none}[data - theme = dark].lamp - head::after {
+background:
+  transparent
+}
+@media screen and (min - width : 500px) {
+  .navbar - links{gap : clamp(0.8rem, 2vw, 1.2rem)}.navbar - site - name {
+  display:
+    unset
+  }
+}
+@media screen and
+    (min - width : 768px){.navbar{justify - content : space - between;
+--padding : min(4vw, 2.4rem);
+max - width : calc(var(--page - max - width) + 2 * var(--padding));
+width : 100 % ;
+margin - left : auto;
+margin - right : auto;
+padding - left : var(--padding);
+padding - right : var(--padding)
+}
+.navbar - header {
+position:
+  unset;
+  box - shadow : none
+}
+.navbar - branding {
+display:
+  flex;
+gap:
+  .4rem;
+  align - items : center
+}
+.navbar - site - name{display : unset}.navbar - links {
+  justify - content : unset;
+width:
+  unset
+}
+.navbar - link{border - radius : .4rem}.navbar - link.home {
+display:
+  none
+}
+}
+*{
+  box - sizing : border - box;
+margin:
+  0;
+padding:
+  0
+}
+@media(prefers - reduced - motion) {
+  *, *::before, *::after {
+  animation:
+    none !important;
+  transition:
+    none !important
+  }
+}
+body{-webkit - font - smoothing : antialiased} label, input, textarea, button {
+  font - family : inherit;
+  font - size : inherit;
+  line - height : inherit;
+  letter - spacing : inherit
+}
+img, video{height : auto} img, iframe, video,
+table{max - width : 100 % } button {
+border:
+  none;
+cursor:
+  pointer
+}
+a {
+  font - weight : inherit;
+  text - decoration : none
+}
+ul, ol{list - style : none} table {
+  border - collapse : collapse;
+  overflow - x : auto;
+display:
+  block
+}
+html{font - size : 62.5 % } body {
+display:
+  flex;
+  flex - direction : column;
+  justify - content : space - between;
+  min - height : 100vh;
+  background - color : var(--main - bg - color);
+color:
+  var(--color - text - normal);
+  padding - bottom : var(--navbar - height);
+  font - family : var(--font - family - body);
+  font - weight : var(--font - weight - body - regular);
+  --line - height : var(--line - height - base);
+  font - size : var(--font - size - base);
+  line - height : var(--line - height)
+}
+@media screen and (min - width : 768px) {
+  body { padding - bottom : unset }
+}
+#page - content {
+  --padding - y : clamp(3.2rem, 8vw, 9.6rem);
+  padding - top : var(--padding - y);
+  padding - bottom : var(--padding - y)
+}
+strong {
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - body);
+  font - weight : var(--font - weight - body - bold)
+}
+a{color : var(--color - text - emphasis)} a : focus{outline : none} a
+    : focus -
+      visible {
+outline:
+  solid .2rem currentColor;
+  outline - offset : 0
+}
+.section +.section{margin - top : 6.4rem} : is(h1, h2, h3, h4, h5, h6) {
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold)
+}:is(h1,h2,h3,h4,h5,h6) code{
+  font - family : var(--font - family - code);
+  font - weight : var(--font - weight - code - bold)
+}
+h1 {
+  --line - height : var(--line - height - xxxl);
+  font - size : var(--font - size - xxxl);
+  line - height : var(--line - height)
+}
+h2 {
+  --line - height : var(--line - height - xxl);
+  font - size : var(--font - size - xxl);
+  line - height : var(--line - height)
+}
+h3 {
+  --line - height : var(--line - height - xl);
+  font - size : var(--font - size - xl);
+  line - height : var(--line - height)
+}
+h4 {
+  --line - height : var(--line - height - lg);
+  font - size : var(--font - size - lg);
+  line - height : var(--line - height)
+}
+h5 {
+  --line - height : var(--line - height - md);
+  font - size : var(--font - size - md);
+  line - height : var(--line - height)
+}
+h6 {
+  --line - height : var(--line - height - base);
+  font - size : var(--font - size - base);
+  line - height : var(--line - height)
+}
+.heading - anchor{text - decoration : none}.heading -
+    anchor : is(
+                 : hover,
+                 : focus - visible){text - decoration : underline}
+                 .screen
+    - reader - only {
+position:
+  absolute;
+left:
+  0;
+clip:
+  rect(0, 0, 0, 0)
+}
+.screen - reader - only : focus{clip : auto}.centered {
+  --padding : min(4vw, 2.4rem);
+  max - width : calc(var(--page - max - width) + 2 * var(--padding));
+width:
+  100 % ;
+  margin - left : auto;
+  margin - right : auto;
+  padding - left : var(--padding);
+  padding - right : var(--padding)
+}
+.circle {
+  aspect - ratio : 1;
+  border - radius : 50 %
+}
+.underlined - link{text - decoration : underline}.underlined -
+    link : is(
+               : hover,
+               : focus - visible){text - decoration : none}
+               .banner
+    - heading {
+  text - transform : uppercase;
+  letter - spacing : .1rem;
+  word - spacing : .2rem;
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+.font - xs {
+  --line - height : var(--line - height - xs);
+  font - size : var(--font - size - xs);
+  line - height : var(--line - height)
+}
+.font - sm {
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+.font - base {
+  --line - height : var(--line - height - base);
+  font - size : var(--font - size - base);
+  line - height : var(--line - height)
+}
+.font - md {
+  --line - height : var(--line - height - md);
+  font - size : var(--font - size - md);
+  line - height : var(--line - height)
+}
+.font - lg {
+  --line - height : var(--line - height - lg);
+  font - size : var(--font - size - lg);
+  line - height : var(--line - height)
+}
+.font - xl {
+  --line - height : var(--line - height - xl);
+  font - size : var(--font - size - xl);
+  line - height : var(--line - height)
+}
+.font - xxl {
+  --line - height : var(--line - height - xxl);
+  font - size : var(--font - size - xxl);
+  line - height : var(--line - height)
+}
+.font - xxxl {
+  --line - height : var(--line - height - xxxl);
+  font - size : var(--font - size - xxxl);
+  line - height : var(--line - height)
+}
+.emoji{font - weight : initial !important}.lazy - picture {
+display:
+  flex;
+  align - items : center;
+  justify - content : center
+}
+.hero - banner {
+  margin - bottom : clamp(6.4rem, 16vw, 7.6rem);
+gap:
+  3.2rem;
+  max - width : 71ch
+}
+.hero - banner - title { margin - bottom : .8rem }
+#projects{margin - bottom : .8rem }.projects -
+          subheading{margin - bottom : 4.8rem }.blog -
+                     title{margin - bottom : 1.6rem }.blog -
+                           description{
+                               margin - bottom : 1.6rem }.blog -
+                               nav{position : relative }.blog - description,
+                                   .blog - tags{max - width : 60ch }.blog.skip -
+                                                popular - tags {
+top:
+  0;
+left:
+  0;
+width:
+  100 % ;
+height:
+  100 % ;
+display:
+  flex;
+  align - items : center;
+  justify - content : center;
+background:
+  var(--main - bg - color);
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - main);
+  font - weight : var(--font - weight - main - bold);
+  --line - height : var(--line - height - md);
+  font - size : var(--font - size - md);
+  line - height : var(--line - height)
+}
+.blog.tag - count {
+  --line - height : var(--line - height - xs);
+  font - size : var(--font - size - xs);
+  line - height : var(--line - height)
+}
+.blog.post - preview - grid{margin - top : 6.4rem}.pill - group {
+display:
+  flex;
+  flex - wrap : wrap;
+gap:
+  1rem
+}
+.pill {
+display:
+  flex;
+  align - items : center;
+  background - color : var(--pill - bg - color);
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - code)
+}
+.pill[data - shape = round]{border - radius : 4.8rem}.pill[data - size = sm] {
+padding:
+  .4rem 1.4rem;
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+.pill[data - size = xs] {
+padding:
+  .2rem 1rem;
+  font - weight : var(--font - weight - medium);
+  --line - height : var(--line - height - xs);
+  font - size : var(--font - size - xs);
+  line - height : var(--line - height)
+}
+.pill - count {
+  font - size : var(--font - size - xs);
+  font - family : var(--font - family - code);
+  font - weight : var(--font - weight - code - medium)
+}
+a.pill : is( : focus, : hover, [aria - current = page]) {
+  background - color : var(--pill - bg - color - focus);
+color:
+  var(--color - text - inverted)
+}
+a.pill : focus{outline : none} a.pill : focus - visible {
+outline:
+  solid .2rem var(--pill - bg - color - focus);
+  outline - offset : .2rem
+}
+.pagination - trail {
+gap:
+  .8rem;
+  margin - top : 3.2rem;
+  justify - content : flex - end
+}
+.pagination - page {
+  min - width : 3.2rem;
+  justify - content : center;
+  font - weight : var(--font - weight - code - medium)
+}
+.post - meta - date{color : var(--color - text - emphasis)}.post - meta -
+    tag{display : flex}.post - meta - tag::before {
+content:
+  "#";
+  user - select : none
+}
+.post - meta - tag::after {
+  user - select : none;
+content:
+  ","
+}
+.post - meta - tags {
+display:
+  flex;
+  flex - wrap : wrap;
+gap:
+  .6rem
+}
+.post - meta - tags li : last - of - type.post - meta -
+                         tag::after{content : none}.post - header {
+display:
+  grid;
+  grid - template -
+      areas : "date"
+              "title"
+              "tags";
+  margin - bottom : 3.2rem
+}
+.post - title {
+  grid - area : title;
+  margin - bottom : .8rem
+}
+.post.post - date{grid - area : date}.post.post - meta -
+    tags{grid - area : tags}.post - tags {
+display:
+  flex;
+  flex - wrap : wrap;
+gap:
+  var(--gap, 1.2rem)
+}
+.post - tag {
+display:
+  flex;
+  align - items : center;
+  border - radius : .4rem;
+padding:
+  .6rem 1.2rem
+}
+.post - tag - count{font - size : var(--font - size - xs)}.post - content {
+  max - width : 68ch;
+display:
+  flow - root;
+  overflow - wrap : break - word;
+  counter - reset : footnotes
+}
+.post - content >
+    *+*{margin - top : var(--line - height)}.post - content #skip - toc {
+transform:
+  translateY(-50 %);
+padding:
+  .2rem .8rem;
+  font - family : var(--font - family - body);
+  font - weight : var(--font - weight - body - bold)
+}
+.post - content.toc - list {
+  --gap : 2.4rem;
+  list - style : disc;
+  padding - inline - start : clamp(2.4rem, 6vw, 4.8rem)
+}
+.post - content a : not([class]){text - decoration : underline}.post -
+    content a : not([class])
+    : is(
+          : hover,
+          : focus - visible){text - decoration : none} code {
+  font - size : .82em;
+  font - family : var(--font - family - code);
+  font - weight : var(--font - weight - code - medium)
+}
+code : not([class ^= language - ]) {
+  background - color : var(--inline - code - bg - color);
+color:
+  var(--color - text - emphasis);
+  border - radius : .4rem;
+padding:
+  .4rem
+}
+blockquote {
+  font - style : italic;
+  border - inline - start : .4rem solid;
+  margin - inline - start : clamp(1.2rem, 3vw, 2.4rem);
+padding:
+  .4rem clamp(2rem, 5vw, 3.2rem)
+}
+blockquote > *+*{margin - top : var(--line - height)}
+                     .quote::before{content : open - quote}
+                     .quote::after{content : close - quote}
+                     .post -
+                 aside {
+  border - inline - start : .4rem solid;
+padding:
+  1.6rem clamp(2rem, 5vw, 3.2rem);
+  background - color : var(--aside - bg - color);
+color:
+  var(--color - text - emphasis)
+}
+.post - aside > *+*{margin - top : var(--line - height)}.post - aside code {
+padding:
+  0;
+  background - color : transparent
+}
+figure {
+display:
+  grid;
+  grid - auto - flow : row;
+  row - gap : .8rem
+}
+figcaption {
+  max - width : 70ch;
+margin:
+  0 auto;
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - regular)
+}
+figcaption, cite {
+  text - align : center;
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+figcaption, figcaption a, cite,
+    cite a{color : var(--color - text - soft)}.post - preview {
+display:
+  grid;
+  grid - template -
+      areas : "thumbnail"
+              "title"
+              "description"
+              "tags";
+position:
+  relative
+}
+.post - preview - grid {
+  margin - top : 3.2rem;
+display:
+  grid;
+  row - gap : 4.8rem
+}
+.post - preview - link{text - decoration : none}.post - preview -
+    link : is(
+               : hover,
+               : focus - visible){text - decoration : underline}
+               .post
+    - preview - thumbnail - container {
+  grid - area : thumbnail;
+  user - select : none
+}
+.post - preview - thumbnail - container,
+    .post - preview -
+        date{margin - block - end : 1.2rem}.post - preview - thumbnail img {
+  object - fit : cover;
+  object - position : center;
+  border - radius : .4rem;
+  aspect - ratio : 16 / 9
+}
+.post - preview - title{grid - area : title}.post - preview - description {
+  grid - area : description;
+  max - width : 66ch
+}
+.post - preview - date {
+  grid - area : thumbnail;
+color:
+#fff;
+background:
+  linear - gradient(213deg, black 0 %, rgba(0, 0, 0, 0.902) 6.6 %,
+                    rgba(0, 0, 0, 0.814) 12.6 %, rgba(0, 0, 0, 0.735) 18.1 %,
+                    rgba(0, 0, 0, 0.663) 23.2 %, rgba(0, 0, 0, 0.599) 28.1 %,
+                    rgba(0, 0, 0, 0.539) 33 %, rgba(0, 0, 0, 0.482) 38 %,
+                    rgba(0, 0, 0, 0.428) 43.3 %, rgba(0, 0, 0, 0.375) 49 %,
+                    rgba(0, 0, 0, 0.321) 55.2 %, rgba(0, 0, 0, 0.266) 62.1 %,
+                    rgba(0, 0, 0, 0.208) 69.9 %, rgba(0, 0, 0, 0.145) 78.7 %,
+                    rgba(0, 0, 0, 0.076) 88.7 %, rgba(0, 0, 0, 0) 100 %);
+  z - index : 1;
+display:
+  flex;
+  justify - content : end;
+padding:
+  .8rem;
+  pointer - events : none
+}
+.post - preview - tags {
+  grid - area : tags;
+  margin - top : .4rem
+}
+@media screen and (min - width : 768px){.post - preview{
+  grid - template - columns : auto min - content auto;
+column - gap : 1.2rem;
+grid - template -
+    areas : "thumbnail date tags"
+            "thumbnail title title"
+            "thumbnail description description"
+}
+.post - preview - thumbnail {
+height:
+  100 % ;
+width:
+  18rem;
+padding:
+  .8rem 0;
+  margin - inline - end : 1.2rem
+}
+[data - theme = light].post - preview - thumbnail[data - loaded = true].lazy -
+    img{filter : blur(0) contrast(0.95)}.post - preview - thumbnail -
+    container{margin : 0}.post - preview - thumbnail img{height : 100 % }.post -
+    preview - description {
+overflow:
+  hidden;
+  text - overflow : ellipsis;
+display:
+  -webkit - box;
+  -webkit - box - orient : vertical;
+  -webkit - line - clamp : 3
+}
+.post - preview - date {
+display:
+  unset;
+  justify - content : unset;
+color:
+  unset;
+background:
+  unset;
+  grid - area : date;
+margin:
+  unset;
+padding:
+  unset;
+  pointer - events : unset
+}
+.post - preview - tags{margin : 0}.post - preview - date,
+    .post - preview - tags {
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+}
+.project {
+display:
+  grid;
+  grid - template - rows : max - content 1fr max - content;
+  grid - template - columns : 1fr;
+  row - gap : calc(var(--card - padding) / 2)
+}
+.project - link {
+display:
+  flex;
+  flex - direction : column;
+  align - items : center;
+  justify - content : center;
+position:
+  absolute;
+top:
+  0;
+left:
+  0;
+width:
+  100 % ;
+height:
+  100 % ;
+  z - index : 1;
+opacity:
+  0;
+  border - radius : inherit;
+color:
+  var(--color - text - emphasis);
+  background - color : var(--card - bg - color);
+  transition - timing - function : var(--transition - timing - function);
+  transition - duration : var(--transition - duration);
+  transition - property : opacity;
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold);
+  --line - height : var(--line - height - md);
+  font - size : var(--font - size - md);
+  line - height : var(--line - height)
+}
+.project - grid {
+  --gap : 4.8rem;
+display:
+  flex;
+  flex - wrap : wrap;
+  align - items : center;
+gap:
+  var(--gap)
+}
+.project - wrapper {
+flex:
+  1;
+  min - width : 27rem
+}
+.project - wrapper : is( : hover, : focus - within).project {
+  box - shadow : var(--card - box - shadow - focus);
+transform:
+  var(--card - offset - y - focus)
+}
+.project -
+    wrapper : is(
+                  : hover,
+                  : focus - within)
+                  .project
+    - link{opacity : .92}.project - header {
+display:
+  flex;
+  justify - content : space - between
+}
+.project - name - wrapper {
+display:
+  grid;
+  grid - auto - flow : column;
+  column - gap : .4rem
+}
+.project - name{color : var(--color - text - emphasis)}.project - rating {
+display:
+  grid;
+  grid - auto - flow : column;
+  column - gap : .4rem;
+  align - items : center
+}
+.project - technologies{gap : .8rem}.project - technology {
+  border - radius : .2rem;
+padding:
+  .4rem 1.2rem;
+  --line - height : var(--line - height - xs);
+  font - size : var(--font - size - xs);
+  line - height : var(--line - height)
+}
+.github - cta {
+display:
+  flex;
+  flex - direction : column;
+  justify - content : center;
+  align - items : center
+}
+.github - cta - subheading{margin - bottom : 1.6rem}.github - cta a {
+height:
+  4.8rem;
+width:
+  4.8rem;
+color:
+  var(--color - text - normal)
+}
+.github - cta svg {
+width:
+  inherit;
+height:
+  inherit;
+fill:
+  currentColor
+}
+.list {
+  --gap : 0.4rem;
+display:
+  grid;
+gap:
+  var(--gap);
+  padding - inline - start : 1em
+}
+.list.list{margin - top : var(--gap)} ol.
+list{list - style : decimal} ul.list{list - style : disc}
+    .float {
+  float : none;
+  margin - block - start : var(--line - height)
+}
+.float.left, .float.right { float : none }
+@media screen and (min - width : 500px){.float{max - width : 20rem;
+margin - block - end : 3.2rem
+}
+.float.left {
+  margin - inline - end : 3.2rem;
+  float : left
+}
+.float.right {
+  margin - inline - start : 3.2rem;
+  float : right
+}
+}
+.card {
+  --card - padding : 3.2rem;
+  --card - box - shadow - default : 0 0.1rem 0.1rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.2rem 0.2rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.4rem 0.4rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.5rem 1.2rem hsl(0deg 0 % 0 % / 12 %);
+  --card - box - shadow - focus : 0 0.2rem 0.2rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.4rem 0.4rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.8rem 0.8rem hsl(0deg 0 % 0 % / 12 %),
+      0 0.8rem 1.2rem hsl(0deg 0 % 0 % / 12 %);
+  --card - offset - y - focus : translateY(-0.8rem);
+position:
+  relative;
+padding:
+  var(--card - padding);
+  background - color : var(--card - bg - color);
+  border - radius : .4rem;
+  box - shadow : var(--card - box - shadow - default);
+transform:
+  none;
+cursor:
+  pointer;
+  will - change : transform, box - shadow;
+  transition - timing - function : var(--transition - timing - function);
+  transition - duration : var(--transition - duration);
+  transition - property : box - shadow, transform
+}
+.contact{height : 100 % }.contact - content {
+height:
+  100 % ;
+display:
+  grid;
+  align - items : center;
+  grid - auto - flow : row;
+  column - gap : 9.6rem;
+  row - gap : 4.8rem
+}
+@media screen and (min - width : 768px){.contact - content{row - gap : 0;
+grid - auto - flow : column;
+grid - template - columns : minmax(0, 40rem) auto
+}
+}
+.contact - title{margin - bottom : .8rem}.contact -
+    subtitle{margin - bottom : 2.4rem}.submitted.contact -
+    subtitle{margin : 0}.contact - form {
+display:
+  grid;
+  grid - auto - flow : row;
+  row - gap : 1.6rem;
+  background - color : var(--form - bg - color);
+  border - radius : .2rem;
+border:
+  solid 1px rgba(0, 0, 0, .08);
+padding:
+  clamp(1.2rem, 3vw, 2.4rem);
+height:
+  fit - content
+}
+.contact - form.labeled - input {
+display:
+  grid;
+  grid - auto - flow : row;
+  row - gap : .4rem
+}
+.contact - form textarea{min - height : 17.5rem}.contact button[type = submit] {
+  border - radius : .2rem;
+height:
+  4.8rem
+}
+.contact button[type = submit] : focus{outline : none}
+                                     .contact button[type = submit] : focus -
+    visible {
+outline:
+  solid .2rem var(--button - bg - color - focus);
+  outline - offset : .2rem
+}
+.contact - socials {
+display:
+  grid;
+  row - gap : 4rem;
+  grid - template - rows : min - content auto
+}
+.contact - socials - list {
+  column - gap : 3.2rem;
+display:
+  grid;
+  grid - auto - rows : 4.8rem;
+  grid - template - columns : repeat(auto - fit, minmax(24rem, 1fr));
+  row - gap : 4rem
+}
+.contact - social {
+display:
+  grid;
+  grid - template - columns : 1fr 1fr;
+  justify - content : center;
+padding:
+  1.6rem;
+  border - radius : .2rem;
+color:
+  var(--color - text - normal)
+}
+.contact - social svg {
+  justify - self : center;
+width:
+  3.2rem;
+height:
+  3.2rem;
+fill:
+  currentColor
+}
+.contact - social : is( : focus, : hover) {
+  background - color : var(--hover - bg - color);
+cursor:
+  pointer;
+color:
+  var(--color - text - emphasis)
+}
+.contact - social - name {
+  font - family : var(--font - family - body);
+  font - weight : var(--font - weight - body - regular)
+}
+input.honeypot{display : none}.input {
+  background - color : var(--input - bg - color);
+border:
+  solid .1rem var(--color - border);
+  border - radius : .2rem;
+color:
+  var(--color - text - emphasis);
+padding:
+  .2rem .8rem
+}
+.input : focus {
+outline:
+  solid .2rem var(--color - border - focus);
+  border - color : var(--color - border - focus)
+}
+label {
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold)
+}
+label.required::after {
+content:
+  "*";
+margin:
+  0 .4rem;
+  vertical - align : middle
+}
+pre[class *= language - ] {
+background:
+  var(--color - code - background);
+  box - shadow : var(--code - block - box - shadow);
+padding:
+  3.2rem;
+  border - radius : .8rem;
+color:
+  var(--color - code - text);
+  text - align : start;
+  white - space : pre;
+  word - spacing : normal;
+  word - break : normal;
+  tab - size : 2;
+  overflow - x : auto
+}
+pre[class *= language - ].namespace {
+  opacity : .7
+} pre[class *= language - ] ::selection,
+    pre[class *= language - ] * ::selection {
+  text - shadow : none;
+color:
+  unset;
+background:
+  var(--color - code - selection)
+}
+.token : is(.doctype, .doctype - tag)
+             .name{color : var(--color - code - attribute)}
+             .token.comment{margin : 0}
+             .token
+    : is(.comment, .prolog){color : var(--color - code - comment)}
+             .token.number{color : var(--color - code - constant)}
+             .token.script{color : var(--color - code - text)}
+             .token.punctuation,
+    .token.cdata{color : var(--color - code - punctuation)}.token
+    : is(.keyword, .tag, .boolean, .constant, .inserted, .operator.arrow,
+         .key.atrule, .rule, .keyword.module, .keyword.control - flow, .entity,
+         .important, .punctuation.interpolation - punctuation, .doctype,
+         .doctype - tag, .directive - hash),
+    .token.atrule.url{color : var(--color - code - keyword)}.token
+    : is(.selector, .string, .char, .builtin, .deleted, .regex, .attr - value),
+    .token.attr
+        - value.token.punctuation{color : var(--color - code - string)}.token
+    : is(.operator, .entity, .function),
+    .token.atrule.token.url.token.punctuation,
+    .token.attr - value.token.punctuation.attr - equals,
+    .token.function.token.maybe - class -
+        name{color : var(--color - code - text)}.token
+    : is(.attr - name, .constant, .console, .property, .variable),
+    .token.imports.token.maybe - class - name,
+    .token.exports.token.maybe - class -
+        name{color : var(--color - code - attribute)}
+            .token.italic{font - style : italic} pre[class *= language - css]
+            .token.selector,
+    pre[class *= language - scss].token.selector,
+    pre[class *= language - sass]
+            .token
+            .selector{color : var(--color - code -
+                                  selector)} pre[class *= language - bash]
+            .token : not(.comment){
+              color : var(--color - code - text) !important
+            } pre[data - line]{position : relative}
+            .highlight
+        - line,
+    .highlight - line -
+        active{background : var(--color - code - selection)}.code - header {
+height:
+  0;
+  z - index : 2;
+position:
+  relative
+}
+.code - header.with - file - name +
+    pre[class *= language - ]{padding - top : 7.6rem}.code - file - name {
+position:
+  absolute;
+top:
+  0;
+left:
+  0;
+color:
+  var(--color - code - text);
+  word - break : break - all;
+padding:
+  2.4rem 2.4rem 0;
+  border - radius : .8rem .8rem 0 0;
+  background - color : var(--color - code - background);
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold);
+  --line - height : var(--line - height - sm);
+  font - size : var(--font - size - sm);
+  line - height : var(--line - height)
+}
+.code - file - name::before{content : "Filename: "}.copy - code - button {
+position:
+  absolute;
+right:
+  2.4rem;
+top:
+  2.4rem;
+display:
+  none;
+color:
+  var(--color - code - text);
+  background - color : var(--color - code - overlay - 1);
+padding:
+  .6rem 1.6rem;
+  border - radius : .4rem;
+  font - family : var(--font - family - title)
+}
+.copy - code - button::before {
+content:
+  "Copy"
+}
+@media screen and
+    (min - width : 768px){.copy - code - button{display : flex}}.copy - code -
+        button : is(.copied,
+                    : hover) {
+color:
+# 000;
+  background - color : var(--color - code - overlay - 2)
+}
+.copy - code - button.copied::before{content : "Copied!"}.katex {
+  white - space : normal !important;
+  line - height : 1.3 !important;
+  font - size : 1.1em !important
+}
+.katex - display{margin : 0 !important}.katex - display.katex {
+display:
+  inline - block;
+  white - space : nowrap;
+  max - width : 100 % ;
+  overflow - x : auto;
+  overflow - y : hidden;
+width:
+  100 %
+}
+.comment - actions {
+display:
+  flex;
+  align - items : center;
+  justify - content : space - between;
+  flex - wrap : wrap;
+  margin - top : 4.8rem;
+  margin - bottom : 1.6rem;
+gap:
+  1.6rem
+}
+.post - comment - button {
+  border - radius : .4rem;
+padding:
+  .8rem 1.6rem
+}
+#comments - wrapper { margin - top : 6.4rem }
+#comments - placeholder{text - align : center }.comments - list {
+display:
+  grid;
+  row - gap : 6.4rem;
+  grid - template - columns : minmax(0, 1fr);
+padding:
+  0
+}
+.post - comment {
+  --avatar - size : 3.2rem;
+  --meta - spacing : 0.8rem;
+  padding - inline - start : calc(var(--avatar - size) + var(--meta - spacing))
+}
+.post - comment - header {
+display:
+  flex;
+  flex - wrap : wrap;
+  align - items : center;
+position:
+  relative;
+  margin - bottom : .8rem;
+gap:
+  var(--meta - spacing)
+}
+.post - comment - avatar {
+  align - self : flex - start;
+position:
+  absolute;
+width:
+  var(--avatar - size);
+left:
+  calc(-1 * var(--avatar - size) - var(--meta - spacing))
+}
+.post - comment - username {
+color:
+  var(--color - text - emphasis);
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - bold);
+  text - decoration : underline
+}
+.post - comment -
+    username : is(
+                   : hover,
+                   : focus - visible){text - decoration : none}
+                   .post
+    - comment - edited{font - style : italic}.post - comment - author {
+  border - radius : .2rem;
+display:
+  flex;
+  align - items : center;
+padding:
+  .4rem .8rem
+}
+.post - comment - body > *+*{margin - top : var(--line - height)}.post -
+                             comment -
+                             body pre{white - space : pre - wrap}.post -
+                             comment - body : is(h1, h2, h3, h4, h5, h6) {
+  --line - height : var(--line - height - base);
+  font - size : var(--font - size - base);
+  line - height : var(--line - height)
+}
+.youtube - embed {
+  aspect - ratio : 16 / 9;
+  max - width : 100 %
+}
+.youtube - embed >
+    *{height : 100 % }.youtube - embed button{cursor : pointer}.button {
+  background - color : var(--button - bg - color);
+color:
+  var(--color - text - inverted);
+  font - family : var(--font - family - title);
+  font - weight : var(--font - weight - title - regular)
+}
+.button
+    : is(
+          : focus,
+          : hover){background - color : var(--button - bg - color - focus)} td,
+    th {
+  text - align : start;
+padding:
+  .8rem 1.6rem;
+border:
+  solid .2rem var(--color - border)
+}
+thead {
+  background - color : var(--table - header - bg - color);
+color:
+  var(--color - text - emphasis)
+}
+thead th {
+  font - family : var(--font - family - body);
+  font - weight : var(--font - weight - body - bold)
+}
+.page - footer {
+  background - color : var(--footer - bg - color);
+color:
+  var(--navbar - text - color);
+  align - items : center;
+  justify - content : center;
+  text - align : center
+}
+.page - footer - container {
+display:
+  flex;
+  flex - direction : column;
+gap:
+  3.2rem;
+  justify - content : space - between;
+  padding - top : 3.2rem;
+  padding - bottom : 3.2rem
+}
+.page - footer - title {
+color:
+#fff;
+  margin - bottom : .8rem
+}
+.page - footer - subtitle{margin - bottom : .8rem}.page - footer -
+    copyright{color : #b3b3b3}.page - footer - links {
+display:
+  flex;
+  flex - direction : column;
+  align - self : center;
+  align - items : center;
+gap:
+  2.4rem
+}
+.page - footer - pages, .page - footer - socials {
+display:
+  flex;
+  align - items : center;
+gap:
+  2.4rem
+}
+.page - footer - socials svg {
+width:
+  2rem;
+height:
+  2rem;
+fill:
+  currentColor
+}
+.page - footer - link {
+color:
+  var(--navbar - text - color);
+display:
+  flex;
+  text - decoration : none
+}
+.page - footer - link : focus{outline : none}.page - footer - link : focus -
+                                                                     visible {
+outline:
+  solid .2rem currentColor;
+  outline - offset : .4rem
+}
+.page - footer - link : is( : hover, : focus - visible) {
+  text - decoration : underline
+}
+@media screen and
+    (min - width : 768px){.page - footer{text - align : start}.page - footer -
+                          container{flex - direction : row;
+gap : 1.6rem
+}
+.page - footer - links {
+  justify - content : center;
+  align - items : flex - end
+}
+}
+.footnotes > *+*{margin - top : var(--line - height)}
+                    .footnotes__list{list - style : decimal}
+                    .footnotes__ref{text - decoration : underline}
+                    .footnotes__ref
+    : is(
+          : hover,
+          : focus - visible){text -
+                             decoration : none}[role = doc - noteref] ::after {
+  counter - increment : footnotes;
+content:
+  " [" counter(footnotes) "]"
+}
+#page - not -found {
+  align - items : center;
+animation:
+  background - scroll 40s linear infinite;
+  animation - fill - mode : forwards;
+  background - color : #141414;
+  background - image : url("/assets/images/404/stardust.png");
+display:
+  flex;
+  flex - direction : column;
+height:
+  100 % ;
+  justify - content : center;
+left:
+  0;
+position:
+  absolute;
+  text - align : center;
+top:
+  0;
+width:
+  100 % ;
+padding:
+  0 1.2rem
+}
+@keyframes background - scroll {
+  from{background - position : 0 0} to { background - position : 798px 0 }
+}
+#page - not -found h1 {
+color:
+#e6e6e6;
+  margin - bottom : 2.4rem;
+  text - shadow : .1em .1em #000
+}
+#page - not -found p {
+color:
+#bfbfbf;
+  margin - bottom : 1.6rem
+}
+#page - not -found a{color : #e6e6e6 } html {
+  scrollbar - color : var(--scrollbar - thumb - bg - color)
+                          var(--scrollbar - track - bg - color)
+}
+::selection {
+  background - color : var(--selection - bg - color);
+color:
+  var(--color - text - inverted);
+  text - shadow : none
+} /*# sourceMappingURL=main.css.map */
