@@ -1,5 +1,3 @@
-{% include styles.html %}
-
 {% include codeHeader.html %}
 ```markdown
 something to copy
