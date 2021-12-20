@@ -126,3 +126,44 @@ html[data-theme="dark"] {
   	 --main-text-color: hsl(0, 0%, 20%);
   } 
 }
+
+.code-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.copy-code-button {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  grid-column-gap: 4px;
+  border: none;
+  cursor: pointer;
+  font: 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  padding: 4px 8px;
+
+  &::before {
+    content: "copy";
+  }
+
+  @media screen and (min-width : 768px){.copy-code-button{display : flex}}.copy-code-button : is(.copied,:hover) {
+    color : #000;
+    background-color : var(--color-code-overlay-2)
+  }
+  
+  &::after {
+    content: "";
+    display: block;
+  }
+
+  // This class will be toggled via JavaScript
+  &.copied {
+    &::before {
+      content: "copied";
+    }
+
+    &::after {
+      content: "";
+    }
+  }
+}
