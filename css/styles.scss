@@ -18,7 +18,7 @@
   padding: 4px 8px;
 
   &::before {
-    content: "Copy";
+    content: "copy";
   }
 
   &::after {
@@ -29,7 +29,7 @@
   // This class will be toggled via JavaScript
   &.copied {
     &::before {
-      content: "Copied!";
+      content: "copied!";
     }
 
     &::after {
