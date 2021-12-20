@@ -37,6 +37,17 @@ Run tests:
 You can install [Brew](https://brew.sh/) to manage and install dependencies.
 
 ## Windows (WSL)
+You can install the Windows Subsystem for Linux by following [the instructions from Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install).
+
+The default (Ubuntu) is good, so just run the one line there, restart, and try to start it. So in the windows shell (as administrator):
+{% include codeHeader.html %}
+```bash
+wsl --install
+```
+
+If WSL fails to start properly after reboot, you may need to create virtual disk space for WSL following [these instructions](https://utf9k.net/blog/wsl2-vhd-issue/).
+
+Once the Ubuntu app is successfully installed, you can follow the Ubuntu instructions above.
 
 
 {% include copyCode.html %}
