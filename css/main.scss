@@ -1,7 +1,7 @@
 ---
 ---
 
-html{font - size : 62.5 % } body {
+html{font-size : 62.5 % } body {
 display:
   flex;
   flex-direction : column;
@@ -19,7 +19,7 @@ color:
 }
 
 html, html[data-theme="light"] {
-  color - scheme : light;
+  color-scheme : light;
   --color-surface-1 : white;
   --color-surface-2 : hsl(0deg 0 % 95 %);
   --color-surface-3 : hsl(0deg 0 % 92 %);
