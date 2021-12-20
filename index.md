@@ -34,7 +34,7 @@ Run tests:
 ```
 
 ## MacOS
-
+You can install [Brew](https://brew.sh/) to manage and install dependencies.
 
 ## Windows (WSL)
 
