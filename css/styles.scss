@@ -20,7 +20,7 @@
     content: "copy";
   }
 
-  @media screen and (min-width : 768px){.copy-code-button{display : flex}}.copy-code-button : is(.copied,:hover) {
+ {
     color : #000;
     background-color : var(--color-code-overlay-2)
   }
