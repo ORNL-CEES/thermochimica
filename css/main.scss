@@ -8,9 +8,53 @@ html, html[data-theme="light"] {
 }
 
 html[data-theme="dark"] {
-  --link-color: rgb( 100, 210, 255);
-  --main-background-color: hsl(0, 0%, 20%);
-  --main-text-color: hsl(0, 0%, 85%); 
+  --color - surface - 1 : hsl(0deg 0 % 8 %);
+  --color - surface - 2 : hsl(0deg 0 % 12 %);
+  --color - surface - 3 : hsl(0deg 0 % 20 %);
+  --color - surface - 4 : hsl(0deg 0 % 60 %);
+  --color - surface - 5 : hsl(0deg 0 % 80 %);
+  --color - text - normal : hsl(0deg 0 % 87 %);
+  --color - text - soft : hsl(0deg 0 % 70 %);
+  --color - text - emphasis : white;
+  --color - text - inverted : black;
+  --color - border : hsl(0deg 0 % 30 %);
+  --color - border - focus : hsl(0deg 0 % 80 %);
+  --aside - bg - color : var(--color - surface - 3);
+  --button - bg - color - focus : white;
+  --button - bg - color : var(--color - surface - 5);
+  --card - bg - color : var(--color - surface - 2);
+  --code - block - box - shadow : 0 0.2rem 0.8rem 0 hsl(0deg 0 % 0 % / 40 %);
+  --form - bg - color : var(--color - surface - 2);
+  --footer - bg - color : var(--color - surface - 2);
+  --hover - bg - color : var(--color - surface - 2);
+  --inline - code - bg - color : var(--color - surface - 3);
+  --input - bg - color : var(--color - surface - 3);
+  --main - bg - color : var(--color - surface - 1);
+  --navbar - bg - color : var(--color - surface - 2);
+  --navbar - box - shadow : 0 - 0.2rem 0.8rem hsl(0deg 0 % 0 % / 40 %);
+  --navbar - text - color : white;
+  --navbar - text - bg - color - focus : var(--color - surface - 3);
+  --scrollbar - thumb - bg - color : var(--color - surface - 4);
+  --scrollbar - track - bg - color : var(--color - surface - 3);
+  --selection - bg - color : white;
+  --table - header - bg - color : var(--color - surface - 2);
+  --pill - bg - color - focus : var(--color - surface - 5);
+  --pill - bg - color : var(--color - surface - 3);
+  --color - code - background : hsl(0deg 0 % 12 %);
+  --color - code - overlay - 1 : hsl(0deg 0 % 25 %);
+  --color - code - overlay - 2 : hsl(0deg 0 % 60 %);
+  --color - code - selection : hsl(210deg 100 % 84 % / 15 %);
+  --color - code - comment : hsl(101deg 29 % 47 %);
+  --color - code - text : hsl(0deg 0 % 83 %);
+  --color - code - keyword : hsl(207deg 61 % 59 %);
+  --color - code - number : hsl(99deg 28 % 73 %);
+  --color - code - attribute : hsl(201deg 98 % 80 %);
+  --color - code - string : hsl(17deg 47 % 64 %);
+  --color - code - variable : var(--color - code - keyword);
+  --color - code - tag : var(--color - code - keyword);
+  --color - code - constant : var(--color - code - number);
+  --color - code - punctuation : #8a8a8a;
+  --color - code - selector : hsl(41deg 53 % 67 %)
 }
 
 
