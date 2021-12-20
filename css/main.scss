@@ -10,6 +10,16 @@ body {
   color : var(--color-text-normal);
 }
 
+.main-content {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-text-emphasis);
+  }
+
 html, html[data-theme="light"] {
   color-scheme : light;
   --color-surface-1 : white;
