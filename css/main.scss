@@ -2,14 +2,14 @@
 ---
 
 html, html[data-theme="light"] {
-	--link-color: rgb(0, 112, 201);
+  --link-color: rgb(0, 112, 201);
   --main-background-color: hsl(0, 0%, 90%);
   --main-text-color: hsl(0, 0%, 20%);
 }
 
 html[data-theme="dark"] {
-  --color - surface - 1 : hsl(0deg 0 % 8 %);
-  --color - surface - 2 : hsl(0deg 0 % 12 %);
+  --color-surface-1 : hsl(0, 0%, 8%);
+  --color-surface-2 : hsl(0deg 0 % 12 %);
   --color - surface - 3 : hsl(0deg 0 % 20 %);
   --color - surface - 4 : hsl(0deg 0 % 60 %);
   --color - surface - 5 : hsl(0deg 0 % 80 %);
