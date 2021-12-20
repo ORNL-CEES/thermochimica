@@ -19,11 +19,6 @@
   &::before {
     content: "copy";
   }
-
- {
-    color : #000;
-    background-color : var(--color-code-overlay-2)
-  }
   
   &::after {
     content: "";
