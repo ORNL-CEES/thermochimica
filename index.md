@@ -12,6 +12,10 @@ Markdown is a lightweight and easy-to-use syntax for styling your writing. It in
 
 {% include codeHeader.html %}
 ```markdown
+something to copy
+```
+
+```markdown
 Syntax highlighted code block
 
 # Header 1
