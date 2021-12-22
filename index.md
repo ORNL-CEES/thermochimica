@@ -6,14 +6,49 @@ Thermochimica requires a Fortran compiler and is regularly built using the GNU g
 
 Suggested modes of installation and operation for Ubuntu, MacOS, and Windows Subsystem for Linux (WSL) are decribed below. Please contact us or open an issue on GitHub should you encounter any difficulties. Also, suggestions for improvements to these instructions are welcome, particularly for native Windows installation.
 
-## Ubuntu
-
+## Prerequisites
+The prerequisites for cloning and building Thermochimica vary depending on the operating system. The instructions for some common OSs are provided below. 
+### Ubuntu
 Get packages required for basic Fortran compilation:
 {% include codeHeader.html %}
 ```bash
 sudo apt install build-essential gfortran liblapack-dev git
 ```
+Now follow the [steps for obtaining and building Thermochimica](#building-thermochimica).
+### MacOS
+If not already installed, install Xcode from the [Apple developer website](https://developer.apple.com/downloads/index.action) or using the [Mac App Store](https://apps.apple.com/us/app/xcode/id497799835).
 
+With Xcode installed, you can install Apple's Command Line Developer Tools by running the following command in the terminal:
+{% include codeHeader.html %}
+```bash
+xcode-select --install
+```
+
+The other dependencies for Thermochimica can be installed and managed using either [Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/index.php). Once either Brew or MacPorts is installed, they can be used to install the necessary packages. Using _Homebrew_, execute the following in terminal:
+{% include codeHeader.html %}
+```bash
+brew install make gcc
+```
+or using _MacPorts_, execute:
+{% include codeHeader.html %}
+```bash
+sudo port install gcc8
+```
+You can now proceed to [steps for obtaining and building Thermochimica](#building-thermochimica).
+### Windows (WSL)
+You can install the Windows Subsystem for Linux by following [the instructions from Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install).
+
+The default (Ubuntu) is good, so just run the one line there, restart, and try to start it. So in the windows shell (as administrator):
+{% include codeHeader.html %}
+```bash
+wsl --install
+```
+
+If WSL fails to start properly after reboot, you may need to create virtual disk space for WSL following [these instructions](https://utf9k.net/blog/wsl2-vhd-issue/).
+
+Once the Ubuntu app is successfully installed, you can follow the [Building Thermochimica](#building-thermochimica) instructions below.
+
+## Building Thermochimica
 Clone the repository and navigate to the root Thermochimica directory:
 {% include codeHeader.html %}
 ```bash
@@ -33,35 +68,13 @@ Run tests:
 ./run_tests
 ```
 
-## MacOS
-You can install [Brew](https://brew.sh/) to manage and install dependencies.
-
-Once Brew is installed, it can be used to install the necessary packages:
-{% include codeHeader.html %}
-```bash
-brew install make gcc git 
-```
-
-## Windows (WSL)
-You can install the Windows Subsystem for Linux by following [the instructions from Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install).
-
-The default (Ubuntu) is good, so just run the one line there, restart, and try to start it. So in the windows shell (as administrator):
-{% include codeHeader.html %}
-```bash
-wsl --install
-```
-
-If WSL fails to start properly after reboot, you may need to create virtual disk space for WSL following [these instructions](https://utf9k.net/blog/wsl2-vhd-issue/).
-
-Once the Ubuntu app is successfully installed, you can follow the Ubuntu instructions above.
-
 # Operation
 Thermochimica can be operated in three modes:
 1. Writing and compiling Fortran driver files (like those in the `test` directory).
 2. Using input scripts (like those in the `inputs` directory).
 3. Using the GUIs (can be run via scripts in the `scripts` directory).
 
-Method 1 is the most involved, but also the most powerful, in the sense that there are no limitations on the series of calculations that can be run or output obtained. Methods 2 and 3 have features that allow for simple loops over temperature, pressure, or composition to be performed.
+[Method 1](#method-1-fortran-driver-files) is the most involved, but also the most powerful, in the sense that there are no limitations on the series of calculations that can be run or output obtained. [Method 2](#method-2-input-scripts) and [Method 3](#method-3-guis) have features that allow for simple loops over temperature, pressure, or composition to be performed.
 
 ## Method 1: Fortran Driver Files
 Create a new `.F90` file in the `test` directory, for example `demo.F90`. You may want to start by copying an existing test file as a template. For example, from the root Thermochimica directory:
