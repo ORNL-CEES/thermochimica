@@ -130,8 +130,10 @@ to your .bashrc. This will be applied in any new terminal, so either restart you
 
 Finally, launch a GUI:
 ```bash
-python3 python/thermoGui.py
+./scripts/thermoGUI.sh
 ```
+
+If you have installed a python version other than your system default that you would like to use to run the Thermochimica GUIs, you can set the environment variable `python_for_thermochimica` to point to that python. Multiple interactive matplotlib windows seem to work better on python3.9 than with python3.8.
 
 License
 -------
