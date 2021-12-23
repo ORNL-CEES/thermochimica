@@ -15,6 +15,17 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-emphasis);
 }
 
+.wrapper {
+  width:1000px;
+  margin:0 auto;
+}
+
+section {
+  width:500px;
+  float:right;
+  padding-bottom:50px;
+}
+
 html, html[data-theme="light"] {
   color-scheme : light;
   --color-surface-1 : white;
