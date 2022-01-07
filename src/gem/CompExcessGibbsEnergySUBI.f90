@@ -84,12 +84,13 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
     integer :: iCi, iCj, iCk, iBi, iBj, iBk, iAi, iAj, iDi, iDj
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
-    integer :: iFirst, iLast, iExpCounter
+    integer :: iFirst, iLast, iExponentAdjust
     real(8) :: dSub1Total, dSub2Total, dydn
     real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, cc1, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
     real(8) :: dPreFactor, v, f, chargeCi, chargeCj, chargeCk
     real(8) :: yCi, yCj, yCk, yAi, yAj, yBi, yBj, yBk, yDi, yDj, gex
+    logical :: lEven
 
     ! Only proceed if the correct phase type is selected:
     IF_SUBL: if (cSolnPhaseType(iSolnIndex) == 'SUBI') then
@@ -113,7 +114,6 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         dgdc1                                                  = 0D0
         dgdc2                                                  = 0D0
         dMolDerivatives                                        = 0D0
-        iExpCounter = 0
 
         ! Compute site fractions on first sublattice:
         do i = iFirst, iLast
@@ -286,6 +286,8 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             iCk = 0
             iDi = 0
             iDj = 0
+
+            iExponentAdjust = 0
 
             yCi = 0D0
             yCj = 0D0
@@ -1084,16 +1086,28 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 iExponent = iRegularParam(l,n+2)
+
+                ! Accounting for odd/even exponentials
+                iExponentAdjust = iExponent
+
+                if (MOD(iExponent,2) == 0) then
+                    lEven = .TRUE.
+                else
+                    lEven = .FALSE.
+                    iExponentAdjust = iExponentAdjust + 1
+                end if
+
+                iExponentAdjust = iExponentAdjust / 2
+                
                 ! Excess Gibbs energy equation for L_Ci,Cj:Ak,Dl case
                 ! Dealing with the reciprocals
                 ! Part 1 of equation:
-                if (MOD(iExponent,2) == 0) then
-                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExpCounter)
+                if (lEven) then
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponentAdjust)
                 end if
                 ! Part 2 of equation:
-                if (MOD(iExponent,2) == 1) then
-                  iExpCounter = iExpCounter + 1
-                    gex = dPreFactor * dExcessGibbsParam(l) * (yAi - yDi)**(iExpCounter)
+                if (.NOT. lEven) then
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yAi - yDi)**(iExponentAdjust)
                 end if
 
                 ! Total Excess Gibbs Energy
@@ -1106,16 +1120,16 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                         if (i == iCi) then
                             dgdc1(i) = dgdc1(i) + gex / yCi
                             ! Dealing with the reciprocals
-                            if ((iExponent > 0) .AND. (MOD(iExponent,2) == 0)) then
-                                dgdc1(i) = dgdc1(i) +  gex * iExpCounter / (yCi - yCj)
+                            if ((iExponent > 0) .AND. (lEven)) then
+                                dgdc1(i) = dgdc1(i) +  gex * iExponentAdjust / (yCi - yCj)
                             end if
 
                         ! Derivative with respect to Cj
                         else if (i == iCj) then
                             dgdc1(i) = dgdc1(i) + gex / yCj
                             ! Dealing with the reciprocals
-                            if ((iExponent > 0) .AND. (MOD(iExponent,2) == 0)) then
-                                dgdc1(i) = dgdc1(i) + gex * iExpCounter * (-1) / (yCi - yCj)
+                            if ((iExponent > 0) .AND. (lEven)) then
+                                dgdc1(i) = dgdc1(i) + gex * iExponentAdjust * (-1) / (yCi - yCj)
                             end if
                         end if
                     end do
@@ -1131,16 +1145,16 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                             ! anion - Ak
                             dgdc2(i) = dgdc2(i) + gex / yAi
                             ! Dealing with the reciprocals
-                            if (MOD(iExponent,2) == 1) then
-                                dgdc2(i) = dgdc2(i) + gex * iExpCounter / (yAi - yDi)
+                            if (.NOT. lEven) then
+                                dgdc2(i) = dgdc2(i) + gex * iExponentAdjust / (yAi - yDi)
                             end if
 
                         else if (i == iDi) then
                             ! Dl
                             dgdc2(i) = dgdc2(i) + gex / yDi
                             ! Dealing with the reciprocals
-                            if (MOD(iExponent,2) == 1) then
-                                dgdc2(i) = dgdc2(i) + gex * iExpCounter * (-1) / (yAi - yDi)
+                            if (.NOT. lEven) then
+                                dgdc2(i) = dgdc2(i) + gex * iExponentAdjust * (-1) / (yAi - yDi)
                             end if
                         end if
                     end do
