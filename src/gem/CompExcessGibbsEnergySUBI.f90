@@ -84,7 +84,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
     integer :: i, j, l, k1, l1, k2, l2, m, n, c, d, k, s
     integer :: iCi, iCj, iCk, iBi, iBj, iBk, iAi, iAj, iDi, iDj
     integer :: iSolnIndex, nSublattice, iSPI, iExponent
-    integer :: iFirst, iLast
+    integer :: iFirst, iLast, iExpCounter
     real(8) :: dSub1Total, dSub2Total, dydn
     real(8) :: dSum, p, q, kc1, kc2, lc1, lc2, cc1, gref, gideal, gexcess, natom, yva, dMol, dMolAtoms
     real(8), dimension(:), allocatable :: dgdc1, dgdc2, dMolDerivatives
@@ -113,6 +113,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         dgdc1                                                  = 0D0
         dgdc2                                                  = 0D0
         dMolDerivatives                                        = 0D0
+        iExpCounter = 0
 
         ! Compute site fractions on first sublattice:
         do i = iFirst, iLast
@@ -1087,11 +1088,12 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 ! Dealing with the reciprocals
                 ! Part 1 of equation:
                 if (MOD(iExponent,2) == 0) then
-                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExponent)
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yCi - yCj)**(iExpCounter)
                 end if
                 ! Part 2 of equation:
                 if (MOD(iExponent,2) == 1) then
-                    gex = dPreFactor * dExcessGibbsParam(l) * (yAi - yDi)**(iExponent)
+                  iExpCounter = iExpCounter + 1
+                    gex = dPreFactor * dExcessGibbsParam(l) * (yAi - yDi)**(iExpCounter)
                 end if
 
                 ! Total Excess Gibbs Energy
@@ -1104,16 +1106,16 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                         if (i == iCi) then
                             dgdc1(i) = dgdc1(i) + gex / yCi
                             ! Dealing with the reciprocals
-                            if (MOD(iExponent,2) == 0) then
-                                dgdc1(i) = dgdc1(i) + gex * iExponent / (yCi - yCj)
+                            if ((iExponent > 0) .AND. (MOD(iExponent,2) == 0)) then
+                                dgdc1(i) = dgdc1(i) +  gex * iExpCounter / (yCi - yCj)
                             end if
 
                         ! Derivative with respect to Cj
                         else if (i == iCj) then
                             dgdc1(i) = dgdc1(i) + gex / yCj
                             ! Dealing with the reciprocals
-                            if (MOD(iExponent,2) == 0) then
-                                dgdc1(i) = dgdc1(i) + gex * iExponent * (-1) / (yCi - yCj)
+                            if ((iExponent > 0) .AND. (MOD(iExponent,2) == 0)) then
+                                dgdc1(i) = dgdc1(i) + gex * iExpCounter * (-1) / (yCi - yCj)
                             end if
                         end if
                     end do
@@ -1130,7 +1132,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                             dgdc2(i) = dgdc2(i) + gex / yAi
                             ! Dealing with the reciprocals
                             if (MOD(iExponent,2) == 1) then
-                                dgdc2(i) = dgdc2(i) + gex * iExponent / (yAi - yDi)
+                                dgdc2(i) = dgdc2(i) + gex * iExpCounter / (yAi - yDi)
                             end if
 
                         else if (i == iDi) then
@@ -1138,7 +1140,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                             dgdc2(i) = dgdc2(i) + gex / yDi
                             ! Dealing with the reciprocals
                             if (MOD(iExponent,2) == 1) then
-                                dgdc2(i) = dgdc2(i) + gex * iExponent * (-1) / (yAi - yDi)
+                                dgdc2(i) = dgdc2(i) + gex * iExpCounter * (-1) / (yAi - yDi)
                             end if
                         end if
                     end do
