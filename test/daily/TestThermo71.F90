@@ -20,9 +20,9 @@
     ! Purpose:
     ! ========
     !\details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !!  results for the Zirc Data file at 1500K with 0.7 mols of Cn, 0.2 mols of Zr and 0.1 of O. It also 
+    !!  results for the Zirc Data file at 1500K with 0.7 mols of Cn, 0.2 mols of Zr and 0.1 of O. It also
     !!  tests mixing term Case #2 an #3 of the SUBI phase. Permission was granted from N. Dupin to make
-    !!  use of the Zirc DAT file. 
+    !!  use of the Zirc DAT file.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -32,14 +32,14 @@ program TestThermo71
     USE ModuleThermo
 
     implicit none
-    
-    real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
+
+    real(8) :: sfcheck1, sfcheck2, sfcheck3
 
     real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
     integer :: i,j,k,l
-    logical :: s1pass, s2pass, s3pass, s4pass
+    logical :: s1pass, s2pass, s3pass
 
-    
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -53,16 +53,16 @@ program TestThermo71
     dElementMass(8)         = 0.1D0          ! O
     dElementMass(24)        = 0.2D0          ! Cr
     dElementMass(40)        = 0.7D0          ! Zr
-    
+
     ! Liquid #1
     sfcheck1 = 3.30097D-1      !Cr
     sfcheck2 = 6.69903D-1      !Zr
     sfcheck3 = 9.99997D-1      !Va
-    
+
     pcheck1 = -126330D0        ! Cr
     pcheck2 = -628950D0        ! O
     pcheck3 = -151241D0        ! Zr
-    
+
     gibbscheck = -194030D0
 
     ! Parse the ChemSage data-file:
@@ -97,13 +97,13 @@ program TestThermo71
                             end if
                         end do
                     end do
-          
+
                 end if
             end do
         end if
     end if
 
-    if (s1pass .AND. & 
+    if (s1pass .AND. &
         s2pass .AND. &
         s3pass) then
         ! The test passed:
