@@ -62,7 +62,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   if (INFO /= 0) then
     INFOThermo = 40
     print *, 'Cannot open input file ' // cInputFileName
-    return
+    call EXIT(1)
   end if
 
   ! Initialize for read loop

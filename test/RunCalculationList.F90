@@ -264,8 +264,14 @@ program RunCalculationList
       write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2)
       call WriteJSON(.TRUE.)
-      INFOThermo = 0
-      call ResetThermo
+      ! Reset Thermochimica:
+      if (INFOThermo == 0) then
+          call ResetThermo
+      else
+          call ResetThermoAll
+          INFOThermo = 0
+          call ParseCSDataFile(cThermoFileName)
+      end if
     end do
     CLOSE(3)
 

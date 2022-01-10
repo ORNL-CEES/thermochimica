@@ -44,7 +44,7 @@ subroutine WriteJSON(append)
     do i = 1, nElements - nElectron
         write(1,*) '    "', TRIM(cElementName(i)), '": {'
         write(1,*) '      "moles": ', dMolesElement(i), ','
-        write(1,*) '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
+        write(1,'(A28,ES25.16E3)') '      "element potential": ', dElementPotential(i) * dIdealConstant * dTemperature
         if (i < nElements - nElectron) then
             write(1,*) '    },'
         else
@@ -99,7 +99,7 @@ subroutine WriteJSONSolnPhase
 
         ! Print solution phase name:
         if (lMiscibility(j)) then
-            write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '#2": {'
+            write(1,'(A,A,A,I0,A)') '     "', TRIM(ADJUSTL(cSolnPhaseName(j))), '#', j, '": {'
         else
             write(1,*) '    "', TRIM(ADJUSTL(cSolnPhaseName(j))), '": {'
         end if

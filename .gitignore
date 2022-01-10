@@ -8,3 +8,20 @@ doc/test/
 test/doc/
 # ignore outputs
 *.out
+*.txt
+*.dat
+*.DAT
+*.Dat
+*.json
+*.pdf
+*.mod
+*.a
+*.ti
+*.png
+*.jpg
+*.jpeg
+# some of these will occasionally require manual override
+data/
+test/
+python/
+private_tests

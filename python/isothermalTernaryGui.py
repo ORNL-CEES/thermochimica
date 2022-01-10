@@ -12,6 +12,7 @@ from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
 from shapely.geometry import LineString
+from shapely.geometry import GeometryCollection
 from shapely.prepared import prep
 from shapely.ops import split
 from functools import reduce
@@ -185,6 +186,12 @@ class CalculationWindow:
         self.figureList = []
         self.tielines = True
         self.tiegap = 1/27
+        self.boundaries = []
+        self.phases = []
+        self.b = []
+        self.label1phase = True
+        self.label2phase = True
+        self.label3phase = True
     def close(self):
         for child in self.children:
             child.close()
@@ -352,18 +359,22 @@ class CalculationWindow:
                 colorful = False
                 bland    = True
             settingsLayout = [[sg.Text('Marker Style:')],
-                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                             [sg.Text('Plot Colors:')],
-                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                             [sg.Checkbox('Tielines', default=self.tielines, key='-tielines-'),
-                              sg.Text('Density:'),sg.Input(key='-tiedensity-',size=(inputSize,1))],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
-                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
-                             [sg.Button('Accept')]]
+                              [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                              [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                              [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                              [sg.Text('Plot Colors:')],
+                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                              [sg.Checkbox('Tielines', default=self.tielines, key='-tielines-'),
+                               sg.Text('Density:'),sg.Input(key='-tiedensity-',size=(inputSize,1))],
+                              [sg.Text('Auto-Label Settings:')],
+                              [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
+                               sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-'),
+                               sg.Checkbox('3-Phase Regions', default=self.label3phase, key='-label3phase-')],
+                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
         elif event =='Undo':
@@ -465,53 +476,54 @@ class CalculationWindow:
         subprocess.run(['./bin/Phase3DiagramDataGen',self.inputFileName])
         print('Thermochimica calculation finished.')
         self.processPhaseDiagramData()
-    def makePlot(self):
-        boundaries = []
-        phases = []
-        b = []
+    def phaseBoundaries(self):
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
+            for j in range(len(self.boundaries)):
+                if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                    self.b.append(j)
                     repeat = True
             if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
+                self.boundaries.append([self.p1[i],self.p2[i]])
+                self.b.append(len(self.boundaries)-1)
 
-        for i in range(len(boundaries)):
+        for i in range(len(self.boundaries)):
             repeat1 = False
             repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
+            for j in range(len(self.phases)):
+                if (self.boundaries[i][0] == self.phases[j]):
                     repeat1 = True
-                if (boundaries[i][1] == phases[j]):
+                if (self.boundaries[i][1] == self.phases[j]):
                     repeat2 = True
-            if not(repeat1):
-                phases.append(boundaries[i][0])
-            if not(repeat2):
-                phases.append(boundaries[i][1])
-
+            if not(repeat1 or self.boundaries[i][0].find('#') > 0):
+                self.phases.append(self.boundaries[i][0])
+            if not(repeat2 or self.boundaries[i][1].find('#') > 0):
+                self.phases.append(self.boundaries[i][1])
+    def makePlot(self):
+        self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
         plt.ion()
         ax = fig.add_axes([0.125, 0.1, 0.75, 0.85])
 
-        # plot 2-phase region boundaries
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
-        for j in range(len(boundaries)):
+        # plot 2-phase region self.boundaries
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.boundaries))))
+        for j in range(len(self.boundaries)):
             if self.plotColor == 'colorful':
                 c = next(color)
             else:
                 c = 'k'
-            inds = [i for i, k in enumerate(b) if k == j]
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -618,42 +630,10 @@ class CalculationWindow:
     def autoRefine(self,res):
         outline = Polygon([[0,0],[0,1],[1,0],[0,0]])
         maxArea = 0
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        # Make list of phases
-        phases = []
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1):
-                phases.append(boundaries[i][0])
-            if not(repeat2):
-                phases.append(boundaries[i][1])
+        self.phaseBoundaries()
 
         # find and subtract 1-phase regions
-        for phase in phases:
+        for phase in self.phases:
             inds1 = [i for i, k in enumerate(self.p1) if k == phase]
             inds2 = [i for i, k in enumerate(self.p2) if k == phase]
             points = []
@@ -675,8 +655,8 @@ class CalculationWindow:
                 continue
 
         # find and subtract 2-phase regions
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
+        for j in range(len(self.boundaries)):
+            inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
             v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -714,6 +694,10 @@ class CalculationWindow:
         yindices = np.linspace(otlo, othi, subres)
         horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
         vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+        # If the outline contains non-polygon shapes (like lines) it will be a GeometryCollection instead
+        # and we need to remove those non-polygon shapes so it can be a MultiPolygon again
+        if isinstance(outline,GeometryCollection):
+            outline = MultiPolygon([shape for shape in list(outline.geoms) if isinstance(shape,Polygon)])
         for splitter in vertical_splitters:
             try:
                 outline = MultiPolygon(split(outline, splitter))
@@ -724,7 +708,7 @@ class CalculationWindow:
                 outline = MultiPolygon(split(outline, splitter))
             except:
                 continue
-        for tempOutline in list(outline):
+        for tempOutline in list(outline.geoms):
             if tempOutline.area < (1 / (10*res**2)):
                 continue
             maxArea = max(tempOutline.area,maxArea)
@@ -759,30 +743,13 @@ class CalculationWindow:
             nIt = nIt + 1
             maxGap = 0
             # Create arrays again with new data
-            boundaries = []
-            b = []
-            for i in range(len(self.p1)):
-                # If a miscibility gap label has been used unnecessarily, remove it
-                if self.p1[i].find('#2') > 0:
-                    if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                        self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-                if self.p2[i].find('#2') > 0:
-                    if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                        self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-                repeat = False
-                for j in range(len(boundaries)):
-                    if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                        b.append(j)
-                        repeat = True
-                if not(repeat):
-                    boundaries.append([self.p1[i],self.p2[i]])
-                    b.append(len(boundaries)-1)
+            self.phaseBoundaries()
 
             # Refine two-phase region density
             xs = []
             ys = []
-            for j in range(len(boundaries)):
-                inds = [i for i, k in enumerate(b) if k == j]
+            for j in range(len(self.boundaries)):
+                inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
                 v1 = np.array([self.x1[inds[1],0],self.x1[inds[1],1],0])
@@ -806,69 +773,40 @@ class CalculationWindow:
     def autoLabel(self):
         self.makeBackup()
         self.sgw.Element('Undo').Update(disabled = False)
-        # Make list of boundaries and points belonging to them
-        boundaries = []
-        b = []
-        for i in range(len(self.p1)):
-            # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
-            repeat = False
-            for j in range(len(boundaries)):
-                if (boundaries[j][0] == self.p1[i]) and (boundaries[j][1] == self.p2[i]):
-                    b.append(j)
-                    repeat = True
-            if not(repeat):
-                boundaries.append([self.p1[i],self.p2[i]])
-                b.append(len(boundaries)-1)
-
-        # Make list of phases
-        phases = []
-        for i in range(len(boundaries)):
-            repeat1 = False
-            repeat2 = False
-            for j in range(len(phases)):
-                if (boundaries[i][0] == phases[j]):
-                    repeat1 = True
-                if (boundaries[i][1] == phases[j]):
-                    repeat2 = True
-            if not(repeat1):
-                phases.append(boundaries[i][0])
-            if not(repeat2):
-                phases.append(boundaries[i][1])
+        # Make list of self.boundaries and points belonging to them
+        self.phaseBoundaries()
 
         # label 1-phase regions
-        for phase in phases:
-            inds1 = [i for i, k in enumerate(self.p1) if k == phase]
-            inds2 = [i for i, k in enumerate(self.p2) if k == phase]
-            points = []
-            if len(inds1) > 0:
-                points.extend(self.x1[inds1].tolist())
-            if len(inds2) > 0:
-                points.extend(self.x2[inds2].tolist())
-            for point in self.points1:
-                if point[1] == phase:
-                    points.append(point[0])
-            points = np.array(points)
-            average = np.average(points,axis=0)
-            self.labels.append([[average[0],average[1]],phase])
+        if self.label1phase:
+            for phase in self.phases:
+                inds1 = [i for i, k in enumerate(self.p1) if k == phase]
+                inds2 = [i for i, k in enumerate(self.p2) if k == phase]
+                points = []
+                if len(inds1) > 0:
+                    points.extend(self.x1[inds1].tolist())
+                if len(inds2) > 0:
+                    points.extend(self.x2[inds2].tolist())
+                for point in self.points1:
+                    if point[1] == phase:
+                        points.append(point[0])
+                points = np.array(points)
+                average = np.average(points,axis=0)
+                self.labels.append([[average[0],average[1]],phase])
 
         # label 2-phase regions
-        for j in range(len(boundaries)):
-            inds = [i for i, k in enumerate(b) if k == j]
-            if len(inds) < 2:
-                continue
-            average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
-            self.labels.append([[average[0],average[1]],'+'.join(boundaries[j])])
+        if self.label2phase:
+            for j in range(len(self.boundaries)):
+                inds = [i for i, k in enumerate(self.b) if k == j]
+                if len(inds) < 2:
+                    continue
+                average = (np.average(self.x1[inds],axis=0) + np.average(self.x2[inds],axis=0)) / 2
+                self.labels.append([[average[0],average[1]],'+'.join(self.boundaries[j])])
 
         # label 3-phase regions
-        for point in self.points3:
-            average = np.average(point[0],axis=0)
-            self.labels.append([[average[0],average[1]],'+'.join(point[1])])
+        if self.label3phase:
+            for point in self.points3:
+                average = np.average(point[0],axis=0)
+                self.labels.append([[average[0],average[1]],'+'.join(point[1])])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
@@ -900,6 +838,9 @@ class CalculationWindow:
         self.backup.resSmooth = self.resSmooth
         self.backup.tielines = self.tielines
         self.backup.tiegap = self.tiegap
+        self.backup.label1phase = self.label1phase
+        self.backup.label2phase = self.label2phase
+        self.backup.label3phase = self.label3phase
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1120,6 +1061,9 @@ class SettingsWindow:
             self.parent.plotColor = 'bland'
         elif event =='Accept':
             self.parent.tielines = values['-tielines-']
+            self.parent.label1phase = values['-label1phase-']
+            self.parent.label2phase = values['-label2phase-']
+            self.parent.label3phase = values['-label3phase-']
             try:
                 tempdensity = float(values['-tiedensity-'])
                 if 0 < tempdensity < 1000:
