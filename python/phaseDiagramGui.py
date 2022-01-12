@@ -11,6 +11,7 @@ from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
 from shapely.geometry import LineString
+from shapely.geometry import GeometryCollection
 from shapely.prepared import prep
 from shapely.ops import split
 from functools import reduce
@@ -187,6 +188,8 @@ class CalculationWindow:
         self.phases = []
         self.b = []
         self.congruentFound = [False for i in range(len(self.phases))]
+        self.label1phase = True
+        self.label2phase = True
     def close(self):
         for child in self.children:
             child.close()
@@ -386,16 +389,19 @@ class CalculationWindow:
                 colorful = False
                 bland    = True
             settingsLayout = [[sg.Text('Marker Style:')],
-                             [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                             [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                             [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                             [sg.Text('Plot Colors:')],
-                             [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                             [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
-                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
-                             [sg.Button('Accept')]]
+                              [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                              [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                              [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                              [sg.Text('Plot Colors:')],
+                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                              [sg.Text('Auto-Label Settings:')],
+                              [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
+                               sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-')],
+                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
         elif event =='Undo':
@@ -508,12 +514,12 @@ class CalculationWindow:
         self.b = []
         for i in range(len(self.p1)):
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#2') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#2')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#2')]
-            if self.p2[i].find('#2') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#2')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#2')]
+            if self.p1[i].find('#') > 0:
+                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
+                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
+            if self.p2[i].find('#') > 0:
+                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
+                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
             for j in range(len(self.boundaries)):
                 if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
@@ -531,9 +537,9 @@ class CalculationWindow:
                     repeat1 = True
                 if (self.boundaries[i][1] == self.phases[j]):
                     repeat2 = True
-            if not(repeat1):
+            if not(repeat1 or self.boundaries[i][0].find('#') > 0):
                 self.phases.append(self.boundaries[i][0])
-            if not(repeat2):
+            if not(repeat2 or self.boundaries[i][1].find('#') > 0):
                 self.phases.append(self.boundaries[i][1])
 
         self.congruentFound = [False for i in range(len(self.phases))]
@@ -551,7 +557,13 @@ class CalculationWindow:
             extraBound = []
             for i in range(len(ttt)):
                 if (x1t[i] > x2t[i]) != dir:
-                    extraBound.append(i)
+                    # for miscibility gap, just flip them
+                    if self.boundaries[j][0].find('#') > 0 or self.boundaries[j][1].find('#') > 0:
+                        temp = self.x1[inds[i]]
+                        self.x1[inds[i]] = self.x2[inds[i]]
+                        self.x2[inds[i]] = temp
+                    else:
+                        extraBound.append(i)
             if len(extraBound):
                 self.congruentFound[self.phases.index(self.boundaries[j][0])] = True
                 self.congruentFound[self.phases.index(self.boundaries[j][1])] = True
@@ -590,7 +602,7 @@ class CalculationWindow:
                 continue
             i = self.phases.index(self.x0data[0][j])
             if j > 0:
-                ax.plot(0,self.x0data[1][j],'kv')
+                # ax.plot(0,self.x0data[1][j],'kv')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j-1] in self.boundaries[k]):
@@ -617,7 +629,7 @@ class CalculationWindow:
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
                         bEdgeLine[k][1] = True
             if j < len(self.x0data[1]) - 1:
-                ax.plot(0,self.x0data[2][j],'k^')
+                # ax.plot(0,self.x0data[2][j],'k^')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x0data[0][j] in self.boundaries[k]) and (self.x0data[0][j+1] in self.boundaries[k]):
@@ -648,7 +660,7 @@ class CalculationWindow:
                 continue
             i = self.phases.index(self.x1data[0][j])
             if j > 0:
-                ax.plot(1,self.x1data[1][j],'kv')
+                # ax.plot(1,self.x1data[1][j],'kv')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j-1] in self.boundaries[k]):
@@ -675,7 +687,7 @@ class CalculationWindow:
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
                         bEdgeLine[k][1] = True
             if j < len(self.x1data[1]) - 1:
-                ax.plot(1,self.x1data[2][j],'k^')
+                # ax.plot(1,self.x1data[2][j],'k^')
                 match = []
                 for k in range(len(self.boundaries)):
                     if (self.x1data[0][j] in self.boundaries[k]) and (self.x1data[0][j+1] in self.boundaries[k]):
@@ -875,6 +887,10 @@ class CalculationWindow:
             yindices = np.linspace(otlo, othi, subres)
             horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
             vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+            # If the outline contains non-polygon shapes (like lines) it will be a GeometryCollection instead
+            # and we need to remove those non-polygon shapes so it can be a MultiPolygon again
+            if isinstance(self.outline,GeometryCollection):
+                self.outline = MultiPolygon([shape for shape in list(self.outline.geoms) if isinstance(shape,Polygon)])
             for splitter in vertical_splitters:
                 try:
                     self.outline = MultiPolygon(split(self.outline, splitter))
@@ -885,7 +901,7 @@ class CalculationWindow:
                     self.outline = MultiPolygon(split(self.outline, splitter))
                 except:
                     continue
-            for tempOutline in list(self.outline):
+            for tempOutline in list(self.outline.geoms):
                 if (tempOutline.area / (self.maxt-self.mint)) < (1 / (10*res**2)):
                     continue
                 maxArea = max(tempOutline.area / (self.maxt-self.mint),maxArea)
@@ -1051,24 +1067,26 @@ class CalculationWindow:
                 polygonPoints.append([x2t[i],ttt[i]])
             phaseOutline = Polygon(polygonPoints)#.buffer(0)
             center = list(phaseOutline.centroid.coords)[0]
-            self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
+            if self.label2phase:
+                self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
             for i in range(len(self.phases)):
                 if self.boundaries[j][0] == self.phases[i]:
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
                 if self.boundaries[j][1] == self.phases[i]:
                     phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
 
-        for i in range(len(self.phases)):
-            if self.congruentFound[i]:
-                print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
-                continue
-            segcenters = []
-            if len(phasePolyPoints[i]) < 2:
-                continue
-            for j in range(len(phasePolyPoints[i])):
-                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-            self.labels.append([[center[0],center[1]],self.phases[i]])
+        if self.label1phase:
+            for i in range(len(self.phases)):
+                if self.congruentFound[i]:
+                    print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
+                    continue
+                segcenters = []
+                if len(phasePolyPoints[i]) < 2:
+                    continue
+                for j in range(len(phasePolyPoints[i])):
+                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+                self.labels.append([[center[0],center[1]],self.phases[i]])
     def makeBackup(self):
         self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
         self.backup.datafile = self.datafile
@@ -1101,6 +1119,8 @@ class CalculationWindow:
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
         self.backup.gapLimit = self.gapLimit
+        self.backup.label1phase = self.label1phase
+        self.backup.label2phase = self.label2phase
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1328,6 +1348,8 @@ class SettingsWindow:
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
         elif event =='Accept':
+            self.parent.label1phase = values['-label1phase-']
+            self.parent.label2phase = values['-label2phase-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.exportFileName = str(values['-filename-'])
