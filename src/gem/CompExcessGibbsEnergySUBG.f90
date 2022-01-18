@@ -73,7 +73,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     integer :: i, j, k, l, m, ii, jj, kk ,ll, ka, la
     integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
-    integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2
+    integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
     integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
@@ -96,6 +96,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     iSPI = iPhaseSublattice(iSolnIndex)
     nSub1 = nConstituentSublattice(iSPI,1)
     nSub2 = nConstituentSublattice(iSPI,2)
+    nA2X2 = nSub1 * nSub2
 
     ! Allocate allocatable arrays:
     if (allocated(dXi)) deallocate(dXi)
@@ -181,8 +182,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     dSumNsij = 0D0
     do i = 1, nSub1
         do j = 1, nSub2
-            m = iConstituentSublattice(iSPI,1,i) + &
-            ((iConstituentSublattice(iSPI,2,j) - 1) * nSub1)
             do k = 1, nPairsSRO(iSPI,2)
                 l = iFirst + k - 1
                 nA = 0
@@ -200,6 +199,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     nX = nX + 1
                 end if
                 dNij(i,j)  = dNij(i,j)  + (dMolFraction(l) * nA * nX)
+                do kk = 1, nA2X2
+                    if   ((iConstituentSublattice(iSPI,1,kk) == i) &
+                    .AND. (iConstituentSublattice(iSPI,2,kk) == j)) then
+                        m = kk
+                    end if
+                end do
                 dNsij(i,j) = dNsij(i,j) + (dMolFraction(l) * nA * nX / dZetaSpecies(iSPI,m))
             end do
             dSumNij  = dSumNij  + dNij(i,j)
@@ -264,8 +269,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! m = 0
         do i = 1, nSub1
             do j = 1, nSub2
-                m = iConstituentSublattice(iSPI,1,i) + &
-                ((iConstituentSublattice(iSPI,2,j) - 1) * nSub1)
                 nA = 0
                 if (i == iPairID(iSPI,k,1))  then
                     nA = nA + 1
@@ -280,6 +283,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSub1) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
+                do kk = 1, nA2X2
+                    if   ((iConstituentSublattice(iSPI,1,kk) == i) &
+                    .AND. (iConstituentSublattice(iSPI,2,kk) == j)) then
+                        m = kk
+                    end if
+                end do
                 dEntropy = dEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
                             * (nA * nX / dZetaSpecies(iSPI,m)))
             end do
@@ -307,7 +316,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dPowXij = 0.75D0
             dPowYi  = 0.5D0
         end if
-        
+
         if (.NOT. (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll) == 0D0)) then
             dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
                             / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
