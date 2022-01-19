@@ -424,6 +424,8 @@ subroutine Thermochimica
 
     implicit none
 
+    integer :: i, j
+
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
 
@@ -448,6 +450,17 @@ subroutine Thermochimica
     ! Estimate the equilibrium phase assemblage and other important properties
     ! using the Leveling algorithm:
     if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
+
+    ! Fuzzy stoichiometry
+    if (lFuzzyStoich) then
+        do i = 1, nSpecies
+            do j = 1, nElements
+                if (dStoichSpecies(i,j) > 0D0) then
+                    dStoichSpecies(i,j) = dStoichSpecies(i,j) + 2D0 * (RAND(0) - 0.5D0) * 1D-12
+                end if
+            end do
+        end do
+    end if
 
     ! Improve estimates from the Leveling subroutine using the Post-Leveling
     ! algorithm:
