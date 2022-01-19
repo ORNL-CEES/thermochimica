@@ -569,7 +569,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                     else if ((i == b) .AND. (j == y)) then
                         dDgex = dDgex + dGex*(dNsij(a,x) - dNsij(b,y)*p + dNsij(a,x)*q) / (dNsij(b,y) * (dNsij(b,y) + dNsij(a,x)))
                     end if
-                    m = iConstituentSublattice(iSPI,1,i) + ((iConstituentSublattice(iSPI,2,j) - 1) * nSub1)
                     do k = 1, nPairsSRO(iSPI,2)
                         l = iFirst + k - 1
                         nA = 0
@@ -586,6 +585,12 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         if ((j + nSub1) == iPairID(iSPI,k,4))  then
                             nX = nX + 1
                         end if
+                        do kk = 1, nA2X2
+                            if   ((iConstituentSublattice(iSPI,1,kk) == i) &
+                            .AND. (iConstituentSublattice(iSPI,2,kk) == j)) then
+                                m = kk
+                            end if
+                        end do
                         ! Add derivative contribution
                         dPartialExcessGibbs(l) = dPartialExcessGibbs(l) + (dDgex * nA * nX / dZetaSpecies(iSPI,m))
                         ! Add dGex to every quadruplet chemical potential
