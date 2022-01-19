@@ -189,6 +189,8 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(dQKTOParams)) deallocate(dQKTOParams, STAT = INFO)
     i = i + INFO
+    if (allocated(dStoichSpeciesUnFuzzed)) deallocate(dStoichSpeciesUnFuzzed, STAT = INFO)
+    i = i + INFO
 
     lRetryAttempted = .FALSE.
 
