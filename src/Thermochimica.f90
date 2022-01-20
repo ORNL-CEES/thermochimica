@@ -424,7 +424,7 @@ subroutine Thermochimica
 
     implicit none
 
-    integer :: i, j
+    integer :: i, j, INFO
 
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
@@ -452,7 +452,7 @@ subroutine Thermochimica
     if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
 
     ! Fuzzy stoichiometry
-    if (lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
+    if (INFOThermo == 0 .AND. lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
         allocate(dStoichSpeciesUnFuzzed(nSpecies,nElements))
         do i = 1, nSpecies
             do j = 1, nElements
@@ -473,13 +473,17 @@ subroutine Thermochimica
     if (INFOThermo == 0) call GEMSolver
 
     ! Un-fuzz stoichiometry
-    if (lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
+    if (INFOThermo == 0 .AND. lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
         do i = 1, nSpecies
             do j = 1, nElements
                 dStoichSpecies(i,j) = dStoichSpeciesUnFuzzed(i,j)
             end do
         end do
         deallocate(dStoichSpeciesUnFuzzed)
+
+        ! Recompute with reset stoichiometry
+        call GEMNewton(INFO)
+        call GEMLineSearch
     end if
 
     if (.NOT. lRetryAttempted) then
