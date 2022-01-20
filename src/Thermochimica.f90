@@ -452,7 +452,7 @@ subroutine Thermochimica
     if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
 
     ! Fuzzy stoichiometry
-    if (lFuzzyStoich) then
+    if (lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
         allocate(dStoichSpeciesUnFuzzed(nSpecies,nElements))
         do i = 1, nSpecies
             do j = 1, nElements
@@ -473,7 +473,7 @@ subroutine Thermochimica
     if (INFOThermo == 0) call GEMSolver
 
     ! Un-fuzz stoichiometry
-    if (lFuzzyStoich) then
+    if (lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
         do i = 1, nSpecies
             do j = 1, nElements
                 dStoichSpecies(i,j) = dStoichSpeciesUnFuzzed(i,j)
