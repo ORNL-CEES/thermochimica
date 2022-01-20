@@ -424,7 +424,9 @@ subroutine Thermochimica
 
     implicit none
 
-    integer :: i, j
+    integer :: i, j, k, l, iSPI, iax, iay, ibx, iby, a, b, x, y, xa, ya, nA2X2, ia2x2, ia2y2, ib2x2, ib2y2
+    real(8) :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
+    real(8) :: qx, qy, za, zb, zx, zy, dCoax, dCobx, dCoay, dCoby
 
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
@@ -453,6 +455,7 @@ subroutine Thermochimica
 
     ! Fuzzy stoichiometry
     if (lFuzzyStoich) then
+        call SRAND(7)
         allocate(dStoichSpeciesUnFuzzed(nSpecies,nElements))
         do i = 1, nSpecies
             do j = 1, nElements
@@ -461,6 +464,85 @@ subroutine Thermochimica
                     dStoichSpecies(i,j) = dStoichSpecies(i,j) + 2D0 * (RAND(0) - 0.5D0) * 1D-12
                 end if
             end do
+        end do
+
+        ! Apply fuzziness to pairs rather than quaruplets for MQM
+        do i = 1, nSolnPhasesSys
+            if (cSolnPhaseType(i) == 'SUBG' .OR. cSolnPhaseType(i) == 'SUBQ') then
+                iSPI = iPhaseSublattice(i)
+                nA2X2 = nConstituentSublattice(iSPI,1) * nConstituentSublattice(iSPI,2)
+                do k = 1, nA2X2
+                    do j = 1, nElements
+                        if (dStoichPairs(iSPI,k,j) > 0D0) dStoichPairs(iSPI,k,j)=dStoichPairs(iSPI,k,j)+2D0*(RAND(0)-0.5D0)*1D-12
+                    end do
+                end do
+
+                ! Loop through all pairs to calculate stoichiometry entries for quadruplets:
+                do j = 1, nPairsSRO(iSPI,2)
+                    a = iPairID(iSPI, j, 1)
+                    b = iPairID(iSPI, j, 2)
+                    x = iPairID(iSPI, j, 3)
+                    y = iPairID(iSPI, j, 4)
+
+                    xa = x - nConstituentSublattice(iSPI,1)
+                    ya = y - nConstituentSublattice(iSPI,1)
+
+                    do k = 1, nA2X2
+                        if   ((iConstituentSublattice(iSPI,1,k) == a) &
+                        .AND. (iConstituentSublattice(iSPI,2,k) == xa)) then
+                            iax = k
+                        end if
+                        if   ((iConstituentSublattice(iSPI,1,k) == b) &
+                        .AND. (iConstituentSublattice(iSPI,2,k) == xa)) then
+                            ibx = k
+                        end if
+                        if   ((iConstituentSublattice(iSPI,1,k) == a) &
+                        .AND. (iConstituentSublattice(iSPI,2,k) == ya)) then
+                            iay = k
+                        end if
+                        if   ((iConstituentSublattice(iSPI,1,k) == b) &
+                        .AND. (iConstituentSublattice(iSPI,2,k) == ya)) then
+                            iby = k
+                        end if
+                    end do
+
+                    ia2x2 = a + ((xa - 1) * (nConstituentSublattice(iSPI,1) &
+                                            * (nConstituentSublattice(iSPI,1) + 1) / 2))
+                    ib2x2 = b + ((xa - 1) * (nConstituentSublattice(iSPI,1) &
+                                            * (nConstituentSublattice(iSPI,1) + 1) / 2))
+                    ia2y2 = a + ((ya - 1) * (nConstituentSublattice(iSPI,1) &
+                                            * (nConstituentSublattice(iSPI,1) + 1) / 2))
+                    ib2y2 = b + ((ya - 1) * (nConstituentSublattice(iSPI,1) &
+                                            * (nConstituentSublattice(iSPI,1) + 1) / 2))
+
+                    dZaA2X2 = dCoordinationNumber(iSPI,ia2x2,1)
+                    dZbB2X2 = dCoordinationNumber(iSPI,ib2x2,1)
+                    dZaA2Y2 = dCoordinationNumber(iSPI,ia2y2,1)
+                    dZbB2Y2 = dCoordinationNumber(iSPI,ib2y2,1)
+
+                    za = dCoordinationNumber(iSPI,j,1)
+                    zb = dCoordinationNumber(iSPI,j,2)
+                    zx = dCoordinationNumber(iSPI,j,3)
+                    zy = dCoordinationNumber(iSPI,j,4)
+
+                    qx = dSublatticeCharge(iSPI,2,xa)
+                    qy = dSublatticeCharge(iSPI,2,ya)
+
+                    l = j + nSpeciesPhase(i-1)
+
+                    dCoax = dConstituentCoefficients(iSPI,iax,1)
+                    dCobx = dConstituentCoefficients(iSPI,ibx,1)
+                    dCoay = dConstituentCoefficients(iSPI,iay,1)
+                    dCoby = dConstituentCoefficients(iSPI,iby,1)
+                    do k = 1, nElements
+                        dStoichSpecies(l,k) = ((qx * dStoichPairs(iSPI,iax,k) / (za * zx * dCoax))  &
+                                            +  (qx * dStoichPairs(iSPI,ibx,k) / (zb * zx * dCobx))  &
+                                            +  (qy * dStoichPairs(iSPI,iay,k) / (za * zy * dCoay))  &
+                                            +  (qy * dStoichPairs(iSPI,iby,k) / (zb * zy * dCoby))) &
+                                                / ((qx/zx) + (qy/zy))
+                    end do
+                end do
+            end if
         end do
     end if
 
