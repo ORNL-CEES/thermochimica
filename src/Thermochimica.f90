@@ -425,6 +425,7 @@ subroutine Thermochimica
     implicit none
 
     integer :: i, j, INFO
+    logical :: lSmallPhase
 
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
@@ -481,17 +482,27 @@ subroutine Thermochimica
         end do
         deallocate(dStoichSpeciesUnFuzzed)
 
-        ! Recompute with reset stoichiometry
-        resetLoop: do i = 1, 30
-            call GEMNewton(INFO)
-            call GEMLineSearch
-            do j = 1, nElements
-                if (dMolesPhase(j) < 0D0) then
-                    dMolesPhase(j) = 0D0
-                    EXIT resetLoop
-                end if
-            end do
-        end do resetLoop
+        lSmallPhase = .FALSE.
+        do i = 1, nElements
+            if (dMolesPhase(i) > 0D0 .AND. dMolesPhase(i) < 1D-10) lSmallPhase = .TRUE.
+        end do
+
+        ! Recompute with reset stoichiometry if there is a minor phase
+        if (lSmallPhase) then
+            resetLoop: do i = 1, 30
+                print *, dElementPotential
+                print *, dMolesPhase
+                print *
+                call GEMNewton(INFO)
+                call GEMLineSearch
+                do j = 1, nElements
+                    if (dMolesPhase(j) < 0D0) then
+                        dMolesPhase(j) = 0D0
+                        EXIT resetLoop
+                    end if
+                end do
+            end do resetLoop
+        end if
     end if
 
     if (.NOT. lRetryAttempted) then
