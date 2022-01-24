@@ -208,7 +208,7 @@ subroutine GEMLineSearch
             dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
             if ((dTemp > 1D0).AND.(dTemp < 1.05D0)) exit LOOP_WOLFE
 
-            dStepLength = 0.5D0
+            if (.NOT. lConverged) dStepLength = 0.5D0
 
             call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
 

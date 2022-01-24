@@ -482,8 +482,16 @@ subroutine Thermochimica
         deallocate(dStoichSpeciesUnFuzzed)
 
         ! Recompute with reset stoichiometry
-        call GEMNewton(INFO)
-        call GEMLineSearch
+        resetLoop: do i = 1, 30
+            call GEMNewton(INFO)
+            call GEMLineSearch
+            do j = 1, nElements
+                if (dMolesPhase(j) < 0D0) then
+                    dMolesPhase(j) = 0D0
+                    EXIT resetLoop
+                end if
+            end do
+        end do resetLoop
     end if
 
     if (.NOT. lRetryAttempted) then
