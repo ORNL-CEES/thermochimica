@@ -7,6 +7,7 @@ import os
 import sys
 import subprocess
 import copy
+import csv
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -190,6 +191,7 @@ class CalculationWindow:
         self.congruentFound = [False for i in range(len(self.phases))]
         self.label1phase = True
         self.label2phase = True
+        self.experimentalData = []
     def close(self):
         for child in self.children:
             child.close()
@@ -306,6 +308,7 @@ class CalculationWindow:
                 self.resRef = 7
                 self.resSmooth = 7
                 self.gapLimit = (self.maxt - self.mint) / 2
+                self.experimentalData = []
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -407,6 +410,8 @@ class CalculationWindow:
         elif event =='Undo':
             self.backup.activate()
             self.close()
+        elif event =='Add Data':
+            self.addData()
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -736,6 +741,9 @@ class CalculationWindow:
                 ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],self.plotMarker,c=c)
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
                 ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
+
+        for experiment in self.experimentalData:
+            ax.plot([float(experiment[i][0]) for i in range(len(experiment))],[float(experiment[i][1]) for i in range(len(experiment))],'o')
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
@@ -1121,6 +1129,7 @@ class CalculationWindow:
         self.backup.gapLimit = self.gapLimit
         self.backup.label1phase = self.label1phase
         self.backup.label2phase = self.label2phase
+        self.backup.experimentalData = self.experimentalData
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1155,7 +1164,8 @@ class CalculationWindow:
         self.layout = [elSelectLayout,xLayout,tempLayout,presLayout,[
             sg.Column([[sg.Button('Run', size = buttonSize)],
                        [sg.Button('Undo', disabled = True, size = buttonSize)],
-                       [sg.Exit(size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Exit(size = buttonSize)],
+                       [sg.Button('Add Data', size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)]],vertical_alignment='t'),
@@ -1177,6 +1187,9 @@ class CalculationWindow:
                 if event == sg.WIN_CLOSED or event == 'Continue':
                     break
             errorWindow.close()
+    def addData(self):
+        addDataWindow = AddDataWindow(self)
+        self.children.append(addDataWindow)
 
 class RefineWindow:
     def __init__(self, parent, windowLayout):
@@ -1362,6 +1375,74 @@ class SettingsWindow:
                     self.parent.exportDPI = int(values['-dpi-'])
             except:
                 pass
+            self.parent.makePlot()
+            self.close()
+
+class AddDataWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        file_list_column = [
+            [
+                sg.Text("Experimental Data Folder"),
+                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.FolderBrowse(),
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                )
+            ],
+        ]
+        self.folder = os.getcwd()
+        try:
+            file_list = os.listdir(self.folder)
+        except:
+            file_list = []
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(self.folder, f))
+            and f.lower().endswith((".csv"))
+        ]
+        fnames = sorted(fnames, key=str.lower)
+        self.sgw = sg.Window('Experimental data selection', file_list_column, location = [0,0], finalize=True)
+        self.sgw["-FILE LIST-"].update(fnames)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == "-FOLDER-":
+            self.folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(self.folder)
+            except:
+                file_list = []
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(self.folder, f))
+                and f.lower().endswith((".csv"))
+            ]
+            fnames = sorted(fnames, key=str.lower)
+            self.sgw["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            newData = []
+            datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
+            with open(datafile) as f:
+                data = csv.reader(f)
+                next(data, None)  # skip the header
+                for row in data:
+                    newData.append(row)
+            self.parent.experimentalData.append(newData)
             self.parent.makePlot()
             self.close()
 
