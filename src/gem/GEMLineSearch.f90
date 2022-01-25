@@ -533,11 +533,6 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
         dMolesPhase(i) = dStepLength * dMolesPhase(i) + (1D0 - dStepLength) * dMolesPhaseLast(i)
     end do
 
-    ! Dampen the element potentials:
-    LOOP_Gamma: do i = 1, nElements
-        dElementPotential(i) = dStepLength * dElementPotential(i) + (1D0 - dStepLength) * dElementPotentialLast(i)
-    end do LOOP_Gamma
-
 end subroutine UpdateSystemVariables
 
 
