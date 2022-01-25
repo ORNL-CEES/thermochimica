@@ -490,9 +490,6 @@ subroutine Thermochimica
         ! Recompute with reset stoichiometry if there is a minor phase
         if (lSmallPhase) then
             resetLoop: do i = 1, 30
-                print *, dElementPotential
-                print *, dMolesPhase
-                print *
                 call GEMNewton(INFO)
                 call GEMLineSearch
                 do j = 1, nElements
