@@ -192,6 +192,7 @@ class CalculationWindow:
         self.label1phase = True
         self.label2phase = True
         self.experimentalData = []
+        self.experimentNames = []
     def close(self):
         for child in self.children:
             child.close()
@@ -309,6 +310,7 @@ class CalculationWindow:
                 self.resSmooth = 7
                 self.gapLimit = (self.maxt - self.mint) / 2
                 self.experimentalData = []
+                self.experimentNames = []
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -744,13 +746,15 @@ class CalculationWindow:
 
         markerList = ['o','v','<','^','s']
         for e in range(len(self.experimentalData)):
-            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],markerList[e],c='k')
+            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],markerList[e],c='k',label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
         ax.set_title(str(self.el1) + ' + ' + str(self.el2) + ' binary phase diagram')
         ax.set_xlabel('Mole fraction ' + str(self.el2))
         ax.set_ylabel('Temperature [K]')
+        if len(self.experimentalData) > 0:
+            ax.legend(loc=0)
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha='center')
         plt.show()
@@ -1131,6 +1135,7 @@ class CalculationWindow:
         self.backup.label1phase = self.label1phase
         self.backup.label2phase = self.label2phase
         self.backup.experimentalData = self.experimentalData
+        self.backup.experimentNames = self.experimentNames
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1437,7 +1442,8 @@ class AddDataWindow:
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             newData = []
-            datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
+            filename = values["-FILE LIST-"][0]
+            datafile = os.path.join(self.folder, filename)
             with open(datafile) as f:
                 data = csv.reader(f)
                 next(data, None)  # skip the header
@@ -1447,6 +1453,7 @@ class AddDataWindow:
                         newrow.append(float(number))
                     newData.append(newrow)
             self.parent.experimentalData.append(np.array(newData))
+            self.parent.experimentNames.append(filename.split('.',1)[0])
             self.parent.makePlot()
             self.close()
 
