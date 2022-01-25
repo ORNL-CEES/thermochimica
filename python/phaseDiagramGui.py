@@ -742,8 +742,9 @@ class CalculationWindow:
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
                 ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
 
-        for experiment in self.experimentalData:
-            ax.plot([float(experiment[i][0]) for i in range(len(experiment))],[float(experiment[i][1]) for i in range(len(experiment))],'o')
+        markerList = ['o','v','<','^','s']
+        for e in range(len(self.experimentalData)):
+            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],markerList[e],c='k')
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
@@ -1441,8 +1442,11 @@ class AddDataWindow:
                 data = csv.reader(f)
                 next(data, None)  # skip the header
                 for row in data:
-                    newData.append(row)
-            self.parent.experimentalData.append(newData)
+                    newrow = []
+                    for number in row:
+                        newrow.append(float(number))
+                    newData.append(newrow)
+            self.parent.experimentalData.append(np.array(newData))
             self.parent.makePlot()
             self.close()
 
