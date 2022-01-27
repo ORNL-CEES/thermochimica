@@ -316,6 +316,7 @@ class CalculationWindow:
                 self.sgw.Element('Auto Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
+                self.sgw.Element('Inspect').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -407,6 +408,9 @@ class CalculationWindow:
         elif event =='Undo':
             self.backup.activate()
             self.close()
+        elif event =='Inspect':
+            inspectWindow = InspectWindow(self)
+            self.children.append(inspectWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -1158,7 +1162,8 @@ class CalculationWindow:
                        [sg.Exit(size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
+                       [sg.Button('Inspect', disabled = True, size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
                        [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
@@ -1364,6 +1369,48 @@ class SettingsWindow:
                 pass
             self.parent.makePlot()
             self.close()
+
+
+class InspectWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        dataColumn = [
+            [
+                sg.Text('Data Points')
+            ],
+            [
+                sg.Listbox(values=[], enable_events=True, size=(40, 20), key='-dataList-')
+            ],
+        ]
+        outputColumn = [
+            [
+                sg.Text('Calculation Details')
+            ],
+            [
+                sg.Multiline(key='-details-')
+            ]
+        ]
+        self.data = self.parent.ts
+        self.sgw = sg.Window('Data inspection',
+            [[sg.Pane([
+                sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
+                sg.Column(outputColumn, element_justification='c', expand_x=True, expand_y=True)
+            ], orientation='h', k='-PANE-')]],
+            location = [0,0], finalize=True)
+        self.sgw["-dataList-"].update(self.data)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
