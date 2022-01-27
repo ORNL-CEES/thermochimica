@@ -1370,7 +1370,6 @@ class SettingsWindow:
             self.parent.makePlot()
             self.close()
 
-
 class InspectWindow:
     def __init__(self,parent):
         self.parent = parent
@@ -1391,14 +1390,14 @@ class InspectWindow:
                 sg.Multiline(key='-details-')
             ]
         ]
-        self.data = self.parent.ts
+        self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
         self.sgw = sg.Window('Data inspection',
             [[sg.Pane([
                 sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
                 sg.Column(outputColumn, element_justification='c', expand_x=True, expand_y=True)
             ], orientation='h', k='-PANE-')]],
             location = [0,0], finalize=True)
-        self.sgw["-dataList-"].update(self.data)
+        self.sgw['-dataList-'].update(self.data)
         self.children = []
     def close(self):
         for child in self.children:
@@ -1410,6 +1409,9 @@ class InspectWindow:
         event, values = self.sgw.read(timeout=timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
+        elif event == '-dataList-':
+            index = values['-dataList-'][0][0]
+            self.sgw['-details-'].update(index)
 
 
 if not(os.path.isfile('bin/InputScriptMode')):
