@@ -8,6 +8,7 @@ import sys
 import subprocess
 import copy
 import csv
+from itertools import cycle
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -193,6 +194,7 @@ class CalculationWindow:
         self.label2phase = True
         self.experimentalData = []
         self.experimentNames = []
+        self.experimentColor = 'bland'
     def close(self):
         for child in self.children:
             child.close()
@@ -393,6 +395,12 @@ class CalculationWindow:
             else:
                 colorful = False
                 bland    = True
+            if self.experimentColor == 'colorful':
+                expcolorful = True
+                expbland    = False
+            else:
+                expcolorful = False
+                expbland    = True
             settingsLayout = [[sg.Text('Marker Style:')],
                               [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
                               [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
@@ -400,6 +408,9 @@ class CalculationWindow:
                               [sg.Text('Plot Colors:')],
                               [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                               [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                              [sg.Text('Experimental Data Colors:')],
+                              [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
+                              [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
                               [sg.Text('Auto-Label Settings:')],
                               [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
                                sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-')],
@@ -744,9 +755,15 @@ class CalculationWindow:
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
                 ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
 
-        markerList = ['o','v','<','^','s']
+        markerList = cycle(['o','v','<','^','s'])
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.experimentalData))))
         for e in range(len(self.experimentalData)):
-            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],markerList[e],c='k',label=self.experimentNames[e])
+            if self.experimentColor == 'colorful':
+                c = next(color)
+            else:
+                c = 'k'
+            m = next(markerList)
+            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
@@ -1136,6 +1153,7 @@ class CalculationWindow:
         self.backup.label2phase = self.label2phase
         self.backup.experimentalData = self.experimentalData
         self.backup.experimentNames = self.experimentNames
+        self.backup.experimentColor = self.experimentColor
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1366,6 +1384,10 @@ class SettingsWindow:
             self.parent.plotColor = 'colorful'
         elif event =='-mbland-':
             self.parent.plotColor = 'bland'
+        elif event =='-mexpcolorful-':
+            self.parent.experimentColor = 'colorful'
+        elif event =='-mexpbland-':
+            self.parent.experimentColor = 'bland'
         elif event =='Accept':
             self.parent.label1phase = values['-label1phase-']
             self.parent.label2phase = values['-label2phase-']
