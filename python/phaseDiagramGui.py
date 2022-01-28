@@ -534,13 +534,16 @@ class CalculationWindow:
                 if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
                     self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
-            for j in range(len(self.boundaries)):
-                if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
-                    self.b.append(j)
-                    repeat = True
-            if not(repeat):
-                self.boundaries.append([self.p1[i],self.p2[i]])
-                self.b.append(len(self.boundaries)-1)
+            if self.suppressed[self.pointIndex[i]]:
+                self.b.append(-1)
+            else:
+                for j in range(len(self.boundaries)):
+                    if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                        self.b.append(j)
+                        repeat = True
+                if not(repeat):
+                    self.boundaries.append([self.p1[i],self.p2[i]])
+                    self.b.append(len(self.boundaries)-1)
 
         for i in range(len(self.boundaries)):
             repeat1 = False
