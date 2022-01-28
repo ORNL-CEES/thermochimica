@@ -190,6 +190,8 @@ class CalculationWindow:
         self.congruentFound = [False for i in range(len(self.phases))]
         self.label1phase = True
         self.label2phase = True
+        self.pointDetails = []
+        self.pointIndex = np.empty([0])
     def close(self):
         for child in self.children:
             child.close()
@@ -426,6 +428,7 @@ class CalculationWindow:
         ts = self.ts.tolist()
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
+        pointIndex = self.pointIndex.tolist()
         for i in list(data.keys()):
             try:
                 self.mint = min(self.mint,data[i]['temperature'])
@@ -448,8 +451,10 @@ class CalculationWindow:
                             boundComps.append(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element'])
                 x1.append(boundComps[0])
                 x2.append(boundComps[1])
+                pointIndex.append(len(pointIndex))
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
+                self.pointDetails.append(f'Temperature = {data[i]["temperature"]}\n Moles of {self.el2} = {data[i]["elements"][self.el2]["moles"]}')
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
@@ -480,10 +485,12 @@ class CalculationWindow:
         self.ts = np.array(ts)
         self.x1 = np.array(x1)
         self.x2 = np.array(x2)
+        self.pointIndex = np.array(pointIndex)
         sindex  = np.argsort(self.ts)
         self.ts = self.ts[sindex]
         self.x1 = self.x1[sindex]
         self.x2 = self.x2[sindex]
+        self.pointIndex = self.pointIndex[sindex]
         self.p1 = [self.p1[i] for i in sindex]
         self.p2 = [self.p2[i] for i in sindex]
 
@@ -1410,8 +1417,8 @@ class InspectWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-dataList-':
-            index = values['-dataList-'][0][0]
-            self.sgw['-details-'].update(index)
+            index = self.parent.pointIndex[values['-dataList-'][0][0]]
+            self.sgw['-details-'].update(self.parent.pointDetails[index])
 
 
 if not(os.path.isfile('bin/InputScriptMode')):
