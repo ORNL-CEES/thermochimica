@@ -1397,7 +1397,13 @@ class InspectWindow:
             [sg.Text('Calculation Details')],
             [sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)],
             [sg.Text(key = '-status-')],
-            [sg.Button('Toggle Active/Suppressed Status', disabled = True)]
+            [sg.Button('Toggle Active/Suppressed Status', disabled = True)],
+            [sg.Text('Filter points', font='underline')],
+            [sg.Text('Temperature Range:')],
+            [sg.Input(key='-tfilterlow-',size=(inputSize,1)),sg.Input(key='-tfilterhi-',size=(inputSize,1))],
+            [sg.Text(f'{self.parent.el2} Concentration Range:')],
+            [sg.Input(key='-xfilterlow-',size=(inputSize,1)),sg.Input(key='-xfilterhi-',size=(inputSize,1))],
+            [sg.Button('Apply Filter')]
         ]
         self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
         self.sgw = sg.Window('Data inspection',
@@ -1428,6 +1434,33 @@ class InspectWindow:
             if self.index >= 0:
                 self.parent.suppressed[self.index] = not(self.parent.suppressed[self.index])
                 self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
+        elif event == 'Apply Filter':
+            tlo = -np.Inf
+            thi  = np.Inf
+            xlo = -np.Inf
+            xhi  = np.Inf
+            try:
+                tlo = float(values['-tfilterlow-'])
+            except:
+                pass
+            try:
+                thi = float(values['-tfilterhi-'])
+            except:
+                pass
+            try:
+                xlo = float(values['-xfilterlow-'])
+            except:
+                pass
+            try:
+                xhi = float(values['-xfilterhi-'])
+            except:
+                pass
+            self.data = []
+            for i in range(len(self.parent.ts)):
+                if tlo <= self.parent.ts[i] and thi >= self.parent.ts[i] and ((xlo <= self.parent.x1[i] and xhi >= self.parent.x1[i]) or (xlo <= self.parent.x2[i] and xhi >= self.parent.x2[i])):
+                    self.data.append([i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]])
+            self.sgw['-dataList-'].update(self.data)
+
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
