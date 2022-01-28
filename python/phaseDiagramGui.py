@@ -1403,6 +1403,8 @@ class InspectWindow:
             [sg.Input(key='-tfilterlow-',size=(inputSize,1)),sg.Input(key='-tfilterhi-',size=(inputSize,1))],
             [sg.Text(f'{self.parent.el2} Concentration Range:')],
             [sg.Input(key='-xfilterlow-',size=(inputSize,1)),sg.Input(key='-xfilterhi-',size=(inputSize,1))],
+            [sg.Text('Contains Phases:')],
+            [sg.Combo(['']+self.parent.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.phases, key = '-pfilter2-')],
             [sg.Button('Apply Filter')]
         ]
         self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
@@ -1458,7 +1460,9 @@ class InspectWindow:
             self.data = []
             for i in range(len(self.parent.ts)):
                 if tlo <= self.parent.ts[i] and thi >= self.parent.ts[i] and ((xlo <= self.parent.x1[i] and xhi >= self.parent.x1[i]) or (xlo <= self.parent.x2[i] and xhi >= self.parent.x2[i])):
-                    self.data.append([i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]])
+                    if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.p1[i] or values['-pfilter1-'] == self.parent.p2[i]):
+                        if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.p1[i] or values['-pfilter2-'] == self.parent.p2[i]):
+                            self.data.append([i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]])
             self.sgw['-dataList-'].update(self.data)
 
 
