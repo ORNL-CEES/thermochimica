@@ -192,6 +192,7 @@ class CalculationWindow:
         self.label2phase = True
         self.pointDetails = []
         self.pointIndex = np.empty([0])
+        self.suppressed = []
     def close(self):
         for child in self.children:
             child.close()
@@ -455,6 +456,7 @@ class CalculationWindow:
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
                 self.pointDetails.append(f'Temperature = {data[i]["temperature"]}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]}\nPhase 1 = {boundPhases[0]}\nPhase 2 = {boundPhases[1]}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
+                self.suppressed.append(False)
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
@@ -1382,20 +1384,14 @@ class InspectWindow:
         self.parent = parent
         windowList.append(self)
         dataColumn = [
-            [
-                sg.Text('Data Points')
-            ],
-            [
-                sg.Listbox(values=[], enable_events=True, size=(65, 50), key='-dataList-')
-            ],
+            [sg.Text('Data Points')],
+            [sg.Listbox(values=[], enable_events=True, size=(65, 50), key='-dataList-')]
         ]
         outputColumn = [
-            [
-                sg.Text('Calculation Details')
-            ],
-            [
-                sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)
-            ]
+            [sg.Text('Calculation Details')],
+            [sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)],
+            [sg.Text(key = '-status-')],
+            [sg.Button('Toggle Active/Suppressed Status', disabled = True)]
         ]
         self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
         self.sgw = sg.Window('Data inspection',
@@ -1406,6 +1402,7 @@ class InspectWindow:
             location = [0,0], finalize=True)
         self.sgw['-dataList-'].update(self.data)
         self.children = []
+        self.index = -1
     def close(self):
         for child in self.children:
             child.close()
@@ -1417,9 +1414,14 @@ class InspectWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-dataList-':
-            index = self.parent.pointIndex[values['-dataList-'][0][0]]
-            self.sgw['-details-'].update(self.parent.pointDetails[index])
-
+            self.index = self.parent.pointIndex[values['-dataList-'][0][0]]
+            self.sgw['-details-'].update(self.parent.pointDetails[self.index])
+            self.sgw['Toggle Active/Suppressed Status'].update(disabled = False)
+            self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
+        elif event == 'Toggle Active/Suppressed Status':
+            if self.index >= 0:
+                self.parent.suppressed[self.index] = not(self.parent.suppressed[self.index])
+                self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
