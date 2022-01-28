@@ -454,7 +454,7 @@ class CalculationWindow:
                 pointIndex.append(len(pointIndex))
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
-                self.pointDetails.append(f'Temperature = {data[i]["temperature"]}\n Moles of {self.el2} = {data[i]["elements"][self.el2]["moles"]}')
+                self.pointDetails.append(f'Temperature = {data[i]["temperature"]}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]}\nPhase 1 = {boundPhases[0]}\nPhase 2 = {boundPhases[1]}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
@@ -1386,7 +1386,7 @@ class InspectWindow:
                 sg.Text('Data Points')
             ],
             [
-                sg.Listbox(values=[], enable_events=True, size=(40, 20), key='-dataList-')
+                sg.Listbox(values=[], enable_events=True, size=(65, 50), key='-dataList-')
             ],
         ]
         outputColumn = [
@@ -1394,7 +1394,7 @@ class InspectWindow:
                 sg.Text('Calculation Details')
             ],
             [
-                sg.Multiline(key='-details-')
+                sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)
             ]
         ]
         self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
