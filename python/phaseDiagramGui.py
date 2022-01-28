@@ -1134,6 +1134,9 @@ class CalculationWindow:
         self.backup.gapLimit = self.gapLimit
         self.backup.label1phase = self.label1phase
         self.backup.label2phase = self.label2phase
+        self.backup.pointDetails = self.pointDetails
+        self.backup.pointIndex = self.pointIndex
+        self.backup.suppressed = self.suppressed
     def activate(self):
         if not self.active:
             self.makeLayout()
