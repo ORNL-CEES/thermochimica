@@ -455,7 +455,7 @@ class CalculationWindow:
                 pointIndex.append(len(pointIndex))
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
-                self.pointDetails.append(f'Temperature = {data[i]["temperature"]}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]}\nPhase 1 = {boundPhases[0]}\nPhase 2 = {boundPhases[1]}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
+                self.pointDetails.append(f'Temperature = {data[i]["temperature"]:6.2f}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]:9.8f}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]:9.8f}\nPhase 1 = {boundPhases[0]} at {boundComps[0]:5.4f} moles {self.el2}\nPhase 2 = {boundPhases[1]} at {boundComps[1]:5.4f} moles {self.el2}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]:.2f}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
                 self.suppressed.append(False)
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
