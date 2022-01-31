@@ -1391,7 +1391,7 @@ class InspectWindow:
         windowList.append(self)
         dataColumn = [
             [sg.Text('Data Points')],
-            [sg.Listbox(values=[], enable_events=True, size=(65, 50), key='-dataList-')]
+            [sg.Listbox(values=[], enable_events=True, size=(30, 50), key='-dataList-')]
         ]
         outputColumn = [
             [sg.Text('Calculation Details')],
@@ -1407,7 +1407,7 @@ class InspectWindow:
             [sg.Combo(['']+self.parent.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.phases, key = '-pfilter2-')],
             [sg.Button('Apply Filter')]
         ]
-        self.data = [[i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]] for i in range(len(self.parent.ts))]
+        self.data = [[i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'] for i in range(len(self.parent.ts))]
         self.sgw = sg.Window('Data inspection',
             [[sg.Pane([
                 sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
@@ -1462,7 +1462,7 @@ class InspectWindow:
                 if tlo <= self.parent.ts[i] and thi >= self.parent.ts[i] and ((xlo <= self.parent.x1[i] and xhi >= self.parent.x1[i]) or (xlo <= self.parent.x2[i] and xhi >= self.parent.x2[i])):
                     if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.p1[i] or values['-pfilter1-'] == self.parent.p2[i]):
                         if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.p1[i] or values['-pfilter2-'] == self.parent.p2[i]):
-                            self.data.append([i, self.parent.x1[i], self.parent.x2[i], self.parent.ts[i]])
+                            self.data.append([i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'])
             self.sgw['-dataList-'].update(self.data)
 
 
