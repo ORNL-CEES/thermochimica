@@ -195,6 +195,9 @@ class CalculationWindow:
         self.experimentalData = []
         self.experimentNames = []
         self.experimentColor = 'bland'
+        self.pointDetails = []
+        self.pointIndex = np.empty([0])
+        self.suppressed = []
     def close(self):
         for child in self.children:
             child.close()
@@ -323,6 +326,7 @@ class CalculationWindow:
                 self.sgw.Element('Auto Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
+                self.sgw.Element('Inspect').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -425,6 +429,9 @@ class CalculationWindow:
             self.close()
         elif event =='Add Data':
             self.addData()
+        elif event =='Inspect':
+            inspectWindow = InspectWindow(self)
+            self.children.append(inspectWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -440,6 +447,7 @@ class CalculationWindow:
         ts = self.ts.tolist()
         x1 = self.x1.tolist()
         x2 = self.x2.tolist()
+        pointIndex = self.pointIndex.tolist()
         for i in list(data.keys()):
             try:
                 self.mint = min(self.mint,data[i]['temperature'])
@@ -462,8 +470,11 @@ class CalculationWindow:
                             boundComps.append(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element'])
                 x1.append(boundComps[0])
                 x2.append(boundComps[1])
+                pointIndex.append(len(pointIndex))
                 self.p1.append(boundPhases[0])
                 self.p2.append(boundPhases[1])
+                self.pointDetails.append(f'Temperature = {data[i]["temperature"]:6.2f}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]:9.8f}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]:9.8f}\nPhase 1 = {boundPhases[0]} at {boundComps[0]:5.4f} moles {self.el2}\nPhase 2 = {boundPhases[1]} at {boundComps[1]:5.4f} moles {self.el2}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]:.2f}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
+                self.suppressed.append(False)
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
@@ -494,10 +505,12 @@ class CalculationWindow:
         self.ts = np.array(ts)
         self.x1 = np.array(x1)
         self.x2 = np.array(x2)
+        self.pointIndex = np.array(pointIndex)
         sindex  = np.argsort(self.ts)
         self.ts = self.ts[sindex]
         self.x1 = self.x1[sindex]
         self.x2 = self.x2[sindex]
+        self.pointIndex = self.pointIndex[sindex]
         self.p1 = [self.p1[i] for i in sindex]
         self.p2 = [self.p2[i] for i in sindex]
 
@@ -539,13 +552,16 @@ class CalculationWindow:
                 if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
                     self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
             repeat = False
-            for j in range(len(self.boundaries)):
-                if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
-                    self.b.append(j)
-                    repeat = True
-            if not(repeat):
-                self.boundaries.append([self.p1[i],self.p2[i]])
-                self.b.append(len(self.boundaries)-1)
+            if self.suppressed[self.pointIndex[i]]:
+                self.b.append(-1)
+            else:
+                for j in range(len(self.boundaries)):
+                    if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                        self.b.append(j)
+                        repeat = True
+                if not(repeat):
+                    self.boundaries.append([self.p1[i],self.p2[i]])
+                    self.b.append(len(self.boundaries)-1)
 
         for i in range(len(self.boundaries)):
             repeat1 = False
@@ -1154,6 +1170,9 @@ class CalculationWindow:
         self.backup.experimentalData = self.experimentalData
         self.backup.experimentNames = self.experimentNames
         self.backup.experimentColor = self.experimentColor
+        self.backup.pointDetails = self.pointDetails
+        self.backup.pointIndex = self.pointIndex
+        self.backup.suppressed = self.suppressed
     def activate(self):
         if not self.active:
             self.makeLayout()
@@ -1192,7 +1211,8 @@ class CalculationWindow:
                        [sg.Button('Add Data', size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
+                       [sg.Button('Inspect', disabled = True, size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
                        [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
@@ -1478,6 +1498,86 @@ class AddDataWindow:
             self.parent.experimentNames.append(filename.split('.',1)[0])
             self.parent.makePlot()
             self.close()
+
+class InspectWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        dataColumn = [
+            [sg.Text('Data Points')],
+            [sg.Listbox(values=[], enable_events=True, size=(30, 50), key='-dataList-')]
+        ]
+        outputColumn = [
+            [sg.Text('Calculation Details')],
+            [sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)],
+            [sg.Text(key = '-status-')],
+            [sg.Button('Toggle Active/Suppressed Status', disabled = True)],
+            [sg.Text('Filter points', font='underline')],
+            [sg.Text('Temperature Range:')],
+            [sg.Input(key='-tfilterlow-',size=(inputSize,1)),sg.Input(key='-tfilterhi-',size=(inputSize,1))],
+            [sg.Text(f'{self.parent.el2} Concentration Range:')],
+            [sg.Input(key='-xfilterlow-',size=(inputSize,1)),sg.Input(key='-xfilterhi-',size=(inputSize,1))],
+            [sg.Text('Contains Phases:')],
+            [sg.Combo(['']+self.parent.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.phases, key = '-pfilter2-')],
+            [sg.Button('Apply Filter')]
+        ]
+        self.data = [[i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'] for i in range(len(self.parent.ts))]
+        self.sgw = sg.Window('Data inspection',
+            [[sg.Pane([
+                sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
+                sg.Column(outputColumn, element_justification='c', expand_x=True, expand_y=True)
+            ], orientation='h', k='-PANE-')]],
+            location = [0,0], finalize=True)
+        self.sgw['-dataList-'].update(self.data)
+        self.children = []
+        self.index = -1
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == '-dataList-':
+            self.index = self.parent.pointIndex[values['-dataList-'][0][0]]
+            self.sgw['-details-'].update(self.parent.pointDetails[self.index])
+            self.sgw['Toggle Active/Suppressed Status'].update(disabled = False)
+            self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
+        elif event == 'Toggle Active/Suppressed Status':
+            if self.index >= 0:
+                self.parent.suppressed[self.index] = not(self.parent.suppressed[self.index])
+                self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
+        elif event == 'Apply Filter':
+            tlo = -np.Inf
+            thi  = np.Inf
+            xlo = -np.Inf
+            xhi  = np.Inf
+            try:
+                tlo = float(values['-tfilterlow-'])
+            except:
+                pass
+            try:
+                thi = float(values['-tfilterhi-'])
+            except:
+                pass
+            try:
+                xlo = float(values['-xfilterlow-'])
+            except:
+                pass
+            try:
+                xhi = float(values['-xfilterhi-'])
+            except:
+                pass
+            self.data = []
+            for i in range(len(self.parent.ts)):
+                if tlo <= self.parent.ts[i] and thi >= self.parent.ts[i] and ((xlo <= self.parent.x1[i] and xhi >= self.parent.x1[i]) or (xlo <= self.parent.x2[i] and xhi >= self.parent.x2[i])):
+                    if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.p1[i] or values['-pfilter1-'] == self.parent.p2[i]):
+                        if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.p1[i] or values['-pfilter2-'] == self.parent.p2[i]):
+                            self.data.append([i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'])
+            self.sgw['-dataList-'].update(self.data)
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
