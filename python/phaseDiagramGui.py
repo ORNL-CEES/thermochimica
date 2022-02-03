@@ -320,6 +320,12 @@ class CalculationWindow:
                 self.gapLimit = (self.maxt - self.mint) / 2
                 self.experimentalData = []
                 self.experimentNames = []
+                self.pointDetails = []
+                self.pointIndex = np.empty([0])
+                self.suppressed = []
+                self.loadedDiagram = []
+                self.loaded = False
+                self.saveDataName = 'savedDiagram'
                 self.runCalc()
                 self.makePlot()
                 self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
@@ -433,6 +439,7 @@ class CalculationWindow:
             self.backup.activate()
             self.close()
         elif event =='Add Data':
+            self.makeBackup()
             self.addData()
         elif event =='Inspect':
             inspectWindow = InspectWindow(self)
@@ -441,6 +448,7 @@ class CalculationWindow:
             saveDataWindow = SaveDataWindow(self)
             self.children.append(saveDataWindow)
         elif event =='Load Diagram':
+            self.makeBackup()
             loadDataWindow = LoadDataWindow(self)
             self.children.append(loadDataWindow)
     def processPhaseDiagramData(self):
@@ -1325,6 +1333,9 @@ class CalculationWindow:
         self.backup.pointDetails = self.pointDetails
         self.backup.pointIndex = self.pointIndex
         self.backup.suppressed = self.suppressed
+        self.backup.loadedDiagram = self.loadedDiagram
+        self.backup.loaded = self.loaded
+        self.backup.saveDataName = self.saveDataName
     def activate(self):
         if not self.active:
             self.makeLayout()
