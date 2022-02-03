@@ -196,11 +196,13 @@ class CalculationWindow:
         self.experimentalData = []
         self.experimentNames = []
         self.experimentColor = 'bland'
+        self.showExperiment = True
         self.pointDetails = []
         self.pointIndex = np.empty([0])
         self.suppressed = []
         self.loadedDiagram = []
         self.loaded = False
+        self.showLoaded = True
         self.saveDataName = 'savedDiagram'
     def close(self):
         for child in self.children:
@@ -426,6 +428,9 @@ class CalculationWindow:
                               [sg.Text('Experimental Data Colors:')],
                               [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
                               [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
+                              [sg.Text('Show:')],
+                              [sg.Checkbox('Experimental Data', default=self.showExperiment, key='-showExperiment-'),
+                               sg.Checkbox('Loaded Diagram', default=self.showLoaded, key='-showLoaded-')],
                               [sg.Text('Auto-Label Settings:')],
                               [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
                                sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-')],
@@ -790,27 +795,30 @@ class CalculationWindow:
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
                 ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
 
-        markerList = cycle(['o','v','<','^','s'])
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.experimentalData))))
-        for e in range(len(self.experimentalData)):
-            if self.experimentColor == 'colorful':
-                c = next(color)
-            else:
-                c = 'k'
-            m = next(markerList)
-            ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
+        # Plot experimental data
+        if self.showExperiment:
+            markerList = cycle(['o','v','<','^','s'])
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.experimentalData))))
+            for e in range(len(self.experimentalData)):
+                if self.experimentColor == 'colorful':
+                    c = next(color)
+                else:
+                    c = 'k'
+                m = next(markerList)
+                ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint,self.maxt)
         ax.set_title(str(self.el1) + ' + ' + str(self.el2) + ' binary phase diagram')
         ax.set_xlabel('Mole fraction ' + str(self.el2))
         ax.set_ylabel('Temperature [K]')
-        if len(self.experimentalData) > 0:
+        if len(self.experimentalData) > 0 and self.showExperiment:
             ax.legend(loc=0)
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha='center')
 
-        if self.loaded:
+        # Plot loaded phase diagram
+        if self.loaded and self.showLoaded:
             bEdgeLine = [[False,False] for i in range(len(self.loadedDiagram.boundaries))]
             # Plot along x=0 and x=1 self.boundaries (this is the worst code I've ever written)
             for j in range(len(self.loadedDiagram.x0data[1])):
@@ -1574,6 +1582,8 @@ class SettingsWindow:
         elif event =='-mexpbland-':
             self.parent.experimentColor = 'bland'
         elif event =='Accept':
+            self.parent.showExperiment = values['-showExperiment-']
+            self.parent.showLoaded = values['-showLoaded-']
             self.parent.label1phase = values['-label1phase-']
             self.parent.label2phase = values['-label2phase-']
             try:
