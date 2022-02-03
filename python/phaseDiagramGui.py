@@ -193,6 +193,7 @@ class CalculationWindow:
         self.label2phase = True
         self.loadedDiagram = []
         self.loaded = False
+        self.saveDataName = 'savedDiagram'
     def close(self):
         for child in self.children:
             child.close()
@@ -412,13 +413,11 @@ class CalculationWindow:
             self.backup.activate()
             self.close()
         elif event =='Export Diagram Data':
-            saveData = SaveData(self.ts, self.x1, self.x2, self.boundaries, self.phases, self.b, self.x0data, self.x1data, self.mint, self.maxt)
-            with open('savedDiagram.pkl','wb') as outp:
-                pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
+            saveDataWindow = SaveDataWindow(self)
+            self.children.append(saveDataWindow)
         elif event =='Load Diagram':
-            with open('savedDiagram.pkl', 'rb') as inp:
-                self.loadedDiagram = pickle.load(inp)
-                self.loaded = True
+            loadDataWindow = LoadDataWindow(self)
+            self.children.append(loadDataWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -1532,6 +1531,110 @@ class SaveData(object):
         self.x1data = x1data
         self.mint = mint
         self.maxt = maxt
+
+class SaveDataWindow:
+    def __init__(self, parent):
+        self.parent = parent
+        windowList.append(self)
+        self.children = []
+        layout = [[sg.Input(key='-saveName-',size=(inputSize,1)), sg.Text('.pkl')],
+                  [sg.Button('Save'), sg.Button('Cancel')]]
+        self.sgw = sg.Window('Save Diagram Data', layout, location = [400,0], finalize=True)
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Save':
+            try:
+                tempName = str(values['-saveName-'])
+                if not tempName == '':
+                    self.parent.saveDataName = tempName
+            except:
+                pass
+            saveData = SaveData(self.parent.ts,
+                                self.parent.x1,
+                                self.parent.x2,
+                                self.parent.boundaries,
+                                self.parent.phases,
+                                self.parent.b,
+                                self.parent.x0data,
+                                self.parent.x1data,
+                                self.parent.mint,
+                                self.parent.maxt)
+            with open(self.parent.saveDataName+'.pkl','wb') as outp:
+                pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
+            self.close()
+
+class LoadDataWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        file_list_column = [
+            [
+                sg.Text("Phase Diagram Data Folder"),
+                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.FolderBrowse(),
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                )
+            ],
+        ]
+        self.folder = os.getcwd()
+        try:
+            file_list = os.listdir(self.folder)
+        except:
+            file_list = []
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(self.folder, f))
+            and f.lower().endswith((".pkl"))
+        ]
+        fnames = sorted(fnames, key=str.lower)
+        self.sgw = sg.Window('Phase diagram data selection', file_list_column, location = [0,0], finalize=True)
+        self.sgw["-FILE LIST-"].update(fnames)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == "-FOLDER-":
+            self.folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(self.folder)
+            except:
+                file_list = []
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(self.folder, f))
+                and f.lower().endswith((".pkl"))
+            ]
+            fnames = sorted(fnames, key=str.lower)
+            self.sgw["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            newData = []
+            filename = values["-FILE LIST-"][0]
+            datafile = os.path.join(self.folder, filename)
+            with open(datafile, 'rb') as inp:
+                self.parent.loadedDiagram = pickle.load(inp)
+                self.parent.loaded = True
+            self.close()
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
