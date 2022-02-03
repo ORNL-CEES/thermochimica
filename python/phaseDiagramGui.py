@@ -9,6 +9,7 @@ import subprocess
 import copy
 import csv
 from itertools import cycle
+import pickle
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -198,6 +199,9 @@ class CalculationWindow:
         self.pointDetails = []
         self.pointIndex = np.empty([0])
         self.suppressed = []
+        self.loadedDiagram = []
+        self.loaded = False
+        self.saveDataName = 'savedDiagram'
     def close(self):
         for child in self.children:
             child.close()
@@ -327,6 +331,7 @@ class CalculationWindow:
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
                 self.sgw.Element('Inspect').Update(disabled = False)
+                self.sgw.Element('Export Diagram Data').Update(disabled = False)
         elif event =='Refine':
             xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
@@ -432,6 +437,12 @@ class CalculationWindow:
         elif event =='Inspect':
             inspectWindow = InspectWindow(self)
             self.children.append(inspectWindow)
+        elif event =='Export Diagram Data':
+            saveDataWindow = SaveDataWindow(self)
+            self.children.append(saveDataWindow)
+        elif event =='Load Diagram':
+            loadDataWindow = LoadDataWindow(self)
+            self.children.append(loadDataWindow)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -790,6 +801,147 @@ class CalculationWindow:
             ax.legend(loc=0)
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha='center')
+
+        if self.loaded:
+            bEdgeLine = [[False,False] for i in range(len(self.loadedDiagram.boundaries))]
+            # Plot along x=0 and x=1 self.boundaries (this is the worst code I've ever written)
+            for j in range(len(self.loadedDiagram.x0data[1])):
+                if not self.loadedDiagram.x0data[0][j] in self.loadedDiagram.phases:
+                    continue
+                i = self.loadedDiagram.phases.index(self.loadedDiagram.x0data[0][j])
+                if j > 0:
+                    # ax.plot(0,self.loadedDiagram.x0data[1][j],'kv')
+                    match = []
+                    for k in range(len(self.loadedDiagram.boundaries)):
+                        if (self.loadedDiagram.x0data[0][j] in self.loadedDiagram.boundaries[k]) and (self.loadedDiagram.x0data[0][j-1] in self.loadedDiagram.boundaries[k]):
+                            inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                            if len(inds) < 2:
+                                continue
+                            bind = self.loadedDiagram.boundaries[k].index(self.loadedDiagram.x0data[0][j])
+                            if bind == 0:
+                                minj = np.argmin(np.array(self.loadedDiagram.x1)[inds])
+                                length = (0 - np.array(self.loadedDiagram.x1)[inds][minj])**2 + (self.loadedDiagram.x0data[1][j] - np.array(self.loadedDiagram.ts)[inds][minj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x1)[inds][minj],np.array(self.loadedDiagram.ts)[inds][minj]])
+                            elif bind == 1:
+                                minj = np.argmin(np.array(self.loadedDiagram.x2)[inds])
+                                length = (0 - np.array(self.loadedDiagram.x2)[inds][minj])**2 + (self.loadedDiagram.x0data[1][j] - np.array(self.loadedDiagram.ts)[inds][minj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x2)[inds][minj],np.array(self.loadedDiagram.ts)[inds][minj]])
+                    if len(match) > 0:
+                        match = np.array(match)
+                        matchind = np.argmin(match[:,0])
+                        k = int(match[matchind,1])
+                        inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[1][j],match[matchind,3]],'k-')
+                        if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][0] = True
+                        if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][1] = True
+                if j < len(self.loadedDiagram.x0data[1]) - 1:
+                    # ax.plot(0,self.loadedDiagram.x0data[2][j],'k^')
+                    match = []
+                    for k in range(len(self.loadedDiagram.boundaries)):
+                        if (self.loadedDiagram.x0data[0][j] in self.loadedDiagram.boundaries[k]) and (self.loadedDiagram.x0data[0][j+1] in self.loadedDiagram.boundaries[k]):
+                            inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                            if len(inds) < 2:
+                                continue
+                            bind = self.loadedDiagram.boundaries[k].index(self.loadedDiagram.x0data[0][j])
+                            if bind == 0:
+                                minj = np.argmin(np.array(self.loadedDiagram.x1)[inds])
+                                length = (0 - np.array(self.loadedDiagram.x1)[inds][minj])**2 + (self.loadedDiagram.x0data[2][j] - np.array(self.loadedDiagram.ts)[inds][minj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x1)[inds][minj],np.array(self.loadedDiagram.ts)[inds][minj]])
+                            elif bind == 1:
+                                minj = np.argmin(np.array(self.loadedDiagram.x2)[inds])
+                                length = (0 - np.array(self.loadedDiagram.x2)[inds][minj])**2 + (self.loadedDiagram.x0data[2][j] - np.array(self.loadedDiagram.ts)[inds][minj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x2)[inds][minj],np.array(self.loadedDiagram.ts)[inds][minj]])
+                    if len(match) > 0:
+                        match = np.array(match)
+                        matchind = np.argmin(match[:,0])
+                        k = int(match[matchind,1])
+                        inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j],match[matchind,3]],'k-')
+                        if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][0] = True
+                        if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][1] = True
+            for j in range(len(self.loadedDiagram.x1data[1])):
+                if not self.loadedDiagram.x1data[0][j] in self.loadedDiagram.phases:
+                    continue
+                i = self.loadedDiagram.phases.index(self.loadedDiagram.x1data[0][j])
+                if j > 0:
+                    # ax.plot(1,self.loadedDiagram.x1data[1][j],'kv')
+                    match = []
+                    for k in range(len(self.loadedDiagram.boundaries)):
+                        if (self.loadedDiagram.x1data[0][j] in self.loadedDiagram.boundaries[k]) and (self.loadedDiagram.x1data[0][j-1] in self.loadedDiagram.boundaries[k]):
+                            inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                            if len(inds) < 2:
+                                continue
+                            bind = self.loadedDiagram.boundaries[k].index(self.loadedDiagram.x1data[0][j])
+                            if bind == 0:
+                                maxj = np.argmax(np.array(self.loadedDiagram.x1)[inds])
+                                length = (1 - np.array(self.loadedDiagram.x1)[inds][maxj])**2 + (self.loadedDiagram.x1data[1][j] - np.array(self.loadedDiagram.ts)[inds][maxj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x1)[inds][maxj],np.array(self.loadedDiagram.ts)[inds][maxj]])
+                            elif bind == 1:
+                                maxj = np.argmax(np.array(self.loadedDiagram.x2)[inds])
+                                length = (1 - np.array(self.loadedDiagram.x2)[inds][maxj])**2 + (self.loadedDiagram.x1data[1][j] - np.array(self.loadedDiagram.ts)[inds][maxj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x2)[inds][maxj],np.array(self.loadedDiagram.ts)[inds][maxj]])
+                    if len(match) > 0:
+                        match = np.array(match)
+                        matchind = np.argmin(match[:,0])
+                        k = int(match[matchind,1])
+                        inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[1][j],match[matchind,3]],'k-')
+                        if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][0] = True
+                        if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][1] = True
+                if j < len(self.loadedDiagram.x1data[1]) - 1:
+                    # ax.plot(1,self.loadedDiagram.x1data[2][j],'k^')
+                    match = []
+                    for k in range(len(self.loadedDiagram.boundaries)):
+                        if (self.loadedDiagram.x1data[0][j] in self.loadedDiagram.boundaries[k]) and (self.loadedDiagram.x1data[0][j+1] in self.loadedDiagram.boundaries[k]):
+                            inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                            if len(inds) < 2:
+                                continue
+                            bind = self.loadedDiagram.boundaries[k].index(self.loadedDiagram.x1data[0][j])
+                            if bind == 0:
+                                maxj = np.argmax(np.array(self.loadedDiagram.x1)[inds])
+                                length = (1 - np.array(self.loadedDiagram.x1)[inds][maxj])**2 + (self.loadedDiagram.x1data[2][j] - np.array(self.loadedDiagram.ts)[inds][maxj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x1)[inds][maxj],np.array(self.loadedDiagram.ts)[inds][maxj]])
+                            elif bind == 1:
+                                maxj = np.argmax(np.array(self.loadedDiagram.x2)[inds])
+                                length = (1 - np.array(self.loadedDiagram.x2)[inds][maxj])**2 + (self.loadedDiagram.x1data[2][j] - np.array(self.loadedDiagram.ts)[inds][maxj])**2
+                                match.append([length,k,np.array(self.loadedDiagram.x2)[inds][maxj],np.array(self.loadedDiagram.ts)[inds][maxj]])
+                    if len(match) > 0:
+                        match = np.array(match)
+                        matchind = np.argmin(match[:,0])
+                        k = int(match[matchind,1])
+                        inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[2][j],match[matchind,3]],'k-')
+                        if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][0] = True
+                        if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
+                            bEdgeLine[k][1] = True
+
+            # plot 2-phase region boundaries
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.loadedDiagram.boundaries))))
+            for j in range(len(self.loadedDiagram.boundaries)):
+                c = 'k'
+                inds = [i for i, k in enumerate(self.loadedDiagram.b) if k == j]
+                if len(inds) < 2:
+                    continue
+                ttt = self.loadedDiagram.ts[inds]
+                x1t = self.loadedDiagram.x1[inds]
+                x2t = self.loadedDiagram.x2[inds]
+                ax.plot(x1t,ttt,'--',c=c)
+                ax.plot(x2t[::-1],ttt[::-1],'--',c=c)
+                minj = np.argmin(ttt)
+                maxj = np.argmax(ttt)
+                # plot invariant temperatures
+                if (ttt[minj] > self.loadedDiagram.mint) and not(bEdgeLine[j][0]):
+                    ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],'--',c=c)
+                if (ttt[maxj] < self.loadedDiagram.maxt) and not(bEdgeLine[j][1]):
+                    ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'--',c=c)
+
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
@@ -1215,10 +1367,12 @@ class CalculationWindow:
                        [sg.Button('Inspect', disabled = True, size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Remove Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Load Diagram', size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Export Plot', disabled = True, size = buttonSize)],
-                       [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t')
+                       [sg.Button('Plot Settings', size = buttonSize)],
+                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)]],vertical_alignment='t')
             ]]
     def exportPlot(self):
         try:
@@ -1578,6 +1732,123 @@ class InspectWindow:
                         if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.p1[i] or values['-pfilter2-'] == self.parent.p2[i]):
                             self.data.append([i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'])
             self.sgw['-dataList-'].update(self.data)
+
+class SaveData(object):
+    def __init__(self,ts,x1,x2,boundaries,phases,b,x0data,x1data,mint,maxt):
+        self.ts = ts
+        self.x1 = x1
+        self.x2 = x2
+        self.boundaries = boundaries
+        self.phases = phases
+        self.b = b
+        self.x0data = x0data
+        self.x1data = x1data
+        self.mint = mint
+        self.maxt = maxt
+
+class SaveDataWindow:
+    def __init__(self, parent):
+        self.parent = parent
+        windowList.append(self)
+        self.children = []
+        layout = [[sg.Input(key='-saveName-',size=(inputSize,1)), sg.Text('.pkl')],
+                  [sg.Button('Save'), sg.Button('Cancel')]]
+        self.sgw = sg.Window('Save Diagram Data', layout, location = [400,0], finalize=True)
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            self.close()
+        elif event =='Save':
+            try:
+                tempName = str(values['-saveName-'])
+                if not tempName == '':
+                    self.parent.saveDataName = tempName
+            except:
+                pass
+            saveData = SaveData(self.parent.ts,
+                                self.parent.x1,
+                                self.parent.x2,
+                                self.parent.boundaries,
+                                self.parent.phases,
+                                self.parent.b,
+                                self.parent.x0data,
+                                self.parent.x1data,
+                                self.parent.mint,
+                                self.parent.maxt)
+            with open(self.parent.saveDataName+'.pkl','wb') as outp:
+                pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
+            self.close()
+
+class LoadDataWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        file_list_column = [
+            [
+                sg.Text("Phase Diagram Data Folder"),
+                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.FolderBrowse(),
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                )
+            ],
+        ]
+        self.folder = os.getcwd()
+        try:
+            file_list = os.listdir(self.folder)
+        except:
+            file_list = []
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(self.folder, f))
+            and f.lower().endswith((".pkl"))
+        ]
+        fnames = sorted(fnames, key=str.lower)
+        self.sgw = sg.Window('Phase diagram data selection', file_list_column, location = [0,0], finalize=True)
+        self.sgw["-FILE LIST-"].update(fnames)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == "-FOLDER-":
+            self.folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(self.folder)
+            except:
+                file_list = []
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(self.folder, f))
+                and f.lower().endswith((".pkl"))
+            ]
+            fnames = sorted(fnames, key=str.lower)
+            self.sgw["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            newData = []
+            filename = values["-FILE LIST-"][0]
+            datafile = os.path.join(self.folder, filename)
+            with open(datafile, 'rb') as inp:
+                self.parent.loadedDiagram = pickle.load(inp)
+                self.parent.loaded = True
+            self.close()
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
