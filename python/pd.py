@@ -113,10 +113,10 @@ class diagram:
         self.saveDataName = 'savedDiagram'
         self.runCalc()
         self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
-    def autoRefine(self):
+    def refinery(self):
         self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
         self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
-        self.autoRefine((self.resRef**2))
+        self.autoRefine(self.resRef**2)
         self.resRef += 1
     def autoSmooth(self):
         self.autoRefine2Phase(self.resSmooth**2)
@@ -1015,8 +1015,3 @@ class diagram:
                 if event == sg.WIN_CLOSED or event == 'Continue':
                     break
             errorWindow.close()
-
-
-testcalc = diagram([],'/media/max/data/thermochimicastuff/thermochimica/data/Kaye_NobleMetals.dat', False)
-testcalc.run(10,10,1,'K','atm',0,1,300,3000,'Pd','Ru','mole fraction')
-testcalc.makePlot()
