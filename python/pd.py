@@ -2,13 +2,9 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-import os
-import sys
 import subprocess
 import copy
-import csv
 from itertools import cycle
-import pickle
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -33,9 +29,10 @@ atomic_number_map = [
 phaseIncludeTol = 1e-8
 
 class diagram:
-    def __init__(self, parent, datafile, active):
-        self.parent = parent
+    def __init__(self, datafile, active, interactivePlot):
         self.datafile = datafile
+        self.active = active
+        self.interactivePlot = interactivePlot
         self.mint = 1e5
         self.maxt = 0
         self.ts = np.empty([0])
@@ -58,7 +55,10 @@ class diagram:
         self.outputFileName = 'thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
-        self.backup = []
+        if self.active:
+            self.backup = diagram(self.datafile, False, self.interactivePlot)
+        else:
+            self.backup = []
         self.currentPlot = []
         self.exportFormat = 'png'
         self.exportFileName = 'thermochimicaPhaseDiagram'
@@ -84,9 +84,11 @@ class diagram:
         self.loaded = False
         self.showLoaded = True
         self.saveDataName = 'savedDiagram'
-    def close(self):
-        pass
     def run(self,ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit):
+        self.pressure = pressure
+        self.tunit = tunit
+        self.punit = punit
+        self.munit = munit
         self.el1 = el1
         self.el2 = el2
         self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
@@ -315,7 +317,8 @@ class diagram:
         self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
-        # plt.ion()
+        if self.interactivePlot:
+            plt.ion()
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
         bEdgeLine = [[False,False] for i in range(len(self.boundaries))]
@@ -624,7 +627,8 @@ class diagram:
                     ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'--',c=c)
 
         plt.show()
-        # plt.pause(0.001)
+        if self.interactivePlot:
+            plt.pause(0.001)
         self.currentPlot = fig
         self.figureList.append(fig)
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
@@ -964,7 +968,6 @@ class diagram:
                 center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
                 self.labels.append([[center[0],center[1]],self.phases[i]])
     def makeBackup(self):
-        self.backup = CalculationWindow(self.parent, self.datafile, False)
         self.backup.datafile = self.datafile
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
