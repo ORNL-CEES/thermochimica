@@ -47,7 +47,6 @@ class diagram:
         self.munit = 'moles'
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
-        self.children = []
         self.labels = []
         self.outline = MultiPolygon([])
         self.pressure = 1
@@ -113,6 +112,9 @@ class diagram:
         self.loadedDiagram = []
         self.loaded = False
         self.saveDataName = 'savedDiagram'
+        self.backup = diagram(self.datafile, False, self.interactivePlot)
+        for fig in self.figureList:
+            plt.close(fig=fig)
         self.runCalc()
         self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
     def refinery(self):

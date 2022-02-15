@@ -5,6 +5,7 @@ import sys
 import pickle
 import csv
 import math
+import copy
 import matplotlib.pyplot as plt
 
 timeout = 50
@@ -286,7 +287,11 @@ class CalculationWindow:
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
         elif event =='Undo':
+            for fig in self.calculation.figureList:
+                plt.close(fig=fig)
+            backup = copy.deepcopy(self.calculation.backup)
             self.calculation = self.calculation.backup
+            self.calculation.backup = backup
             self.calculation.makePlot()
             self.sgw.Element('Refine').Update(disabled = False)
             self.sgw.Element('Auto Refine').Update(disabled = False)
