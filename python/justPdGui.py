@@ -449,6 +449,8 @@ class RefineWindow:
                 self.parent.calculation.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.calculation.runCalc()
                 self.parent.calculation.makePlot()
+                self.parent.macro.append(f'macroPD.writeInputFile({xlo},{xhi},{nxstep},{tlo},{thi},{ntstep})')
+                self.parent.macro.append('macroPD.runCalc()')
 
 class LabelWindow:
     def __init__(self, parent):
@@ -483,6 +485,7 @@ class LabelWindow:
                     self.parent.calculation.addLabel(xlab,tlab)
                     self.parent.calculation.makePlot()
                     self.parent.sgw.Element('Remove Label').Update(disabled = False)
+                    self.parent.macro.append(f'macroPD.addLabel({xlab},{tlab})')
             except:
                 pass
 
@@ -521,6 +524,7 @@ class RemoveWindow:
                 try:
                     if values['-removeLabel'+str(i)+'-']:
                         del self.parent.calculation.labels[i]
+                        self.parent.macro.append(f'del macroPD.labels[{i}]')
                 except:
                     continue
             if len(self.parent.calculation.labels) == 0:
