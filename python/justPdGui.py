@@ -142,6 +142,8 @@ class CalculationWindow:
         windowList.append(self)
         self.children = []
         self.calculation = pd.diagram(self.datafile, True, True)
+        self.recording = False
+        self.macro = []
     def close(self):
         for child in self.children:
             child.close()
@@ -256,6 +258,7 @@ class CalculationWindow:
                 self.sgw.Element('Inspect').Update(disabled = False)
                 self.sgw.Element('Export Diagram Data').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
+                self.macro.append(f'macroPD.run({ntstep},{nxstep},{pressure},{tunit},{punit},{xlo},{xhi},{tlo},{thi},{el1},{el2},{munit})')
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -263,11 +266,13 @@ class CalculationWindow:
             self.calculation.makeBackup()
             self.calculation.refinery()
             self.calculation.makePlot()
+            self.macro.append('macroPD.refinery()')
         elif event =='Auto Smoothen':
             self.calculation.makeBackup()
             self.sgw.Element('Undo').Update(disabled = False)
             self.calculation.autoSmooth()
             self.calculation.makePlot()
+            self.macro.append('macroPD.autoSmooth()')
         elif event =='Add Label':
             labelWindow = LabelWindow(self)
             self.children.append(labelWindow)
@@ -276,6 +281,7 @@ class CalculationWindow:
             self.calculation.autoLabel()
             self.calculation.makePlot()
             self.sgw.Element('Remove Label').Update(disabled = False)
+            self.macro.append('macroPD.autoLabel()')
         elif event =='Remove Label':
             removeWindow = RemoveWindow(self)
             self.children.append(removeWindow)
@@ -315,22 +321,29 @@ class CalculationWindow:
             self.calculation.makeBackup()
             loadDataWindow = LoadDataWindow(self)
             self.children.append(loadDataWindow)
+        elif event =='-macro-':
+            if not self.recording:
+                self.sgw.Element('Undo').Update(disabled = True)
+                self.sgw.Element('-macro-').Update(text = 'End Recording')
+                self.macro = []
+            else:
+                self.sgw.Element('Undo').Update(disabled = False)
+                self.sgw.Element('-macro-').Update(text = 'Record Macro')
+                print(self.macro)
+            self.recording = not self.recording
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
-        xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
-                      [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
-                      ],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                      ],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
-        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
-                      ]
+        xLayout        = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
+                                     [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
+        tempLayout     = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+                                     [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+        presLayout     = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+                                     [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')]
         self.layout = [elSelectLayout,xLayout,tempLayout,presLayout,[
             sg.Column([[sg.Button('Run', size = buttonSize)],
                        [sg.Button('Undo', disabled = True, size = buttonSize)],
@@ -347,7 +360,8 @@ class CalculationWindow:
             sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Export Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Plot Settings', size = buttonSize)],
-                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)]],vertical_alignment='t')
+                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
+                       [sg.Button('Record Macro', size = buttonSize, key = '-macro-')]],vertical_alignment='t')
             ]]
 
 class RefineWindow:
