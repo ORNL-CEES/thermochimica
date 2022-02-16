@@ -192,16 +192,16 @@ subroutine CheckConvergence
     ! Now that crucial tests have been done, can check for convergence shortcut
     ! If the functional norm is less than a specified tolerance and the system hasn't changed,
     ! call it a day:
-    if ((dGEMFunctionNorm < dTolerance(12)).AND.(iterGlobal - iterLast > 100).AND.(iterGlobal > 1000))  then
-        lConverged = .TRUE.
-        return
-    else if ((dGEMFunctionNorm < 1D-2).AND.          (iterGlobal - iterLast > 2000)) then
-        lConverged = .TRUE.
-        return
-    else if ((dGEMFunctionNorm < 1D-5).AND.(iterGlobal > 1000)) then
-        lConverged = .TRUE.
-        return
-    end if
+    ! if ((dGEMFunctionNorm < dTolerance(12)).AND.(iterGlobal - iterLast > 100).AND.(iterGlobal > 1000))  then
+    !     lConverged = .TRUE.
+    !     return
+    ! else if ((dGEMFunctionNorm < 1D-2).AND.          (iterGlobal - iterLast > 2000)) then
+    !     lConverged = .TRUE.
+    !     return
+    ! else if ((dGEMFunctionNorm < 1D-5).AND.(iterGlobal > 1000)) then
+    !     lConverged = .TRUE.
+    !     return
+    ! end if
     if (lDebugMode) print *, "Test Shortcut 2"
     ! Return if the functional norm is too large.  In other words, it's not worth the flops checking.
     if (dGEMFunctionNorm > dTolerance(1)) return
