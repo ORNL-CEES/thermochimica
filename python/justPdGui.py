@@ -142,7 +142,6 @@ class CalculationWindow:
         windowList.append(self)
         self.children = []
         self.calculation = pd.diagram(self.datafile, True, True)
-        self.recording = False
         self.macro = []
     def close(self):
         for child in self.children:
@@ -258,7 +257,7 @@ class CalculationWindow:
                 self.sgw.Element('Inspect').Update(disabled = False)
                 self.sgw.Element('Export Diagram Data').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
-                self.macro.append(f'macroPD.run({ntstep},{nxstep},{pressure},{tunit},{punit},{xlo},{xhi},{tlo},{thi},{el1},{el2},{munit})')
+                self.macro.append(f'macroPD.run({ntstep},{nxstep},{pressure},"{tunit}","{punit}",{xlo},{xhi},{tlo},{thi},"{el1}","{el2}","{munit}")')
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -266,12 +265,14 @@ class CalculationWindow:
             self.calculation.makeBackup()
             self.calculation.refinery()
             self.calculation.makePlot()
+            self.macro.append('macroPD.makeBackup()')
             self.macro.append('macroPD.refinery()')
         elif event =='Auto Smoothen':
             self.calculation.makeBackup()
             self.sgw.Element('Undo').Update(disabled = False)
             self.calculation.autoSmooth()
             self.calculation.makePlot()
+            self.macro.append('macroPD.makeBackup()')
             self.macro.append('macroPD.autoSmooth()')
         elif event =='Add Label':
             labelWindow = LabelWindow(self)
@@ -281,6 +282,7 @@ class CalculationWindow:
             self.calculation.autoLabel()
             self.calculation.makePlot()
             self.sgw.Element('Remove Label').Update(disabled = False)
+            self.macro.append('macroPD.makeBackup()')
             self.macro.append('macroPD.autoLabel()')
         elif event =='Remove Label':
             removeWindow = RemoveWindow(self)
@@ -298,6 +300,9 @@ class CalculationWindow:
             backup = copy.deepcopy(self.calculation.backup)
             self.calculation = self.calculation.backup
             self.calculation.backup = backup
+            self.macro.append('backup = copy.deepcopy(macroPD.backup)')
+            self.macro.append('macroPD = macroPD.backup')
+            self.macro.append('macroPD.backup = backup')
             self.calculation.makePlot()
             self.sgw.Element('Refine').Update(disabled = False)
             self.sgw.Element('Auto Refine').Update(disabled = False)
@@ -321,16 +326,16 @@ class CalculationWindow:
             self.calculation.makeBackup()
             loadDataWindow = LoadDataWindow(self)
             self.children.append(loadDataWindow)
-        elif event =='-macro-':
-            if not self.recording:
-                self.sgw.Element('Undo').Update(disabled = True)
-                self.sgw.Element('-macro-').Update(text = 'End Recording')
-                self.macro = []
-            else:
-                self.sgw.Element('Undo').Update(disabled = False)
-                self.sgw.Element('-macro-').Update(text = 'Record Macro')
-                print(self.macro)
-            self.recording = not self.recording
+        elif event =='Clear Macro':
+            self.macro = []
+        elif event =='Export Macro':
+            with open('python/macro-phaseDiagram.py', 'w') as f:
+                f.write('import pd\n')
+                f.write('import copy\n')
+                f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
+                for command in self.macro:
+                    f.write(f'{command}\n')
+                f.write('macroPD.makePlot()\n')
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
@@ -356,12 +361,13 @@ class CalculationWindow:
             sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
                        [sg.Button('Remove Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Load Diagram', size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Load Diagram', size = buttonSize)],
+                       [sg.Button('Export Macro', size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Export Plot', disabled = True, size = buttonSize)],
                        [sg.Button('Plot Settings', size = buttonSize)],
                        [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
-                       [sg.Button('Record Macro', size = buttonSize, key = '-macro-')]],vertical_alignment='t')
+                       [sg.Button('Clear Macro', size = buttonSize)]],vertical_alignment='t')
             ]]
 
 class RefineWindow:
@@ -449,6 +455,7 @@ class RefineWindow:
                 self.parent.calculation.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
                 self.parent.calculation.runCalc()
                 self.parent.calculation.makePlot()
+                self.parent.macro.append('macroPD.makeBackup()')
                 self.parent.macro.append(f'macroPD.writeInputFile({xlo},{xhi},{nxstep},{tlo},{thi},{ntstep})')
                 self.parent.macro.append('macroPD.runCalc()')
 
@@ -485,6 +492,7 @@ class LabelWindow:
                     self.parent.calculation.addLabel(xlab,tlab)
                     self.parent.calculation.makePlot()
                     self.parent.sgw.Element('Remove Label').Update(disabled = False)
+                    self.parent.macro.append('macroPD.makeBackup()')
                     self.parent.macro.append(f'macroPD.addLabel({xlab},{tlab})')
             except:
                 pass
@@ -518,6 +526,7 @@ class RemoveWindow:
             self.close()
         if event == 'Remove Label(s)':
             self.parent.calculation.makeBackup()
+            self.parent.macro.append('macroPD.makeBackup()')
             self.parent.sgw.Element('Undo').Update(disabled = False)
             tempLength = len(self.parent.calculation.labels)
             for i in reversed(range(tempLength)):
