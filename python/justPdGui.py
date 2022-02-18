@@ -329,13 +329,21 @@ class CalculationWindow:
         elif event =='Clear Macro':
             self.macro = []
         elif event =='Export Macro':
-            with open('python/macro-phaseDiagram.py', 'w') as f:
+            with open('python/macroPhaseDiagram.py', 'w') as f:
                 f.write('import pd\n')
                 f.write('import copy\n')
                 f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
                 for command in self.macro:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
+        elif event =='Run Macro':
+            if 'macroPhaseDiagram' in sys.modules:
+                del sys.modules['macroPhaseDiagram']
+            import macroPhaseDiagram
+            self.calculation = macroPhaseDiagram.macroPD
+            self.calculation.active = True
+            self.calculation.interactivePlot = True
+
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
@@ -357,7 +365,8 @@ class CalculationWindow:
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
-                       [sg.Button('Inspect', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Inspect', disabled = True, size = buttonSize)],
+                       [sg.Button('Run Macro', size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Label', disabled = True, size = buttonSize)],
                        [sg.Button('Remove Label', disabled = True, size = buttonSize)],
