@@ -20,6 +20,10 @@ test/doc/
 *.png
 *.jpg
 *.jpeg
+*.la
+*.lo
+*.d
+*.o
 # some of these will occasionally require manual override
 data/
 test/
