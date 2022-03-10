@@ -1,4 +1,4 @@
-THERMOCHIMICA ![Basic Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/quick.yml/badge.svg)![Extended Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/main.yml/badge.svg)
+THERMOCHIMICA [![Basic Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/quick.yml/badge.svg)](https://github.com/ORNL-CEES/thermochimica/actions/workflows/quick.yml)[![Extended Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/main.yml/badge.svg)](https://github.com/ORNL-CEES/thermochimica/actions/workflows/main.yml)
 =============
 
 THERMOCHIMICA is a computational library for chemical thermodynamics.
