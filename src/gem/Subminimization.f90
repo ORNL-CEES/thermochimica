@@ -162,12 +162,12 @@ subroutine Subminimization(iSolnPhaseIndex,lPhasePass)
     ! the same composition), then set the driving force to zero to prevent this phase from being added to the system.
     if (lDuplicate) dDrivingForce = 0D0
 
+    ! If the mole fraction and charge neutrality constraints were not satisfied, then set the driving force to zero:
+    if (dSubMinFunctionNorm > 10D0*dTolerance(1)) dDrivingForce = 0D0
+
     ! If the driving force is less than a specified tolerance and the system has converged,
     ! add this solution phase to the system:
     if ((dDrivingForce < dTolerance(4)).AND.(lSubMinConverged)) lPhasePass = .TRUE.
-
-    ! If the mole fraction and charge neutrality constraints were not satisfied, then set the driving force to zero:
-    if (dSubMinFunctionNorm > 10D0*dTolerance(1)) dDrivingForce = 0D0
 
     ! Update the solution driving force:
     dDrivingForceSoln(iSolnPhaseIndex) = dDrivingForce

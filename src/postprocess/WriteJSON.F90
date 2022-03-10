@@ -3,7 +3,6 @@ subroutine WriteJSON(append)
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
@@ -79,7 +78,6 @@ subroutine WriteJSONSolnPhase
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
@@ -234,7 +232,6 @@ subroutine WriteJSONPureConPhase
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
