@@ -1,6 +1,7 @@
-# ignore bin/ and obj/
+# ignore bin/ and obj/ and lib/
 bin/
 obj/
+lib/
 # ignore doc subdirectories except the pre-compiled manual
 doc/html/
 doc/latex/
