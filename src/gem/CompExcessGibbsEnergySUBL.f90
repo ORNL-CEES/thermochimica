@@ -259,6 +259,10 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
             dPreFactor = 1D0
             iFirstParam = 0
             iSecondParam = 0
+            iThirdParam = 0
+            dFirstParam = 0D0
+            dSecondParam = 0D0
+            dThirdParam = 0D0
             iFirstParam2 = 0
             iSecondParam2 = 0
 
@@ -266,7 +270,6 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
 
             ! Store the number of constituents involved in this parameter:
             n = iRegularParam(l,1)
-            ! print *, iSUBLParamData(l,:)
             ! Determine the mixing parameter type
             if ((iSUBLParamData(l,1) == 1) .AND. (iSUBLParamData(l,3) == 2)) then
                 iMixType = 2
@@ -401,7 +404,7 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                 if ((iMixType == 2) .OR. (iMixType == 4)) then
                     dTemp = -DFLOAT(nSublattice + iExponent)
                 else if (iMixType == 3) then
-                    dTemp = -3D0
+                    dTemp = -DFLOAT(nSublattice + 1)
                 end if
 
                 ! Loop through sublattices associated with this phase:
@@ -427,14 +430,15 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
                                 KD = -1D0/3D0
                             end if
                         elseif (c == iThirdParam) then
-                            ! This is the second mixing constituent:
+                            ! This is the third mixing constituent:
                             if (iMixType == 3) then
                                 KD = -1D0/3D0
                             end if
                         else
                             ! The constituents don't match:
-                            KD = 0
+                            KD = 0D0
                         end if
+                        if (iMixType == 3) KD = KD - (dFirstParam + (- dFirstParam - dSecondParam - dThirdParam) / 3D0)
                     end if
 
                     ! Loop through constituents involved in this mixing parameter:

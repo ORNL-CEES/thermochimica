@@ -172,7 +172,7 @@ class PlotWindow:
                     elif values['-yaxis-'] == 'functional norm':
                         self.ylab = 'Functional Norm'
                     elif values['-yaxis-'] == 'GEM iterations':
-                        self.ylab = 'Functional Norm'
+                        self.ylab = 'GEM Iterations'
                     self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
@@ -440,7 +440,7 @@ class PlotWindow:
                 elif values['-yaxis2-'] == 'functional norm':
                     self.ylab2 = 'Functional Norm'
                 elif values['-yaxis2-'] == 'GEM iterations':
-                    self.ylab2 = 'Functional Norm'
+                    self.ylab2 = 'GEM Iterations'
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == '# phases':
                 self.ykey2[0].append('# solution phases')
