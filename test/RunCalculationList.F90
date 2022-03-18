@@ -14,6 +14,7 @@ program RunCalculationList
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber
     character(1024) :: cLineInit
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
+    character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
 
     character(16) :: intStr
 
@@ -136,7 +137,7 @@ program RunCalculationList
           'p_units','pressure_units','Pressure_units','Pressure_Units','P_units','P_Units','pressure units',&
             'Pressure Units','Pressure units','press_units','press units','Press units','Press Units'&
             'p units','P units','P Units')
-          read(cValue,*,IOSTAT = INFO) cInputUnitPressure
+          read(cValue,*,IOSTAT = INFO) cRunUnitPressure
           if (INFO /= 0) then
             INFOThermo = 44
             write (cErrMsg, '(A35,I10)') 'Cannot read pressure unit on line: ', iCounter
@@ -150,7 +151,7 @@ program RunCalculationList
           't_units','temperature_units','Temperature_units','Temperature_Units','T_units','T_Units',&
             'temperature units','Temperature Units','Temperature units','temp_units','temp units',&
             'Temp units','Temp Units','t units','T units','T Units')
-          read(cValue,*,IOSTAT = INFO) cInputUnitTemperature
+          read(cValue,*,IOSTAT = INFO) cRunUnitTemperature
           if (INFO /= 0) then
             INFOThermo = 44
             write (cErrMsg, '(A38,I10)') 'Cannot read temperature unit on line: ', iCounter
@@ -160,7 +161,7 @@ program RunCalculationList
           lTemperatureUnit = .TRUE.
         case ('m_unit','mass_unit','Mass_unit','Mass_Unit','m unit','mass unit','Mass unit','Mass Unit',&
           'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
-          read(cValue,*,IOSTAT = INFO) cInputUnitMass
+          read(cValue,*,IOSTAT = INFO) cRunUnitMass
           if (INFO /= 0) then
             INFOThermo = 44
             write (cErrMsg, '(A31,I10)') 'Cannot read mass unit on line: ', iCounter
@@ -225,17 +226,17 @@ program RunCalculationList
     endif
     if (.NOT. lPressureUnit) then
       INFOThermo = 45
-      cInputUnitPressure = 'atm'
+      cRunUnitPressure = 'atm'
       return
     endif
     if (.NOT. lTemperatureUnit) then
       INFOThermo = 45
-      cInputUnitTemperature = 'K'
+      cRunUnitTemperature = 'K'
       return
     endif
     if (.NOT. lMassUnit) then
       INFOThermo = 45
-      cInputUnitMass = 'moles'
+      cRunUnitMass = 'moles'
       return
     endif
 
@@ -249,6 +250,9 @@ program RunCalculationList
     CLOSE(2)
 
     do i = 1, nCalc
+      cInputUnitPressure = cRunUnitPressure
+      cInputUnitTemperature = cRunUnitTemperature
+      cInputUnitMass = cRunUnitMass
       READ(3,*,IOSTAT = INFO) dTemperature, dPressure, dEls
       dElementMass = 0D0
       do j = 1, nElIn
