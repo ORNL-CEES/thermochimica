@@ -46,7 +46,6 @@ subroutine PrintResults
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
@@ -136,7 +135,6 @@ subroutine PrintResultsSolnPhase
 
     USE ModuleThermo
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
@@ -146,6 +144,8 @@ subroutine PrintResultsSolnPhase
     real(8),    dimension(:),   allocatable :: dTempVec, dTempSpecies
     character(2)                            :: cDummy
     character(30)                           :: cDummyB, FMTA, FMTB
+    character(30), dimension(:),allocatable :: cPair
+    real(8), dimension(:), allocatable      :: dPair
 
 
     ! Initiate variables:
@@ -223,7 +223,10 @@ subroutine PrintResultsSolnPhase
         end if
 
         if ((cSolnPhaseType(l)) == 'SUBG' .OR. (cSolnPhaseType(l) == 'SUBQ')) then
-            call CalculateCompositionSUBG(iSolnIndex=l,dMolesPairs=dMolesPairs,lPrint=.TRUE.)
+            allocate(cPair(nPairsSRO(iPhaseSublattice(l),1)))
+            allocate(dPair(nPairsSRO(iPhaseSublattice(l),1)))
+            call CalculateCompositionSUBG(l,dMolesPairs,.TRUE.,cPair,dPair)
+            deallocate(cPair,dPair)
             print *, '   Quadruplet fractions:'
         end if
 
@@ -346,7 +349,6 @@ subroutine PrintResultsPureConPhase
 
     USE ModuleThermo
     USE ModuleGEMSolver
-    USE ModulePrintUtils
 
     implicit none
 
