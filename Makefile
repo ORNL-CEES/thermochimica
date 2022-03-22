@@ -53,6 +53,7 @@ BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
 SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
+EXE_DIR     = $(SRC_DIR)/exec
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
@@ -63,10 +64,14 @@ CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
 VPATH				= $(SHARED_DIR)
 
+# Separate modules and non-modules
+modfiles := $(shell find src -name "Module*.f90")
+srcfiles := $(shell find src -name "[^(Module)]*.f90")
+
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o ModuleCTZ.o CalculateCompositionSUBG.o
+MODS_SRC    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
@@ -93,6 +98,7 @@ C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
 ## OLD EXECUTABLES:
 ## ============
 EXEC_SRC    = $(notdir $(wildcard $(TST_DIR)/*.F90))
+EXEC_SRC   += $(notdir $(wildcard $(EXE_DIR)/*.F90))
 EXEC_OBJ    = $(EXEC_SRC:.F90=.o)
 EXEC_LNK    = $(addprefix $(OBJ_DIR)/,$(EXEC_OBJ))
 EXE_OBJ     = $(basename $(EXEC_SRC))
@@ -129,6 +135,9 @@ ${OBJ_DIR}:
 ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
+# Enforce module dependency rules
+$(srcfiles): $(MODS_LNK)
+
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
 
@@ -139,6 +148,9 @@ $(OBJ_DIR)/%.o: %.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)

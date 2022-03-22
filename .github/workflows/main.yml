@@ -41,11 +41,8 @@ jobs:
       - name: make clean
         run: make veryclean
 
-      - name: make
-        run: make
-
       - name: make test
-        run: make test
+        run: make -j test
 
       - name: run tests
         run: bash ./run_private_tests > testresults.out

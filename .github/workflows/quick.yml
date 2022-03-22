@@ -30,7 +30,7 @@ jobs:
         run: make veryclean
 
       - name: make test
-        run: make test
+        run: make -j test
 
       - name: run tests
         run: bash ./run_tests > basictestresults.out
