@@ -64,10 +64,14 @@ CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
 VPATH				= $(SHARED_DIR)
 
+# Separate modules and non-modules
+modfiles := $(shell find src -name "Module*.f90")
+srcfiles := $(shell find src -name "[^(Module)]*.f90")
+
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = ModuleThermo.o ModuleThermoIO.o ModuleGEMSolver.o ModuleSubMin.o ModuleParseCS.o ModuleSS.o ModuleReinit.o ModuleCTZ.o CalculateCompositionSUBG.o
+MODS_SRC    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
@@ -130,6 +134,9 @@ ${OBJ_DIR}:
 
 ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
+
+# Enforce module dependency rules
+$(srcfiles): $(MODS_LNK)
 
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
