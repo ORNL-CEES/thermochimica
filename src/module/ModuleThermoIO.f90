@@ -73,5 +73,6 @@ module ModuleThermoIO
     real(8), dimension(:), allocatable       :: dSolnPhaseMolesOut, dPureConPhaseMolesOut, dSpeciesMoleFractionOut
     character(25), dimension(:), allocatable :: cSolnPhaseNameOut, cPureConPhaseNameOut, cSpeciesNameOut, cSpeciesPhaseOut
     logical, dimension(:), allocatable       :: lSpeciesStable
+    real(8)                                  :: dHeatCapacity = 0D0, dEntropy = 0D0, dEnthalpy = 0D0
 
 end module ModuleThermoIO

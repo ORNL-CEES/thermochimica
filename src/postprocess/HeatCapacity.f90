@@ -1,4 +1,4 @@
-subroutine HeatCapacity(dHeatCapacity, dEntropy, dEnthalpy)
+subroutine HeatCapacity
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -7,12 +7,13 @@ subroutine HeatCapacity(dHeatCapacity, dEntropy, dEnthalpy)
 
     integer               :: k, nMaxHeatCapAttempt
     real(8), dimension(2) :: dGibbsEnergies
-    real(8), intent(out)  :: dHeatCapacity, dEntropy, dEnthalpy
     real(8)               :: dTStepSize, dSecondDer
     real(8)               :: dtemp0, dGibbs0, dGibbsDiff, dTargetDiff, dIncrease, dDecrease
 
     if (INFOThermo /= 0) then
         dHeatCapacity = 0D0
+        dEntropy = 0D0
+        dEnthalpy = 0D0
         return
     end if
 
