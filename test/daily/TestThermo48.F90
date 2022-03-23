@@ -33,7 +33,6 @@ program TestThermo48
 
     integer :: i,j,k
     logical :: s1pass, s2pass, s3pass, cppass
-    real(8) :: dHeatCapacity
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -53,7 +52,7 @@ program TestThermo48
 
     ! Call Thermochimica:
     call Thermochimica
-    call HeatCapacity(dHeatCapacity)
+    call HeatCapacity
 
     s1pass = .FALSE.
     s2pass = .FALSE.
