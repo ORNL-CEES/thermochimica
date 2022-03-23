@@ -9,6 +9,7 @@ subroutine HeatCapacity
     real(8), dimension(2) :: dGibbsEnergies
     real(8)               :: dTStepSize, dSecondDer
     real(8)               :: dtemp0, dGibbs0, dGibbsDiff, dTargetDiff, dIncrease, dDecrease
+    logical               :: lInputHCEE
 
     if (INFOThermo /= 0) then
         dHeatCapacity = 0D0
@@ -16,6 +17,8 @@ subroutine HeatCapacity
         dEnthalpy = 0D0
         return
     end if
+
+    lInputHCEE = lHeatCapacityEntropyEnthalpy
 
     dtemp0         = dTemperature
     dTemperatureForLimits = dtemp0
@@ -80,7 +83,9 @@ subroutine HeatCapacity
 
     call ResetThermo
     dTemperature = dtemp0
+    lHeatCapacityEntropyEnthalpy = .FALSE.
     call Thermochimica
+    lHeatCapacityEntropyEnthalpy = lInputHCEE
 
 end subroutine HeatCapacity
 
