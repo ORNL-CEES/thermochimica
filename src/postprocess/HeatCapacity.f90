@@ -1,4 +1,4 @@
-subroutine HeatCapacity(dHeatCapacity)
+subroutine HeatCapacity
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -7,14 +7,18 @@ subroutine HeatCapacity(dHeatCapacity)
 
     integer               :: k, nMaxHeatCapAttempt
     real(8), dimension(2) :: dGibbsEnergies
-    real(8), intent(out)  :: dHeatCapacity
     real(8)               :: dTStepSize, dSecondDer
     real(8)               :: dtemp0, dGibbs0, dGibbsDiff, dTargetDiff, dIncrease, dDecrease
+    logical               :: lInputHCEE
 
     if (INFOThermo /= 0) then
         dHeatCapacity = 0D0
+        dEntropy = 0D0
+        dEnthalpy = 0D0
         return
     end if
+
+    lInputHCEE = lHeatCapacityEntropyEnthalpy
 
     dtemp0         = dTemperature
     dTemperatureForLimits = dtemp0
@@ -59,16 +63,19 @@ subroutine HeatCapacity(dHeatCapacity)
             dTStepSize = dTStepSize * dDecrease
             cycle HeatCapTrial
         end if
-        dGibbsEnergies(2)     = dGibbsEnergySys
+        dGibbsEnergies(2) = dGibbsEnergySys
         dGibbsDiff = ABS(dGibbsEnergies(2) - dGibbsEnergies(1)) / ABS(dGibbs0)
     end do HeatCapTrial
 
-    ! Second derivative from  3-point stencil
-    dSecondDer = (dGibbsEnergies(1)+dGibbsEnergies(2)-2D0*dGibbs0)/dTStepSize**2
+    ! First and second derivatives from  3-point stencil
+    dEntropy = -(dGibbsEnergies(2) - dGibbsEnergies(1)) / (dTStepSize * 2D0)
+    dSecondDer = (dGibbsEnergies(1) + dGibbsEnergies(2) - 2D0 * dGibbs0) / dTStepSize**2
     ! Second derivative from  5-point stencil
     ! dSecondDer = (-dGibbsEnergies(1)-dGibbsEnergies(5)-30D0*dGibbsEnergies(3)+16*dGibbsEnergies(2)+16*dGibbsEnergies(4)) &
     !               / (12*dTStepSize**2)
 
+    ! Calculate enthalpy
+    dEnthalpy = dGibbs0 + dtemp0 * dEntropy
     ! Heat capacity from 2nd derivative of G
     dHeatCapacity = -dtemp0*dSecondDer
 
@@ -76,6 +83,16 @@ subroutine HeatCapacity(dHeatCapacity)
 
     call ResetThermo
     dTemperature = dtemp0
+    lHeatCapacityEntropyEnthalpy = .FALSE.
     call Thermochimica
+    lHeatCapacityEntropyEnthalpy = lInputHCEE
 
 end subroutine HeatCapacity
+
+subroutine Entropy
+    call HeatCapacity
+end subroutine Entropy
+
+subroutine Enthalpy
+    call HeatCapacity
+end subroutine Enthalpy
