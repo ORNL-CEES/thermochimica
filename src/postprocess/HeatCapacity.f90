@@ -83,3 +83,11 @@ subroutine HeatCapacity
     call Thermochimica
 
 end subroutine HeatCapacity
+
+subroutine Entropy
+    call HeatCapacity
+end subroutine Entropy
+
+subroutine Enthalpy
+    call HeatCapacity
+end subroutine Enthalpy
