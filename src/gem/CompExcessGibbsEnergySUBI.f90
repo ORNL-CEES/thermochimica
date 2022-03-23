@@ -635,7 +635,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             ! Case 6: Determine the mixing parameter type: L_Ci,Cj,Ck:Al
             else if (iSUBIMixType(l) == 6) then
                 print *, 'Unrecognized excess mixing term in SUBI phase. Case #6. ', cSolnPhaseName(iSolnIndex)
-                INFOThermo = 50
+                INFOThermo = 44
                 return
                 ! ! Loop through constituents associated with this parameter:
                 ! do k = 2, n + 1
@@ -977,7 +977,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
             ! Case 10: Determine the mixing parameter type: L_Ci:Bj,Bk,Bl
           else if (iSUBIMixType(l) == 10) then
               print *, 'Unrecognized excess mixing term in SUBI phase. Case #6. ', cSolnPhaseName(iSolnIndex)
-              INFOThermo = 50
+              INFOThermo = 44
               return
 
               ! ! Loop through constituents associated with this parameter:
