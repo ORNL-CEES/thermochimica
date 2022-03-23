@@ -1,0 +1,16 @@
+! Configuration variables:
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = data/C-O.dat
+
+! Specify output and debug modes:
+print mode        = 2
+
+! Set up calculation list
+nEl         = 2
+iEl         = 6 8
+nCalc       = 3
+900  1 1 1
+950  2 1 2
+1000 3 2 1
