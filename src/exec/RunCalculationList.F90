@@ -207,6 +207,15 @@ program RunCalculationList
             print *,  trim(cErrMsg)
             return
           endif
+        case ('heat capacity','entropy','enthalpy','Heat Capacity','Entropy','Enthalpy',&
+          'heatCapacityEntropyEnthalpy','HeatCapacityEntropyEnthalpy')
+          read(cValue,*,IOSTAT = INFO) lHeatCapacityEntropyEnthalpy
+          if (INFO /= 0) then
+            INFOThermo = 44
+            write (cErrMsg, '(A43,I10)') 'Cannot read heat capacity / entropy / enthalpy mode on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
         case default
           write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
           print *,  trim(cErrMsg)

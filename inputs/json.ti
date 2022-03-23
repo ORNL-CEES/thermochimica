@@ -13,3 +13,4 @@ print mode        = 2
 debug mode        = .FALSE.
 reinit            = .TRUE.
 write json        = .TRUE.
+heat capacity     = .TRUE.

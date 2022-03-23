@@ -265,6 +265,15 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *,  trim(cErrMsg)
           return
         end if
+      case ('heat capacity','entropy','enthalpy','Heat Capacity','Entropy','Enthalpy',&
+        'heatCapacityEntropyEnthalpy','HeatCapacityEntropyEnthalpy')
+        read(cValue,*,IOSTAT = INFO) lHeatCapacityEntropyEnthalpy
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A43,I10)') 'Cannot read heat capacity / entropy / enthalpy mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
       case ('stepTogether','steptogether','StepTogether','step_Together',&
         'step_together','Step_Together','step Together','step together','Step Together')
         read(cValue,*,IOSTAT = INFO) lStepTogether
