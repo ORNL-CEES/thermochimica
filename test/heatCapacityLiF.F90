@@ -7,8 +7,6 @@ program heatCapacityLiF
 
     implicit none
 
-    real(8)   :: dHeatCapacity
-
     ! Specify units:
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
@@ -33,7 +31,7 @@ program heatCapacityLiF
     ! Call Thermochimica:
     call Thermochimica
     if (iPrintResultsMode > 0)  call PrintResults
-    call HeatCapacity(dHeatCapacity)
+    call HeatCapacity
     print *, 'Heat Capacity [J/K]: ', dHeatCapacity
 
     call ResetThermoAll

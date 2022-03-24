@@ -78,7 +78,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum, dEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
+    real(8) :: dSum, dConfEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
     real(8) :: dTernarySum1, dTernarySum2, dChiFactor
@@ -234,7 +234,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
 
     do k = 1, nPairsSRO(iSPI,2)
         ! Calculate entropic contributions to chemical potentials
-        dEntropy = 0D0
+        dConfEntropy = 0D0
         dRef = 0D0
         l = iFirst + k - 1
 
@@ -248,20 +248,20 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         ! Cations first
         do i = 1, nSub1
             if (i == iPairID(iSPI,k,1))  then
-                dEntropy = dEntropy + (DLOG(dXi(i)) / dZa)
+                dConfEntropy = dConfEntropy + (DLOG(dXi(i)) / dZa)
             end if
             if (i == iPairID(iSPI,k,2))  then
-                dEntropy = dEntropy + (DLOG(dXi(i)) / dZb)
+                dConfEntropy = dConfEntropy + (DLOG(dXi(i)) / dZb)
             end if
         end do
         ! Now anions
         do i = 1, nSub2
             j = i + nSub1
             if (j == iPairID(iSPI,k,3))  then
-                dEntropy = dEntropy + (DLOG(dXi(j)) / dZx)
+                dConfEntropy = dConfEntropy + (DLOG(dXi(j)) / dZx)
             end if
             if (j == iPairID(iSPI,k,4))  then
-                dEntropy = dEntropy + (DLOG(dXi(j)) / dZy)
+                dConfEntropy = dConfEntropy + (DLOG(dXi(j)) / dZy)
             end if
         end do
 
@@ -289,7 +289,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         m = kk
                     end if
                 end do
-                dEntropy = dEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
+                dConfEntropy = dConfEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
                             * (nA * nX / dZetaSpecies(iSPI,m)))
             end do
         end do
@@ -321,16 +321,16 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
                             / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
             if (dSum == 0) then
-                dEntropy = 100D0
+                dConfEntropy = 100D0
             else
-                dEntropy = dEntropy + DLOG(dMolFraction(l) / dSum)
+                dConfEntropy = dConfEntropy + DLOG(dMolFraction(l) / dSum)
             end if
         end if
 
         dRef = dStdGibbsEnergy(l)
 
         ! Calculate chemical potential of quadruplet
-        dChemicalPotential(l) = dRef + dEntropy
+        dChemicalPotential(l) = dRef + dConfEntropy
     end do
 
     ! Loop through excess mixing parameters:

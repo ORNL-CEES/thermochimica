@@ -205,9 +205,16 @@ class PlotWindow:
                     if values['-yaxis-'] == 'moles':
                         # total moles of solution phase
                         try:
+                            if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                                self.ykey.append(['solution phases',j,'moles of endmembers'])
+                                self.yen.append(False)
+                                phaseColumns[-1].append([sg.Checkbox('Moles of Endmembers',key=str(yi))])
+                                self.leg.append(j)
+                                self.ylab = 'Moles'
+                                yi = yi + 1
                             self.ykey.append(['solution phases',j,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
+                            phaseColumns[-1].append([sg.Checkbox('Moles',key=str(yi))])
                             self.leg.append(j)
                             self.ylab = 'Moles'
                             yi = yi + 1

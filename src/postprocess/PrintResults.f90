@@ -91,6 +91,11 @@ subroutine PrintResults
         end do
         print *
         print '(A26,ES12.5,A4)', ' Integral Gibbs energy = ', dGibbsEnergySys, ' [J]'
+        if (lHeatCapacityEntropyEnthalpy) then
+            print '(A26,ES12.5,A6)', ' Entropy               = ', dEntropy, ' [J/K]'
+            print '(A26,ES12.5,A4)', ' Enthalpy              = ', dEnthalpy, ' [J]'
+            print '(A26,ES12.5,A6)', ' Heat capacity         = ', dHeatCapacity, ' [J/K]'
+        end if
 
         if (iPrintResultsMode == 2) then
             print '(A26, ES12.5,A11)', ' Functional norm       = ', dGEMFunctionNorm, ' [unitless]'

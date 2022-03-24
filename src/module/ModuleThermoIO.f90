@@ -67,6 +67,7 @@ module ModuleThermoIO
     real(8),       dimension(118,0:118)      :: dCompoundStoich
     character(12), dimension(118)            :: cCompoundNames
     logical                                  :: lCompoundStoichCalculated = .FALSE., lRetryAttempted = .FALSE.
+    logical                                  :: lHeatCapacityEntropyEnthalpy = .FALSE.
 
     ! OUTPUT VARIABLES:
     integer                                  :: INFOThermo, nSolnPhasesOut, nPureConPhaseOut, nSpeciesOut
@@ -74,5 +75,6 @@ module ModuleThermoIO
     real(8), dimension(:), allocatable       :: dSolnPhaseMolesOut, dPureConPhaseMolesOut, dSpeciesMoleFractionOut
     character(25), dimension(:), allocatable :: cSolnPhaseNameOut, cPureConPhaseNameOut, cSpeciesNameOut, cSpeciesPhaseOut
     logical, dimension(:), allocatable       :: lSpeciesStable
+    real(8)                                  :: dHeatCapacity = 0D0, dEntropy = 0D0, dEnthalpy = 0D0
 
 end module ModuleThermoIO

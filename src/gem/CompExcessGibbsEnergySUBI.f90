@@ -1098,7 +1098,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                 end if
 
                 iExponentAdjust = iExponentAdjust / 2
-                
+
                 ! Excess Gibbs energy equation for L_Ci,Cj:Ak,Dl case
                 ! Dealing with the reciprocals
                 ! Part 1 of equation:
