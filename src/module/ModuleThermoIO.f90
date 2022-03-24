@@ -59,7 +59,7 @@ module ModuleThermoIO
     character(120)                           :: cThermoFileName
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
-    Logical                                  :: lFuzzyStoich = .TRUE.
+    logical                                  :: lFuzzyStoich = .TRUE.
 
     ! Compound variables:
     integer                                  :: nCompounds = 0
