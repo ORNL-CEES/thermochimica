@@ -425,7 +425,8 @@ subroutine Thermochimica
     implicit none
 
     integer :: i, j, INFO
-    logical :: lSmallPhase
+    logical :: lSmallPhase, lPhasePass
+    real(8) :: dFuzzMag
 
     ! Check the input variables:
     if (INFOThermo == 0) call CheckThermoInput
@@ -453,13 +454,14 @@ subroutine Thermochimica
     if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
 
     ! Fuzzy stoichiometry
+    dFuzzMag = 1D-12
     if (INFOThermo == 0 .AND. lFuzzyStoich .AND. (.NOT. lRetryAttempted)) then
         allocate(dStoichSpeciesUnFuzzed(nSpecies,nElements))
         do i = 1, nSpecies
             do j = 1, nElements
                 dStoichSpeciesUnFuzzed(i,j) = dStoichSpecies(i,j)
                 if (dStoichSpecies(i,j) > 0D0) then
-                    dStoichSpecies(i,j) = dStoichSpecies(i,j) + 2D0 * (RAND(0) - 0.5D0) * 1D-12
+                    dStoichSpecies(i,j) = dStoichSpecies(i,j) + 2D0 * (RAND(0) - 0.5D0) * dFuzzMag
                 end if
             end do
         end do
@@ -484,18 +486,25 @@ subroutine Thermochimica
 
         lSmallPhase = .FALSE.
         do i = 1, nElements
-            if (dMolesPhase(i) > 0D0 .AND. dMolesPhase(i) < 1D-10) lSmallPhase = .TRUE.
+            if (dMolesPhase(i) > 0D0 .AND. dMolesPhase(i) < dFuzzMag * 1D3) lSmallPhase = .TRUE.
         end do
 
         ! Recompute with reset stoichiometry if there is a minor phase
         if (lSmallPhase) then
             resetLoop: do i = 1, 30
+                call CompChemicalPotential(.FALSE.)
                 call GEMNewton(INFO)
                 call GEMLineSearch
-                do j = 1, nElements
-                    if (dMolesPhase(j) < 0D0) then
-                        dMolesPhase(j) = 0D0
-                        EXIT resetLoop
+                do j = 1, nSolnPhases
+                    if (dMolesPhase(nElements - j + 1) < dFuzzMag * 1D3) then
+                        call RemSolnPhase(j,lPhasePass)
+                        ! EXIT resetLoop
+                    end if
+                end do
+                do j = 1, nConPhases
+                    if (dMolesPhase(j) < dFuzzMag * 1D3) then
+                        call RemPureConPhase(j,lPhasePass,lPhasePass)
+                        ! EXIT resetLoop
                     end if
                 end do
             end do resetLoop
@@ -509,7 +518,7 @@ subroutine Thermochimica
         if (INFOThermo == 0 .OR. INFOThermo == 12) call PostProcess
     end if
 
-    if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity 
+    if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity
 
     return
 
