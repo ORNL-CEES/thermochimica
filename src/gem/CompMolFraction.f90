@@ -97,14 +97,13 @@ subroutine CompMolFraction(k)
 
     implicit none
 
-    integer :: i, j, k, m, n
-    real(8) :: dTemp, dDrivingForceTemp, dSum
+    integer :: i, j, k, l, m, n, nActiveSpecies, INFO, iFirst, iLast
+    real(8) :: dTemp, dDrivingForceTemp, dSum, rnorm
     logical :: lPhasePass
-
-
-    ! Initialize variables:
-    m = nSpeciesPhase(k-1) + 1      ! First constituent in phase.
-    n = nSpeciesPhase(k)            ! Last  constituent in phase.
+    integer,dimension(:), allocatable           :: indx
+    real(8),dimension(nElements)                :: dMolesElementTemp
+    real(8),dimension(:), allocatable           :: x, work, dComparisonEnergy
+    real(8),dimension(:,:), allocatable         :: dStoichAvail, dStoichSpeciesTemp
 
     ! Although this variable is not used in this subroutine, initialize the
     ! variable for sake of consistency.
@@ -114,6 +113,39 @@ subroutine CompMolFraction(k)
     dSumMolFractionSoln(k)             = 0D0
     dEffStoichSolnPhase(k,1:nElements) = 0D0
     dDrivingForceTemp                  = 0D0
+
+    ! Check if the input masses can be represented in terms of the available species
+    nActiveSpecies = nConPhases
+    do i = 1, nSolnPhases
+        j = -iAssemblage(nElements - i + 1)
+        nActiveSpecies = nActiveSpecies + nSpeciesPhase(j) - nSpeciesPhase(j-1)
+    end do
+
+    allocate(indx(nActiveSpecies), x(nActiveSpecies), work(nActiveSpecies))
+    allocate(dStoichAvail(nElements,nActiveSpecies),dStoichSpeciesTemp(nElements,nActiveSpecies))
+    n = 0
+    do i = 1, nSolnPhases
+        j = -iAssemblage(nElements - i + 1)
+        do m = nSpeciesPhase(j-1) + 1,  nSpeciesPhase(j)
+            n = n + 1
+            do l = 1, nElements
+                dStoichAvail(l,n) = dStoichSpecies(m,l)
+            end do
+        end do
+    end do
+
+    do i = 1, nConPhases
+        j = iAssemblage(i)
+        n = n + 1
+        do l = 1, nElements
+            dStoichAvail(l,n) = dStoichSpecies(j,l)
+        end do
+    end do
+
+    ! Initialize variables:
+    iFirst = nSpeciesPhase(k-1) + 1      ! First constituent in phase.
+    iLast = nSpeciesPhase(k)            ! Last  constituent in phase.
+    allocate(dComparisonEnergy(iLast + 1 - iFirst))
 
     ! Compute the mole fraction depending on the type of solution phase:
     select case (cSolnPhaseType(k))
@@ -129,30 +161,48 @@ subroutine CompMolFraction(k)
 
             ! The default case assumes an ideal solution phase.
             dSum = 0D0
-            do i = m, n
-                dTemp = 0D0
-                do j = 1, nElements
-                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
-                end do
-                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+            do i = iFirst, iLast
+                dMolesElementTemp = dStoichSpecies(i,:)
+                dStoichSpeciesTemp = dStoichAvail
+                call nnls(dStoichSpeciesTemp, nElements, nActiveSpecies, dMolesElementTemp, x, rnorm, work, indx, INFO)
+
+                if (rnorm > 1D-12) then
+                    dTemp = -1D10
+                else
+                    l = 0
+                    dTemp = 0D0
+                    do n = 1, nSolnPhases
+                        j = -iAssemblage(nElements - n + 1)
+                        do m = nSpeciesPhase(j-1) + 1,  nSpeciesPhase(j)
+                            l = l + 1
+                            dTemp = dTemp + x(l) * dChemicalPotential(m)
+                        end do
+                    end do
+
+                    do n = 1, nConPhases
+                        j = iAssemblage(n)
+                        l = l + 1
+                        dTemp = dTemp + x(l) * dChemicalPotential(j)
+                    end do
+                end if
+                dTemp = dTemp / DFLOAT(iParticlesPerMole(i))
+                dComparisonEnergy(i + 1 - iFirst) = dTemp
                 dMolFraction(i) = DMIN1(dTemp - dStdGibbsEnergy(i),0D0)
                 dMolFraction(i) = DEXP(dMolFraction(i))
                 dSum = dSum + dMolFraction(i)
             end do
+            ! Get total moles in gas phase
             if (dSum > 1D0) then
-                do i = m, n
+                do i = iFirst, iLast
                      dMolFraction(i) = dMolFraction(i) / dSum
                 end do
                 dSum = 1D0
             end if
-            do i = m, n
-                dTemp = 0D0
-                do j = 1, nElements
-                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
-                end do
-                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+            ! Calculate driving forces
+            do i = iFirst, iLast
+                dTemp = dComparisonEnergy(i + 1 - iFirst)
                 dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i)/dSum * &
-                (dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i)/dSum, 1D-75)) - dTemp)
+                                    (dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i)/dSum, 1D-75)) - dTemp)
             end do
 
     end select
@@ -160,7 +210,7 @@ subroutine CompMolFraction(k)
 
     ! Compute the sum of all mole fractions in this phase and the effective
     ! stoichiometry:
-    do i = m, n
+    do i = iFirst, iLast
         dSumMolFractionSoln(k) = dSumMolFractionSoln(k) + dMolFraction(i)
         do j = 1,nElements
             dEffStoichSolnPhase(k,j) = dEffStoichSolnPhase(k,j) + dMolFraction(i) * &
@@ -180,6 +230,8 @@ subroutine CompMolFraction(k)
         end do
         dDrivingForceSoln(k) = dDrivingForceTemp
     end if
+
+    deallocate(indx, x, work, dStoichSpeciesTemp, dStoichAvail, dComparisonEnergy)
 
     return
 
