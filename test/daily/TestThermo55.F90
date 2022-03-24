@@ -58,6 +58,7 @@ program TestThermo55
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
+    lFuzzyStoich = .FALSE.
     ! Call Thermochimica:
     if (INFOThermo == 0)        call Thermochimica
 

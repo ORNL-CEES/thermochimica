@@ -50,9 +50,10 @@ program TestThermo54
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
+    lHeatCapacityEntropyEnthalpy = .TRUE.
+    lFuzzyStoich = .FALSE.
     ! Call Thermochimica:
     call Thermochimica
-    call HeatCapacity
 
     s1pass = .FALSE.
     s2pass = .FALSE.

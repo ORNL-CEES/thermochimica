@@ -23,8 +23,8 @@
     !!  results for the open literature Ca-Mn-S assessment file at 2500K with 1 mol of Ca, 1 mol of Mn, and
     !!  1 mol of S. It also tests mixing term Case #1, # 2, and #3 of the SUBI phase with a miscibility gap
     !!  present.
-    !!  The DAT file was pulled from the following article. However, modifications may have been made 
-    !!  from the original version: D. Dilner, "Thermodynamic description of the Fe–Mn–Ca–Mg–S system," Calphad, 
+    !!  The DAT file was pulled from the following article. However, modifications may have been made
+    !!  from the original version: D. Dilner, "Thermodynamic description of the Fe–Mn–Ca–Mg–S system," Calphad,
     !!  vol. 53, pp. 55-61, 2016.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -35,14 +35,14 @@ program TestThermo74
     USE ModuleThermo
 
     implicit none
-    
+
     real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
     real(8) :: sfcheck5, sfcheck6, sfcheck7
     real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
     integer :: i,j,k,l
     logical :: s1pass, s2pass, s3pass, s4pass
     logical :: s5pass, s6pass, s7pass
-    
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -56,27 +56,28 @@ program TestThermo74
     dElementMass(26)       = 2D0          ! Fe
     dElementMass(25)       = 4D0          ! Mn
     dElementMass(16)       = 3D0          ! S
-    
+
     ! Liquid #1
     sfcheck1 = 3.2331D-1         !Fe+2
     sfcheck2 = 6.7669D-1         !Mn+2
     sfcheck3 = 5.1140D-1         !S-2
     sfcheck4 = 4.8860D-1         !Va
-    
+
     ! Liquid #2
     sfcheck5 = 7.7271D-1         !Fe+2
     sfcheck6 = 2.27D-1           !Mn+2
     sfcheck7 = 9.9999D-1         !Va
-    
+
     pcheck1 = -121307D0       !Ca
     pcheck2 = -155496D0       !Mn
     pcheck3 = -360095D0       !S
-    
+
     gibbscheck = -1944880D0
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
+    lFuzzyStoich = .FALSE.
     ! Call Thermochimica:
     call Thermochimica
 
@@ -88,7 +89,7 @@ program TestThermo74
     s5pass = .FALSE.
     s6pass = .FALSE.
     s7pass = .FALSE.
-    
+
     ! Check results:
     if (INFOThermo == 0) then
         if ((DABS(dGibbsEnergySys - (gibbscheck))/(gibbscheck) < 1D-3) .AND. &
@@ -128,7 +129,7 @@ program TestThermo74
         end if
     end if
 
-    if (s1pass .AND. & 
+    if (s1pass .AND. &
         s2pass .AND. &
         s3pass .AND. &
         s4pass .AND. &
