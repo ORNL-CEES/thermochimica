@@ -53,6 +53,7 @@ class DataWindow:
             if os.path.isfile(os.path.join(self.folder, f))
             and f.lower().endswith(('.json', '.JSON'))
         ]
+        fnames = sorted(fnames, key=str.lower)
         self.sgw = sg.Window('Thermochimica output data selection', file_list_column, location = [0,0], finalize=True)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
