@@ -4,4 +4,4 @@ make > make.out
 
 source scripts/setPython.sh
 
-$python_for_thermochimica python/thermoGui.py
+$python_for_thermochimica python/thermoGui.py &
