@@ -484,31 +484,17 @@ subroutine Thermochimica
         end do
         deallocate(dStoichSpeciesUnFuzzed)
 
-        lSmallPhase = .FALSE.
-        do i = 1, nElements
-            if (dMolesPhase(i) > 0D0 .AND. dMolesPhase(i) < dFuzzMag * 1D3) lSmallPhase = .TRUE.
+        ! Recompute with reset stoichiometry
+        do j = 1, nSolnPhases
+            if (dMolesPhase(nElements - j + 1) < dFuzzMag * 1D3) then
+                call RemSolnPhase(j,lPhasePass)
+            end if
         end do
-
-        ! Recompute with reset stoichiometry if there is a minor phase
-        if (lSmallPhase) then
-            resetLoop: do i = 1, 30
-                call CompChemicalPotential(.FALSE.)
-                call GEMNewton(INFO)
-                call GEMLineSearch
-                do j = 1, nSolnPhases
-                    if (dMolesPhase(nElements - j + 1) < dFuzzMag * 1D3) then
-                        call RemSolnPhase(j,lPhasePass)
-                        ! EXIT resetLoop
-                    end if
-                end do
-                do j = 1, nConPhases
-                    if (dMolesPhase(j) < dFuzzMag * 1D3) then
-                        call RemPureConPhase(j,lPhasePass,lPhasePass)
-                        ! EXIT resetLoop
-                    end if
-                end do
-            end do resetLoop
-        end if
+        do j = 1, nConPhases
+            if (dMolesPhase(j) < dFuzzMag * 1D3) then
+                call RemPureConPhase(j,lPhasePass,lPhasePass)
+            end if
+        end do
     end if
 
     if (.NOT. lRetryAttempted) then
