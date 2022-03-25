@@ -424,8 +424,8 @@ subroutine Thermochimica
 
     implicit none
 
-    integer :: i, j, INFO
-    logical :: lSmallPhase, lPhasePass
+    integer :: i, j
+    logical :: lPhasePass
     real(8) :: dFuzzMag
 
     ! Check the input variables:
