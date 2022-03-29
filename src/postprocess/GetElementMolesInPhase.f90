@@ -49,7 +49,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     integer,       intent(out)   :: INFO
     integer                      :: i, j, k, iPhaseInd
     real(8),       intent(out)   :: dMolesOut
-    character(*), intent(in)    :: cPhase
+    character(*), intent(in)     :: cPhase
     character(*),  intent(in)    :: cElement
     integer, intent(in)          :: lcPhase, lcElement
     character(30)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement

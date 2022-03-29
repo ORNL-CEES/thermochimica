@@ -47,20 +47,22 @@ subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, d
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, j, k
+    integer                      :: i, j, k, l
     real(8),       intent(out)   :: dMolesOut
     character(25), intent(in)    :: cPhase
     character(3),  intent(in)    :: cElement
     integer, intent(in)          :: lcPhase, lcElement
     character(25)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement
+    real(8)                      :: dSum
 
     cSearchPhase = TRIM(cPhase(1:min(25,lcPhase)))
     cSearchElement = TRIM(cElement(1:min(3,lcElement)))
 
     ! Initialize variables:
-    INFO            = 0
+    INFO      = 0
     dMolesOut = 0D0
-    k = 0
+    dSum      = 0D0
+    k         = 0
 
     LOOP_Elements: do i = 1, nElements
         cTempElement = ADJUSTL(cElementName(i))
@@ -84,19 +86,24 @@ subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, d
 
             ! Loop through species in this phase:
             if (cTempPhase == cSearchPhase) then
-                ! Solution phase found.  Now look for species.
+                ! Solution phase found. Now compute sums.
                 LOOP_Species: do j = nSpeciesPhase(i-1) + 1, nSpeciesPhase(i)
                     dMolesOut = dMolesOut + dMolFraction(j) * dStoichSpecies(j,k)
+                    do l = 1, nElements
+                        dSum = dSum + dMolFraction(j) * dStoichSpecies(j,l)
+                    end do
                 end do LOOP_Species
                 exit LOOP_PHASE
             end if
-
         end do LOOP_PHASE
 
     else
         ! Record an error with INFO if INFOThermo /= 0.
         INFO = -1
     end if
+
+    ! Compute fraction
+    dMolesOut = dMolesOut / dSum
 
     return
 
