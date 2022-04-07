@@ -51,7 +51,7 @@ module ModuleThermoIO
     SAVE
 
     ! INPUT VARIABLES:
-    integer                                  :: iCounter, iPrintResultsMode
+    integer                                  :: iCounter, iPrintResultsMode, nMinSpeciesPerPhase = 2
     real(8)                                  :: dTemperature, dPressure
     real(8),       dimension(0:168)          :: dElementMass
     logical,       dimension(0:118)          :: lPreset = .FALSE.

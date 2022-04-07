@@ -216,6 +216,14 @@ program RunCalculationList
             print *,  trim(cErrMsg)
             return
           end if
+        case ('nMinSpeciesPerPhase','species per phase','min species','minimum species per phase')
+          read(cValue,*,IOSTAT = INFO) nMinSpeciesPerPhase
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A47,I10)') 'Cannot read minimum species per phase on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
         case default
           write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
           print *,  trim(cErrMsg)
