@@ -3,6 +3,7 @@ subroutine RetryCalculationFirstPhase
     USE ModuleThermoIO
     USE ModuleThermo
     USE ModuleReinit
+    USE ModuleGEMSolver
 
     implicit none
 
@@ -26,6 +27,7 @@ subroutine RetryCalculationFirstPhase
                 call ResetThermo
                 lRetryAttempted = .TRUE.
                 call Thermochimica
+                iterGlobal = iterGlobal + iterGlobalMax
                 ! Reset flag to original
                 if (INFOThermo /= 0) INFOThermo = 12
             else
