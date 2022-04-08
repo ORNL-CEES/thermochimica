@@ -464,6 +464,8 @@ subroutine Thermochimica
         if (INFOThermo == 0 .OR. INFOThermo == 12) call PostProcess
     end if
 
+    if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity 
+
     return
 
 end subroutine Thermochimica

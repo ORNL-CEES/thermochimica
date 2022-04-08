@@ -33,7 +33,7 @@ program TestThermo59
     implicit none
 
     integer :: i, j, k
-    real(8) :: gibbsCheck, p1check, p2check, s1check, s2check, dHeatCapacity, dHeatCapacityCheck
+    real(8) :: gibbsCheck, p1check, p2check, s1check, s2check, dHeatCapacityCheck
     logical :: subqPass, gasPass, cppass
 
     ! Specify units:
@@ -61,7 +61,7 @@ program TestThermo59
 
     ! Call Thermochimica:
     if (INFOThermo == 0)        call Thermochimica
-    call HeatCapacity(dHeatCapacity)
+    call HeatCapacity
 
     subqPass = .FALSE.
     gasPass  = .FALSE.

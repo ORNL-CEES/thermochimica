@@ -371,7 +371,7 @@ class CalculationWindow:
             self.layout = [tempLayout,
                           presLayout,
                           [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
-                           sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='composition2',visible=False)],
+                           sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='-composition2-',visible=False)],
                           massLayout,
                           [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
                           [sg.Button('Run'), sg.Exit()]]

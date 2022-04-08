@@ -53,6 +53,7 @@ class DataWindow:
             if os.path.isfile(os.path.join(self.folder, f))
             and f.lower().endswith(('.json', '.JSON'))
         ]
+        fnames = sorted(fnames, key=str.lower)
         self.sgw = sg.Window('Thermochimica output data selection', file_list_column, location = [0,0], finalize=True)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
@@ -116,11 +117,11 @@ class PlotWindow:
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
-                           'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
+                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
-                           'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
+                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
@@ -205,9 +206,16 @@ class PlotWindow:
                     if values['-yaxis-'] == 'moles':
                         # total moles of solution phase
                         try:
+                            if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                                self.ykey.append(['solution phases',j,'moles of endmembers'])
+                                self.yen.append(False)
+                                phaseColumns[-1].append([sg.Checkbox('Moles of Endmembers',key=str(yi))])
+                                self.leg.append(j)
+                                self.ylab = 'Moles'
+                                yi = yi + 1
                             self.ykey.append(['solution phases',j,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
+                            phaseColumns[-1].append([sg.Checkbox('Moles',key=str(yi))])
                             self.leg.append(j)
                             self.ylab = 'Moles'
                             yi = yi + 1
@@ -410,6 +418,19 @@ class PlotWindow:
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
+            elif values['-yaxis-'] == 'moles of elements':
+                self.ykey = []
+                self.ylab = 'Moles'
+                elements = list(self.data['1']['elements'].keys())
+                for j in elements:
+                    try:
+                        self.ykey.append(['elements',j,'moles'])
+                        self.yen.append(True)
+                        self.leg.append(j)
+                    except:
+                        continue
+                self.sgw.Element('Plot').Update(disabled = False)
+                self.sgw.Element('-yaxis2-').Update(disabled = False)
             elif values['-yaxis-'] == 'element potential':
                 self.ykey = []
                 self.ylab = 'Element Potential [J]'
@@ -647,6 +668,18 @@ class PlotWindow:
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
+            elif values['-yaxis2-'] == 'moles of elements':
+                self.ykey2 = []
+                self.ylab2 = 'Moles'
+                elements = list(self.data['1']['elements'].keys())
+                for j in elements:
+                    try:
+                        self.ykey2.append(['elements',j,'moles'])
+                        self.yen2.append(True)
+                        self.leg2.append(j)
+                    except:
+                        continue
+                self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == 'element potential':
                 self.ykey2 = []
                 self.ylab2 = 'Element Potential [J]'

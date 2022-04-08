@@ -4,4 +4,4 @@ make > make.out
 
 source scripts/setPython.sh
 
-$python_for_thermochimica python/phaseDiagramGui.py
+$python_for_thermochimica python/justPdGui.py &

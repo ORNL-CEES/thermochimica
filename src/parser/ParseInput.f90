@@ -60,7 +60,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   open (UNIT = 1, FILE = cInputFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
   ! Check for error on attempt to open
   if (INFO /= 0) then
-    INFOThermo = 40
+    INFOThermo = 50
     print *, 'Cannot open input file ' // cInputFileName
     call EXIT(1)
   end if
@@ -76,7 +76,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
     read (1,'(A)',IOSTAT = INFO) cLineInit
     ! If there was an error on read, give line number and return
     if (INFO > 0) then
-      INFOThermo = 41
+      INFOThermo = 51
       write (cErrMsg, '(A35,I10)') 'Reading input file failed on line: ', iCounter
       print *,  trim(cErrMsg)
       return
@@ -107,7 +107,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
       iClosePosition = scan(cLine,')')
       ! Check for no close ')'
       if (iClosePosition == 0) then
-        INFOThermo = 42
+        INFOThermo = 52
         write (cErrMsg, '(A31,I10)') 'Open ( but no close ) on line: ', iCounter
         print *,  trim(cErrMsg)
         return
@@ -115,7 +115,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
       cElementNumber = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
       read(cElementNumber,*,IOSTAT = INFO) iElementNumber
       if (INFO /= 0) then
-        INFOThermo = 43
+        INFOThermo = 53
         write (cErrMsg, '(A36,I10)') 'Cannot read element number on line: ', iCounter
         print *,  trim(cErrMsg)
         return
@@ -147,7 +147,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           dDeltaP = 0
         end if
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A30,I10)') 'Cannot read pressure on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -175,7 +175,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           dDeltaT = 0
         end if
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           print *, 'Cannot read temperature on line: ', iCounter
           return
         end if
@@ -183,7 +183,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
       case ('m','mass','M','Mass')
         read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A26,I10)') 'Cannot read mass on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -197,7 +197,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           'p units','P units','P Units')
         read(cValue,*,IOSTAT = INFO) cInputUnitPressure
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A35,I10)') 'Cannot read pressure unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -211,7 +211,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           'Temp units','Temp Units','t units','T units','T Units')
         read(cValue,*,IOSTAT = INFO) cInputUnitTemperature
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A38,I10)') 'Cannot read temperature unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -221,7 +221,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'm_units','mass_units','Mass_units','Mass_Units','m units','mass units','Mass units','Mass Units')
         read(cValue,*,IOSTAT = INFO) cInputUnitMass
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A31,I10)') 'Cannot read mass unit on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -231,7 +231,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
         read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -241,7 +241,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'print mode','Print mode','Print Mode')
         read(cValue,*,IOSTAT = INFO) iPrintResultsMode
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A32,I10)') 'Cannot read print mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -250,7 +250,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'debug mode','Debug mode','Debug Mode')
         read(cValue,*,IOSTAT = INFO) lDebugMode
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A32,I10)') 'Cannot read debug mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -260,8 +260,17 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'reinit mode','Reinit mode','Reinit Mode','reinitialization mode','Reinitialization mode','Reinitialization Mode')
         read(cValue,*,IOSTAT = INFO) lReinitRequested
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A43,I10)') 'Cannot read reinitialization mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('heat capacity','entropy','enthalpy','Heat Capacity','Entropy','Enthalpy',&
+        'heatCapacityEntropyEnthalpy','HeatCapacityEntropyEnthalpy')
+        read(cValue,*,IOSTAT = INFO) lHeatCapacityEntropyEnthalpy
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A43,I10)') 'Cannot read heat capacity / entropy / enthalpy mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         end if
@@ -269,7 +278,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'step_together','Step_Together','step Together','step together','Step Together')
         read(cValue,*,IOSTAT = INFO) lStepTogether
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A40,I10)') 'Cannot read step-together mode on line: ', iCounter
           print *,  trim(cErrMsg)
           return
@@ -278,8 +287,16 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         'write_json','Write_JSON','write JSON','write json','Write JSON')
         read(cValue,*,IOSTAT = INFO) lWriteJSON
         if (INFO /= 0) then
-          INFOThermo = 44
+          INFOThermo = 54
           write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('nMinSpeciesPerPhase','species per phase','min species','minimum species per phase')
+        read(cValue,*,IOSTAT = INFO) nMinSpeciesPerPhase
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A47,I10)') 'Cannot read minimum species per phase on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         end if
@@ -291,34 +308,34 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
 
   ! Now check that all required variables have been set
   if (.NOT. lPressure) then
-    INFOThermo = 45
+    INFOThermo = 55
     print *,  'Pressure not set'
     return
   end if
   if (.NOT. lTemperature) then
-    INFOThermo = 45
+    INFOThermo = 55
     print *,  'Temperature not set'
     return
   end if
   if (.NOT. lMass) then
-    INFOThermo = 45
+    INFOThermo = 55
     print *,  'No masses set'
     return
   end if
   if (.NOT. lPressureUnit) then
-    INFOThermo = 45
+    INFOThermo = 55
     ! print *,  'Pressure unit not set'
     cInputUnitPressure = 'atm'
     return
   end if
   if (.NOT. lTemperatureUnit) then
-    INFOThermo = 45
+    INFOThermo = 55
     ! print *,  'Temperature unit not set'
     cInputUnitTemperature = 'K'
     return
   end if
   if (.NOT. lMassUnit) then
-    INFOThermo = 45
+    INFOThermo = 55
     ! print *,  'Mass unit not set'
     cInputUnitMass = 'moles'
     return
@@ -343,7 +360,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           cInputUnitTemperature = 'K'
       case default
           ! Temperature unit not recognized.
-          INFOThermo = 4
+          INFOThermo = 5
           return
   end select
 
@@ -372,7 +389,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           cInputUnitPressure = 'atm'
       case default
           ! Pressure unit not recognized.
-          INFOThermo = 4
+          INFOThermo = 5
           return
   end select
 

@@ -149,6 +149,18 @@ subroutine ThermoDEBUG
     elseif (INFOThermo == 44) then
         print *, 'DEBUG: An unsupported type of excess mixing term in the SUBI phase is included in the data-file.'
         print *, 'Please contact the developers and share this data-file.'
+    elseif (INFOThermo == 50) then
+        print *, 'DEBUG: Input file cannot be opened.'
+    elseif (INFOThermo == 51) then
+        print *, 'DEBUG: Reading input file failed.'
+    elseif (INFOThermo == 52) then
+        print *, 'DEBUG: Open ( but no close ) in input file.'
+    elseif (INFOThermo == 53) then
+        print *, 'DEBUG: Cannot read element number in input file.'
+    elseif (INFOThermo == 54) then
+        print *, 'DEBUG: A tag was not properly read in input parsing.'
+    elseif (INFOThermo == 55) then
+        print *, 'DEBUG: Not all input parameters were supplied in input file.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

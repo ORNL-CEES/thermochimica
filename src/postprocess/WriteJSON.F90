@@ -55,6 +55,9 @@ subroutine WriteJSON(append)
     write(1,*) '  "temperature": ', dTemperature, ','
     write(1,*) '  "pressure": ', dPressure, ','
     write(1,'(A28,ES25.16E3,A1)') '  "integral Gibbs energy": ', dGibbsEnergySys, ','
+    write(1,'(A14,ES25.16E3,A1)') '  "entropy": ', dEntropy, ','
+    write(1,'(A15,ES25.16E3,A1)') '  "enthalpy": ', dEnthalpy, ','
+    write(1,'(A20,ES25.16E3,A1)') '  "heat capacity": ', dHeatCapacity, ','
     write(1,*) '  "functional norm": ', dGEMFunctionNorm, ','
     its = iterGlobal
     if (lRetryAttempted) its = its + iterGlobalMax
