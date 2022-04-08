@@ -153,7 +153,11 @@ subroutine CheckConvergence
     ! TEST #3: Check that the Phase Rule has been satisfied:
     ! -----------------------------------------------------------------------------------
     if (lDebugMode) print *, "Test 3 "
-    if (nSolnPhases + nConPhases > nElements - nChargedConstraints) call CorrectPhaseRule(lPhaseChange)
+    if (nSolnPhases + nConPhases > nElements - nChargedConstraints) then
+        if (lDebugMode) print *, "nSolnPhases: ", nSolnPhases, " + nConPhases: ", nConPhases, &
+                    " > nElements: ", nElements, " - nChargedConstraints: ", nChargedConstraints
+        call CorrectPhaseRule(lPhaseChange)
+    end if
 
     if (lPhaseChange) return
 
@@ -188,21 +192,24 @@ subroutine CheckConvergence
 
     ! CONVERGENCE TEST SHORTCUT
     ! -----------------------------------------------------------------------------------
-    if (lDebugMode) print *, "Test Shortcut ", dGEMFunctionNorm
+    if (lDebugMode) print *, "Test Shortcuts start ", dGEMFunctionNorm
     ! Now that crucial tests have been done, can check for convergence shortcut
     ! If the functional norm is less than a specified tolerance and the system hasn't changed,
     ! call it a day:
     if ((dGEMFunctionNorm < dTolerance(12)).AND.(iterGlobal - iterLast > 100).AND.(iterGlobal > 4000))  then
+        if (lDebugMode) print *, "Took Shortcut 1 after ", iterGlobal
         lConverged = .TRUE.
         return
     else if ((dGEMFunctionNorm < 1D-2).AND.          (iterGlobal - iterLast > 5000)) then
+        if (lDebugMode) print *, "Took Shortcut 2 after ", iterGlobal
         lConverged = .TRUE.
         return
     else if ((dGEMFunctionNorm < 1D-5).AND.(iterGlobal > 4000)) then
+        if (lDebugMode) print *, "Took Shortcut 3 after ", iterGlobal
         lConverged = .TRUE.
         return
     end if
-    if (lDebugMode) print *, "Test Shortcut 2"
+    if (lDebugMode) print *, "Test Shortcuts end "
     ! Return if the functional norm is too large.  In other words, it's not worth the flops checking.
     if (dGEMFunctionNorm > dTolerance(1)) return
 
@@ -284,7 +291,7 @@ subroutine CheckConvergence
     ! TEST #7: Check if a solution phase should be added to the phase assemblage:
     ! ---------------------------------------------------------------------------
     if (lDebugMode) print *, "Test 7 "
-    LOOP_TEST7: do i = 1,nSolnPhasesSys
+    LOOP_TEST7: do i = 1, nSolnPhasesSys
 
         ! Skip this phase if it is already predicted to be stable:
         if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_TEST7
@@ -294,7 +301,10 @@ subroutine CheckConvergence
         if (lMiscibility(i) .EQV. .TRUE.) cycle LOOP_TEST7
 
         ! Check if the driving force of this solution phase is less than the tolerance:
-        if (dDrivingForceSoln(i) < dTolerance(4)) return
+        if (dDrivingForceSoln(i) < dTolerance(4)) then
+            if (lDebugMode) print *, 'Negative driving force for ', cSolnPhaseName(i)
+            return
+        end if
 
     end do LOOP_TEST7
 
