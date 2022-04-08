@@ -95,39 +95,30 @@ subroutine CheckPureConPhaseAdd(iMaxDrivingForce, dMaxDrivingForce)
 
     ! Check if a pure condensed phase should be added:
     IF_CheckDrivingForce: if ((iMaxDrivingForce /= 0).AND.(dMaxDrivingForce < dTolerance(4))) then
-
         ! The pure condensed phase that is to be added has the maximum driving force:
         iPhaseChange = iMaxDrivingForce
 
         ! Only proceed if the phase is a pure condensed phase and that the Gibbs Phase Rule will not be violated:
-        !if ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases < nElements - nChargedConstraints)) then
-        if ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases < nElements )) then
-
+        if ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases < nElements - nChargedConstraints)) then
             ! Try adding this pure condensed phase to the phase assemblage:
             call AddPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
             ! The pure condensed phase could not be added the system directly, but it might be possible to
             ! swap it for another phase that is currently in the phase assmeblage:
             if ((lSwapLater).AND.((lSwapCheck).OR.(iterGlobal - iterLast >= 50))) then
-
                 ! Check if a particular combination of phases should be swapped:
                 call CheckPureConPhaseSwap(iPhaseChange,lSwapLater,lPhasePass)
-
             end if
 
-        elseif ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases == nElements ).AND. &
-       ! elseif ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
+       elseif ((iPhase(iPhaseChange) == 0).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
             ((lSwapCheck))) then
-
             ! A phase cannot be added to the system when the number of phases already equals the number of
             ! elements as a consequence of the Phase Rule.  This phase must be swapped for another phase
             ! already expected to be stable.
 
             ! Check if a particular combination of phases should be swapped:
             call CheckPureConPhaseSwap(iPhaseChange,lSwapLater,lPhasePass)
-
         end if
-
     end if IF_CheckDrivingForce
 
     return

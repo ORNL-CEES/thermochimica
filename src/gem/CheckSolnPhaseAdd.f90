@@ -106,7 +106,6 @@ subroutine CheckSolnPhaseAdd
 
     ! Loop through all solutions phases in the database:
     LOOP_SolnPhaseAdd: do j = 1, nSolnPhasesSys
-
         ! Absolute solution phase index (defined by iTempVec, which is sorted by dDrivingForceSoln):
         ! (The order of iTempVec is reversed  because SortPick sorts in ascending order, not descending)
         i = iTempVec(nSolnPhasesSys - j + 1)
@@ -119,11 +118,8 @@ subroutine CheckSolnPhaseAdd
         if ((lMiscibility(i)).AND.(dGEMFunctionNorm > 1D-4).AND.(iterGlobal - iterLast < 300)) cycle LOOP_SolnPhaseAdd
 
         ! Check if a solution phase should be added:
-        !IF_SolnPhaseAdd: if ((dDrivingForceSoln(i) < dTolerance(4)).AND. &
-         !   (nConPhases + nSolnPhases < nElements - nChargedConstraints)) then
-        IF_SolnPhaseAdd: if ((dDrivingForceSoln(i) < dTolerance(4)).AND. &
-            (nConPhases + nSolnPhases < nElements)) then
-
+        IF_SolnPhaseAdd: if ((dDrivingForceSoln(i) < dTolerance(4)) .AND. &
+           (nConPhases + nSolnPhases < nElements - nChargedConstraints)) then
             ! Try adding this solution phase to the assemblage:
             call AddSolnPhase(i,lSwapLater,lPhasePass)
 
@@ -133,27 +129,21 @@ subroutine CheckSolnPhaseAdd
             ! The solution phase could not be added the system directly, but it might be possible to
             ! swap another phase that is currently in the phase assmeblage for this one:
             if ((lSwapLater).AND.(lSwapCheck)) then
-
                 ! Check if this solution phase can be swapped with another phase:
                 call CheckSolnPhaseSwap(i,lPhasePass)
 
                 ! Exit if this phase assemblage is appropriate:
                 if (lPhasePass) exit LOOP_SolnPhaseAdd
-
             end if
 
-        elseif ((dDrivingForceSoln(i) < dTolerance(4)).AND.(nConPhases + nSolnPhases == nElements).AND. &
-        !elseif ((dDrivingForceSoln(i) < dTolerance(4)).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
+        elseif ((dDrivingForceSoln(i) < dTolerance(4)).AND.(nConPhases + nSolnPhases == nElements - nChargedConstraints).AND. &
             (lSwapCheck).AND.(iterGlobal - iterlast > 10)) then
-
             ! Check if this solution phase can be swapped with another phase:
             call CheckSolnPhaseSwap(i,lPhasePass)
 
             ! Exit if this phase assemblage is appropriate:
             if (lPhasePass) exit LOOP_SolnPhaseAdd
-
         end if  IF_SolnPhaseAdd
-
     end do LOOP_SolnPhaseAdd
 
     return
@@ -213,22 +203,18 @@ subroutine CheckSolnPhaseSwap(i,lPhasePass)
     ! Check if a pure condensed phase or a solution phase should be swapped first:
     if (iPhaseTypeOut == 0) then
         ! A pure condensed phase should be swapped first.
-
         ! Swap a solution phase for a pure condensed phase:
         call SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
 
         ! Swap a solution phase for another solution phase:
         if (iterGlobal /= iterLast)  call SwapSolnPhase(i,lPhasePass)
-
     elseif (iPhaseTypeOut == 1) then
         ! A solution phase should be swapped first.
-
         ! Swap a solution phase for another solution phase:
         call SwapSolnPhase(i,lPhasePass)
 
         ! Swap a solution phase for a pure condensed phase:
         if (iterGlobal /= iterLast) call SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
-
     end if
 
 end subroutine  CheckSolnPhaseSwap
