@@ -1,11 +1,11 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file        ModuleThermoIO.f90
-    !> \brief       Fortran module for input/output of Thermochimica
+    !> \file        RandomizeStoichiometry.f90
+    !> \brief       Fuzzy stoichiometry operations.
     !> \details     Randomizes (and resets) stoichiometry to improve performance in cases of underdetermined systems.
     !> \author      Max Poschmann
-    !> \sa          RandomizeStoichiometry.f90
+    !> \sa          Thermochimica.f90
     !
     !
     ! Revisions:
