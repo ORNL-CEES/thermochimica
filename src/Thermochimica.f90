@@ -485,12 +485,12 @@ subroutine Thermochimica
         deallocate(dStoichSpeciesUnFuzzed)
 
         ! Recompute with reset stoichiometry
-        do j = 1, nSolnPhases
+        do j = nSolnPhases, 1, -1
             if (dMolesPhase(nElements - j + 1) < dFuzzMag * 1D3) then
                 call RemSolnPhase(j,lPhasePass)
             end if
         end do
-        do j = 1, nConPhases
+        do j = nConPhases, 1, -1
             if (dMolesPhase(j) < dFuzzMag * 1D3) then
                 call RemPureConPhase(j,lPhasePass,lPhasePass)
             end if
