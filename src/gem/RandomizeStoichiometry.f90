@@ -1,3 +1,29 @@
+
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file        ModuleThermoIO.f90
+    !> \brief       Fortran module for input/output of Thermochimica
+    !> \details     Randomizes (and resets) stoichiometry to improve performance in cases of underdetermined systems.
+    !> \author      Max Poschmann
+    !> \sa          RandomizeStoichiometry.f90
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !
+    !   Date            Programmer      Description of change
+    !   ----            ----------      ---------------------
+    !   04/21/2022      Max Poschmann   Original code
+    !
+    !
+    !
+    !> \param       lFuzzyStoich    A logical that determines if these routines are enabled.
+    !> \param       dFuzzMag        A double real scalar representing magnitude of perturbation to the
+    !!                                  stoichiometries in thermodynamic database.
+    !
+    !-------------------------------------------------------------------------------------------------------------
+
+
 subroutine RandomizeStoichiometry
 
     USE ModuleThermoIO
