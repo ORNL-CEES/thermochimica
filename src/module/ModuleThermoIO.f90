@@ -52,7 +52,7 @@ module ModuleThermoIO
 
     ! INPUT VARIABLES:
     integer                                  :: iCounter, iPrintResultsMode, nMinSpeciesPerPhase = 2
-    real(8)                                  :: dTemperature, dPressure
+    real(8)                                  :: dTemperature, dPressure, dFuzzMag = 1D-12
     real(8),       dimension(0:168)          :: dElementMass
     logical,       dimension(0:118)          :: lPreset = .FALSE.
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
