@@ -114,7 +114,7 @@ subroutine GetNewAssemblage(iter)
     call ShuffleDummySpecies
 
     ! Store the indices of the estimated phase assemblage at each iteration.
-    do i = 1,nElements
+    do i = 1, nElements - nChargedConstraints
         iterHistoryLevel(i,iter) = iAssemblage(i)
     end do
 
@@ -123,7 +123,7 @@ subroutine GetNewAssemblage(iter)
 
     ! Loop through all "phases" in the current phase assemblage to determine which one should be
     ! substituted for the new "phase":
-    LOOP_NewAssemblage: do k = 1, nElements
+    LOOP_NewAssemblage: do k = 1, nElements - nChargedConstraints
 
         ! The "phase" with the most negative dChemicalPotential replaces one of the phases from the previous
         ! assemblage:
@@ -131,8 +131,8 @@ subroutine GetNewAssemblage(iter)
         iAssemblage(k) = iNewPhase
 
         ! 1) FIRST CHECK: The number of moles of each "phase" are non-negative and real:
-        do j = 1,nElements
-            do i = 1,nElements
+        do j = 1,nElements - nChargedConstraints
+            do i = 1,nElements - nChargedConstraints
                 A(i,j) = dStoichSpecies(iAssemblage(j),i)
             end do
             dMolesPhase(j) = dMolesElement(j)
@@ -164,8 +164,8 @@ subroutine GetNewAssemblage(iter)
 
         ! 3) THIRD CHECK: Verify that the phase assemblage produces real co-ordinates for the Gibbs Plane.
         ! Note: this does not add much computational expense becaue dLevel needs to be computed anyways.
-        do j = 1,nElements
-            do i = 1,nElements
+        do j = 1,nElements - nChargedConstraints
+            do i = 1,nElements - nChargedConstraints
                 A(i,j) = dAtomFractionSpecies(iAssemblage(i),j)
             end do
             dLevel(j) = dChemicalPotential(iAssemblage(j))
@@ -237,10 +237,10 @@ subroutine CheckLevelingIterHistory(iter,lPhasePass)
     LOOP_Iter: do i = iter, 1, -1
 
         ! Loop through phases in the assemblage in question:
-        LOOP_Outer: do j = 1, nElements
+        LOOP_Outer: do j = 1, nElements - nChargedConstraints
 
             ! Loop through phases in the assemblage at a particular iteration in the history:
-            LOOP_Inner: do k = 1, nElements
+            LOOP_Inner: do k = 1, nElements - nChargedConstraints
 
                 ! If the following statement is true, then the coefficients are consistent and
                 ! move on to the next phase in the assemblage in question.
@@ -298,7 +298,7 @@ end subroutine CheckLevelingIterHistory
 
 subroutine ShuffleDummySpecies
 
-    USE ModuleThermo, ONLY: iAssemblage, nElements, iPhase
+    USE ModuleThermo, ONLY: iAssemblage, nElements, iPhase, nChargedConstraints
 
     implicit none
 
@@ -311,7 +311,7 @@ subroutine ShuffleDummySpecies
     iTempVec = 0
 
     ! Count the number of dummy species:
-    do i = 1, nElements
+    do i = 1, nElements - nChargedConstraints
         if (iPhase(iAssemblage(i)) < 0) nDummy = nDummy + 1
     end do
 
@@ -321,7 +321,7 @@ subroutine ShuffleDummySpecies
         ! Shuffle vector:
         j = 0
         k = nDummy
-        do i = 1, nElements
+        do i = 1, nElements - nChargedConstraints
             if (iPhase(iAssemblage(i)) < 0) then
                 j = j + 1
                 iTempVec(j) = iAssemblage(i)
