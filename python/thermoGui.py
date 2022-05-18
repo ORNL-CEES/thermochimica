@@ -236,11 +236,19 @@ class CalculationWindow:
                 if values['-ten-']:
                     tend = values['-endtemperature-']
                     ntstep = values['-ntstep-']
+                    try:
+                        ntstep = float(ntstep)
+                    except ValueError:
+                        ntstep = 1
                 else:
                     ntstep = 0
                 if values['-pen-']:
                     pend = values['-endpressure-']
                     npstep = values['-pstep-']
+                    try:
+                        npstep = float(npstep)
+                    except ValueError:
+                        npstep = 1
                 elif values['-pent-']:
                     pend = values['-endpressure-']
                     npstep = ntstep
@@ -258,10 +266,11 @@ class CalculationWindow:
                     with open(filename, 'w') as inputFile:
                         inputFile.write('! Python-generated input file for Thermochimica\n')
                         inputFile.write(f'data file         = {self.datafile}\n')
-                        inputFile.write(f'temperature unit         = {tunit}\n')
-                        inputFile.write(f'pressure unit          = {punit}\n')
-                        inputFile.write(f'mass unit          = \'{munit}\'\n')
-                        inputFile.write('print mode        = 2\n')
+                        inputFile.write(f'temperature unit  = {tunit}\n')
+                        inputFile.write(f'pressure unit     = {punit}\n')
+                        inputFile.write(f'mass unit         = \'{munit}\'\n')
+                        inputFile.write(f'print mode        = 2\n')
+                        inputFile.write(f'heat capacity     = {".TRUE." if values["-cp_h_s-"] else ".FALSE."}\n')
                         inputFile.write(f'nEl         = {self.nElements} \n')
                         inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elements])}\n')
                         inputFile.write(f'nCalc       = {len(xs)}\n')
@@ -271,30 +280,27 @@ class CalculationWindow:
                 else:
                     with open(filename, 'w') as inputFile:
                         inputFile.write('! Python-generated input file for Thermochimica\n')
-                        if float(ntstep) > 0:
-                            tstep = (float(tend)-float(temperature))/float(ntstep)
-                            inputFile.write('temperature          = ' + str(temperature) + ':' + str(tend) + ':' + str(tstep) + '\n')
+                        if ntstep > 0:
+                            tstep = (float(tend)-float(temperature))/ntstep
+                            inputFile.write(f'temperature       = {temperature}:{tend}:{tstep}\n')
                         else:
-                            inputFile.write('temperature          = ' + str(temperature) + '\n')
-                        if float(npstep) > 0:
-                            pstep = (float(pend)-float(pressure))/float(npstep)
-                            inputFile.write('pressure          = ' + str(pressure) + ':' + str(pend) + ':' + str(pstep) + '\n')
+                            inputFile.write(f'temperature       = {temperature}\n')
+                        if npstep > 0:
+                            pstep = (float(pend)-float(pressure))/npstep
+                            inputFile.write(f'pressure          = {pressure}:{pend}:{pstep}\n')
                         else:
-                            inputFile.write('pressure          = ' + str(pressure) + '\n')
+                            inputFile.write(f'pressure          = {pressure}\n')
                         for i in range(self.nElements):
-                            inputFile.write('mass(' + str(atomic_number_map.index(self.elements[i])+1) + ')           = ' + str(masses1[i]) + '\n')
-                        inputFile.write('temperature unit         = ' + tunit + '\n')
-                        inputFile.write('pressure unit          = ' + punit + '\n')
-                        if values['-pent-']:
-                            inputFile.write('step together     = .TRUE.\n')
-                        inputFile.write('mass unit         = ' + munit + '\n')
-                        inputFile.write('data file         = ' + self.datafile + '\n')
-                        inputFile.write('print mode        = 2\n')
-                        inputFile.write('debug mode        = .FALSE.\n')
-                        if values['-json-']:
-                            inputFile.write('write json     = .TRUE.\n')
-                        else:
-                            inputFile.write('write json     = .FALSE.\n')
+                            inputFile.write(f'mass(' + str(atomic_number_map.index(self.elements[i])+1) + ')           = ' + str(masses1[i]) + '\n')
+                        inputFile.write(f'temperature unit  = {tunit}\n')
+                        inputFile.write(f'pressure unit     = {punit}\n')
+                        inputFile.write(f'step together     = {".TRUE." if values["-pent-"] else ".FALSE."}\n')
+                        inputFile.write(f'mass unit         = {munit}\n')
+                        inputFile.write(f'data file         = {self.datafile}\n')
+                        inputFile.write(f'print mode        = 2\n')
+                        inputFile.write(f'heat capacity     = {".TRUE." if values["-cp_h_s-"] else ".FALSE."}\n')
+                        inputFile.write(f'debug mode        = .FALSE.\n')
+                        inputFile.write(f'write json        = {".TRUE." if values["-json-"] else ".FALSE."}\n')
                     thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
@@ -366,6 +372,7 @@ class CalculationWindow:
                            sg.Column(elem2Layout,key='-composition2-',visible=False,vertical_alignment='t')],
                           massLayout,
                           [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
+                          [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
                           [sg.Button('Run'), sg.Exit()]]
         else:
             self.layout = [tempLayout,
@@ -374,6 +381,7 @@ class CalculationWindow:
                            sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='-composition2-',visible=False)],
                           massLayout,
                           [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
+                          [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
                           [sg.Button('Run'), sg.Exit()]]
 
 class ResultWindow:
