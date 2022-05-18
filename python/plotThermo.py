@@ -117,11 +117,11 @@ class PlotWindow:
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
-                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
+                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
                             key='-yaxis-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog-')],
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
-                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases'],
+                           'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
@@ -159,7 +159,7 @@ class PlotWindow:
             self.yen = []
             self.leg = []
             self.sgw.Element('Plot').Update(disabled = True)
-            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations']:
+            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
                 try:
                     self.ykey[0].append(values['-yaxis-'])
                     self.yen.append(True)
@@ -174,6 +174,12 @@ class PlotWindow:
                         self.ylab = 'Functional Norm'
                     elif values['-yaxis-'] == 'GEM iterations':
                         self.ylab = 'GEM Iterations'
+                    elif values['-yaxis-'] == 'heat capacity':
+                        self.ylab = 'Heat Capacity'
+                    elif values['-yaxis-'] == 'enthalpy':
+                        self.ylab = 'Enthalpy'
+                    elif values['-yaxis-'] == 'entropy':
+                        self.ylab = 'Entropy'
                     self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
@@ -448,7 +454,7 @@ class PlotWindow:
             self.ykey2 = [[]]
             self.yen2 = []
             self.leg2 = []
-            if values['-yaxis2-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations']:
+            if values['-yaxis2-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
                 self.ykey2[0].append(values['-yaxis2-'])
                 self.yen2.append(True)
                 self.leg2.append(values['-yaxis2-'])
@@ -462,6 +468,12 @@ class PlotWindow:
                     self.ylab2 = 'Functional Norm'
                 elif values['-yaxis2-'] == 'GEM iterations':
                     self.ylab2 = 'GEM Iterations'
+                elif values['-yaxis2-'] == 'heat capacity':
+                    self.ylab2 = 'Heat Capacity'
+                elif values['-yaxis2-'] == 'enthalpy':
+                    self.ylab2 = 'Enthalpy'
+                elif values['-yaxis2-'] == 'entropy':
+                    self.ylab2 = 'Entropy'
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == '# phases':
                 self.ykey2[0].append('# solution phases')
