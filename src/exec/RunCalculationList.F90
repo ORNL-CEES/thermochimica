@@ -21,6 +21,9 @@ program RunCalculationList
     ! Initialize INFO
     INFO = 0
 
+    ! lWriteJSON true by default
+    lWriteJSON = .TRUE.
+
     ! Read input argument to get filename
     call get_command_argument(1, cInputFile)
     if (len_trim(cInputFile) == 0) then
@@ -269,6 +272,15 @@ program RunCalculationList
             print *,  trim(cErrMsg)
             return
           endif
+        case ('writeJSON','writejson','WriteJSON','write_JSON',&
+          'write_json','Write_JSON','write JSON','write json','Write JSON')
+          read(cValue,*,IOSTAT = INFO) lWriteJSON
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
         case default
           write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
           print *,  trim(cErrMsg)
@@ -305,11 +317,12 @@ program RunCalculationList
     call ParseCSDataFile(cThermoFileName)
 
     ! Specify values:
-
-    OPEN(2, file= DATA_DIRECTORY // '../thermoout.json', &
-        status='REPLACE', action='write')
-    WRITE(2,*) '{'
-    CLOSE(2)
+    if (lWriteJSON) then
+        OPEN(2, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='REPLACE', action='write')
+        WRITE(2,*) '{'
+        CLOSE(2)
+    end if
 
     do i = 1, nCalc
       cInputUnitPressure = cRunUnitPressure
@@ -329,7 +342,9 @@ program RunCalculationList
       write(intStr,*) i
       write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2)
-      call WriteJSON(.TRUE.)
+      if (lWriteJSON) then
+          call WriteJSON(.TRUE.)
+      end if
       ! Reset Thermochimica:
       if (INFOThermo == 0) then
           call ResetThermo
@@ -341,9 +356,11 @@ program RunCalculationList
     end do
     CLOSE(3)
 
-    open(2, file= DATA_DIRECTORY // '../thermoout.json', &
-        status='OLD', position='append', action='write')
-    write(2,*) '}'
-    close (2)
+    if (lWriteJSON) then
+        open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='OLD', position='append', action='write')
+        write(2,*) '}'
+        close (2)
+    end if
 
 end program RunCalculationList

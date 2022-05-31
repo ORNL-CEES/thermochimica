@@ -57,6 +57,10 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
 
   ! Initialize INFO
   INFO = 0
+
+  ! lWriteJSON true by default
+  lWriteJSON = .TRUE.
+
   ! Open input file
   open (UNIT = 1, FILE = cInputFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
   ! Check for error on attempt to open
