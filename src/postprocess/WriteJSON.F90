@@ -117,6 +117,9 @@ subroutine WriteJSONSolnPhase
             dTempMolesPhase = 0D0
         end if
 
+        ! Print driving force
+        write(1,'(A24,ES25.16E3,A1)') '      "driving force": ', dDrivingForceSoln(j), ','
+
         if ((cSolnPhaseType(j) == 'SUBLM') .OR. (cSolnPhaseType(j) == 'RKMPM')) then
             Tcritical = 0D0
             B = 0D0
@@ -238,8 +241,8 @@ subroutine WriteJSONPureConPhase
 
     implicit none
 
-    integer :: c, i, k, l, nElectron
-    real(8) :: dTempMolesPhase, dTotalElements, dCurrentElement
+    integer :: c, i, j, k, l, nElectron
+    real(8) :: dTempMolesPhase, dTotalElements, dCurrentElement, dDriving
 
     write(1,*) '  "pure condensed phases": {'
 
@@ -259,6 +262,17 @@ subroutine WriteJSONPureConPhase
             dTempMolesPhase = 0D0
         end if
         write(1,*) '      "chemical potential":', dStdGibbsEnergy(i)*dIdealConstant*dTemperature, ','
+
+        ! Calculate driving force
+        dDriving = 0D0
+        do j = 1, nElements
+            dDriving = dDriving + dElementPotential(j) * dStoichSpecies(i,j)
+        end do
+        dDriving = (dStdGibbsEnergy(i) - dDriving) / dSpeciesTotalAtoms(i)
+
+        ! Write driving force
+        write(1,'(A24,ES25.16E3,A1)') '      "driving force": ', dDriving, ','
+
         write(1,*) '      "stoichiometry": [', (dStoichSpecies(i,c), ',', c = 1,nElements-1), &
                                                     dStoichSpecies(i,nElements), '],'
         write(1,*) '      "elements": {'
