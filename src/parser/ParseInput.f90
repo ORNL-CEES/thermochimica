@@ -48,7 +48,8 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   implicit none
 
   character(*)                :: cInputFileName
-  integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iColon1, iColon2
+  integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
+  integer                     :: iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
   character(1024)             :: cLineInit
@@ -101,9 +102,10 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
     ! Value if on RHS of delimiter, do same as above
     cValue = trim(adjustl(cLine((iDelimiterPosition + 1) : len(cLine))))
     ! Check if line contains a mass, need to treat these separately
-    ! Masses will be the only lines to contain '()', so look for these
+    ! Masses will be the only lines to contain '()' on the LHS, so look for these
     iOpenPosition = scan(cLine,'(')
-    if (iOpenPosition > 0) then
+    iEqualPosition = scan(cLine,'=')
+    if ((iOpenPosition > 0) .AND. (iOpenPosition < iEqualPosition)) then
       iClosePosition = scan(cLine,')')
       ! Check for no close ')'
       if (iClosePosition == 0) then
@@ -300,6 +302,50 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *,  trim(cErrMsg)
           return
         end if
+      case ('nPhasesExcluded','nphasesexcluded','number of phases excluded','number excluded')
+        read(cValue,*,IOSTAT = INFO) nPhasesExcluded
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A47,I10)') 'Cannot read number of phases excluded on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('phasesExcluded','phasesexcluded','phases excluded')
+        if (nPhasesExcluded == 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A63,I10)') 'Need (nonzero) number of phases excluded before phase list at ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        read(cValue,*,IOSTAT = INFO) cPhasesExcluded(1:nPhasesExcluded)
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A41,I10)') 'Cannot parse phases exclusions on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
+      case ('nPhasesExcludedExcept','nphasesexcludedexcept','number of phases excluded except','number excluded except')
+        read(cValue,*,IOSTAT = INFO) nPhasesExcludedExcept
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A47,I10)') 'Cannot read number of phases excluded on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('phasesExcludedExcept','phasesexcludedexcept','phases excluded except')
+        if (nPhasesExcludedExcept == 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A75,I10)') 'Need (nonzero) number of phases exclusion exceptions before phase list at ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        read(cValue,*,IOSTAT = INFO) cPhasesExcludedExcept(1:nPhasesExcludedExcept)
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A50,I10)') 'Cannot parse phase exclusion exceptions on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        endif
       case default
         write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)
