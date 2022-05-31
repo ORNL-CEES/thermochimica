@@ -271,7 +271,16 @@ subroutine CheckSystem
 
     ! Check to see if the system has to be re-adjusted:
     nSpecies = 0
+
+    call MakePhaseExclusionList
+
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
+        do j = 1, nPhasesExcluded
+            if (cSolnPhaseNameCS(i) == cPhasesExcluded(j)) then
+                print *, 'Excluding ', cSolnPhaseNameCS(i)
+                cycle LOOP_SolnPhases
+            end if
+        end do
         ! Loop through species in solution phases:
         nSpeciesCurrentPhase = 0
         LOOP_SpeciesInSolnPhase: do j = nSpeciesPhaseCS(i-1) + 1, nSpeciesPhaseCS(i)
@@ -402,7 +411,16 @@ subroutine CheckSystem
 
     ! Loop through pure condensed phases:
     LOOP_PureConPhases: do j = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
+        ! Check if phase is on the exclusion list
+        do i = 1, nPhasesExcluded
+            if (cSpeciesNameCS(j) == cPhasesExcluded(i)) then
+                print *, 'Excluding ', cSpeciesNameCS(j)
+                cycle LOOP_PureConPhases
+            end if
+        end do
+        ! If stoichiometry of phase is zero, skip
         if (SUM(dStoichSpeciesCS(j,1:nElemOrComp)) == 0) cycle LOOP_PureConPhases
+        ! Check that it contains only elements present
         do k = 1, nElemOrComp
             if ((dStoichSpeciesCS(j,k) > 0).AND.(iElementSystem(k) == 0)) then
                 ! This species should not be considered
