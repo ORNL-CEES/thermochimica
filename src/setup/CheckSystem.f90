@@ -432,6 +432,12 @@ subroutine CheckSystem
         if (iPhaseCS(j) == 0) nConPhasesSys = nConPhasesSys + 1
     end do LOOP_PureConPhases
 
+    ! Check that there is at least one available phase left
+    if (nSolnPhasesSys + nConPhasesSys == 0) then
+        INFOThermo = 40
+        return
+    end if
+
     ! Re-establish the character vector representing the element names:
     j = 0
     do i = 1, nElemOrComp
