@@ -26,6 +26,8 @@ subroutine MakePhaseExclusionList
 
         ! Pure condensed phases
         loop_checkExclusionPureCondensed: do i = nSpeciesPhaseCS(nSolnPhasesSysCS) + 1, nSpeciesCS
+            ! Check if dummy - don't exclude dummies automatically
+            if (iPhaseCS(i) == -1) cycle loop_checkExclusionPureCondensed
             ! Check if phase is on exception list
             do j = 1, nPhasesExcludedExcept
                 if (cSpeciesNameCS(i) == cPhasesExcludedExcept(j)) cycle loop_checkExclusionPureCondensed
