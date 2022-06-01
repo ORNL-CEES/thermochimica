@@ -40,7 +40,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
             inputFile.write(f'{temperature} {pressure} {" ".join([str(endpoint[element]) for element in elements])}\n')
 
     # Run calculation
-    subprocess.run([thermochimica_path+'/bin/RunCalculationList',inputFileName])
+    subprocess.check_output([thermochimica_path+'/bin/RunCalculationList',inputFileName])
 
     # Process output
     f = open(thermochimica_path+'/thermoout.json',)
@@ -75,7 +75,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         for mixture in mixtures:
             inputFile.write(f'{temperature} {pressure} {" ".join([str((1-mixture)*endpoints[0][element] + (mixture)*endpoints[1][element]) for element in elements])}\n')
     # Run calculation
-    subprocess.run([thermochimica_path+'/bin/RunCalculationList',inputFileName])
+    subprocess.check_output([thermochimica_path+'/bin/RunCalculationList',inputFileName])
 
     # Process output
     f = open(thermochimica_path+'/thermoout.json',)
