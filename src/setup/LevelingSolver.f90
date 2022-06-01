@@ -106,7 +106,7 @@ subroutine LevelingSolver
 
     implicit none
 
-    integer :: iter, i, n
+    integer :: iter, i, n, m, k
 
 
     ! Initialize variables:
@@ -146,7 +146,9 @@ subroutine LevelingSolver
     LOOP_Leveling: do iter = 1, 1000
 
         ! Readjust the chemical potentials of all species and phases in the system:
-        dChemicalPotential = dChemicalPotential - MATMUL(dAtomFractionSpecies,dLevel)
+        m = SIZE(dAtomFractionSpecies,1)
+        k = SIZE(dAtomFractionSpecies,2)
+        call DGEMM('N','N',m,1,k,-1D0,dAtomFractionSpecies,m,dLevel,k,1D0,dChemicalPotential,m)
 
         ! Update the element potentials:
         dElementPotential = dElementPotential + dLevel
