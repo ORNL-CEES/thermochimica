@@ -148,6 +148,9 @@ subroutine LevelingSolver
         ! Readjust the chemical potentials of all species and phases in the system:
         m = SIZE(dAtomFractionSpecies,1)
         k = SIZE(dAtomFractionSpecies,2)
+        ! DGEMM does C := alpha*op( A )*op( B ) + beta*C
+        ! Here C is dChemicalPotential, A is dAtomFractionSpecies, and B is dLevel
+        ! Set alpha = -1 and beta = 1, so this is just dChemicalPotential += -dAtomFractionSpecies*dLevel
         call DGEMM('N','N',m,1,k,-1D0,dAtomFractionSpecies,m,dLevel,k,1D0,dChemicalPotential,m)
 
         ! Update the element potentials:
