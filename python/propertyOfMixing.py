@@ -67,13 +67,16 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         mixtureProp.append(prop)
         print(f'{mixture} {prop}')
 
+    # Save data
+    subprocess.run(['cp','thermoout.json',f'{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json'])
+
 
 property = 'entropy'
 phase = 'MSFL'
 temperature = 1000
 tunit = 'C'
 # endpoints = [dict([('Li',1),('F',1)]),dict([('Pu',1),('F',3)])]
-endpoints = [dict([('Na',1),('F',1)]),dict([('Ca',1),('F',2)])]
+endpoints = [dict([('K',1),('F',1)]),dict([('Ca',1),('F',2)])]
 mixtures = [i/10 for i in range(1,10)]
 database = 'mstdb/Models and Documentation/MSTDB-TC_V1.3_Fluorides_8-0.dat'
 
