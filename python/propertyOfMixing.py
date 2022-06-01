@@ -3,7 +3,7 @@ import subprocess
 import json
 
 def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database,
-                     thermochimica_path = 'bin/RunCalculationList',
+                     thermochimica_path = '.',
                      pressure = 1,
                      tunit = 'K',
                      punit = 'atm',
@@ -23,7 +23,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
                 endpoint[element] = 0
 
     # Write and run endpoint calculations
-    inputFileName = f'inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
+    inputFileName = f'{thermochimica_path}/inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
     with open(inputFileName, 'w') as inputFile:
         inputFile.write(f'data file              = {database}\n')
         inputFile.write(f'temperature unit       = {tunit}\n')
@@ -40,7 +40,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
             inputFile.write(f'{temperature} {pressure} {" ".join([str(endpoint[element]) for element in elements])}\n')
 
     # Run calculation
-    subprocess.run([thermochimica_path,inputFileName])
+    subprocess.run([thermochimica_path+'/bin/RunCalculationList',inputFileName])
 
     # Process output
     f = open('thermoout.json',)
@@ -75,7 +75,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         for mixture in mixtures:
             inputFile.write(f'{temperature} {pressure} {" ".join([str((1-mixture)*endpoints[0][element] + (mixture)*endpoints[1][element]) for element in elements])}\n')
     # Run calculation
-    subprocess.run([thermochimica_path,inputFileName])
+    subprocess.run([thermochimica_path+'/bin/RunCalculationList',inputFileName])
 
     # Process output
     f = open('thermoout.json',)
