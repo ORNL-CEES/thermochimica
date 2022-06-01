@@ -59,7 +59,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         endpointProp.append(data[str(i)][property])
 
     # Write and run mixture calculations
-    inputFileName = f'inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
+    inputFileName = f'{thermochimica_path}/inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
     with open(inputFileName, 'w') as inputFile:
         inputFile.write(f'data file              = {database}\n')
         inputFile.write(f'temperature unit       = {tunit}\n')
