@@ -49,7 +49,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         f.close()
     except:
         f.close()
-        print('Data load failed, aborting phase diagram update')
+        print('Data load failed, aborting mixture calculation')
         return
 
     endpointProp = []
@@ -84,7 +84,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         f.close()
     except:
         f.close()
-        print('Data load failed, aborting phase diagram update')
+        print('Data load failed, aborting mixture calculation')
         return
 
     print()
@@ -94,7 +94,6 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         i += 1
         prop = data[str(i)][property] - ((1-mixture)*endpointProp[0] + (mixture)*endpointProp[1])
         mixtureProp.append(prop)
-        print(f'{mixture} {prop}')
         data[str(i)][f'{property} of mixing'] = prop
 
     # Save data
