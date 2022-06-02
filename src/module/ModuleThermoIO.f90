@@ -59,6 +59,8 @@ module ModuleThermoIO
     character(120)                           :: cThermoFileName
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
+    integer                                  :: nPhasesExcluded = 0, nPhasesExcludedExcept = 0
+    character(25), dimension(1000)           :: cPhasesExcluded = '', cPhasesExcludedExcept = ''
 
     ! Compound variables:
     integer                                  :: nCompounds = 0

@@ -1,0 +1,20 @@
+! Configuration variables:
+temperature unit  = K
+pressure unit     = atm
+mass unit         = moles
+data file         = data/Kaye_NobleMetals.dat
+
+! Specify output and debug modes:
+print mode        = 2
+
+! Exclude some phases
+! number excluded = 2
+! phases excluded = BCCN Ru3Mo5_solid(s)
+number excluded except = 1
+phases excluded except = HCPN
+
+! Set up calculation
+pressure          = 1
+temperature       = 400
+mass(42)          = 0.9
+mass(44)          = 0.1

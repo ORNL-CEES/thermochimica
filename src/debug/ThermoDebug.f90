@@ -137,8 +137,10 @@ subroutine ThermoDEBUG
         print *, 'but must be positive.'
     elseif (INFOThermo == 36) then
         print *, 'DEBUG: An error occured in interpreting the parsed data for a SUBL phase.'
+    elseif (INFOThermo == 37) then
+        print *, 'DEBUG: An error occured in interpreting the parsed data for a SUBL phase.'
     elseif (INFOThermo == 40) then
-        print *, 'DEBUG: There is an element in a compound that is not in the dat file.'
+        print *, 'DEBUG: There are no phases remaining after processing excluded phases.'
     elseif (INFOThermo == 41) then
         print *, 'DEBUG: Error finding stoichiometry in terms of compounds.'
     elseif (INFOThermo == 42) then
