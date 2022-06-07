@@ -79,11 +79,12 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     implicit none
 
     integer               :: i, j, k, l, m, iDummy, iCounterGibbsEqn, iGibbsEqType
-    real(8)               :: dTemp
+    real(8)               :: dTemp, dMaxX, dPenaltyX
     real(8),dimension(15) :: dTempVec
     real(8),parameter     :: dGibbsDummy = 1D6
     character(5)          :: cDummy
     character(26)         :: cSpeciesNameDummy
+    character(50)         :: cSpeciesNameLine, cSubstring
 
 
     ! Initialize variables:
@@ -92,9 +93,24 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     dTempVec = 0D0
 
     ! Entry 3: Read name of constituent species:
-    read (1,100,IOSTAT = INFO) cSpeciesNameCS(j)
-    100 FORMAT (A26)
-    cSpeciesNameCS(j) = TRIM(ADJUSTL(cSpeciesNameCS(j)))
+    read (1,'(a)',IOSTAT = INFO) cSpeciesNameLine
+    cSpeciesNameLine = TRIM(ADJUSTL(cSpeciesNameLine))
+    k = 26
+    cSpeciesNameCS(j) = TRIM(ADJUSTL(cSpeciesNameLine(:k)))
+
+    ! Create substring of remaining
+    cSubstring = TRIM(ADJUSTL(cSpeciesNameLine(k:)))
+    k = SCAN(cSubstring, ' ')
+    dMaxX = 0D0
+    dPenaltyX = 0D0
+    if (k > 1) then
+      ! Ignore non-numerics on this line
+        l = SCAN(cSubstring, '-.0123456789')
+        if (l == 1) then
+            read(cSubstring(:k-1), *) dMaxX
+            read(cSubstring(k:), *) dPenaltyX
+        end if
+    end if
 
     ! Check to see if there is more than one particle per constituent formula mass.
     k = SCAN(cSpeciesNameCS(j), ':', back = .TRUE.)
