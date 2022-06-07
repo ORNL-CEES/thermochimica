@@ -458,7 +458,8 @@ subroutine CheckSystem
         if (i /= nSpecies) then
             ! The number of species has changed.
             deallocate(dChemicalPotential,iPhase,dSpeciesTotalAtoms,cSpeciesName,&
-                iParticlesPerMole,dStdGibbsEnergy,dCoeffGibbsMagnetic,dMagGibbsEnergy,dQKTOParams, STAT = n)
+                iParticlesPerMole,dStdGibbsEnergy,dCoeffGibbsMagnetic,dMagGibbsEnergy,dQKTOParams,&
+                dMaxX, dPenaltyX, STAT = n)
             if (n /= 0) then
                 INFOThermo = 19
                 return
@@ -467,6 +468,7 @@ subroutine CheckSystem
             allocate(dChemicalPotential(nSpecies),iPhase(nSpecies),dSpeciesTotalAtoms(nSpecies))
             allocate(cSpeciesName(nSpecies),dStdGibbsEnergy(nSpecies),dQKTOParams(nSpecies,2))
             allocate(iParticlesPerMole(nSpecies), dCoeffGibbsMagnetic(nSpecies,4), dMagGibbsEnergy(nSpecies))
+            allocate(dMaxX(nSpecies),dPenaltyX(nSpecies))
         end if
 
         ! Check to see if the number of elements has changed:
@@ -546,6 +548,7 @@ subroutine CheckSystem
         allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
         allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
+        allocate(dMaxX(nSpecies),dPenaltyX(nSpecies))
 
         ! Only allocate if there are charged phases:
         if (nCountSublattice > 0) then
@@ -586,6 +589,8 @@ subroutine CheckSystem
     dCoeffGibbsMagnetic  = 0D0
     dMagGibbsEnergy      = 0D0
     dQKTOParams          = 0D0
+    dMaxX                = 0D0
+    dPenaltyX            = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
 

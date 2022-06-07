@@ -328,6 +328,8 @@ subroutine CompThermoData
                 iParticlesPerMole(j)       = iParticlesPerMoleCS(i)
                 dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
                 dQKTOParams(j,1:2)         = dQKTOParamsCS(i,1:2)
+                dMaxX(j)                   = dMaxXCS(i)
+                dPenaltyX(j)               = dPenaltyX(i)
 
                 m = 0
                 do k = 1, nElemOrComp
