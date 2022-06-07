@@ -79,7 +79,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     implicit none
 
     integer               :: i, j, k, l, m, iDummy, iCounterGibbsEqn, iGibbsEqType
-    real(8)               :: dTemp, dMaxX, dPenaltyX
+    real(8)               :: dTemp
     real(8),dimension(15) :: dTempVec
     real(8),parameter     :: dGibbsDummy = 1D6
     character(5)          :: cDummy
@@ -101,14 +101,12 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     ! Create substring of remaining
     cSubstring = TRIM(ADJUSTL(cSpeciesNameLine(k:)))
     k = SCAN(cSubstring, ' ')
-    dMaxX = 0D0
-    dPenaltyX = 0D0
     if (k > 1) then
       ! Ignore non-numerics on this line
         l = SCAN(cSubstring, '-.0123456789')
         if (l == 1) then
-            read(cSubstring(:k-1), *) dMaxX
-            read(cSubstring(k:), *) dPenaltyX
+            read(cSubstring(:k-1), *) dMaxXCS(j)
+            read(cSubstring(k:), *) dPenaltyXCS(j)
         end if
     end if
 

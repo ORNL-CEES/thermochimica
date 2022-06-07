@@ -182,12 +182,15 @@ subroutine ParseCSHeader
     allocate(dGibbsMagneticCS(nSpeciesCS,4))
     allocate(iMagneticParamCS(1000,nParamMax*2+3),dMagneticParamCS(1000,2))
     allocate(dQKTOParamsCS(nSpeciesCS,2))
+    allocate(dMaxXCS(nSpeciesCS),dPenaltyXCS(nSpeciesCS))
 
     ! Initialize variables:
     dGibbsCoeffSpeciesTemp = 0D0
     dStoichSpeciesCS       = 0D0
     nGibbsEqSpecies        = 0
     dQKTOParamsCS          = 0D0
+    dMaxXCS                = 0D0
+    dPenaltyXCS            = 0D0
 
     ! Line 3: List of system components:
     read (1,*,IOSTAT = INFO) cElementNameCS(1:nElementsCS)

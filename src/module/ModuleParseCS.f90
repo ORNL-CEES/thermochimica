@@ -86,7 +86,7 @@ module ModuleParseCS
     integer,        dimension(:,:), allocatable :: iSUBIParamDataCS
     integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iPairIDCS, iChemicalGroupCS
 
-    real(8),        dimension(:),   allocatable :: dAtomicMassCS
+    real(8),        dimension(:),   allocatable :: dAtomicMassCS, dMaxXCS, dPenaltyXCS
     real(8),        dimension(:,:), allocatable :: dGibbsCoeffSpeciesTemp, dRegularParamCS, dGibbsMagneticCS, dMagneticParamCS
     real(8),        dimension(:,:), allocatable :: dStoichSublatticeCS, dStoichSpeciesCS, dZetaSpeciesCS, dStoichConstituentCS
     real(8),        dimension(:,:), allocatable :: dQKTOParamsCS
