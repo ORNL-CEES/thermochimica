@@ -129,6 +129,10 @@ subroutine ResetThermoParser
     i = i + INFO
     if (allocated(dQKTOParamsCS)) deallocate(dQKTOParamsCS, STAT = INFO)
     i = i + INFO
+    if (allocated(dMaxXCS)) deallocate(dMaxXCS, STAT = INFO)
+    i = i + INFO
+    if (allocated(dPenaltyXCS)) deallocate(dPenaltyXCS, STAT = INFO)
+    i = i + INFO
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:
     if (i > 0) then

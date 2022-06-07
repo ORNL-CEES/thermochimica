@@ -189,6 +189,10 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(dQKTOParams)) deallocate(dQKTOParams, STAT = INFO)
     i = i + INFO
+    if (allocated(dMaxX)) deallocate(dMaxX, STAT = INFO)
+    i = i + INFO
+    if (allocated(dPenaltyX)) deallocate(dPenaltyX, STAT = INFO)
+    i = i + INFO
 
     lRetryAttempted = .FALSE.
 
