@@ -329,7 +329,7 @@ subroutine CompThermoData
                 dCoeffGibbsMagnetic(j,1:4) = dGibbsMagneticCS(i,1:4)
                 dQKTOParams(j,1:2)         = dQKTOParamsCS(i,1:2)
                 dMaxX(j)                   = dMaxXCS(i)
-                dPenaltyX(j)               = dPenaltyXCS(i)
+                dPenaltyX(j)               = dPenaltyXCS(i) / (dTemperature * dIdealConstant)
 
                 m = 0
                 do k = 1, nElemOrComp
