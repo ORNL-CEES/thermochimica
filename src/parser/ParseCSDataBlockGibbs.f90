@@ -84,7 +84,7 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
     real(8),parameter     :: dGibbsDummy = 1D6
     character(5)          :: cDummy
     character(26)         :: cSpeciesNameDummy
-    character(50)         :: cSpeciesNameLine, cSubstring
+    character(70)         :: cSpeciesNameLine, cSubstring
 
 
     ! Initialize variables:
@@ -105,8 +105,14 @@ subroutine ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
       ! Ignore non-numerics on this line
         l = SCAN(cSubstring, '-.0123456789')
         if (l == 1) then
-            read(cSubstring(:k-1), *) dMaxXCS(j)
-            read(cSubstring(k:), *) dPenaltyXCS(j)
+            select case (cSolnPhaseTypeCS(i))
+            case ('SUBG','SUBQ','SUBL','SUBI')
+                print *, 'Max_x used in multi-sublattice phase ', cSolnPhaseNameCS(i), ' but not yet implemented.'
+                print *, 'Max_x penalty term will be ignored.'
+            case default
+                read(cSubstring(:k-1), *) dMaxXCS(j)
+                read(cSubstring(k:), *) dPenaltyXCS(j)
+          end select
         end if
     end if
 
