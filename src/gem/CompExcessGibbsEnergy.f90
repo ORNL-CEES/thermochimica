@@ -57,8 +57,8 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
     implicit none
 
-    integer :: i, iSolnIndex, iFirst, iLast
-
+    integer :: i, j, iSolnIndex, iFirst, iLast, nSpec
+    real(8) :: dAdjustedPenalty, dX
 
     ! Temporary variables used for convenience:
     iFirst = nSpeciesPhase(iSolnIndex - 1) + 1
@@ -144,6 +144,36 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
         return
 
     end select
+
+    ! Check for x_max (x_min)
+    do i = iFirst, iLast
+        if (dPenaltyX(i) > 0) then
+            nSpec = iLast + 1 - iFirst
+            if (dMaxX(i) > 0 .AND. dMolFraction(i) > dMaxX(i)) then
+                dX = (dMolFraction(i) - dMaxX(i)) / (1 - dMolFraction(i))
+                print *, cSolnPhaseName(iSolnIndex), cSpeciesName(i), dPenaltyX(i)
+                dAdjustedPenalty = 2.96591D7 * (dMolFraction(i) - dMaxX(i))**2 - 2.33995D5 * (dMolFraction(i) - dMaxX(i))
+                dAdjustedPenalty = 5*dPenaltyX(i) * (dMolFraction(i) - dMaxX(i))**2
+                ! dChemicalPotential(i) = dChemicalPotential(i) + dAdjustedPenalty
+                ! dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dAdjustedPenalty
+                do j = iFirst, iLast
+                    dChemicalPotential(j) = dChemicalPotential(j) + dAdjustedPenalty
+                    dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dAdjustedPenalty &
+                                                  * dMolesSpecies(j)
+                end do
+            else if (dMaxX(i) < 0 .AND. dMolFraction(i) < -dMaxX(i)) then
+                dAdjustedPenalty = dPenaltyX(i) * (-dMaxX(i) - dMolFraction(i)) / 1
+                ! print *, cSolnPhaseName(iSolnIndex), cSpeciesName(i), dAdjustedPenalty
+                dChemicalPotential(i) = dChemicalPotential(i) - dAdjustedPenalty
+                dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) - dAdjustedPenalty * dMolesSpecies(i)
+                do j = iFirst, iLast
+                    dChemicalPotential(j) = dChemicalPotential(j) + dAdjustedPenalty * dMolesSpecies(i)
+                    dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dAdjustedPenalty &
+                                                  * dMolesSpecies(j) * dMolesSpecies(i)
+                end do
+            end if
+        end if
+    end do
 
     return
 
