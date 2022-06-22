@@ -20,11 +20,11 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !  results for the open literature Cs-Te assessment file at 700K with 0.2 mols of Cs and 0.8 of Te. 
+    !  results for the open literature Cs-Te assessment file at 700K with 0.2 mols of Cs and 0.8 of Te.
     !  It also tests mixing term Case #5 of the SUBI phase.
-    !!  The DAT file was pulled from the following article. However, modifications may have been made 
-    !!  from the original version: T. N. Pham Thi, J. C. Dumas, V. Bouineau, N. Dupin, C. Gueneau, S. Gosse, 
-    !!  P. Benigni, P. Maugis and J. Rogez, "Thermodynamic assessment of the Cs–Te binary system," Calphad, 
+    !!  The DAT file was pulled from the following article. However, modifications may have been made
+    !!  from the original version: T. N. Pham Thi, J. C. Dumas, V. Bouineau, N. Dupin, C. Gueneau, S. Gosse,
+    !!  P. Benigni, P. Maugis and J. Rogez, "Thermodynamic assessment of the Cs–Te binary system," Calphad,
     !!  vol. 48, pp. 1-12, 2015.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -35,12 +35,12 @@ program TestThermo72
     USE ModuleThermo
 
     implicit none
-    
+
     real(8) :: sfcheck1, sfcheck2, sfcheck3
     real(8) :: pcheck1, pcheck2, gibbscheck
     integer :: i,j,k,l
     logical :: s1pass, s2pass, s3pass
-    
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -53,15 +53,15 @@ program TestThermo72
     dTemperature           = 700D0
     dElementMass(52)        = 0.8D0          ! Te
     dElementMass(55)        = 0.2D0          ! Cs
-    
+
     ! Liquid #1
     sfcheck1 = 1D0             !Cs
     sfcheck2 = 1.25D-1         !Cs2Te
     sfcheck3 = 8.75D-1         !Te
-    
+
     pcheck1 = -275754D0        !Cs
     pcheck2 = -43828.1D0       !Te
-    
+
     gibbscheck = -90213.3D0
 
     ! Parse the ChemSage data-file:
@@ -94,13 +94,12 @@ program TestThermo72
                             end if
                         end do
                     end do
-          
                 end if
             end do
         end if
     end if
 
-    if (s1pass .AND. & 
+    if (s1pass .AND. &
         s2pass .AND. &
         s3pass) then
         ! The test passed:
