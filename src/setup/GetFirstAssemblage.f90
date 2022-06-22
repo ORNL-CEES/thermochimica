@@ -77,7 +77,7 @@ subroutine GetFirstAssemblage
     ! will only contain the standard Gibbs energy of a pure species.
 
     dTempArr = 0D0
-    do i = 1,nSpecies
+    do i = 1, nSpecies
         dTempArr(i,1:nElements) = dChemicalPotential(i) * DFLOAT(iAtomFractionSpecies(i,1:nElements))
     end do
 
@@ -91,8 +91,12 @@ subroutine GetFirstAssemblage
 
     iAssemblage = MINLOC(dTempArr, DIM = 1, MASK = iAtomFractionSpecies /= 0)
 
+    do i = nElements - nChargedConstraints + 1, nElements
+        iAssemblage(i) = 0
+    end do
+
     ! Establish the first adjustment to the element potentials:
-    do i = 1, nElements
+    do i = 1, nElements - nChargedConstraints
         dLevel(i) = dChemicalPotential(iAssemblage(i))
     end do
 

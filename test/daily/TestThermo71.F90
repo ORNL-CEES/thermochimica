@@ -83,7 +83,7 @@ program TestThermo71
             (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
             (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
             (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
-            do i = 1, nSolnPhases
+            loop_checkPhases: do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
                 if (cSolnPhaseName(k) == 'IONIC_LIQ') then
                     do j = 1, 2
@@ -97,9 +97,9 @@ program TestThermo71
                             end if
                         end do
                     end do
-
+                    exit loop_checkPhases
                 end if
-            end do
+            end do loop_checkPhases
         end if
     end if
 

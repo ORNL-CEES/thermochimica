@@ -200,14 +200,14 @@ subroutine InitGEMSolver
     ! If there is no reinit data use old methods:
     else
         ! Calculate the total number of moles for each solution phase:
-        do i = 1, nElements
+        do i = 1, nElements - nChargedConstraints
             j           = iPhase(iAssemblageLast(i))
             dTempVec(j) = dTempVec(j) + dMolesPhaseLast(i)
         end do
 
         ! Count the number of pure condensed phases and solution phases are assumed to be part of the phase
         ! assemblage and establish iAssemblage based on the results of Leveling and PostLeveling:
-        LOOP_AddPhase: do i = 1, nElements
+        LOOP_AddPhase: do i = 1, nElements - nChargedConstraints
             if ((iPhase(iAssemblageLast(i)) == 0).AND.(nConPhases + nSolnPhases < nElements)) then
                 nConPhases              = nConPhases + 1
                 iAssemblage(nConPhases) = iAssemblageLast(i)

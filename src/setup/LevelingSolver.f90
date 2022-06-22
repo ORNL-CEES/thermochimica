@@ -137,7 +137,7 @@ subroutine LevelingSolver
     iterHistoryLevel  = 0
     iAssemblage       = 0
     dLevel            = 0D0
-    nConPhases        = nElements
+    nConPhases        = nElements - nChargedConstraints
 
     ! Establish the very first phase assemblage:
     call GetFirstAssemblage
