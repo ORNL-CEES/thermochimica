@@ -85,7 +85,7 @@ program TestThermo71
             (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
             loop_checkPhases: do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
-                if ((cSolnPhaseName(k) == 'IONIC_LIQ#1') .OR. (cSolnPhaseName(k) == 'IONIC_LIQ#2')) then
+                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'CR+3') then

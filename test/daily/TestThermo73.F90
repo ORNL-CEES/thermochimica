@@ -23,8 +23,8 @@
     !!  results for the open literature Ca-Mn-S assessment file at 2500K with 1 mol of Ca, 1 mol of Mn, and
     !!  1 mol of S. It also tests mixing term Case #1, # 2, and #3 of the SUBI phase with a miscibility gap
     !!  present.
-    !!  The DAT file was pulled from the following article. However, modifications may have been made 
-    !!  from the original version: D. Dilner, "Thermodynamic description of the Fe–Mn–Ca–Mg–S system," Calphad, 
+    !!  The DAT file was pulled from the following article. However, modifications may have been made
+    !!  from the original version: D. Dilner, "Thermodynamic description of the Fe–Mn–Ca–Mg–S system," Calphad,
     !!  vol. 53, pp. 55-61, 2016.
     !
     !-------------------------------------------------------------------------------------------------------------
@@ -35,14 +35,14 @@ program TestThermo73
     USE ModuleThermo
 
     implicit none
-    
+
     real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4, sfcheck5
     real(8) :: sfcheck6, sfcheck7, sfcheck8, sfcheck9, sfcheck10
     real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
     integer :: i,j,k,l
     logical :: s1pass, s2pass, s3pass, s4pass, s5pass
     logical :: s6pass, s7pass, s8pass, s9pass, s10pass
-    
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -56,25 +56,25 @@ program TestThermo73
     dElementMass(20)        = 1D0          ! Ca
     dElementMass(25)        = 1D0          ! Mn
     dElementMass(16)        = 1D0          ! S
-    
+
     ! Liquid #1
     sfcheck1 = 8.06572D-1         !Ca
     sfcheck2 = 1.93428D-1         !Mn
     sfcheck3 = 8.18084D-1         !S-2
     sfcheck4 = 1.81915D-1         !Va
     sfcheck5 = 7.69522D-7         !S
-    
+
     ! Liquid #2
     sfcheck6 = 1.96945D-2         !Ca
     sfcheck7 = 9.80306D-1         !Mn
     sfcheck8 = 1.6531D-3          !S-2
     sfcheck9 = 9.98344D-1         !Va
     sfcheck10 = 3.04003D-6        !S
-    
+
     pcheck1 = -251878D0       !Ca
     pcheck2 = -201710D0       !Mn
     pcheck3 = -457030D0       !S
-    
+
     gibbscheck = -910619D0
 
     ! Parse the ChemSage data-file:
@@ -94,16 +94,16 @@ program TestThermo73
     s8pass = .FALSE.
     s9pass = .FALSE.
     s10pass = .FALSE.
-    
+
     ! Check results:
     if (INFOThermo == 0) then
         if ((DABS(dGibbsEnergySys - (gibbscheck))/(gibbscheck) < 1D-3) .AND. &
             (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
             (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
             (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
-            do i = 1, nSolnPhases
+            loop_checkPhases: do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'IONIC_LIQ#1') then
+                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Ca+2') then
@@ -119,7 +119,7 @@ program TestThermo73
                             end if
                         end do
                     end do
-                else if (cSolnPhaseName(k) == 'IONIC_LIQ#2') then
+                
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Ca+2') then
@@ -136,11 +136,11 @@ program TestThermo73
                         end do
                     end do
                 end if
-            end do
+            end do loop_checkPhases
         end if
     end if
 
-    if (s1pass .AND. & 
+    if (s1pass .AND. &
         s2pass .AND. &
         s3pass .AND. &
         s4pass .AND. &

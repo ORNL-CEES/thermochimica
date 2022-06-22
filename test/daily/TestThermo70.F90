@@ -20,9 +20,9 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !!  results for the Zirc Data file at 1500K with 0.7 mols of Sn and 0.3 of O. It also tests mixing term Case #2 
+    !!  results for the Zirc Data file at 1500K with 0.7 mols of Sn and 0.3 of O. It also tests mixing term Case #2
     !!  an #4 of the SUBI phase, with the presence of a miscibility gap. Permission was granted from N. Dupin
-    !!  to make use of the Zirc DAT file. 
+    !!  to make use of the Zirc DAT file.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -32,14 +32,14 @@ program TestThermo70
     USE ModuleThermo
 
     implicit none
-    
+
     real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
     real(8) :: sfcheck5, sfcheck6, sfcheck7, sfcheck8
     real(8) :: pcheck1, pcheck2, gibbscheck
     integer :: i,j,k,l
     logical :: s1pass, s2pass, s3pass, s4pass
     logical :: s5pass, s6pass, s7pass, s8pass
-    
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -62,7 +62,7 @@ program TestThermo70
     sfcheck6 = 9.12945D-01      !O-2
     sfcheck7 = 1.35005D-2       !Va
     sfcheck8 = 7.35549D-2       !O2Sn
-    
+
     pcheck1 = -310505D0        ! O
     pcheck2 = -125800D0        ! Sn
     gibbscheck = -181212D0
@@ -82,15 +82,16 @@ program TestThermo70
     s6pass = .FALSE.
     s7pass = .FALSE.
     s8pass = .FALSE.
-    
+
     ! Check results:
     if (INFOThermo == 0) then
         if ((DABS(dGibbsEnergySys - (gibbscheck))/(gibbscheck) < 1D-3) .AND. &
             (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
             (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3)) then
-            do i = 1, nSolnPhases
+            !do i = 1, nSolnPhases
+            loop_checkPhases: do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'IONIC_LIQ#1') then
+                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'SN+2') then
@@ -104,7 +105,7 @@ program TestThermo70
                             end if
                         end do
                     end do
-                else if (cSolnPhaseName(k) == 'IONIC_LIQ#2') then
+                
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'SN+2') then
@@ -119,11 +120,11 @@ program TestThermo70
                         end do
                     end do
                 end if
-            end do
+            end do loop_checkPhases
         end if
     end if
 
-    if (s1pass .AND. & 
+    if (s1pass .AND. &
         s2pass .AND. &
         s3pass .AND. &
         s4pass .AND. &
