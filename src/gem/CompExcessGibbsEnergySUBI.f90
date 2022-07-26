@@ -1410,9 +1410,11 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                     dydn = -dSiteFraction(iSPI,2,j) / dSub2Total
                     if (cConstituentNameSUB(iSPI,2,j) == 'Va') then
                         ! vacancy
-                    else
-                        ! neutral or anion
+                    else if (dSublatticeCharge(iSPI,2,j) == 0D0) then
+                        ! neutral
                         if (j == k2) dydn = dydn + 1 / dSub2Total
+                    else
+                        !anion                      
                     end if
                 ! cation / anion
                 else
