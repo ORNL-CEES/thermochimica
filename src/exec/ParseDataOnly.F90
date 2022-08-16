@@ -43,6 +43,21 @@ program ParseDataOnly
                 write(1,*) '        "', TRIM(ADJUSTL(cSpeciesNameCS(j))), '"'
             end if
         end do
+
+        ! Write endmember names for MQMQA phases
+        if ((cSolnPhaseTypeCS(i) == 'SUBG') .OR. (cSolnPhaseTypeCS(i) == 'SUBQ')) then
+            write(1,*) '      ],'
+            write(1,*) '      "endmembers": ['
+            
+            do j = 1, nPairsSROCS(iPhaseSublatticeCS(i),1)
+                if (j < nPairsSROCS(iPhaseSublatticeCS(i),1)) then
+                    write(1,*) '        "', TRIM(ADJUSTL(cPairNameCS(iPhaseSublatticeCS(i),j))), '",'
+                else
+                    write(1,*) '        "', TRIM(ADJUSTL(cPairNameCS(iPhaseSublatticeCS(i),j))), '"'
+                end if
+            end do
+        end if
+
         write(1,*) '      ]'
 
         if (i < nSolnPhasesSysCS) then
