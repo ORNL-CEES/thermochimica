@@ -45,7 +45,6 @@ subroutine SetThermoFileNameFortran(cFileName)
 
 end subroutine SetThermoFileNameFortran
 
-
 subroutine SetUnitTemperature(cUnitTemperature)
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature
@@ -94,7 +93,6 @@ subroutine SetUnitMass(cUnitMass)
 
 end subroutine SetUnitMass
 
-
 subroutine SetStandardUnits
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -109,7 +107,6 @@ subroutine SetStandardUnits
 
 end subroutine SetStandardUnits
 
-
 subroutine SetModelicaUnits
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -123,8 +120,6 @@ subroutine SetModelicaUnits
   return
 
 end subroutine SetModelicaUnits
-
-
 
 subroutine SetUnits(cTemperature, cPressure, cMass)
 
@@ -340,8 +335,6 @@ subroutine SSParseCSDataFile
 
 end subroutine SSParseCSDataFile
 
-
-
 subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
 
   ! Input
@@ -439,7 +432,7 @@ subroutine tokenize(str, delim, word, lword, n)
   END DO
   ! write(*,*)
 
-END subroutine tokenize
+end subroutine tokenize
 
 subroutine chomp(str, len)
   ! remove \0 from c string
@@ -711,7 +704,6 @@ subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
     return
 
 end subroutine GibbsEnergyOfReinitData
-
 
 subroutine GetAssemblage(mAssemblage)
   USE ModuleThermo, ONLY: nElements, iAssemblage
