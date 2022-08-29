@@ -76,6 +76,11 @@ extern "C"
   void FORTRAN_CALL(getallelementpotential)(double *);
   void FORTRAN_CALL(getelementfraction)(int *, double *);
 
+  // MQMQA functions
+  void FORTRAN_CALL(getmqmqamolespairs)(const char *, double *, int *);
+  void GetMqmqaMolesPairs(const char *, double *, int *);
+
+
   unsigned int atomicNumber(const char *);
 }
 

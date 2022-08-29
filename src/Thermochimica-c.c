@@ -174,6 +174,17 @@ void GetSublSiteMol(const char* phaseName, int* sublattice, int* constituent, do
   FORTRAN_CALL(getsublsitemol)(cphaseName, &lcphaseName, sublattice, constituent, siteMoles, info);
 }
 
+// MQMQA functions
+
+void GetMqmqaMolesPairs(const char* phaseName, double* molesPairs, int* info)
+{
+  char cphaseName[25];
+  int lcphaseName = sizeof cphaseName;
+  ConvertToFortran(cphaseName,lcphaseName,phaseName);
+
+  FORTRAN_CALL(getmqmqamolespairs)(cphaseName, molesPairs, info);
+}
+
 struct cmp_str
 {
    bool operator()(const char *a, const char *b) const
@@ -218,3 +229,4 @@ atomicNumber(const char* element)
   else
     return -1;
 }
+
