@@ -185,6 +185,19 @@ void GetMqmqaMolesPairs(const char* phaseName, double* molesPairs, int* info)
   FORTRAN_CALL(getmqmqamolespairs)(cphaseName, molesPairs, info);
 }
 
+void GetMqmqaPairMolFraction(const char* phaseName, const char* pairName, double* molesPairs, int* info)
+{
+  char cphaseName[25];
+  int lcphaseName = sizeof cphaseName;
+  ConvertToFortran(cphaseName,lcphaseName,phaseName);
+
+  char cpairName[25];
+  int lcpairName = sizeof cpairName;
+  ConvertToFortran(cpairName,lcpairName,pairName);
+
+  FORTRAN_CALL(getmqmqapairmolfraction)(cphaseName, &lcphaseName, cpairName, &lcpairName, molesPairs, info);
+}
+
 struct cmp_str
 {
    bool operator()(const char *a, const char *b) const

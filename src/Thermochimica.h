@@ -79,6 +79,8 @@ extern "C"
   // MQMQA functions
   void FORTRAN_CALL(getmqmqamolespairs)(const char *, double *, int *);
   void GetMqmqaMolesPairs(const char *, double *, int *);
+  void FORTRAN_CALL(getmqmqapairmolfraction)(const char *, int *, const char *, int *, double *, int *);
+  void GetMqmqaPairMolFraction(const char *, const char *, double *, int *);
 
 
   unsigned int atomicNumber(const char *);
