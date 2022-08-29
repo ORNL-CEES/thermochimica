@@ -15,6 +15,8 @@ subroutine GetMqmqaMolesPairs(cPhase, dMolesPairsOut, INFO)
     real(8), dimension(:), allocatable       :: dPair
     ! integer,  intent(in)                     :: lcPhase
 
+    ! It seems that a single string argument works only without length supplied,
+    ! but if there are multiple strings, they require lengths.
     cSearchPhase = cPhase
     ! cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
 
@@ -79,6 +81,8 @@ subroutine GetMqmqaPairMolFraction(cPhase, lcPhase, cPairIn, lcPairIn, dMolesPai
     real(8), dimension(:), allocatable       :: dPair
     integer,  intent(in)                     :: lcPhase, lcPairIn
 
+    ! It seems that a single string argument works only without length supplied,
+    ! but if there are multiple strings, they require lengths.
     cSearchPhase = cPhase
     cSearchPair  = cPairIn
     ! cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
