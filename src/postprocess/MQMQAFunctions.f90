@@ -35,7 +35,6 @@ subroutine GetMqmqaMolesPairs(cPhase, dMolesPairsOut, INFO)
             if (cSearchPhase == cSolnPhaseName(i)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = i
-                print *, j
                 exit LOOP_SOLN
             end if
 
