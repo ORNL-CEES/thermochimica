@@ -45,7 +45,6 @@ subroutine SetThermoFileNameFortran(cFileName)
 
 end subroutine SetThermoFileNameFortran
 
-
 subroutine SetUnitTemperature(cUnitTemperature)
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature
@@ -94,7 +93,6 @@ subroutine SetUnitMass(cUnitMass)
 
 end subroutine SetUnitMass
 
-
 subroutine SetStandardUnits
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -109,7 +107,6 @@ subroutine SetStandardUnits
 
 end subroutine SetStandardUnits
 
-
 subroutine SetModelicaUnits
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -123,8 +120,6 @@ subroutine SetModelicaUnits
   return
 
 end subroutine SetModelicaUnits
-
-
 
 subroutine SetUnits(cTemperature, cPressure, cMass)
 
@@ -286,8 +281,8 @@ end subroutine ResetINFOThermo
 
 subroutine SolPhaseParse(iElem, dMolSum)
 
-! quick hack for bison, ZrH, H in
-! needs checking of input, intents, etc
+  ! quick hack for bison, ZrH, H in
+  ! needs checking of input, intents, etc
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -320,9 +315,9 @@ subroutine SolPhaseParse(iElem, dMolSum)
 
        dMolTemp=dTempVec(j) * dEffStoichSolnPhase(k,iElem)
        dMolSum = dMolSum + dMolTemp
-!       write(*,"(A,A,e13.6)", ADVANCE="NO") ' -- ', trim(cSolnPhaseName(k)), dMolTemp
+      !  write(*,"(A,A,e13.6)", ADVANCE="NO") ' -- ', trim(cSolnPhaseName(k)), dMolTemp
     end do
-!    write(*,*)
+    ! write(*,*)
 
     return
 end subroutine SolPhaseParse
@@ -339,8 +334,6 @@ subroutine SSParseCSDataFile
     return
 
 end subroutine SSParseCSDataFile
-
-
 
 subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
 
@@ -433,28 +426,28 @@ subroutine tokenize(str, delim, word, lword, n)
      pos1 = pos2+pos1
   END DO
 
-!  write(*,"(3A)") ' tokenize ', str,';'
+  ! write(*,"(3A)") ' tokenize ', str,';'
   DO i = 1, n
-!     WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
+      ! WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
   END DO
-!  write(*,*)
+  ! write(*,*)
 
-END subroutine tokenize
+end subroutine tokenize
 
 subroutine chomp(str, len)
-! remove \0 from c string
-! must pass len that was result from strlen
+  ! remove \0 from c string
+  ! must pass len that was result from strlen
   implicit none
 
   character (len=*) ::  str
-!  character(1)      :: str(*)
+  ! character(1)      :: str(*)
   integer           :: len,lchop
 
-!  write(*,*) 'chomp ',str,' len ',len
+  ! write(*,*) 'chomp ',str,' len ',len
 
   lchop=len+1
   str(lchop:lchop)=""
-!  str=trim(str)
+  ! str=trim(str)
 
   return
 end subroutine chomp
@@ -479,10 +472,10 @@ subroutine matchdict( word, dictionary, nwords, lenword, imatch )
 
   imatch=0
 
-!  write(*,*) 'matchdict ',word
+  ! write(*,*) 'matchdict ',word
 
   lword=len(word)
-!  write(*,*) 'word ',word,'lword ', lword
+  ! write(*,*) 'word ',word,'lword ', lword
   if(lword > 25)then
      write(*,"(A,i5)") "matchdict: word to match is too big ", lword
      stop
@@ -711,7 +704,6 @@ subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
     return
 
 end subroutine GibbsEnergyOfReinitData
-
 
 subroutine GetAssemblage(mAssemblage)
   USE ModuleThermo, ONLY: nElements, iAssemblage
