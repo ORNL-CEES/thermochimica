@@ -45,6 +45,7 @@ class diagram:
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
+        self.tshift = 0
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
         self.labels = []
@@ -98,8 +99,14 @@ class diagram:
         self.p2 = []
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
-        self.mint = tlo
-        self.maxt = thi
+        # Check temperature unit for shift
+        if self.tunit == 'K':
+            self.tshift = 0
+        elif self.tunit == 'C':
+            self.tshift = 273.15
+        # Initially reverse shift (opposite at plot)
+        self.mint = tlo + self.tshift
+        self.maxt = thi + self.tshift
         self.labels = []
         self.resRef = 7
         self.resSmooth = 7
@@ -351,7 +358,7 @@ class diagram:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([0,match[matchind,2]],[self.x0data[1][j],match[matchind,3]],'k-')
+                    ax.plot([0,match[matchind,2]],[self.x0data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -378,7 +385,7 @@ class diagram:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([0,match[matchind,2]],[self.x0data[2][j],match[matchind,3]],'k-')
+                    ax.plot([0,match[matchind,2]],[self.x0data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -409,7 +416,7 @@ class diagram:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([1,match[matchind,2]],[self.x1data[1][j],match[matchind,3]],'k-')
+                    ax.plot([1,match[matchind,2]],[self.x1data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -436,7 +443,7 @@ class diagram:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([1,match[matchind,2]],[self.x1data[2][j],match[matchind,3]],'k-')
+                    ax.plot([1,match[matchind,2]],[self.x1data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -455,15 +462,15 @@ class diagram:
             ttt = self.ts[inds]
             x1t = self.x1[inds]
             x2t = self.x2[inds]
-            ax.plot(x1t,ttt,self.plotMarker,c=c)
-            ax.plot(x2t[::-1],ttt[::-1],self.plotMarker,c=c)
+            ax.plot(x1t,ttt-self.tshift,self.plotMarker,c=c)
+            ax.plot(x2t[::-1],ttt[::-1]-self.tshift,self.plotMarker,c=c)
             minj = np.argmin(ttt)
             maxj = np.argmax(ttt)
             # plot invariant temperatures
             if (ttt[minj] > self.mint) and not(bEdgeLine[j][0]):
-                ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],self.plotMarker,c=c)
+                ax.plot([x1t[minj],x2t[minj]],[ttt[minj]-self.tshift,ttt[minj]-self.tshift],self.plotMarker,c=c)
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
-                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
+                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj]-self.tshift,ttt[maxj]-self.tshift],self.plotMarker,c=c)
 
         # Plot experimental data
         if self.showExperiment:
@@ -478,10 +485,10 @@ class diagram:
                 ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
-        ax.set_ylim(self.mint,self.maxt)
+        ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
         ax.set_title(str(self.el1) + ' + ' + str(self.el2) + ' binary phase diagram')
         ax.set_xlabel('Mole fraction ' + str(self.el2))
-        ax.set_ylabel('Temperature [K]')
+        ax.set_ylabel(f'Temperature [{self.tunit}]')
         if len(self.experimentalData) > 0 and self.showExperiment:
             ax.legend(loc=0)
         for lab in self.labels:
@@ -517,7 +524,7 @@ class diagram:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[1][j],match[matchind,3]],'k-')
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -544,7 +551,7 @@ class diagram:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j],match[matchind,3]],'k-')
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j]-self.tshift,match[matchind,3]]-self.tshift,'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -575,7 +582,7 @@ class diagram:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[1][j],match[matchind,3]],'k-')
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -602,7 +609,7 @@ class diagram:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[2][j],match[matchind,3]],'k-')
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -618,15 +625,15 @@ class diagram:
                 ttt = self.loadedDiagram.ts[inds]
                 x1t = self.loadedDiagram.x1[inds]
                 x2t = self.loadedDiagram.x2[inds]
-                ax.plot(x1t,ttt,'--',c=c)
-                ax.plot(x2t[::-1],ttt[::-1],'--',c=c)
+                ax.plot(x1t,ttt-self.tshift,'--',c=c)
+                ax.plot(x2t[::-1],ttt[::-1]-self.tshift,'--',c=c)
                 minj = np.argmin(ttt)
                 maxj = np.argmax(ttt)
                 # plot invariant temperatures
                 if (ttt[minj] > self.loadedDiagram.mint) and not(bEdgeLine[j][0]):
-                    ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],'--',c=c)
+                    ax.plot([x1t[minj],x2t[minj]],[ttt[minj]-self.tshift,ttt[minj]-self.tshift],'--',c=c)
                 if (ttt[maxj] < self.loadedDiagram.maxt) and not(bEdgeLine[j][1]):
-                    ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'--',c=c)
+                    ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj]-self.tshift,ttt[maxj]-self.tshift],'--',c=c)
 
         plt.show()
         if self.interactivePlot:
@@ -677,14 +684,14 @@ class diagram:
                 nit = 0
                 while ((self.x0data[1][i+1] - self.x0data[2][i]) > res) and (nit < maxit):
                     nit += 1
-                    self.writeInputFile(0,0.001,2,self.x0data[2][i],self.x0data[1][i+1],4)
+                    self.writeInputFile(0,0.001,2,self.x0data[2][i]-self.tshift,self.x0data[1][i+1]-self.tshift,4)
                     self.runCalc()
         if x == 1:
             for i in range(len(self.x1data[1])-1):
                 nit = 0
                 while ((self.x1data[1][i+1] - self.x1data[2][i]) > res) and (nit < maxit):
                     nit += 1
-                    self.writeInputFile(0.999,1,2,self.x1data[2][i],self.x1data[1][i+1],4)
+                    self.writeInputFile(0.999,1,2,self.x1data[2][i]-self.tshift,self.x1data[1][i+1]-self.tshift,4)
                     self.runCalc()
     def autoRefine(self,res):
         nIt = 0
@@ -800,7 +807,8 @@ class diagram:
             if len(xs) > 0:
                 with open(self.inputFileName, 'w') as inputFile:
                     inputFile.write(f'data file         = {self.datafile}\n')
-                    inputFile.write(f'temperature unit  = {self.tunit}\n')
+                    # Operates on processed points, always use K
+                    inputFile.write(f'temperature unit  = K\n')
                     inputFile.write(f'pressure unit     = {self.punit}\n')
                     inputFile.write(f'mass unit         = \'{self.munit}\'\n')
                     inputFile.write('nEl                = 2 \n')
@@ -852,7 +860,8 @@ class diagram:
             with open(self.inputFileName, 'w') as inputFile:
                 inputFile.write('! Python-generated input file for Thermochimica\n')
                 inputFile.write('data file         = ' + self.datafile + '\n')
-                inputFile.write('temperature unit         = ' + self.tunit + '\n')
+                # Operates on processed points, always use K
+                inputFile.write(f'temperature unit  = K\n')
                 inputFile.write('pressure unit          = ' + self.punit + '\n')
                 inputFile.write('mass unit          = \'' + self.munit + '\'\n')
                 inputFile.write('nEl         = 2 \n')
@@ -897,7 +906,8 @@ class diagram:
                 with open(self.inputFileName, 'w') as inputFile:
                     inputFile.write('! Python-generated input file for Thermochimica\n')
                     inputFile.write('data file         = ' + self.datafile + '\n')
-                    inputFile.write('temperature unit         = ' + self.tunit + '\n')
+                    # Operates on processed points, always use K
+                    inputFile.write(f'temperature unit  = K\n')
                     inputFile.write('pressure unit          = ' + self.punit + '\n')
                     inputFile.write('mass unit          = \'' + self.munit + '\'\n')
                     inputFile.write('nEl         = 2 \n')
@@ -950,7 +960,7 @@ class diagram:
             phaseOutline = Polygon(polygonPoints)#.buffer(0)
             center = list(phaseOutline.centroid.coords)[0]
             if self.label2phase:
-                self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
+                self.labels.append([[center[0],center[1]-self.tshift],'+'.join(self.boundaries[j])])
             for i in range(len(self.phases)):
                 if self.boundaries[j][0] == self.phases[i]:
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
@@ -968,7 +978,7 @@ class diagram:
                 for j in range(len(phasePolyPoints[i])):
                     segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
                 center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-                self.labels.append([[center[0],center[1]],self.phases[i]])
+                self.labels.append([[center[0],center[1]-self.tshift],self.phases[i]])
     def makeBackup(self):
         self.backup.datafile = self.datafile
         self.backup.mint = self.mint
@@ -992,6 +1002,7 @@ class diagram:
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
+        self.backup.tshift = self.tshift
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI

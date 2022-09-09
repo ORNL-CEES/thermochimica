@@ -170,6 +170,7 @@ class CalculationWindow:
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
+        self.tshift = 0
         self.figureList = []
     def close(self):
         for child in self.children:
@@ -222,8 +223,6 @@ class CalculationWindow:
                     pass
                 if values['-pressure-'] != '':
                     self.pressure = values['-pressure-']
-                self.mint = tlo
-                self.maxt = thi
                 self.points = []
                 self.labels = []
                 masses1 = [0.0]*self.nElements
@@ -280,6 +279,14 @@ class CalculationWindow:
                 masses2 = [mass / sum2 for mass in masses2]
                 self.plane = np.array([masses1,masses2])
                 self.tunit = values['-tunit-']
+                # Check temperature unit for shift
+                if self.tunit == 'K':
+                    self.tshift = 0
+                elif self.tunit == 'C':
+                    self.tshift = 273.15
+                # Initially reverse shift (opposite at plot)
+                self.mint = tlo + self.tshift
+                self.maxt = thi + self.tshift
                 self.punit = values['-punit-']
                 self.munit = values['-munit-']
                 self.runCalc(0,1,nxstep,tlo,thi,ntstep)
@@ -522,7 +529,7 @@ class CalculationWindow:
                 boundaries.append(boundaries[j])
                 for k in extraBound:
                     b[inds[k]] = len(boundaries)-1
-
+        
         # Start figure
         fig = plt.figure()
         plt.ion()
@@ -542,14 +549,14 @@ class CalculationWindow:
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
             temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
-            ax.plot(plotPoints[:,0],plotPoints[:,1],self.plotMarker,c=c)
+            ax.plot(plotPoints[:,0],plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
 
         ax.set_xlim(0,1)
-        ax.set_ylim(self.mint,self.maxt)
+        ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
         title = " $-$ ".join(self.massLabels)
         ax.set_title(r'{0} phase diagram'.format(title))
         ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
-        ax.set_ylabel(r'Temperature [K]')
+        ax.set_ylabel(f'Temperature [{self.tunit}]')
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
         plt.show()
@@ -601,6 +608,7 @@ class CalculationWindow:
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
+        self.backup.tshift = self.tshift
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI
