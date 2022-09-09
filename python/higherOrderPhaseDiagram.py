@@ -575,7 +575,13 @@ class CalculationWindow:
         self.figureList.append(fig)
         self.sgw.Element('Export Plot').Update(disabled = False)
     def addLabel(self,xlab,tlab):
-        self.runCalc(xlab,xlab,1,tlab,tlab,1)
+        # label x-coords are going to come in scaled to axis
+        xlabrun = xlab
+        if not self.normalizeX:
+            if xlab > 0:
+                xlabrun = 1/(1+((1-xlab)/xlab)*(self.sum1/self.sum2))
+
+        self.runCalc(xlabrun,xlabrun,1,tlab,tlab,1)
         f = open(self.outputFileName,)
         data = json.load(f)
         f.close()
@@ -764,6 +770,15 @@ class RefineWindow:
                     thi = temphi
             except:
                     pass
+
+            # refine x-coords are going to come in scaled to axis
+            xlo = xlo
+            xhi = xhi
+            if not self.parent.normalizeX:
+                if xlo > 0:
+                    xlo = 1/(1+((1-xlo)/xlo)*(self.parent.sum1/self.parent.sum2))
+                if xhi > 0:
+                    xhi = 1/(1+((1-xhi)/xhi)*(self.parent.sum1/self.parent.sum2))
             if not cancelRun:
                 self.parent.makeBackup()
                 self.parent.sgw.Element('Undo').Update(disabled = False)
