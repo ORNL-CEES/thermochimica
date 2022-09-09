@@ -166,11 +166,14 @@ class CalculationWindow:
         self.elementsUsed = []
         self.nElementsUsed = 0
         self.massLabels = ['','']
+        self.sum1 = 0
+        self.sum2 = 0
         self.plane = np.array([0,0])
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
         self.tshift = 0
+        self.normalizeX = False
         self.figureList = []
     def close(self):
         for child in self.children:
@@ -264,9 +267,9 @@ class CalculationWindow:
                                 self.massLabels[1] += f'$_{ {int(masses2[i])} }$'
                             else:
                                 self.massLabels[1] += f'$_{ {masses2[i]} }$'
-                sum1 = sum(masses1)
-                sum2 = sum(masses2)
-                if (sum1 == 0) or (sum2 == 0) or (min(masses1) < 0) or (min(masses2) < 0):
+                self.sum1 = sum(masses1)
+                self.sum2 = sum(masses2)
+                if (self.sum1 == 0) or (self.sum2 == 0) or (min(masses1) < 0) or (min(masses2) < 0):
                     alertLayout = [[sg.Text('One or more input masses are invalid.')],[sg.Button('Continue')]]
                     alertWindow = sg.Window('Invalid Mass Alert', alertLayout, location = [400,0], finalize=True)
                     while True:
@@ -275,8 +278,8 @@ class CalculationWindow:
                             break
                     alertWindow.close()
                     return
-                masses1 = [mass / sum1 for mass in masses1]
-                masses2 = [mass / sum2 for mass in masses2]
+                masses1 = [mass / self.sum1 for mass in masses1]
+                masses2 = [mass / self.sum2 for mass in masses2]
                 self.plane = np.array([masses1,masses2])
                 self.tunit = values['-tunit-']
                 # Check temperature unit for shift
@@ -549,6 +552,12 @@ class CalculationWindow:
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
             temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
+            if self.normalizeX:
+                ax.plot(plotPoints[:,0],plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
+            else:
+                for i in range(len(plotPoints)):
+                    if plotPoints[i,0] > 0:
+                        plotPoints[i,0] = 1/(1+(self.sum2/self.sum1)*(1-plotPoints[i,0])/plotPoints[i,0])
             ax.plot(plotPoints[:,0],plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
 
         ax.set_xlim(0,1)
