@@ -7,6 +7,7 @@ import csv
 import math
 import copy
 import matplotlib.pyplot as plt
+import numpy as np
 
 timeout = 50
 inputSize = 20
