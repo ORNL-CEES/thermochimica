@@ -291,7 +291,15 @@ class CalculationWindow:
         elif event =='Plot':
             self.calculation.makePlot()
         elif event =='Export Plot':
-            self.calculation.exportPlot()
+            exportStatus = self.calculation.exportPlot()
+            if exportStatus:
+                errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+                errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
+                while True:
+                    event, values = errorWindow.read(timeout=timeout)
+                    if event == sg.WIN_CLOSED or event == 'Continue':
+                        break
+                errorWindow.close()
         elif event =='Plot Settings':
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)

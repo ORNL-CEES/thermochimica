@@ -1023,11 +1023,6 @@ class diagram:
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+            return 0
         except:
-            errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-            errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
-            while True:
-                event, values = errorWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Continue':
-                    break
-            errorWindow.close()
+            return 1
