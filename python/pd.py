@@ -488,7 +488,8 @@ class diagram:
         ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
         ax.set_title(str(self.el1) + ' + ' + str(self.el2) + ' binary phase diagram')
         ax.set_xlabel('Mole fraction ' + str(self.el2))
-        ax.set_ylabel(f'Temperature [{self.tunit}]')
+        tunit_display = r"$^\circ$" if self.tunit == "C" else ""
+        ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         if len(self.experimentalData) > 0 and self.showExperiment:
             ax.legend(loc=0)
         for lab in self.labels:

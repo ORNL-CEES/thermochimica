@@ -556,7 +556,8 @@ class CalculationWindow:
         title = " $-$ ".join(self.massLabels)
         ax.set_title(r'{0} phase diagram'.format(title))
         ax.set_xlabel(r'Mole fraction {0}'.format(self.massLabels[1]))
-        ax.set_ylabel(f'Temperature [{self.tunit}]')
+        tunit_display = r"$^\circ$" if self.tunit == "C" else ""
+        ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
         plt.show()
