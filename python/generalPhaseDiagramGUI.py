@@ -301,6 +301,23 @@ class CalculationWindow:
         elif event =='Undo':
             self.backup.activate()
             self.close()
+        elif event =='Clear Macro':
+            self.macro = []
+        elif event =='Export Macro':
+            with open('python/macroPhaseDiagram.py', 'w') as f:
+                f.write('import pd\n')
+                f.write('import copy\n')
+                f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
+                for command in self.macro:
+                    f.write(f'{command}\n')
+                f.write('macroPD.makePlot()\n')
+        elif event =='Run Macro':
+            if 'macroPhaseDiagram' in sys.modules:
+                del sys.modules['macroPhaseDiagram']
+            import macroPhaseDiagram
+            self.calculation = macroPhaseDiagram.macroPD
+            self.calculation.active = True
+            self.calculation.interactivePlot = True
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
@@ -333,15 +350,25 @@ class CalculationWindow:
                       [sg.Text('Mass unit')],
                       [sg.Combo(['moles'],default_value='moles',key='-munit-')],
                       [sg.Column([[sg.Button('Run', size = buttonSize)],
-                                  [sg.Button('Undo', disabled = True, size = buttonSize)],
-                                  [sg.Exit(size = buttonSize)]],vertical_alignment='t'),
-                       sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
-                                  [sg.Button('Add Label', disabled = True, size = buttonSize)],
-                                  [sg.Button('Remove Label', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-                       sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                                  [sg.Button('Export Plot', disabled = True, size = buttonSize)],
-                                  [sg.Button('Plot Settings', size = buttonSize)]],vertical_alignment='t')
-                       ]]
+                       [sg.Button('Undo', disabled = True, size = buttonSize)],
+                       [sg.Exit(size = buttonSize)],
+                       [sg.Button('Add Data', size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
+                       [sg.Button('Inspect', disabled = True, size = buttonSize)],
+                       [sg.Button('Run Macro', size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Auto Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Remove Label', disabled = True, size = buttonSize)],
+                       [sg.Button('Load Diagram', size = buttonSize)],
+                       [sg.Button('Export Macro', size = buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
+                       [sg.Button('Export Plot', disabled = True, size = buttonSize)],
+                       [sg.Button('Plot Settings', size = buttonSize)],
+                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
+                       [sg.Button('Clear Macro', size = buttonSize)]],vertical_alignment='t')
+            ]]
 
 class RefineWindow:
     def __init__(self, parent):
