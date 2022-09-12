@@ -352,7 +352,6 @@ class CalculationWindow:
             self.calculation = macroPhaseDiagram.macroPD
             self.calculation.active = True
             self.calculation.interactivePlot = True
-
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
