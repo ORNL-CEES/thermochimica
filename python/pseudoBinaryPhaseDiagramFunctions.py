@@ -260,12 +260,11 @@ class diagram:
             temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
             if self.normalizeX:
-                ax.plot(plotPoints[:,0],plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
+                plotX = plotPoints[:,0]
             else:
-                for i in range(len(plotPoints)):
-                    if plotPoints[i,0] > 0:
-                        plotPoints[i,0] = 1/(1+(self.sum2/self.sum1)*(1-plotPoints[i,0])/plotPoints[i,0])
-            ax.plot(plotPoints[:,0],plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
+                plotX = unscaleX(plotPoints[:,0],self.sum1,self.sum2)
+            ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
+
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
@@ -342,3 +341,10 @@ class diagram:
             return 0
         except:
             return 1
+
+def unscaleX(scaledX,sum1,sum2):
+    unscaledX = scaledX
+    for i in range(len(scaledX)):
+        if scaledX[i] > 0:
+            unscaledX[i] = 1/(1+(sum2/sum1)*(1-scaledX[i])/scaledX[i])
+    return unscaledX
