@@ -1,14 +1,9 @@
 import pseudoBinaryPhaseDiagramFunctions
 import PySimpleGUI as sg
-import json
 import matplotlib.pyplot as plt
-import numpy as np
 import math
 import os
-import subprocess
-import copy
 import sys
-import scipy.optimize
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
