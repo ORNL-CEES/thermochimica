@@ -59,7 +59,7 @@ class diagram:
         self.tshift = 0
         self.normalizeX = False
         self.figureList = []
-    def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,munit,tshift):
+    def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift):
         self.mint = mint
         self.maxt = maxt
         self.pressure = pressure
@@ -67,7 +67,7 @@ class diagram:
         self.labels = []
         self.elementsUsed = elementsUsed
         self.nElementsUsed = len(elementsUsed)
-        self.massLabels = ['','']
+        self.massLabels = massLabels
         self.sum1 = sum1
         self.sum2 = sum2
         self.plane = np.array(plane)

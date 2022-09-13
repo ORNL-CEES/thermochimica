@@ -269,8 +269,8 @@ class CalculationWindow:
                 maxt = thi + tshift
                 punit = values['-punit-']
                 munit = values['-munit-']
-                self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,munit,tshift)
-                self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},\'{munit}\',{tshift})')
+                self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift)
+                self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},{massLabels},\'{munit}\',{tshift})')
                 self.calculation.runCalc(0,1,nxstep,tlo,thi,ntstep)
                 self.macro.append(f'macroPD.runCalc(0,1,{nxstep},{tlo},{thi},{ntstep})')
                 self.calculation.processPhaseDiagramData()
