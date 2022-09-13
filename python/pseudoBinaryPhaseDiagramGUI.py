@@ -325,8 +325,9 @@ class CalculationWindow:
             self.calculation.active = True
             self.calculation.interactivePlot = True
         elif event =='Add Data':
-            self.makeBackup()
-            self.addData()
+            self.calculation.makeBackup()
+            addDataWindow = AddDataWindow(self)
+            self.children.append(addDataWindow)
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
@@ -378,22 +379,6 @@ class CalculationWindow:
                        [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
                        [sg.Button('Clear Macro', size = buttonSize)]],vertical_alignment='t')
             ]]
-    def addData(self):
-        addDataWindow = AddDataWindow(self)
-        self.children.append(addDataWindow)
-    def makeBackup(self):
-        self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
-        self.backup.datafile = self.datafile
-        self.backup.nElements = self.nElements
-        self.backup.elements = self.elements
-        self.backup.active = self.active
-        self.backup.children = self.children
-        self.backup.calculation = self.calculation
-        self.backup.macro = self.macro
-        self.backup.experimentalData = self.experimentalData
-        self.backup.experimentNames = self.experimentNames
-        self.backup.experimentColor = self.experimentColor
-        self.backup.showExperiment = self.showExperiment
 
 class RefineWindow:
     def __init__(self, parent):
