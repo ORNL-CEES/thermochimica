@@ -1,4 +1,4 @@
-import generalPhaseDiagramFunctions
+import pseudoBinaryPhaseDiagramFunctions
 import PySimpleGUI as sg
 import json
 import matplotlib.pyplot as plt
@@ -149,7 +149,7 @@ class CalculationWindow:
         self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
         windowList.append(self)
         self.children = []
-        self.calculation = generalPhaseDiagramFunctions.diagram(self.datafile, True, True)
+        self.calculation = pseudoBinaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
     def close(self):
         for child in self.children:
