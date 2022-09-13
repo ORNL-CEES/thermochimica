@@ -254,7 +254,7 @@ class CalculationWindow:
                     return
                 masses1 = [mass / sum1 for mass in masses1]
                 masses2 = [mass / sum2 for mass in masses2]
-                plane = np.array([masses1,masses2])
+                plane = [masses1,masses2]
                 tunit = values['-tunit-']
                 # Check temperature unit for shift
                 if tunit == 'K':
@@ -266,9 +266,12 @@ class CalculationWindow:
                 maxt = thi + tshift
                 punit = values['-punit-']
                 munit = values['-munit-']
-                self.calculation.initRun(pressure,tunit,punit,plane,mint,maxt,elementsUsed,munit)
+                self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,munit,tshift)
+                self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},\'{munit}\',{tshift})')
                 self.calculation.runCalc(0,1,nxstep,tlo,thi,ntstep)
+                self.macro.append(f'macroPD.runCalc(0,1,{nxstep},{tlo},{thi},{ntstep})')
                 self.calculation.processPhaseDiagramData()
+                self.macro.append(f'macroPD.processPhaseDiagramData()')
                 self.calculation.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
@@ -460,9 +463,12 @@ class RefineWindow:
                     xhi = 1/(1+((1-xhi)/xhi)*(self.parent.sum1/self.parent.sum2))
             if not cancelRun:
                 self.parent.calculation.makeBackup()
+                self.parent.macro.append(f'macroPD.makeBackup()')
                 self.parent.sgw.Element('Undo').Update(disabled = False)
                 self.parent.calculation.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
+                self.parent.macro.append(f'macroPD.runCalc({xlo},{xhi},{nxstep},{tlo},{thi},{ntstep})')
                 self.parent.calculation.processPhaseDiagramData()
+                self.parent.macro.append(f'macroPD.processPhaseDiagramData()')
                 self.parent.calculation.makePlot()
 
 class LabelWindow:
@@ -494,9 +500,12 @@ class LabelWindow:
                 tlab = float(values['-tlab-'])
                 if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
                     self.parent.calculation.makeBackup()
+                    self.parent.macro.append(f'macroPD.makeBackup()')
                     self.parent.sgw.Element('Undo').Update(disabled = False)
                     self.parent.calculation.addLabel(xlab,tlab)
+                    self.parent.macro.append(f'macroPD.addLabel({xlab},{tlab})')
                     self.parent.calculation.processPhaseDiagramData()
+                    self.parent.macro.append(f'macroPD.processPhaseDiagramData()')
                     self.parent.calculation.makePlot()
                     self.parent.sgw.Element('Remove Label').Update(disabled = False)
             except:
@@ -531,6 +540,7 @@ class RemoveWindow:
             self.close()
         if event == 'Remove Label(s)':
             self.parent.calculation.makeBackup()
+            self.parent.macro.append(f'macroPD.makeBackup()')
             self.parent.sgw.Element('Undo').Update(disabled = False)
             tempLength = len(self.parent.calculation.labels)
             for i in reversed(range(tempLength)):

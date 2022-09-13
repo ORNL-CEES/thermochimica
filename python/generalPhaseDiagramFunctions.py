@@ -70,7 +70,7 @@ class diagram:
         self.massLabels = ['','']
         self.sum1 = sum1
         self.sum2 = sum2
-        self.plane = plane
+        self.plane = np.array(plane)
         self.tunit = tunit
         self.punit = punit
         self.munit = munit
