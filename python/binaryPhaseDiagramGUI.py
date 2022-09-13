@@ -323,7 +323,8 @@ class CalculationWindow:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            self.addData()
+            addDataWindow = AddDataWindow(self)
+            self.children.append(addDataWindow)
         elif event =='Inspect':
             self.calculation.makeBackup()
             inspectWindow = InspectWindow(self)
