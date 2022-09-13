@@ -564,10 +564,11 @@ class RemoveWindow:
 class SettingsWindow:
     def __init__(self, parent):
         self.parent = parent
+        windowList.append(self)
         if self.parent.calculation.plotMarker == '-':
-                line  = True
-                point = False
-                both  = False
+            line  = True
+            point = False
+            both  = False
         elif self.parent.calculation.plotMarker == '.':
             line  = False
             point = True
@@ -582,6 +583,12 @@ class SettingsWindow:
         else:
             colorful = False
             bland    = True
+        if self.parent.calculation.experimentColor == 'colorful':
+            expcolorful = True
+            expbland    = False
+        else:
+            expcolorful = False
+            expbland    = True
         settingsLayout = [[sg.Text('Marker Style:')],
                           [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
                           [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
@@ -589,12 +596,21 @@ class SettingsWindow:
                           [sg.Text('Plot Colors:')],
                           [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
                           [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                          [sg.Text('Experimental Data Colors:')],
+                          [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
+                          [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
+                          [sg.Text('Show:')],
+                          [sg.Checkbox('Experimental Data', default=self.parent.calculation.showExperiment, key='-showExperiment-')
+                        #   ,sg.Checkbox('Loaded Diagram', default=self.parent.calculation.showLoaded, key='-showLoaded-')
+                          ],
+                        #   [sg.Text('Auto-Label Settings:')],
+                        #   [sg.Checkbox('1-Phase Regions', default=self.parent.calculation.label1phase, key='-label1phase-'),
+                        #    sg.Checkbox('2-Phase Regions', default=self.parent.calculation.label2phase, key='-label2phase-')],
                           [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
                           [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                           [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
                           [sg.Button('Accept')]]
         self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
-        windowList.append(self)
         self.children = []
     def close(self):
         for child in self.children:
@@ -616,7 +632,15 @@ class SettingsWindow:
             self.parent.calculation.plotColor = 'colorful'
         elif event =='-mbland-':
             self.parent.calculation.plotColor = 'bland'
+        elif event =='-mexpcolorful-':
+            self.parent.calculation.experimentColor = 'colorful'
+        elif event =='-mexpbland-':
+            self.parent.calculation.experimentColor = 'bland'
         elif event =='Accept':
+            self.parent.calculation.showExperiment = values['-showExperiment-']
+            # self.parent.calculation.showLoaded = values['-showLoaded-']
+            # self.parent.calculation.label1phase = values['-label1phase-']
+            # self.parent.calculation.label2phase = values['-label2phase-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.calculation.exportFileName = str(values['-filename-'])
