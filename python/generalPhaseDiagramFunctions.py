@@ -280,7 +280,6 @@ class diagram:
         plt.pause(0.001)
         self.currentPlot = fig
         self.figureList.append(fig)
-        self.sgw.Element('Export Plot').Update(disabled = False)
     def addLabel(self,xlab,tlab):
         # label x-coords are going to come in scaled to axis
         xlabrun = xlab
