@@ -981,7 +981,7 @@ class diagram:
                 center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
                 self.labels.append([[center[0],center[1]-self.tshift],self.phases[i]])
     def makeBackup(self):
-        self.backup.datafile = self.datafile
+        self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
         self.backup.ts = copy.deepcopy(self.ts)
