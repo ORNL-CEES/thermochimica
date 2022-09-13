@@ -149,9 +149,6 @@ class CalculationWindow:
         self.children = []
         self.calculation = pseudoBinaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
-        self.experimentalData = []
-        self.experimentNames = []
-        self.experimentColor = 'bland'
         self.showExperiment = True
         self.backup = []
     def close(self):
@@ -280,6 +277,7 @@ class CalculationWindow:
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
+                self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -324,6 +322,11 @@ class CalculationWindow:
             self.calculation = macroPhaseDiagram.macroPD
             self.calculation.active = True
             self.calculation.interactivePlot = True
+            self.sgw.Element('Refine').Update(disabled = False)
+            self.sgw.Element('Add Label').Update(disabled = False)
+            self.sgw.Element('Plot').Update(disabled = False)
+            self.sgw.Element('Undo').Update(disabled = False)
+            self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
             addDataWindow = AddDataWindow(self)
@@ -362,7 +365,7 @@ class CalculationWindow:
                        [sg.Column([[sg.Button('Run', size = buttonSize)],
                        [sg.Button('Undo', disabled = True, size = buttonSize)],
                        [sg.Exit(size = buttonSize)],
-                       [sg.Button('Add Data', size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Add Data', disabled = True, size = buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
@@ -463,11 +466,11 @@ class RefineWindow:
             # refine x-coords are going to come in scaled to axis
             xlo = xlo
             xhi = xhi
-            if not self.parent.normalizeX:
+            if not self.parent.calculation.normalizeX:
                 if xlo > 0:
-                    xlo = 1/(1+((1-xlo)/xlo)*(self.parent.sum1/self.parent.sum2))
+                    xlo = 1/(1+((1-xlo)/xlo)*(self.parent.calculation.sum1/self.parent.calculation.sum2))
                 if xhi > 0:
-                    xhi = 1/(1+((1-xhi)/xhi)*(self.parent.sum1/self.parent.sum2))
+                    xhi = 1/(1+((1-xhi)/xhi)*(self.parent.calculation.sum1/self.parent.calculation.sum2))
             if not cancelRun:
                 self.parent.calculation.makeBackup()
                 self.parent.macro.append(f'macroPD.makeBackup()')
@@ -481,7 +484,7 @@ class RefineWindow:
 class LabelWindow:
     def __init__(self, parent):
         self.parent = parent
-        xLabLayout  = [[sg.Text(f'{self.parent.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
+        xLabLayout  = [[sg.Text(f'{self.parent.calculation.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
         tLabLayout  = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
         labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
         self.sgw = sg.Window('Add phase label', labelLayout, location = [400,0], finalize=True)
@@ -697,9 +700,9 @@ class AddDataWindow:
                     for number in row:
                         newrow.append(float(number))
                     newData.append(newrow)
-            self.parent.experimentalData.append(np.array(newData))
-            self.parent.experimentNames.append(filename.split('.',1)[0])
-            self.parent.makePlot()
+            self.parent.calculation.experimentalData.append(np.array(newData))
+            self.parent.calculation.experimentNames.append(filename.split('.',1)[0])
+            self.parent.calculation.makePlot()
             self.close()
 
 

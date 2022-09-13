@@ -1,12 +1,10 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import math
-import os
 import subprocess
 import copy
-import sys
 import scipy.optimize
+from itertools import cycle
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -59,6 +57,10 @@ class diagram:
         self.tshift = 0
         self.normalizeX = False
         self.figureList = []
+        self.experimentalData = []
+        self.experimentNames = []
+        self.experimentColor = 'bland'
+        self.showExperiment = True
     def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift):
         self.mint = mint
         self.maxt = maxt
@@ -265,6 +267,17 @@ class diagram:
                 plotX = unscaleX(plotPoints[:,0],self.sum1,self.sum2)
             ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
 
+        # Plot experimental data
+        if self.showExperiment:
+            markerList = cycle(['o','v','<','^','s'])
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(self.experimentalData))))
+            for e in range(len(self.experimentalData)):
+                if self.experimentColor == 'colorful':
+                    c = next(color)
+                else:
+                    c = 'k'
+                m = next(markerList)
+                ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
@@ -314,7 +327,7 @@ class diagram:
             return sum
         return scipy.optimize.least_squares(diff, [0.5 for i in range(self.nElementsUsed-1)]).x
     def makeBackup(self):
-        self.backup.datafile = self.datafile
+        self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
         self.backup.labels = copy.deepcopy(self.labels)
@@ -343,7 +356,7 @@ class diagram:
             return 1
 
 def unscaleX(scaledX,sum1,sum2):
-    unscaledX = scaledX
+    unscaledX = copy.deepcopy(scaledX)
     for i in range(len(scaledX)):
         if scaledX[i] > 0:
             unscaledX[i] = 1/(1+(sum2/sum1)*(1-scaledX[i])/scaledX[i])
