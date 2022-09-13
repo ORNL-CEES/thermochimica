@@ -311,9 +311,9 @@ class CalculationWindow:
             self.macro = []
         elif event =='Export Macro':
             with open('python/macroPhaseDiagram.py', 'w') as f:
-                f.write('import pd\n')
+                f.write('import pseudoBinaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
-                f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
+                f.write(f'macroPD = pseudoBinaryPhaseDiagramFunctions.diagram("{self.datafile}", False, False)\n')
                 for command in self.macro:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
