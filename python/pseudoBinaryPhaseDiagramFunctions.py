@@ -38,7 +38,7 @@ class diagram:
             self.backup = []
         self.currentPlot = []
         self.exportFormat = 'png'
-        self.exportFileName = 'thermochimicaPhaseDiagram'
+        self.exportFileName = 'thermochimicaPseudoBinaryPhaseDiagram'
         self.exportDPI = 300
         self.mint = 1e5
         self.maxt = 0
@@ -55,6 +55,7 @@ class diagram:
         self.punit = 'atm'
         self.munit = 'moles'
         self.tshift = 0
+        # I don't think anyone is going to change this scale, so consider this a debug setting
         self.normalizeX = False
         self.figureList = []
         self.experimentalData = []

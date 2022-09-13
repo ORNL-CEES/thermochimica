@@ -607,29 +607,29 @@ class SettingsWindow:
         if event == sg.WIN_CLOSED:
             self.close()
         elif event == '-mline-':
-            self.parent.plotMarker = '-'
+            self.parent.calculation.plotMarker = '-'
         elif event =='-mpoint-':
-            self.parent.plotMarker = '.'
+            self.parent.calculation.plotMarker = '.'
         elif event =='-mboth-':
-            self.parent.plotMarker = '.-'
+            self.parent.calculation.plotMarker = '.-'
         elif event =='-mcolorful-':
-            self.parent.plotColor = 'colorful'
+            self.parent.calculation.plotColor = 'colorful'
         elif event =='-mbland-':
-            self.parent.plotColor = 'bland'
+            self.parent.calculation.plotColor = 'bland'
         elif event =='Accept':
             try:
                 if str(values['-filename-']) != '':
-                    self.parent.exportFileName = str(values['-filename-'])
+                    self.parent.calculation.exportFileName = str(values['-filename-'])
             except:
                 pass
-            self.parent.exportFormat = values['-format-']
+            self.parent.calculation.exportFormat = values['-format-']
             try:
                 tempDPI = int(values['-dpi-'])
                 if tempDPI > 0 > 10000:
-                    self.parent.exportDPI = int(values['-dpi-'])
+                    self.parent.calculation.exportDPI = int(values['-dpi-'])
             except:
                 pass
-            self.parent.makePlot()
+            self.parent.calculation.makePlot()
             self.close()
 
 class AddDataWindow:
