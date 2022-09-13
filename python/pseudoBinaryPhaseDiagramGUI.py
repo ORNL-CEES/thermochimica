@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import math
 import os
 import sys
+import csv
+import numpy as np
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -140,12 +142,18 @@ class CalculationWindow:
         self.nElements = nElements
         self.elements = elements
         self.active = active
-        self.makeLayout()
-        self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
-        windowList.append(self)
+        if self.active:
+            self.makeLayout()
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            windowList.append(self)
         self.children = []
         self.calculation = pseudoBinaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
+        self.experimentalData = []
+        self.experimentNames = []
+        self.experimentColor = 'bland'
+        self.showExperiment = True
+        self.backup = []
     def close(self):
         for child in self.children:
             child.close()
@@ -316,6 +324,9 @@ class CalculationWindow:
             self.calculation = macroPhaseDiagram.macroPD
             self.calculation.active = True
             self.calculation.interactivePlot = True
+        elif event =='Add Data':
+            self.makeBackup()
+            self.addData()
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
@@ -367,6 +378,22 @@ class CalculationWindow:
                        [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
                        [sg.Button('Clear Macro', size = buttonSize)]],vertical_alignment='t')
             ]]
+    def addData(self):
+        addDataWindow = AddDataWindow(self)
+        self.children.append(addDataWindow)
+    def makeBackup(self):
+        self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
+        self.backup.datafile = self.datafile
+        self.backup.nElements = self.nElements
+        self.backup.elements = self.elements
+        self.backup.active = self.active
+        self.backup.children = self.children
+        self.backup.calculation = self.calculation
+        self.backup.macro = self.macro
+        self.backup.experimentalData = self.experimentalData
+        self.backup.experimentNames = self.experimentNames
+        self.backup.experimentColor = self.experimentColor
+        self.backup.showExperiment = self.showExperiment
 
 class RefineWindow:
     def __init__(self, parent):
@@ -616,6 +643,80 @@ class SettingsWindow:
                 pass
             self.parent.makePlot()
             self.close()
+
+class AddDataWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        file_list_column = [
+            [
+                sg.Text("Experimental Data Folder"),
+                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.FolderBrowse(),
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                )
+            ],
+        ]
+        self.folder = os.getcwd()
+        try:
+            file_list = os.listdir(self.folder)
+        except:
+            file_list = []
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(self.folder, f))
+            and f.lower().endswith((".csv"))
+        ]
+        fnames = sorted(fnames, key=str.lower)
+        self.sgw = sg.Window('Experimental data selection', file_list_column, location = [0,0], finalize=True)
+        self.sgw["-FILE LIST-"].update(fnames)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == "-FOLDER-":
+            self.folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(self.folder)
+            except:
+                file_list = []
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(self.folder, f))
+                and f.lower().endswith((".csv"))
+            ]
+            fnames = sorted(fnames, key=str.lower)
+            self.sgw["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            newData = []
+            filename = values["-FILE LIST-"][0]
+            datafile = os.path.join(self.folder, filename)
+            with open(datafile) as f:
+                data = csv.reader(f)
+                next(data, None)  # skip the header
+                for row in data:
+                    newrow = []
+                    for number in row:
+                        newrow.append(float(number))
+                    newData.append(newrow)
+            self.parent.experimentalData.append(np.array(newData))
+            self.parent.experimentNames.append(filename.split('.',1)[0])
+            self.parent.makePlot()
+            self.close()
+
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
