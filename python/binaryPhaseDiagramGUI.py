@@ -1,4 +1,4 @@
-import pd
+import binaryPhaseDiagramFunctions
 import PySimpleGUI as sg
 import os
 import sys
@@ -142,7 +142,7 @@ class CalculationWindow:
         self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
         windowList.append(self)
         self.children = []
-        self.calculation = pd.diagram(self.datafile, True, True)
+        self.calculation = binaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
     def close(self):
         for child in self.children:
@@ -339,9 +339,9 @@ class CalculationWindow:
             self.macro = []
         elif event =='Export Macro':
             with open('python/macroPhaseDiagram.py', 'w') as f:
-                f.write('import pd\n')
+                f.write('import binaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
-                f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
+                f.write(f'macroPD = binaryPhaseDiagramFunctions.diagram("{self.datafile}", False, False)\n')
                 for command in self.macro:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
