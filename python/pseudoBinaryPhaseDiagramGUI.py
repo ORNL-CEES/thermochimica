@@ -677,6 +677,9 @@ class AddDataWindow:
             file_list = os.listdir(self.folder)
         except:
             file_list = []
+        buttonLayout = [sg.Button('Add Data'), sg.Button('Exit')]
+        addDataLayout = [file_list_column,buttonLayout]
+        self.sgw = sg.Window('Experimental data selection', addDataLayout, location = [0,0], finalize=True)
         fnames = [
             f
             for f in file_list
@@ -684,9 +687,9 @@ class AddDataWindow:
             and f.lower().endswith((".csv"))
         ]
         fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Experimental data selection', file_list_column, location = [0,0], finalize=True)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
+        self.filename = ''
     def close(self):
         for child in self.children:
             child.close()
@@ -698,6 +701,7 @@ class AddDataWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == "-FOLDER-":
+            self.filename = ''
             self.folder = values["-FOLDER-"]
             try:
                 file_list = os.listdir(self.folder)
@@ -713,9 +717,12 @@ class AddDataWindow:
             fnames = sorted(fnames, key=str.lower)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            self.filename = values["-FILE LIST-"][0]
+        elif event == 'Add Data':
+            if not self.filename:
+                return
+            datafile = os.path.join(self.folder, self.filename)
             newData = []
-            filename = values["-FILE LIST-"][0]
-            datafile = os.path.join(self.folder, filename)
             with open(datafile) as f:
                 data = csv.reader(f)
                 next(data, None)  # skip the header
@@ -725,9 +732,8 @@ class AddDataWindow:
                         newrow.append(float(number))
                     newData.append(newrow)
             self.parent.calculation.experimentalData.append(np.array(newData))
-            self.parent.calculation.experimentNames.append(filename.split('.',1)[0])
+            self.parent.calculation.experimentNames.append(self.filename.split('.',1)[0])
             self.parent.calculation.makePlot()
-            self.close()
 
 
 if not(os.path.isfile('bin/InputScriptMode')):
