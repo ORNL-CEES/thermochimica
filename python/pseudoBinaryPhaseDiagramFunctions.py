@@ -246,7 +246,7 @@ class diagram:
         # Start figure
         fig = plt.figure()
         plt.ion()
-        ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+        ax = fig.add_axes([0.12, 0.1, 0.85, 0.85])
 
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
         for j in range(len(boundaries)):
