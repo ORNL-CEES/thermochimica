@@ -6,6 +6,7 @@ import os
 import sys
 import csv
 import numpy as np
+import shutil
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -151,6 +152,7 @@ class CalculationWindow:
         self.macro = []
         self.showExperiment = True
         self.backup = []
+        self.macroSaveName = 'macroPhaseDiagram.py'
     def close(self):
         for child in self.children:
             child.close()
@@ -311,7 +313,7 @@ class CalculationWindow:
         elif event =='Clear Macro':
             self.macro = []
         elif event =='Export Macro':
-            with open('python/macroPhaseDiagram.py', 'w') as f:
+            with open('python/' + self.macroSaveName, 'w') as f:
                 f.write('import pseudoBinaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
                 f.write('import numpy as np\n')
@@ -335,6 +337,9 @@ class CalculationWindow:
             self.calculation.makeBackup()
             addDataWindow = AddDataWindow(self)
             self.children.append(addDataWindow)
+        elif event =='Macro Settings':
+            macroSettingsWindow = MacroSettingsWindow(self)
+            self.children.append(macroSettingsWindow)
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
@@ -366,10 +371,13 @@ class CalculationWindow:
                        [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                        [sg.Text('Mass unit')],
                        [sg.Combo(['moles'],default_value='moles',key='-munit-')],
-                       [sg.Column([[sg.Button('Run', size = buttonSize)],
+                       [
+            sg.Column([[sg.Button('Run', size = buttonSize)],
                        [sg.Button('Undo', disabled = True, size = buttonSize)],
                        [sg.Exit(size = buttonSize)],
-                       [sg.Button('Add Data', disabled = True, size = buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Add Data', disabled = True, size = buttonSize)],
+                       [sg.Button('Macro Settings', size = buttonSize)]
+                      ],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
                        [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
@@ -751,6 +759,80 @@ class AddDataWindow:
             self.parent.macro.append(f'macroPD.experimentNames.append("{expName}")')
             self.parent.calculation.makePlot()
 
+class MacroSettingsWindow:
+    def __init__(self,parent):
+        self.parent = parent
+        windowList.append(self)
+        file_list_column = [
+            [
+                sg.Text("Macro Folder"),
+                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+                sg.FolderBrowse(),
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                )
+            ],
+        ]
+        self.folder = os.getcwd() + '/python'
+        try:
+            file_list = os.listdir(self.folder)
+        except:
+            file_list = []
+        buttonLayout = [sg.Button('Select Macro', size = buttonSize)]
+        inputNameLayout = [[sg.Text('Macro File Save Name:')],[sg.Input(key='-macroSaveName-',size=(inputSize,1)),sg.Text('.py')],[sg.Button('Set Save Name', size = buttonSize), sg.Button('Exit', size = buttonSize)]]
+        addDataLayout = [file_list_column,buttonLayout,inputNameLayout]
+        self.sgw = sg.Window('Macro file', addDataLayout, location = [0,0], finalize=True)
+        fnames = [
+            f
+            for f in file_list
+            if os.path.isfile(os.path.join(self.folder, f))
+            and f.lower().endswith((".py"))
+        ]
+        fnames = sorted(fnames, key=str.lower)
+        self.sgw["-FILE LIST-"].update(fnames)
+        self.children = []
+        self.filename = ''
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == "-FOLDER-":
+            self.filename = ''
+            self.folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(self.folder)
+            except:
+                file_list = []
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(self.folder, f))
+                and f.lower().endswith((".py"))
+            ]
+            fnames = sorted(fnames, key=str.lower)
+            self.sgw["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":  # A file was chosen from the listbox
+            self.filename = values["-FILE LIST-"][0]
+        elif event == 'Select Macro':
+            if not self.filename:
+                return
+            datafile = os.path.join(self.folder, self.filename)
+            # I don't want to mess with import logic, so rename/overwrite file in one spot instead
+            shutil.copy(datafile,os.getcwd() + '/python/' + 'macroPhaseDiagram.py')
+            self.close()
+        elif event == 'Set Save Name':
+            if not values["-macroSaveName-"]:
+                return
+            self.parent.macroSaveName = values["-macroSaveName-"] + '.py'
 
 if not(os.path.isfile('bin/InputScriptMode')):
     errorLayout = [[sg.Text('No Thermochimica executable available.')],
