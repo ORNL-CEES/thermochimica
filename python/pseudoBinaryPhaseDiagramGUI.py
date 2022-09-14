@@ -278,6 +278,7 @@ class CalculationWindow:
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
+                self.sgw.Element('Export Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
                 self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Refine':
@@ -331,6 +332,7 @@ class CalculationWindow:
             self.sgw.Element('Refine').Update(disabled = False)
             self.sgw.Element('Add Label').Update(disabled = False)
             self.sgw.Element('Plot').Update(disabled = False)
+            self.sgw.Element('Export Plot').Update(disabled = False)
             self.sgw.Element('Undo').Update(disabled = False)
             self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Add Data':
