@@ -289,6 +289,7 @@ class CalculationWindow:
             self.children.append(removeWindow)
         elif event =='Plot':
             self.calculation.makePlot()
+            self.macro.append(f'macroPD.makePlot()')
         elif event =='Export Plot':
             exportStatus = self.calculation.exportPlot()
             if exportStatus:
@@ -299,6 +300,8 @@ class CalculationWindow:
                     if event == sg.WIN_CLOSED or event == 'Continue':
                         break
                 errorWindow.close()
+            else:
+                self.macro.append(f'macroPD.exportPlot()')
         elif event =='Plot Settings':
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
@@ -556,6 +559,7 @@ class RemoveWindow:
             for i in reversed(range(tempLength)):
                 if values['-removeLabel'+str(i)+'-']:
                     del self.parent.calculation.labels[i]
+                    self.parent.macro.append(f'del macroPD.labels[{i}]')
             if len(self.parent.calculation.labels) == 0:
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.calculation.makePlot()
