@@ -265,7 +265,7 @@ class diagram:
             if self.normalizeX:
                 plotX = plotPoints[:,0]
             else:
-                plotX = unscaleX(plotPoints[:,0],self.sum1,self.sum2)
+                plotX = self.unscaleX(plotPoints[:,0])
             ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
 
         # Plot experimental data
@@ -355,10 +355,9 @@ class diagram:
             return 0
         except:
             return 1
-
-def unscaleX(scaledX,sum1,sum2):
-    unscaledX = copy.deepcopy(scaledX)
-    for i in range(len(scaledX)):
-        if scaledX[i] > 0:
-            unscaledX[i] = 1/(1+(sum2/sum1)*(1-scaledX[i])/scaledX[i])
-    return unscaledX
+    def unscaleX(self,scaledX):
+        unscaledX = copy.deepcopy(scaledX)
+        for i in range(len(scaledX)):
+            if scaledX[i] > 0:
+                unscaledX[i] = 1/(1+(self.sum2/self.sum1)*(1-scaledX[i])/scaledX[i])
+        return unscaledX
