@@ -314,6 +314,7 @@ class CalculationWindow:
             with open('python/macroPhaseDiagram.py', 'w') as f:
                 f.write('import pseudoBinaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
+                f.write('import numpy as np\n')
                 f.write(f'macroPD = pseudoBinaryPhaseDiagramFunctions.diagram("{self.datafile}", False, False)\n')
                 for command in self.macro:
                     f.write(f'{command}\n')
@@ -744,7 +745,10 @@ class AddDataWindow:
                         newrow.append(float(number))
                     newData.append(newrow)
             self.parent.calculation.experimentalData.append(np.array(newData))
-            self.parent.calculation.experimentNames.append(self.filename.split('.',1)[0])
+            self.parent.macro.append(f'macroPD.experimentalData.append(np.array({newData}))')
+            expName = self.filename.split('.',1)[0]
+            self.parent.calculation.experimentNames.append(expName)
+            self.parent.macro.append(f'macroPD.experimentNames.append("{expName}")')
             self.parent.calculation.makePlot()
 
 
