@@ -39,7 +39,7 @@ class diagram:
         self.currentPlot = []
         self.exportFormat = 'png'
         self.exportFileName = 'thermochimicaPseudoBinaryPhaseDiagram'
-        self.exportDPI = 300
+        self.exportDPI = 100
         self.mint = 1e5
         self.maxt = 0
         self.pressure = 1
@@ -348,7 +348,14 @@ class diagram:
         self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
         self.backup.nElementsUsed = self.nElementsUsed
         self.backup.massLabels = copy.deepcopy(self.massLabels)
+        self.backup.sum1 = self.sum1
+        self.backup.sum2 = self.sum2
         self.backup.plane = copy.deepcopy(self.plane)
+        self.backup.normalizeX = self.normalizeX 
+        self.backup.experimentalData = copy.deepcopy(self.experimentalData)
+        self.backup.experimentNames = copy.deepcopy(self.experimentNames)
+        self.backup.experimentColor = self.experimentColor 
+        self.backup.showExperiment = self.showExperiment 
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
