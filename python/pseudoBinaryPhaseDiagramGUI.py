@@ -7,6 +7,7 @@ import sys
 import csv
 import numpy as np
 import shutil
+import copy
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -309,8 +310,21 @@ class CalculationWindow:
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
         elif event =='Undo':
-            self.backup.activate()
-            self.close()
+            for fig in self.calculation.figureList:
+                plt.close(fig=fig)
+            backup = copy.deepcopy(self.calculation.backup)
+            self.calculation = self.calculation.backup
+            self.calculation.backup = backup
+            self.macro.append('backup = copy.deepcopy(macroPD.backup)')
+            self.macro.append('macroPD = macroPD.backup')
+            self.macro.append('macroPD.backup = backup')
+            self.calculation.makePlot()
+            self.sgw.Element('Refine').Update(disabled = False)
+            self.sgw.Element('Add Label').Update(disabled = False)
+            self.sgw.Element('Plot').Update(disabled = False)
+            self.sgw.Element('Export Plot').Update(disabled = False)
+            if len(self.calculation.labels) > 0:
+                self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Clear Macro':
             self.macro = []
         elif event =='Export Macro':
