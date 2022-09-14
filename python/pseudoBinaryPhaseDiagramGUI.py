@@ -305,6 +305,7 @@ class CalculationWindow:
                         break
                 errorWindow.close()
             else:
+                self.macro.append(f'macroPD.makePlot()')
                 self.macro.append(f'macroPD.exportPlot()')
         elif event =='Plot Settings':
             settingsWindow = SettingsWindow(self)
