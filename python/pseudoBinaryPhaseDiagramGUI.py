@@ -617,6 +617,14 @@ class SettingsWindow:
         self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
+        # Log settings in macro before closing
+        self.parent.macro.append(f'macroPD.plotMarker = "{self.parent.calculation.plotMarker}"')
+        self.parent.macro.append(f'macroPD.plotColor = "{self.parent.calculation.plotColor}"')
+        self.parent.macro.append(f'macroPD.experimentColor = "{self.parent.calculation.experimentColor}"')
+        self.parent.macro.append(f'macroPD.showExperiment = {self.parent.calculation.showExperiment}')
+        self.parent.macro.append(f'macroPD.exportFileName = "{self.parent.calculation.exportFileName}"')
+        self.parent.macro.append(f'macroPD.exportFormat = "{self.parent.calculation.exportFormat}"')
+        self.parent.macro.append(f'macroPD.exportDPI = {self.parent.calculation.exportDPI}')
         for child in self.children:
             child.close()
         self.sgw.close()
