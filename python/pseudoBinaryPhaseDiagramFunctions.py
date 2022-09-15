@@ -63,6 +63,7 @@ class diagram:
         self.experimentNames = []
         self.experimentColor = 'bland'
         self.showExperiment = True
+        self.showExperimentLegend = True
     def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift):
         self.mint = mint
         self.maxt = maxt
@@ -290,7 +291,8 @@ class diagram:
         ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
-        ax.legend(loc = 0)
+        if self.showExperimentLegend:
+            ax.legend(loc = 0)
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
