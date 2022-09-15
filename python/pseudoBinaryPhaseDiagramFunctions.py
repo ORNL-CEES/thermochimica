@@ -267,7 +267,7 @@ class diagram:
                 plotX = plotPoints[:,0]
             else:
                 plotX = self.unscaleX(plotPoints[:,0])
-            ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c)
+            ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c, label='_nolegend_')
 
         # Plot experimental data
         if self.showExperiment:
@@ -290,6 +290,7 @@ class diagram:
         ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
+        ax.legend(loc = 0)
         plt.show()
         plt.pause(0.001)
         self.currentPlot = fig
