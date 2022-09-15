@@ -628,7 +628,8 @@ class SettingsWindow:
                           [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
                           [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
                           [sg.Text('Show:')],
-                          [sg.Checkbox('Experimental Data', default=self.parent.calculation.showExperiment, key='-showExperiment-')
+                          [sg.Checkbox('Experimental Data', default=self.parent.calculation.showExperiment, key='-showExperiment-'),
+                           sg.Checkbox('Data Legend', default=self.parent.calculation.showExperimentLegend, key='-showExperimentLegend-')
                         #   ,sg.Checkbox('Loaded Diagram', default=self.parent.calculation.showLoaded, key='-showLoaded-')
                           ],
                         #   [sg.Text('Auto-Label Settings:')],
@@ -674,6 +675,7 @@ class SettingsWindow:
             self.parent.calculation.experimentColor = 'bland'
         elif event =='Accept':
             self.parent.calculation.showExperiment = values['-showExperiment-']
+            self.parent.calculation.showExperimentLegend = values['-showExperimentLegend-']
             # self.parent.calculation.showLoaded = values['-showLoaded-']
             # self.parent.calculation.label1phase = values['-label1phase-']
             # self.parent.calculation.label2phase = values['-label2phase-']
