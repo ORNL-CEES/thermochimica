@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import math
 import os
 import sys
-import csv
-import numpy as np
 import shutil
 import copy
 
@@ -760,21 +758,9 @@ class AddDataWindow:
             if not self.filename:
                 return
             datafile = os.path.join(self.folder, self.filename)
-            newData = []
-            with open(datafile) as f:
-                data = csv.reader(f)
-                next(data, None)  # skip the header
-                for row in data:
-                    newrow = []
-                    for number in row:
-                        newrow.append(float(number))
-                    newData.append(newrow)
-            self.parent.calculation.experimentalData.append(np.array(newData))
-            self.parent.macro.append(f'macroPD.experimentalData.append(np.array({newData}))')
             expName = self.filename.split('.',1)[0]
-            self.parent.calculation.experimentNames.append(expName)
-            self.parent.macro.append(f'macroPD.experimentNames.append("{expName}")')
-            self.parent.calculation.makePlot()
+            self.parent.calculation.addData(datafile,expName)
+            self.parent.macro.append(f'macroPD.addData("{datafile}","{expName}")')
 
 class MacroSettingsWindow:
     def __init__(self,parent):

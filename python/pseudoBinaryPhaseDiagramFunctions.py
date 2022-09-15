@@ -5,6 +5,7 @@ import subprocess
 import copy
 import scipy.optimize
 from itertools import cycle
+import csv
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -368,3 +369,16 @@ class diagram:
             if scaledX[i] > 0:
                 unscaledX[i] = 1/(1+(self.sum2/self.sum1)*(1-scaledX[i])/scaledX[i])
         return unscaledX
+    def addData(self,datafile,expName):
+        newData = []
+        with open(datafile) as f:
+            data = csv.reader(f)
+            # next(data, None)  # skip the header WHY SHOULD THERE BE A HEADER
+            for row in data:
+                newrow = []
+                for number in row:
+                    newrow.append(float(number))
+                newData.append(newrow)
+        self.experimentalData.append(np.array(newData))
+        self.experimentNames.append(expName)
+        self.makePlot()
