@@ -5,17 +5,7 @@ import os
 import sys
 import numpy as np
 import shutil
-
-atomic_number_map = [
-    'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
-    'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh',
-    'Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
-    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re',
-    'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db',
-    'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
-]
+import thermoTools
 
 timeout = 50
 inputSize = 20
@@ -115,7 +105,7 @@ class DataWindow:
                 return
             for el in elements:
                 try:
-                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
+                    index = thermoTools.atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
                 except ValueError:
                     if len(el) > 0:
                         if el[0] != 'e':
@@ -241,6 +231,7 @@ class CalculationWindow:
                     except ValueError:
                         ntstep = 1
                 else:
+                    tend = None
                     ntstep = 0
                 if values['-pen-']:
                     pend = values['-endpressure-']
@@ -253,6 +244,7 @@ class CalculationWindow:
                     pend = values['-endpressure-']
                     npstep = ntstep
                 else:
+                    pend = None
                     npstep = 0
                 if values['-men-']:
                     nxstep = 10
@@ -262,45 +254,18 @@ class CalculationWindow:
                             nxstep = tempstep
                     except:
                         pass
+
                     xs = np.array([np.linspace(masses1[i],masses2[i],nxstep) for i in range(self.nElements)]).T
-                    with open(filename, 'w') as inputFile:
-                        inputFile.write('! Python-generated input file for Thermochimica\n')
-                        inputFile.write(f'data file         = {self.datafile}\n')
-                        inputFile.write(f'temperature unit  = {tunit}\n')
-                        inputFile.write(f'pressure unit     = {punit}\n')
-                        inputFile.write(f'mass unit         = \'{munit}\'\n')
-                        inputFile.write(f'print mode        = 2\n')
-                        inputFile.write(f'heat capacity     = {".TRUE." if values["-cp_h_s-"] else ".FALSE."}\n')
-                        inputFile.write(f'nEl         = {self.nElements} \n')
-                        inputFile.write(f'iEl         = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elements])}\n')
-                        inputFile.write(f'nCalc       = {len(xs)}\n')
-                        for x in xs:
-                            inputFile.write(f'{str(temperature)} {str(pressure)} {" ".join([str(x[i]) for i in range(self.nElements)])}\n')
+                    calcList = []
+                    for x in xs:
+                        calc = [temperature,pressure]
+                        calc.extend(x)
+                        calcList.append(calc)
+
+                    thermoTools.WriteRunCalculationList(filename,self.datafile,self.elements,calcList,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"])
                     thermoOut = subprocess.check_output(['./bin/RunCalculationList',filename]).decode("utf-8")
                 else:
-                    with open(filename, 'w') as inputFile:
-                        inputFile.write('! Python-generated input file for Thermochimica\n')
-                        if ntstep > 0:
-                            tstep = (float(tend)-float(temperature))/ntstep
-                            inputFile.write(f'temperature       = {temperature}:{tend}:{tstep}\n')
-                        else:
-                            inputFile.write(f'temperature       = {temperature}\n')
-                        if npstep > 0:
-                            pstep = (float(pend)-float(pressure))/npstep
-                            inputFile.write(f'pressure          = {pressure}:{pend}:{pstep}\n')
-                        else:
-                            inputFile.write(f'pressure          = {pressure}\n')
-                        for i in range(self.nElements):
-                            inputFile.write(f'mass(' + str(atomic_number_map.index(self.elements[i])+1) + ')           = ' + str(masses1[i]) + '\n')
-                        inputFile.write(f'temperature unit  = {tunit}\n')
-                        inputFile.write(f'pressure unit     = {punit}\n')
-                        inputFile.write(f'step together     = {".TRUE." if values["-pent-"] else ".FALSE."}\n')
-                        inputFile.write(f'mass unit         = {munit}\n')
-                        inputFile.write(f'data file         = {self.datafile}\n')
-                        inputFile.write(f'print mode        = 2\n')
-                        inputFile.write(f'heat capacity     = {".TRUE." if values["-cp_h_s-"] else ".FALSE."}\n')
-                        inputFile.write(f'debug mode        = .FALSE.\n')
-                        inputFile.write(f'write json        = {".TRUE." if values["-json-"] else ".FALSE."}\n')
+                    thermoTools.WriteInputScript(filename,self.datafile,self.elements,temperature,tend,ntstep,pressure,pend,npstep,masses1,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],stepTogether=values["-pent-"])
                     thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
