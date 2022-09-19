@@ -125,7 +125,6 @@ subroutine GEMLineSearch
 
     integer                       :: iterWolfe
     real(8)                       :: dStepLength, dTemp, dWolfeFunctionNormLast
-    real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
 
@@ -133,13 +132,12 @@ subroutine GEMLineSearch
     ! Initialize variable:
     dWolfeFunctionNormLast  = 1D-12
     dMolesSpeciesLast       = dMolesSpecies
-    dElementPotentialLast   = dElementPotential
     dGEMFunctionNormLast    = dGEMFunctionNorm
     dPartialExcessGibbsLast = dPartialExcessGibbs
     lCompEverything         = .FALSE.
 
     ! Initialize the line search method:
-    call InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+    call InitGEMLineSearch(dStepLength,dMolesSpeciesLast)
 
     ! Commence line search:
     LOOP_WOLFE: do iterWolfe = 1, 5
@@ -166,7 +164,7 @@ subroutine GEMLineSearch
             ! Update the system variables:
             dStepLength = 2D0
 
-            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
@@ -190,7 +188,7 @@ subroutine GEMLineSearch
             ! Update the system variables:
             dStepLength = 2D0
 
-            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
@@ -208,9 +206,9 @@ subroutine GEMLineSearch
             dTemp = dGEMFunctionNorm / dWolfeFunctionNormLast
             if ((dTemp > 1D0).AND.(dTemp < 1.05D0)) exit LOOP_WOLFE
 
-            dStepLength = 0.5D0
+            if (.NOT. lConverged) dStepLength = 0.5D0
 
-            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+            call UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
             ! Compute the chemical potentials of solution species:
             call CompChemicalPotential(lCompEverything)
@@ -279,7 +277,7 @@ end subroutine GEMLineSearch
     !---------------------------------------------------------------------------
 
 
-subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast)
 
     USE ModuleThermo
     USE ModuleGEMSolver
@@ -288,7 +286,6 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     integer                       :: i, j, k, l, nMisciblePhases
     real(8)                       :: dStepLength, dTemp, dMaxIncrease, dMaxDecrease, dMaxChange, dMaxGamma
-    real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
 
@@ -404,7 +401,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     end do
 
     ! Update the system variables:
-    call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+    call UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
     ! Constrain the number of moles of any solution phase to only change by a factor of 2:
     i = 0
@@ -477,7 +474,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     if ((iterGlobal - iterLast < 10).AND.(nMisciblePhases > 0)) dStepLength = dStepLength * 0.5D0
 
     ! If the number of moles of a solution phase is changing by too large of an amount, then recompute
-    if (dStepLength < 1D0) call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+    if (dStepLength < 1D0) call UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
     ! Compute the chemical potentials of solution species:
     call CompChemicalPotential(lCompEverything)
@@ -504,7 +501,7 @@ end subroutine InitGEMLineSearch
     !---------------------------------------------------------------------------
 
 
-subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
+subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast)
 
     USE ModuleThermo
     USE ModuleGEMSolver
@@ -512,7 +509,6 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
     integer                       :: i, j, k
     real(8)                       :: dTemp, dStepLength
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
-    real(8), dimension(nElements) :: dElementPotentialLast
 
 
     ! Loop through all solution phases expected to be stable:
@@ -532,11 +528,6 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
     do i = 1, nConPhases
         dMolesPhase(i) = dStepLength * dMolesPhase(i) + (1D0 - dStepLength) * dMolesPhaseLast(i)
     end do
-
-    ! Dampen the element potentials:
-    LOOP_Gamma: do i = 1, nElements
-        dElementPotential(i) = dStepLength * dElementPotential(i) + (1D0 - dStepLength) * dElementPotentialLast(i)
-    end do LOOP_Gamma
 
 end subroutine UpdateSystemVariables
 

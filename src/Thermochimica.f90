@@ -449,6 +449,8 @@ subroutine Thermochimica
     ! using the Leveling algorithm:
     if ((INFOThermo == 0) .AND. (.NOT. (lReinitLoaded .AND. lReinitRequested))) call LevelingSolver
 
+    call RandomizeStoichiometry
+
     ! Improve estimates from the Leveling subroutine using the Post-Leveling
     ! algorithm:
     !if (INFOThermo == 0) call PostLevelingSolver
@@ -457,6 +459,8 @@ subroutine Thermochimica
     ! using the GEM method:
     if (INFOThermo == 0) call GEMSolver
 
+    call ResetStoichiometry
+
     if (.NOT. lRetryAttempted) then
         ! Attempt a retry by re-initializing with first phase only
         call RetryCalculationFirstPhase
@@ -464,7 +468,7 @@ subroutine Thermochimica
         if (INFOThermo == 0 .OR. INFOThermo == 12) call PostProcess
     end if
 
-    if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity 
+    if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity
 
     return
 
