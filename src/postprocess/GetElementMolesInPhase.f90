@@ -74,7 +74,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
     end do LOOP_Elements
 
     if (k == 0) then
-       ! This element phase was not found.  Report an error:
+       ! This element was not found.  Report an error:
        INFO = 1
        return
     end if

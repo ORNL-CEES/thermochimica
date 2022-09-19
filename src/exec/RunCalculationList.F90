@@ -11,7 +11,7 @@ program RunCalculationList
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
-    integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber
+    integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
     character(1024) :: cLineInit
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
@@ -20,6 +20,9 @@ program RunCalculationList
 
     ! Initialize INFO
     INFO = 0
+
+    ! lWriteJSON true by default
+    lWriteJSON = .TRUE.
 
     ! Read input argument to get filename
     call get_command_argument(1, cInputFile)
@@ -72,9 +75,10 @@ program RunCalculationList
       ! Value if on RHS of delimiter, do same as above
       cValue = trim(adjustl(cLine((iDelimiterPosition + 1) : len(cLine))))
       ! Check if line contains a mass, need to treat these separately
-      ! Masses will be the only lines to contain '()', so look for these
+      ! Masses will be the only lines to contain '()' on the LHS, so look for these
       iOpenPosition = scan(cLine,'(')
-      if (iOpenPosition > 0) then
+      iEqualPosition = scan(cLine,'=')
+      if ((iOpenPosition > 0) .AND. (iOpenPosition < iEqualPosition)) then
         iClosePosition = scan(cLine,')')
         ! Check for no close ')'
         if (iClosePosition == 0) then
@@ -224,6 +228,59 @@ program RunCalculationList
             print *,  trim(cErrMsg)
             return
           end if
+        case ('nPhasesExcluded','nphasesexcluded','number of phases excluded','number excluded')
+          read(cValue,*,IOSTAT = INFO) nPhasesExcluded
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A47,I10)') 'Cannot read number of phases excluded on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+        case ('phasesExcluded','phasesexcluded','phases excluded')
+          if (nPhasesExcluded == 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A65,I10)') 'Need (nonzero) number of phases excluded before phase list at ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+          read(cValue,*,IOSTAT = INFO) cPhasesExcluded(1:nPhasesExcluded)
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A41,I10)') 'Cannot parse phases exclusions on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          endif
+        case ('nPhasesExcludedExcept','nphasesexcludedexcept','number of phases excluded except','number excluded except')
+          read(cValue,*,IOSTAT = INFO) nPhasesExcludedExcept
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A47,I10)') 'Cannot read number of phases excluded on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+        case ('phasesExcludedExcept','phasesexcludedexcept','phases excluded except')
+          if (nPhasesExcludedExcept == 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A75,I10)') 'Need (nonzero) number of phases exclusion exceptions before phase list at ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+          read(cValue,*,IOSTAT = INFO) cPhasesExcludedExcept(1:nPhasesExcludedExcept)
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A50,I10)') 'Cannot parse phase exclusion exceptions on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          endif
+        case ('writeJSON','writejson','WriteJSON','write_JSON',&
+          'write_json','Write_JSON','write JSON','write json','Write JSON')
+          read(cValue,*,IOSTAT = INFO) lWriteJSON
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A37,I10)') 'Cannot read write JSON mode on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
         case default
           write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
           print *,  trim(cErrMsg)
@@ -260,11 +317,12 @@ program RunCalculationList
     call ParseCSDataFile(cThermoFileName)
 
     ! Specify values:
-
-    OPEN(2, file= DATA_DIRECTORY // '../thermoout.json', &
-        status='REPLACE', action='write')
-    WRITE(2,*) '{'
-    CLOSE(2)
+    if (lWriteJSON) then
+        OPEN(2, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='REPLACE', action='write')
+        WRITE(2,*) '{'
+        CLOSE(2)
+    end if
 
     do i = 1, nCalc
       cInputUnitPressure = cRunUnitPressure
@@ -284,7 +342,9 @@ program RunCalculationList
       write(intStr,*) i
       write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2)
-      call WriteJSON(.TRUE.)
+      if (lWriteJSON) then
+          call WriteJSON(.TRUE.)
+      end if
       ! Reset Thermochimica:
       if (INFOThermo == 0) then
           call ResetThermo
@@ -296,9 +356,11 @@ program RunCalculationList
     end do
     CLOSE(3)
 
-    open(2, file= DATA_DIRECTORY // '../thermoout.json', &
-        status='OLD', position='append', action='write')
-    write(2,*) '}'
-    close (2)
+    if (lWriteJSON) then
+        open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+            status='OLD', position='append', action='write')
+        write(2,*) '}'
+        close (2)
+    end if
 
 end program RunCalculationList

@@ -1,15 +1,10 @@
-import PySimpleGUI as sg
 import json
 import matplotlib.pyplot as plt
 import numpy as np
 import math
-import os
-import sys
 import subprocess
 import copy
-import csv
 from itertools import cycle
-import pickle
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 from shapely.geometry import MultiPoint
@@ -19,26 +14,6 @@ from shapely.prepared import prep
 from shapely.ops import split
 from functools import reduce
 import operator
-
-timeout = 50
-inputSize = 20
-buttonSize = 12
-
-futureBlue = '#003C71'
-simcoeBlue = '#0077CA'
-techTangerine = '#E75D2A'
-coolGrey = '#A7A8AA'
-sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
-                                 'TEXT': 'white',
-                                 'INPUT': 'white',
-                                 'TEXT_INPUT': 'black',
-                                 'SCROLL': coolGrey,
-                                 'BUTTON': ('white', techTangerine),
-                                 'PROGRESS': ('#01826B', '#D0D0D0'),
-                                 'BORDER': 1,
-                                 'SLIDER_DEPTH': 0,
-                                 'PROGRESS_DEPTH': 0})
-sg.theme('OntarioTech')
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -53,104 +28,11 @@ atomic_number_map = [
 
 phaseIncludeTol = 1e-8
 
-class DataWindow:
-    def __init__(self):
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()+'/data'
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".dat", ".DAT"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".dat", ".DAT"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            try:
-                datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
-                with open(datafile) as f:
-                    f.readline() # read comment line
-                    line = f.readline() # read first data line (# elements, # phases, n*# species)
-                    nElements = int(line[1:5])
-                    nSoln = int(line[6:10])
-                    elements = []
-                    while True:
-                        line = f.readline() # read the rest of the # species but don't need them)
-                        if any(c.isalpha() for c in line):
-                            break
-                    elLen = 25 # element names are formatted 25 wide
-                    els = line # get the first line with letters in it
-                    for i in range(math.ceil(nElements/3)):
-                        for j in range(3):
-                            elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                        els = f.readline() # read a line of elements (3 per line)
-                        # It doesn't matter now, but this reads one more line than required
-            except:
-                return
-            i = 0
-            for el in elements:
-                try:
-                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
-                except ValueError:
-                    if len(el) > 0:
-                        if el[0] != 'e':
-                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements = list(filter(lambda a: a != el, elements))
-            nElements = len(elements)
-            if nElements == 0:
-                return
-            calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
-            self.children.append(calcWindow)
-
-class CalculationWindow:
-    def __init__(self, parent, datafile, nElements, elements, active):
-        self.parent = parent
+class diagram:
+    def __init__(self, datafile, active, interactivePlot):
         self.datafile = datafile
-        self.nElements = nElements
-        self.elements = elements
+        self.active = active
+        self.interactivePlot = interactivePlot
         self.mint = 1e5
         self.maxt = 0
         self.ts = np.empty([0])
@@ -163,14 +45,9 @@ class CalculationWindow:
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
+        self.tshift = 0
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
-        self.active = active
-        if self.active:
-            self.makeLayout()
-            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
-            windowList.append(self)
-        self.children = []
         self.labels = []
         self.outline = MultiPolygon([])
         self.pressure = 1
@@ -178,7 +55,10 @@ class CalculationWindow:
         self.outputFileName = 'thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
-        self.backup = []
+        if self.active:
+            self.backup = diagram(self.datafile, False, self.interactivePlot)
+        else:
+            self.backup = []
         self.currentPlot = []
         self.exportFormat = 'png'
         self.exportFileName = 'thermochimicaPhaseDiagram'
@@ -204,258 +84,54 @@ class CalculationWindow:
         self.loaded = False
         self.showLoaded = True
         self.saveDataName = 'savedDiagram'
-    def close(self):
-        for child in self.children:
-            child.close()
+    def run(self,ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit):
+        self.pressure = pressure
+        self.tunit = tunit
+        self.punit = punit
+        self.munit = munit
+        self.el1 = el1
+        self.el2 = el2
+        self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
+        self.ts = np.empty([0])
+        self.x1 = np.empty([0])
+        self.x2 = np.empty([0])
+        self.p1 = []
+        self.p2 = []
+        self.x0data = [[],[],[]]
+        self.x1data = [[],[],[]]
+        # Check temperature unit for shift
+        if self.tunit == 'K':
+            self.tshift = 0
+        elif self.tunit == 'C':
+            self.tshift = 273.15
+        # Initially reverse shift (opposite at plot)
+        self.mint = tlo + self.tshift
+        self.maxt = thi + self.tshift
+        self.labels = []
+        self.resRef = 7
+        self.resSmooth = 7
+        self.gapLimit = (self.maxt - self.mint) / 2
+        self.experimentalData = []
+        self.experimentNames = []
+        self.pointDetails = []
+        self.pointIndex = np.empty([0])
+        self.suppressed = []
+        self.loadedDiagram = []
+        self.loaded = False
+        self.saveDataName = 'savedDiagram'
+        self.backup = diagram(self.datafile, False, self.interactivePlot)
         for fig in self.figureList:
             plt.close(fig=fig)
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event =='Run':
-            cancelRun = False
-            ntstep = 10
-            try:
-                tempstep = int(values['-ntstep-'])
-                if tempstep >= 0:
-                    ntstep = tempstep
-            except:
-                pass
-            nxstep = 10
-            try:
-                tempstep = int(values['-nxstep-'])
-                if tempstep >= 0:
-                    nxstep = tempstep
-            except:
-                pass
-            if (float(ntstep) * float(nxstep)) > 50000:
-                cancelRun = True
-                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
-                while True:
-                    event, values = confirmWindow.read(timeout=timeout)
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Continue':
-                        cancelRun = False
-                        break
-                confirmWindow.close()
-            self.makeBackup()
-            self.pressure = 1
-            try:
-                tempPress = float(values['-pressure-'])
-                if 1e-6 < tempPress < 1e6:
-                    self.pressure = float(values['-pressure-'])
-            except:
-                pass
-            self.tunit = values['-tunit-']
-            self.punit = values['-punit-']
-            xlo = 0
-            try:
-                templo = float(values['-xlo-'])
-                if 0 <= templo <= 1:
-                    xlo = templo
-            except:
-                pass
-            xhi = 1
-            try:
-                temphi = float(values['-xhi-'])
-                if 0 <= temphi <= 1:
-                    xhi = temphi
-            except:
-                pass
-            tlo = 300
-            try:
-                templo = float(values['-temperature-'])
-                if 295 <= templo <= 6000:
-                    tlo = templo
-            except:
-                pass
-            thi = 1000
-            try:
-                temphi = float(values['-endtemperature-'])
-                if 295 <= temphi <= 6000:
-                    thi = temphi
-            except:
-                    pass
-            self.el1 = values['-el1-']
-            self.el2 = values['-el2-']
-            try:
-                if (str(self.el1) == str(self.el2)) or (float(tlo) == float(thi)):
-                    cancelRun = True
-                    repeatLayout = [[sg.Text('Values cannot be equal.')],[sg.Button('Cancel')]]
-                    repeatWindow = sg.Window('Repeat value notification', repeatLayout, location = [400,0], finalize=True, keep_on_top = True)
-                    while True:
-                        event, values = repeatWindow.read(timeout=timeout)
-                        if event == sg.WIN_CLOSED or event == 'Cancel':
-                            break
-                    repeatWindow.close()
-                    return
-            except ValueError:
-                errorLayout = [[sg.Text('Invalid value detected.')],[sg.Button('Cancel')]]
-                errorWindow = sg.Window('Invalid value notification', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
-                while True:
-                    event, values = errorWindow.read(timeout=timeout)
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                errorWindow.close()
-                return
-            self.munit = values['-munit-']
-            if not cancelRun:
-                self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-                self.ts = np.empty([0])
-                self.x1 = np.empty([0])
-                self.x2 = np.empty([0])
-                self.p1 = []
-                self.p2 = []
-                self.x0data = [[],[],[]]
-                self.x1data = [[],[],[]]
-                self.mint = tlo
-                self.maxt = thi
-                self.labels = []
-                self.resRef = 7
-                self.resSmooth = 7
-                self.gapLimit = (self.maxt - self.mint) / 2
-                self.experimentalData = []
-                self.experimentNames = []
-                self.pointDetails = []
-                self.pointIndex = np.empty([0])
-                self.suppressed = []
-                self.loadedDiagram = []
-                self.loaded = False
-                self.saveDataName = 'savedDiagram'
-                self.runCalc()
-                self.makePlot()
-                self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
-                self.sgw.Element('Refine').Update(disabled = False)
-                self.sgw.Element('Auto Refine').Update(disabled = False)
-                self.sgw.Element('Auto Smoothen').Update(disabled = False)
-                self.sgw.Element('Add Label').Update(disabled = False)
-                self.sgw.Element('Auto Label').Update(disabled = False)
-                self.sgw.Element('Plot').Update(disabled = False)
-                self.sgw.Element('Undo').Update(disabled = False)
-                self.sgw.Element('Inspect').Update(disabled = False)
-                self.sgw.Element('Export Diagram Data').Update(disabled = False)
-        elif event =='Refine':
-            xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-            tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
-            refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
-            refineWindow = RefineWindow(self, refineLayout)
-            self.children.append(refineWindow)
-        elif event =='Auto Refine':
-            self.makeBackup()
-            self.sgw.Element('Undo').Update(disabled = False)
-            self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
-            self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
-            self.autoRefine((self.resRef**2))
-            self.makePlot()
-            self.resRef += 1
-        elif event =='Auto Smoothen':
-            self.makeBackup()
-            self.sgw.Element('Undo').Update(disabled = False)
-            self.autoRefine2Phase(self.resSmooth**2)
-            self.makePlot()
-            self.resSmooth += 1
-        elif event =='Add Label':
-            xLabLayout    = [[sg.Text('Element 2 Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
-            tLabLayout = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
-            labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
-            labelWindow = LabelWindow(self,labelLayout)
-            self.children.append(labelWindow)
-        elif event =='Auto Label':
-            self.makeBackup()
-            self.autoLabel()
-            self.makePlot()
-            self.sgw.Element('Remove Label').Update(disabled = False)
-        elif event =='Remove Label':
-            headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
-                               sg.Text('Concentration',size = [15,1],justification='center'),
-                               sg.Text('Temperature',  size = [15,1],justification='center'),
-                               sg.Text('Remove Label?',size = [15,1])]]
-            labelListLayout = []
-            for i in range(len(self.labels)):
-                labelListLayout.append([[sg.Text(self.labels[i][1],size = [55,1],justification='left'),
-                                         sg.Text("{:.3f}".format(float(self.labels[i][0][0])),size = [15,1],justification='center'),
-                                         sg.Text("{:.0f}".format(float(self.labels[i][0][1])),size = [15,1],justification='center'),
-                                         sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
-            removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
-            removeWindow = RemoveWindow(self, removeLayout)
-            self.children.append(removeWindow)
-        elif event =='Plot':
-            self.makePlot()
-        elif event =='Export Plot':
-            self.exportPlot()
-        elif event =='Plot Settings':
-            if self.plotMarker == '-':
-                line  = True
-                point = False
-                both  = False
-            elif self.plotMarker == '.':
-                line  = False
-                point = True
-                both  = False
-            else:
-                line  = False
-                point = False
-                both  = True
-            if self.plotColor == 'colorful':
-                colorful = True
-                bland    = False
-            else:
-                colorful = False
-                bland    = True
-            if self.experimentColor == 'colorful':
-                expcolorful = True
-                expbland    = False
-            else:
-                expcolorful = False
-                expbland    = True
-            settingsLayout = [[sg.Text('Marker Style:')],
-                              [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                              [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                              [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
-                              [sg.Text('Plot Colors:')],
-                              [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                              [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
-                              [sg.Text('Experimental Data Colors:')],
-                              [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
-                              [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
-                              [sg.Text('Show:')],
-                              [sg.Checkbox('Experimental Data', default=self.showExperiment, key='-showExperiment-'),
-                               sg.Checkbox('Loaded Diagram', default=self.showLoaded, key='-showLoaded-')],
-                              [sg.Text('Auto-Label Settings:')],
-                              [sg.Checkbox('1-Phase Regions', default=self.label1phase, key='-label1phase-'),
-                               sg.Checkbox('2-Phase Regions', default=self.label2phase, key='-label2phase-')],
-                              [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
-                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                              [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
-                              [sg.Button('Accept')]]
-            settingsWindow = SettingsWindow(self, settingsLayout)
-            self.children.append(settingsWindow)
-        elif event =='Undo':
-            self.backup.activate()
-            self.close()
-        elif event =='Add Data':
-            self.makeBackup()
-            self.addData()
-        elif event =='Inspect':
-            inspectWindow = InspectWindow(self)
-            self.children.append(inspectWindow)
-        elif event =='Export Diagram Data':
-            saveDataWindow = SaveDataWindow(self)
-            self.children.append(saveDataWindow)
-        elif event =='Load Diagram':
-            self.makeBackup()
-            loadDataWindow = LoadDataWindow(self)
-            self.children.append(loadDataWindow)
+        self.runCalc()
+        self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
+    def refinery(self):
+        self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
+        self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
+        self.autoRefine(self.resRef**2)
+        self.resRef += 1
+    def autoSmooth(self):
+        self.autoRefine2Phase(self.resSmooth**2)
+        self.resSmooth += 1
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         try:
@@ -650,7 +326,8 @@ class CalculationWindow:
         self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
-        plt.ion()
+        if self.interactivePlot:
+            plt.ion()
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
 
         bEdgeLine = [[False,False] for i in range(len(self.boundaries))]
@@ -681,7 +358,7 @@ class CalculationWindow:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([0,match[matchind,2]],[self.x0data[1][j],match[matchind,3]],'k-')
+                    ax.plot([0,match[matchind,2]],[self.x0data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -708,7 +385,7 @@ class CalculationWindow:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([0,match[matchind,2]],[self.x0data[2][j],match[matchind,3]],'k-')
+                    ax.plot([0,match[matchind,2]],[self.x0data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -739,7 +416,7 @@ class CalculationWindow:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([1,match[matchind,2]],[self.x1data[1][j],match[matchind,3]],'k-')
+                    ax.plot([1,match[matchind,2]],[self.x1data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -766,7 +443,7 @@ class CalculationWindow:
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(self.b) if l == k]
-                    ax.plot([1,match[matchind,2]],[self.x1data[2][j],match[matchind,3]],'k-')
+                    ax.plot([1,match[matchind,2]],[self.x1data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                     if match[matchind,3] == np.min(np.array(self.ts)[inds]):
                         bEdgeLine[k][0] = True
                     if match[matchind,3] == np.max(np.array(self.ts)[inds]):
@@ -785,15 +462,15 @@ class CalculationWindow:
             ttt = self.ts[inds]
             x1t = self.x1[inds]
             x2t = self.x2[inds]
-            ax.plot(x1t,ttt,self.plotMarker,c=c)
-            ax.plot(x2t[::-1],ttt[::-1],self.plotMarker,c=c)
+            ax.plot(x1t,ttt-self.tshift,self.plotMarker,c=c)
+            ax.plot(x2t[::-1],ttt[::-1]-self.tshift,self.plotMarker,c=c)
             minj = np.argmin(ttt)
             maxj = np.argmax(ttt)
             # plot invariant temperatures
             if (ttt[minj] > self.mint) and not(bEdgeLine[j][0]):
-                ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],self.plotMarker,c=c)
+                ax.plot([x1t[minj],x2t[minj]],[ttt[minj]-self.tshift,ttt[minj]-self.tshift],self.plotMarker,c=c)
             if (ttt[maxj] < self.maxt) and not(bEdgeLine[j][1]):
-                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],self.plotMarker,c=c)
+                ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj]-self.tshift,ttt[maxj]-self.tshift],self.plotMarker,c=c)
 
         # Plot experimental data
         if self.showExperiment:
@@ -808,10 +485,11 @@ class CalculationWindow:
                 ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
         ax.set_xlim(0,1)
-        ax.set_ylim(self.mint,self.maxt)
+        ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
         ax.set_title(str(self.el1) + ' + ' + str(self.el2) + ' binary phase diagram')
         ax.set_xlabel('Mole fraction ' + str(self.el2))
-        ax.set_ylabel('Temperature [K]')
+        tunit_display = r"$^\circ$" if self.tunit == "C" else ""
+        ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         if len(self.experimentalData) > 0 and self.showExperiment:
             ax.legend(loc=0)
         for lab in self.labels:
@@ -847,7 +525,7 @@ class CalculationWindow:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[1][j],match[matchind,3]],'k-')
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -874,7 +552,7 @@ class CalculationWindow:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j],match[matchind,3]],'k-')
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j]-self.tshift,match[matchind,3]]-self.tshift,'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -905,7 +583,7 @@ class CalculationWindow:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[1][j],match[matchind,3]],'k-')
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -932,7 +610,7 @@ class CalculationWindow:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[2][j],match[matchind,3]],'k-')
+                        ax.plot([1,match[matchind,2]],[self.loadedDiagram.x1data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
@@ -948,21 +626,21 @@ class CalculationWindow:
                 ttt = self.loadedDiagram.ts[inds]
                 x1t = self.loadedDiagram.x1[inds]
                 x2t = self.loadedDiagram.x2[inds]
-                ax.plot(x1t,ttt,'--',c=c)
-                ax.plot(x2t[::-1],ttt[::-1],'--',c=c)
+                ax.plot(x1t,ttt-self.tshift,'--',c=c)
+                ax.plot(x2t[::-1],ttt[::-1]-self.tshift,'--',c=c)
                 minj = np.argmin(ttt)
                 maxj = np.argmax(ttt)
                 # plot invariant temperatures
                 if (ttt[minj] > self.loadedDiagram.mint) and not(bEdgeLine[j][0]):
-                    ax.plot([x1t[minj],x2t[minj]],[ttt[minj],ttt[minj]],'--',c=c)
+                    ax.plot([x1t[minj],x2t[minj]],[ttt[minj]-self.tshift,ttt[minj]-self.tshift],'--',c=c)
                 if (ttt[maxj] < self.loadedDiagram.maxt) and not(bEdgeLine[j][1]):
-                    ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj],ttt[maxj]],'--',c=c)
+                    ax.plot([x1t[maxj],x2t[maxj]],[ttt[maxj]-self.tshift,ttt[maxj]-self.tshift],'--',c=c)
 
         plt.show()
-        plt.pause(0.001)
+        if self.interactivePlot:
+            plt.pause(0.001)
         self.currentPlot = fig
         self.figureList.append(fig)
-        self.sgw.Element('Export Plot').Update(disabled = False)
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         with open(self.inputFileName, 'w') as inputFile:
             inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -1007,14 +685,14 @@ class CalculationWindow:
                 nit = 0
                 while ((self.x0data[1][i+1] - self.x0data[2][i]) > res) and (nit < maxit):
                     nit += 1
-                    self.writeInputFile(0,0.001,2,self.x0data[2][i],self.x0data[1][i+1],4)
+                    self.writeInputFile(0,0.001,2,self.x0data[2][i]-self.tshift,self.x0data[1][i+1]-self.tshift,4)
                     self.runCalc()
         if x == 1:
             for i in range(len(self.x1data[1])-1):
                 nit = 0
                 while ((self.x1data[1][i+1] - self.x1data[2][i]) > res) and (nit < maxit):
                     nit += 1
-                    self.writeInputFile(0.999,1,2,self.x1data[2][i],self.x1data[1][i+1],4)
+                    self.writeInputFile(0.999,1,2,self.x1data[2][i]-self.tshift,self.x1data[1][i+1]-self.tshift,4)
                     self.runCalc()
     def autoRefine(self,res):
         nIt = 0
@@ -1130,7 +808,8 @@ class CalculationWindow:
             if len(xs) > 0:
                 with open(self.inputFileName, 'w') as inputFile:
                     inputFile.write(f'data file         = {self.datafile}\n')
-                    inputFile.write(f'temperature unit  = {self.tunit}\n')
+                    # Operates on processed points, always use K
+                    inputFile.write(f'temperature unit  = K\n')
                     inputFile.write(f'pressure unit     = {self.punit}\n')
                     inputFile.write(f'mass unit         = \'{self.munit}\'\n')
                     inputFile.write('nEl                = 2 \n')
@@ -1182,7 +861,8 @@ class CalculationWindow:
             with open(self.inputFileName, 'w') as inputFile:
                 inputFile.write('! Python-generated input file for Thermochimica\n')
                 inputFile.write('data file         = ' + self.datafile + '\n')
-                inputFile.write('temperature unit         = ' + self.tunit + '\n')
+                # Operates on processed points, always use K
+                inputFile.write(f'temperature unit  = K\n')
                 inputFile.write('pressure unit          = ' + self.punit + '\n')
                 inputFile.write('mass unit          = \'' + self.munit + '\'\n')
                 inputFile.write('nEl         = 2 \n')
@@ -1227,7 +907,8 @@ class CalculationWindow:
                 with open(self.inputFileName, 'w') as inputFile:
                     inputFile.write('! Python-generated input file for Thermochimica\n')
                     inputFile.write('data file         = ' + self.datafile + '\n')
-                    inputFile.write('temperature unit         = ' + self.tunit + '\n')
+                    # Operates on processed points, always use K
+                    inputFile.write(f'temperature unit  = K\n')
                     inputFile.write('pressure unit          = ' + self.punit + '\n')
                     inputFile.write('mass unit          = \'' + self.munit + '\'\n')
                     inputFile.write('nEl         = 2 \n')
@@ -1245,8 +926,6 @@ class CalculationWindow:
                 break
         self.gapLimit = 3*tres
     def autoLabel(self):
-        self.makeBackup()
-        self.sgw.Element('Undo').Update(disabled = False)
         self.phaseBoundaries()
 
         phasePolyPoints = [[] for i in range(len(self.phases))]
@@ -1282,7 +961,7 @@ class CalculationWindow:
             phaseOutline = Polygon(polygonPoints)#.buffer(0)
             center = list(phaseOutline.centroid.coords)[0]
             if self.label2phase:
-                self.labels.append([[center[0],center[1]],'+'.join(self.boundaries[j])])
+                self.labels.append([[center[0],center[1]-self.tshift],'+'.join(self.boundaries[j])])
             for i in range(len(self.phases)):
                 if self.boundaries[j][0] == self.phases[i]:
                     phasePolyPoints[i].append(polygonPoints[:len(inds)])
@@ -1300,12 +979,9 @@ class CalculationWindow:
                 for j in range(len(phasePolyPoints[i])):
                     segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
                 center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-                self.labels.append([[center[0],center[1]],self.phases[i]])
+                self.labels.append([[center[0],center[1]-self.tshift],self.phases[i]])
     def makeBackup(self):
-        self.backup = CalculationWindow(self.parent, self.datafile, self.nElements, self.elements, False)
-        self.backup.datafile = self.datafile
-        self.backup.nElements = self.nElements
-        self.backup.elements = copy.deepcopy(self.elements)
+        self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
         self.backup.ts = copy.deepcopy(self.ts)
@@ -1327,6 +1003,7 @@ class CalculationWindow:
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
+        self.backup.tshift = self.tshift
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI
@@ -1344,548 +1021,9 @@ class CalculationWindow:
         self.backup.loadedDiagram = self.loadedDiagram
         self.backup.loaded = self.loaded
         self.backup.saveDataName = self.saveDataName
-    def activate(self):
-        if not self.active:
-            self.makeLayout()
-            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
-            windowList.append(self)
-            self.active = True
-            self.parent.children.append(self)
-            self.sgw.Element('Refine').Update(disabled = False)
-            self.sgw.Element('Auto Refine').Update(disabled = False)
-            self.sgw.Element('Auto Smoothen').Update(disabled = False)
-            self.sgw.Element('Add Label').Update(disabled = False)
-            self.sgw.Element('Auto Label').Update(disabled = False)
-            self.sgw.Element('Plot').Update(disabled = False)
-            if len(self.labels) > 0:
-                self.sgw.Element('Remove Label').Update(disabled = False)
-    def makeLayout(self):
-        elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
-        xLayout    = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(inputSize,1))],
-                      [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(inputSize,1))],
-                      ],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
-                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(inputSize,1))],
-                      ],vertical_alignment='t'),
-                      sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
-        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
-                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')
-                      ]
-        self.layout = [elSelectLayout,xLayout,tempLayout,presLayout,[
-            sg.Column([[sg.Button('Run', size = buttonSize)],
-                       [sg.Button('Undo', disabled = True, size = buttonSize)],
-                       [sg.Exit(size = buttonSize)],
-                       [sg.Button('Add Data', size = buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
-                       [sg.Button('Inspect', disabled = True, size = buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Remove Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Load Diagram', size = buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                       [sg.Button('Export Plot', disabled = True, size = buttonSize)],
-                       [sg.Button('Plot Settings', size = buttonSize)],
-                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)]],vertical_alignment='t')
-            ]]
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+            return 0
         except:
-            errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-            errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
-            while True:
-                event, values = errorWindow.read(timeout=timeout)
-                if event == sg.WIN_CLOSED or event == 'Continue':
-                    break
-            errorWindow.close()
-    def addData(self):
-        addDataWindow = AddDataWindow(self)
-        self.children.append(addDataWindow)
-
-class RefineWindow:
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Phase diagram refinement', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Refine':
-            cancelRun = False
-            ntstep = 10
-            try:
-                tempstep = int(values['-ntstepr-'])
-                if tempstep >= 0:
-                    ntstep = tempstep
-            except:
-                pass
-            nxstep = 10
-            try:
-                tempstep = int(values['-nxstepr-'])
-                if tempstep >= 0:
-                    nxstep = tempstep
-            except:
-                pass
-            if (float(ntstep) * float(nxstep)) > 50000:
-                cancelRun = True
-                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
-                while True:
-                    event, values = confirmWindow.read(timeout=timeout)
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Continue':
-                        cancelRun = False
-                        break
-                confirmWindow.close()
-            xlo = 0
-            try:
-                templo = float(values['-xlor-'])
-                if 0 <= templo <= 1:
-                    xlo = templo
-            except:
-                pass
-            xhi = 1
-            try:
-                temphi = float(values['-xhir-'])
-                if 0 <= temphi <= 1:
-                    xhi = temphi
-            except:
-                pass
-            tlo = 300
-            try:
-                templo = float(values['-temperaturer-'])
-                if 295 <= templo <= 6000:
-                    tlo = templo
-            except:
-                pass
-            thi = 1000
-            try:
-                temphi = float(values['-endtemperaturer-'])
-                if 295 <= temphi <= 6000:
-                    thi = temphi
-            except:
-                    pass
-            if not cancelRun:
-                self.parent.makeBackup()
-                self.parent.sgw.Element('Undo').Update(disabled = False)
-                self.parent.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-                self.parent.runCalc()
-                self.parent.makePlot()
-
-class LabelWindow:
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Add phase label', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Add Label':
-            try:
-                try:
-                    xlab = float(values['-xlab-'])
-                except ValueError:
-                    num, den = values['-xlab-'].split('/')
-                    xlab = float(num)/float(den)
-                tlab = float(values['-tlab-'])
-                if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
-                    self.parent.makeBackup()
-                    self.parent.sgw.Element('Undo').Update(disabled = False)
-                    self.parent.addLabel(xlab,tlab)
-                    self.parent.makePlot()
-                    self.parent.sgw.Element('Remove Label').Update(disabled = False)
-            except:
-                pass
-
-class RemoveWindow:
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Remove phase label', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        if event == 'Remove Label(s)':
-            self.parent.makeBackup()
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            tempLength = len(self.parent.labels)
-            for i in reversed(range(tempLength)):
-                try:
-                    if values['-removeLabel'+str(i)+'-']:
-                        del self.parent.labels[i]
-                except:
-                    continue
-            if len(self.parent.labels) == 0:
-                self.parent.sgw.Element('Remove Label').Update(disabled = True)
-            self.parent.makePlot()
-            self.close()
-
-class SettingsWindow:
-    def __init__(self, parent, windowLayout):
-        self.parent = parent
-        windowList.append(self)
-        self.sgw = sg.Window('Plot Settings', windowLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED:
-            self.close()
-        elif event == '-mline-':
-            self.parent.plotMarker = '-'
-        elif event =='-mpoint-':
-            self.parent.plotMarker = '.'
-        elif event =='-mboth-':
-            self.parent.plotMarker = '.-'
-        elif event =='-mcolorful-':
-            self.parent.plotColor = 'colorful'
-        elif event =='-mbland-':
-            self.parent.plotColor = 'bland'
-        elif event =='-mexpcolorful-':
-            self.parent.experimentColor = 'colorful'
-        elif event =='-mexpbland-':
-            self.parent.experimentColor = 'bland'
-        elif event =='Accept':
-            self.parent.showExperiment = values['-showExperiment-']
-            self.parent.showLoaded = values['-showLoaded-']
-            self.parent.label1phase = values['-label1phase-']
-            self.parent.label2phase = values['-label2phase-']
-            try:
-                if str(values['-filename-']) != '':
-                    self.parent.exportFileName = str(values['-filename-'])
-            except:
-                pass
-            self.parent.exportFormat = values['-format-']
-            try:
-                tempDPI = int(values['-dpi-'])
-                if tempDPI > 0 > 10000:
-                    self.parent.exportDPI = int(values['-dpi-'])
-            except:
-                pass
-            self.parent.makePlot()
-            self.close()
-
-class AddDataWindow:
-    def __init__(self,parent):
-        self.parent = parent
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Experimental Data Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".csv"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Experimental data selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".csv"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            newData = []
-            filename = values["-FILE LIST-"][0]
-            datafile = os.path.join(self.folder, filename)
-            with open(datafile) as f:
-                data = csv.reader(f)
-                next(data, None)  # skip the header
-                for row in data:
-                    newrow = []
-                    for number in row:
-                        newrow.append(float(number))
-                    newData.append(newrow)
-            self.parent.experimentalData.append(np.array(newData))
-            self.parent.experimentNames.append(filename.split('.',1)[0])
-            self.parent.makePlot()
-            self.close()
-
-class InspectWindow:
-    def __init__(self,parent):
-        self.parent = parent
-        windowList.append(self)
-        dataColumn = [
-            [sg.Text('Data Points')],
-            [sg.Listbox(values=[], enable_events=True, size=(30, 50), key='-dataList-')]
-        ]
-        outputColumn = [
-            [sg.Text('Calculation Details')],
-            [sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)],
-            [sg.Text(key = '-status-')],
-            [sg.Button('Toggle Active/Suppressed Status', disabled = True)],
-            [sg.Text('Filter points', font='underline')],
-            [sg.Text('Temperature Range:')],
-            [sg.Input(key='-tfilterlow-',size=(inputSize,1)),sg.Input(key='-tfilterhi-',size=(inputSize,1))],
-            [sg.Text(f'{self.parent.el2} Concentration Range:')],
-            [sg.Input(key='-xfilterlow-',size=(inputSize,1)),sg.Input(key='-xfilterhi-',size=(inputSize,1))],
-            [sg.Text('Contains Phases:')],
-            [sg.Combo(['']+self.parent.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.phases, key = '-pfilter2-')],
-            [sg.Button('Apply Filter')]
-        ]
-        self.data = [[i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'] for i in range(len(self.parent.ts))]
-        self.sgw = sg.Window('Data inspection',
-            [[sg.Pane([
-                sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
-                sg.Column(outputColumn, element_justification='c', expand_x=True, expand_y=True)
-            ], orientation='h', k='-PANE-')]],
-            location = [0,0], finalize=True)
-        self.sgw['-dataList-'].update(self.data)
-        self.children = []
-        self.index = -1
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == '-dataList-':
-            self.index = self.parent.pointIndex[values['-dataList-'][0][0]]
-            self.sgw['-details-'].update(self.parent.pointDetails[self.index])
-            self.sgw['Toggle Active/Suppressed Status'].update(disabled = False)
-            self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
-        elif event == 'Toggle Active/Suppressed Status':
-            if self.index >= 0:
-                self.parent.suppressed[self.index] = not(self.parent.suppressed[self.index])
-                self.sgw['-status-'].update(f'{"Suppressed" if self.parent.suppressed[self.index] else "Active"}')
-        elif event == 'Apply Filter':
-            tlo = -np.Inf
-            thi  = np.Inf
-            xlo = -np.Inf
-            xhi  = np.Inf
-            try:
-                tlo = float(values['-tfilterlow-'])
-            except:
-                pass
-            try:
-                thi = float(values['-tfilterhi-'])
-            except:
-                pass
-            try:
-                xlo = float(values['-xfilterlow-'])
-            except:
-                pass
-            try:
-                xhi = float(values['-xfilterhi-'])
-            except:
-                pass
-            self.data = []
-            for i in range(len(self.parent.ts)):
-                if tlo <= self.parent.ts[i] and thi >= self.parent.ts[i] and ((xlo <= self.parent.x1[i] and xhi >= self.parent.x1[i]) or (xlo <= self.parent.x2[i] and xhi >= self.parent.x2[i])):
-                    if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.p1[i] or values['-pfilter1-'] == self.parent.p2[i]):
-                        if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.p1[i] or values['-pfilter2-'] == self.parent.p2[i]):
-                            self.data.append([i, f'{self.parent.ts[i]:6.2f} K {self.parent.x1[i]:4.3f} {self.parent.x2[i]:4.3f}'])
-            self.sgw['-dataList-'].update(self.data)
-
-class SaveData(object):
-    def __init__(self,ts,x1,x2,boundaries,phases,b,x0data,x1data,mint,maxt):
-        self.ts = ts
-        self.x1 = x1
-        self.x2 = x2
-        self.boundaries = boundaries
-        self.phases = phases
-        self.b = b
-        self.x0data = x0data
-        self.x1data = x1data
-        self.mint = mint
-        self.maxt = maxt
-
-class SaveDataWindow:
-    def __init__(self, parent):
-        self.parent = parent
-        windowList.append(self)
-        self.children = []
-        layout = [[sg.Input(key='-saveName-',size=(inputSize,1)), sg.Text('.pkl')],
-                  [sg.Button('Save'), sg.Button('Cancel')]]
-        self.sgw = sg.Window('Save Diagram Data', layout, location = [400,0], finalize=True)
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Save':
-            try:
-                tempName = str(values['-saveName-'])
-                if not tempName == '':
-                    self.parent.saveDataName = tempName
-            except:
-                pass
-            saveData = SaveData(self.parent.ts,
-                                self.parent.x1,
-                                self.parent.x2,
-                                self.parent.boundaries,
-                                self.parent.phases,
-                                self.parent.b,
-                                self.parent.x0data,
-                                self.parent.x1data,
-                                self.parent.mint,
-                                self.parent.maxt)
-            with open(self.parent.saveDataName+'.pkl','wb') as outp:
-                pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
-            self.close()
-
-class LoadDataWindow:
-    def __init__(self,parent):
-        self.parent = parent
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Phase Diagram Data Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".pkl"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Phase diagram data selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".pkl"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            newData = []
-            filename = values["-FILE LIST-"][0]
-            datafile = os.path.join(self.folder, filename)
-            with open(datafile, 'rb') as inp:
-                self.parent.loadedDiagram = pickle.load(inp)
-                self.parent.loaded = True
-            self.close()
-
-if not(os.path.isfile('bin/InputScriptMode')):
-    errorLayout = [[sg.Text('No Thermochimica executable available.')],
-                   [sg.Text('Either Thermochimica has not been built (run make),')],
-                   [sg.Text('or this script was not executed from Thermochimica root directory.')],
-                   [sg.Button('Exit')]]
-    errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True, keep_on_top = True)
-    while True:
-        event, values = errorWindow.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            break
-    errorWindow.close()
-    sys.exit()
-
-windowList = []
-dataWindow = DataWindow()
-while len(windowList) > 0:
-    for window in windowList:
-        window.read()
+            return 1

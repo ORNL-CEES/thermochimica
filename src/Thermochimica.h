@@ -76,6 +76,17 @@ extern "C"
   void FORTRAN_CALL(getallelementpotential)(double *);
   void FORTRAN_CALL(getelementfraction)(int *, double *);
 
+  // MQMQA functions
+  void FORTRAN_CALL(getmqmqamolespairs)(const char *, double *, int *);
+  void GetMqmqaMolesPairs(const char *, double *, int *);
+  void FORTRAN_CALL(getmqmqapairmolfraction)(const char *, int *, const char *, int *, double *, int *);
+  void GetMqmqaPairMolFraction(const char *, const char *, double *, int *);
+  // GetMqmqaNumberPairsQuads was given a mismatched number of arguments between Fortran and C
+  // The last argument in C is the string length.
+  void FORTRAN_CALL(getmqmqanumberpairsquads)(const char *, int *, int *, int *, int *);
+  void GetMqmqaNumberPairsQuads(const char *, int *, int *, int *);
+
+
   unsigned int atomicNumber(const char *);
 }
 

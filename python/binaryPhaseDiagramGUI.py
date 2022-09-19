@@ -1,4 +1,4 @@
-import pd
+import binaryPhaseDiagramFunctions
 import PySimpleGUI as sg
 import os
 import sys
@@ -7,6 +7,7 @@ import csv
 import math
 import copy
 import matplotlib.pyplot as plt
+import numpy as np
 
 timeout = 50
 inputSize = 20
@@ -141,7 +142,7 @@ class CalculationWindow:
         self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
         windowList.append(self)
         self.children = []
-        self.calculation = pd.diagram(self.datafile, True, True)
+        self.calculation = binaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
     def close(self):
         for child in self.children:
@@ -290,7 +291,15 @@ class CalculationWindow:
         elif event =='Plot':
             self.calculation.makePlot()
         elif event =='Export Plot':
-            self.calculation.exportPlot()
+            exportStatus = self.calculation.exportPlot()
+            if exportStatus:
+                errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
+                errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
+                while True:
+                    event, values = errorWindow.read(timeout=timeout)
+                    if event == sg.WIN_CLOSED or event == 'Continue':
+                        break
+                errorWindow.close()
         elif event =='Plot Settings':
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
@@ -314,7 +323,8 @@ class CalculationWindow:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            self.addData()
+            addDataWindow = AddDataWindow(self)
+            self.children.append(addDataWindow)
         elif event =='Inspect':
             self.calculation.makeBackup()
             inspectWindow = InspectWindow(self)
@@ -330,9 +340,9 @@ class CalculationWindow:
             self.macro = []
         elif event =='Export Macro':
             with open('python/macroPhaseDiagram.py', 'w') as f:
-                f.write('import pd\n')
+                f.write('import binaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
-                f.write(f'macroPD = pd.diagram("{self.datafile}", False, False)\n')
+                f.write(f'macroPD = binaryPhaseDiagramFunctions.diagram("{self.datafile}", False, False)\n')
                 for command in self.macro:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
@@ -343,7 +353,6 @@ class CalculationWindow:
             self.calculation = macroPhaseDiagram.macroPD
             self.calculation.active = True
             self.calculation.interactivePlot = True
-
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
