@@ -368,6 +368,15 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *,  trim(cErrMsg)
           return
         end if
+      case ('gibbs', 'gibbs min', 'gibbs minimum', 'gibbs_minimum', 'gibbsmin',&
+        'Gibbs', 'Gibbs Min', 'Gibbs Minimum', 'Gibbs_Minimum', 'GibbsMin')
+        read(cValue,*,IOSTAT = INFO) lGibbsMinCheck
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A46,I10)') 'Cannot read Gibbs energy check mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
       case default
         write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)

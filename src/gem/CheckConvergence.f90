@@ -212,7 +212,7 @@ subroutine CheckConvergence
             dMinGibbs = dTempGibbs
         end if
     elseif (ABS((dTempGibbs-dMinGibbs)/dMinGibbs) > 1D-6) then
-        return
+        if (lGibbsMinCheck) return
     end if
 
     ! CONVERGENCE TEST SHORTCUT
