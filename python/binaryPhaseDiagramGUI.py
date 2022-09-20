@@ -199,7 +199,7 @@ class CalculationWindow:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            addDataWindow = thermoToolsGUI.AddDataWindow(self,windowList)
+            addDataWindow = thermoToolsGUI.PhaseDiagramAddDataWindow(self,windowList)
             self.children.append(addDataWindow)
         elif event =='Inspect':
             self.calculation.makeBackup()
@@ -230,7 +230,7 @@ class CalculationWindow:
             self.calculation.active = True
             self.calculation.interactivePlot = True
         elif event =='Macro Settings':
-            macroSettingsWindow = thermoToolsGUI.MacroSettingsWindow(self,windowList)
+            macroSettingsWindow = thermoToolsGUI.PhaseDiagramMacroSettingsWindow(self,windowList)
             self.children.append(macroSettingsWindow)
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),

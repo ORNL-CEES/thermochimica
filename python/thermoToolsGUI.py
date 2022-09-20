@@ -118,7 +118,7 @@ class DataWindow:
             calcWindow = self.calc(self,datafile,nElements,elements,True)
             self.children.append(calcWindow)
 
-class AddDataWindow:
+class PhaseDiagramAddDataWindow:
     def __init__(self,parent,windowList):
         self.parent = parent
         self.windowList = windowList
@@ -189,7 +189,7 @@ class AddDataWindow:
             self.parent.calculation.addData(datafile,expName)
             self.parent.macro.append(f'macroPD.addData("{datafile}","{expName}")')
 
-class MacroSettingsWindow:
+class PhaseDiagramMacroSettingsWindow:
     def __init__(self,parent,windowList):
         self.parent = parent
         self.windowList = windowList

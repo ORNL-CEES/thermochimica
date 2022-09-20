@@ -226,10 +226,10 @@ class CalculationWindow:
             self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            addDataWindow = thermoToolsGUI.AddDataWindow(self)
+            addDataWindow = thermoToolsGUI.PhaseDiagramAddDataWindow(self)
             self.children.append(addDataWindow,windowList)
         elif event =='Macro Settings':
-            macroSettingsWindow = thermoToolsGUI.MacroSettingsWindow(self,windowList)
+            macroSettingsWindow = thermoToolsGUI.PhaseDiagramMacroSettingsWindow(self,windowList)
             self.children.append(macroSettingsWindow)
     def makeLayout(self):
         tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
