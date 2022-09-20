@@ -6,17 +6,7 @@ import copy
 import scipy.optimize
 from itertools import cycle
 import csv
-
-atomic_number_map = [
-    'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
-    'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh',
-    'Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
-    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re',
-    'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db',
-    'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
-]
+import thermoTools
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
@@ -83,25 +73,19 @@ class diagram:
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
-        with open(self.inputFileName, 'w') as inputFile:
-            inputFile.write('! Python-generated input file for Thermochimica\n')
-            inputFile.write(f'data file         = {self.datafile}\n')
-            inputFile.write(f'temperature unit  = {self.tunit}\n')
-            inputFile.write(f'pressure unit     = {self.punit}\n')
-            inputFile.write(f'mass unit         = \'{self.munit}\'\n')
-            inputFile.write(f'nEl               = {self.nElementsUsed} \n')
-            inputFile.write(f'iEl               = {" ".join([str(atomic_number_map.index(elem)+1) for elem in self.elementsUsed])}\n')
-            inputFile.write(f'nCalc             = {len(xs)*len(temps)}\n')
-            for t in temps:
-                ioff = 0
-                for x in xs:
-                    if (t > tlo) and (t < thi - (thi-tlo)/ntstep):
-                        toff = ioff * ((thi-tlo)/ntstep)/10
-                        ioff += 1
-                        ioff = ioff % 10
-                        inputFile.write(f'{str(t+toff)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
-                    else:
-                        inputFile.write(f'{str(t)} {self.pressure} {" ".join([str(x[i]) for i in range(self.nElementsUsed)])}\n')
+        calcList = []
+        for t in temps:
+            ioff = 0
+            for x in xs:
+                toff = 0
+                if (t > tlo) and (t < thi - (thi-tlo)/ntstep):
+                    toff = ioff * ((thi-tlo)/ntstep)/10
+                    ioff += 1
+                    ioff = ioff % 10
+                calc = [t+toff,self.pressure]
+                calc.extend([x[i] for i in range(self.nElementsUsed)])
+                calcList.append(calc)
+        thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
         print('Thermochimica calculation initiated.')
         subprocess.run(['./bin/RunCalculationList',self.inputFileName])
         print('Thermochimica calculation finished.')
