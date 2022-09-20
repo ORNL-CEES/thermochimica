@@ -111,7 +111,6 @@ program TestThermo74
                             end if
                         end do
                     end do
-                
                     do j = 1, 2
                         do l = 1, nConstituentSublattice(i,j)
                             if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Fe+2') then
