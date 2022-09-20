@@ -1,139 +1,16 @@
 import pseudoBinaryPhaseDiagramFunctions
 import PySimpleGUI as sg
 import matplotlib.pyplot as plt
-import math
 import os
 import sys
 import shutil
 import copy
-
-atomic_number_map = [
-    'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
-    'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
-    'Ga','Ge','As','Se','Br','Kr','Rb','Sr','Y','Zr','Nb','Mo','Tc','Ru','Rh',
-    'Pd','Ag','Cd','In','Sn','Sb','Te','I','Xe','Cs','Ba','La','Ce','Pr','Nd',
-    'Pm','Sm','Eu','Gd','Tb','Dy','Ho','Er','Tm','Yb','Lu','Hf','Ta','W','Re',
-    'Os','Ir','Pt','Au','Hg','Tl','Pb','Bi','Po','At','Rn','Fr','Ra','Ac','Th',
-    'Pa','U','Np','Pu','Am','Cm','Bk','Cf','Es','Fm','Md','No','Lr','Rf','Db',
-    'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
-]
-
-timeout = 50
-inputSize = 20
-buttonSize = 12
-
-futureBlue = '#003C71'
-simcoeBlue = '#0077CA'
-techTangerine = '#E75D2A'
-coolGrey = '#A7A8AA'
-sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
-                                 'TEXT': 'white',
-                                 'INPUT': 'white',
-                                 'TEXT_INPUT': 'black',
-                                 'SCROLL': coolGrey,
-                                 'BUTTON': ('white', techTangerine),
-                                 'PROGRESS': ('#01826B', '#D0D0D0'),
-                                 'BORDER': 1,
-                                 'SLIDER_DEPTH': 0,
-                                 'PROGRESS_DEPTH': 0})
-sg.theme('OntarioTech')
+import thermoToolsGUI
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
 # Below this tolerance, set phase fraction = 0
 phaseIncludeTol = 1e-8
-
-class DataWindow:
-    def __init__(self):
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()+'/data'
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".dat", ".DAT"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".dat", ".DAT"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            try:
-                datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
-                with open(datafile) as f:
-                    f.readline() # read comment line
-                    line = f.readline() # read first data line (# elements, # phases, n*# species)
-                    nElements = int(line[1:5])
-                    nSoln = int(line[6:10])
-                    elements = []
-                    while True:
-                        line = f.readline() # read the rest of the # species but don't need them)
-                        if any(c.isalpha() for c in line):
-                            break
-                    elLen = 25 # element names are formatted 25 wide
-                    els = line # get the first line with letters in it
-                    for i in range(math.ceil(nElements/3)):
-                        for j in range(3):
-                            elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                        els = f.readline() # read a line of elements (3 per line)
-                        # It doesn't matter now, but this reads one more line than required
-            except:
-                return
-            i = 0
-            for el in elements:
-                try:
-                    index = atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
-                except ValueError:
-                    if len(el) > 0:
-                        if el[0] != 'e':
-                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements = list(filter(lambda a: a != el, elements))
-            nElements = len(elements)
-            if nElements == 0:
-                return
-            calcWindow = CalculationWindow(self,datafile,nElements,elements,True)
-            self.children.append(calcWindow)
 
 class CalculationWindow:
     def __init__(self, parent, datafile, nElements, elements, active):
@@ -161,7 +38,7 @@ class CalculationWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event =='Run':
@@ -248,7 +125,7 @@ class CalculationWindow:
                     alertLayout = [[sg.Text('One or more input masses are invalid.')],[sg.Button('Continue')]]
                     alertWindow = sg.Window('Invalid Mass Alert', alertLayout, location = [400,0], finalize=True)
                     while True:
-                        event, values = alertWindow.read(timeout=timeout)
+                        event, values = alertWindow.read(timeout=thermoToolsGUI.timeout)
                         if event == sg.WIN_CLOSED or event == 'Continue':
                             break
                     alertWindow.close()
@@ -298,7 +175,7 @@ class CalculationWindow:
                 errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
                 errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
                 while True:
-                    event, values = errorWindow.read(timeout=timeout)
+                    event, values = errorWindow.read(timeout=thermoToolsGUI.timeout)
                     if event == sg.WIN_CLOSED or event == 'Continue':
                         break
                 errorWindow.close()
@@ -356,25 +233,25 @@ class CalculationWindow:
             macroSettingsWindow = MacroSettingsWindow(self)
             self.children.append(macroSettingsWindow)
     def makeLayout(self):
-        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],
                       vertical_alignment='t'),
                       sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-')],
-                      [sg.Input(key='-endtemperature-',size=(inputSize,1))]],
+                      [sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],
                       vertical_alignment='t'),
                       sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],
                       vertical_alignment='t')]
-        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                       [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],
                       vertical_alignment='t')]
         elem1Layout = [[sg.Text('Composition 1')]]
         elem2Layout = [[sg.Text('Composition 2')]]
         for el in self.elements:
             elem1Layout.append([sg.Text(el)])
-            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(inputSize,1))])
+            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(thermoToolsGUI.inputSize,1))])
         for el in self.elements:
             elem2Layout.append([sg.Text(el)])
-            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(inputSize,1))])
+            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(thermoToolsGUI.inputSize,1))])
         if (self.nElements < 8):
             elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
         else:
@@ -387,37 +264,37 @@ class CalculationWindow:
                        [sg.Text('Mass unit')],
                        [sg.Combo(['moles'],default_value='moles',key='-munit-')],
                        [
-            sg.Column([[sg.Button('Run', size = buttonSize)],
-                       [sg.Button('Undo', disabled = True, size = buttonSize)],
-                       [sg.Exit(size = buttonSize)],
-                       [sg.Button('Add Data', disabled = True, size = buttonSize)],
-                       [sg.Button('Macro Settings', size = buttonSize)]
+            sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Exit(size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Add Data', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]
                       ],vertical_alignment='t'),
-            sg.Column([[sg.Button('Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Refine', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Smoothen', disabled = True, size = buttonSize)],
-                       [sg.Button('Inspect', disabled = True, size = buttonSize)],
-                       [sg.Button('Run Macro', size = buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Add Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Auto Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Remove Label', disabled = True, size = buttonSize)],
-                       [sg.Button('Load Diagram', size = buttonSize)],
-                       [sg.Button('Export Macro', size = buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                       [sg.Button('Export Plot', disabled = True, size = buttonSize)],
-                       [sg.Button('Plot Settings', size = buttonSize)],
-                       [sg.Button('Export Diagram Data', disabled = True, size = buttonSize)],
-                       [sg.Button('Clear Macro', size = buttonSize)]],vertical_alignment='t')
+            sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Auto Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Auto Smoothen', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Inspect', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Run Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Add Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Auto Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Remove Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Load Diagram', size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Export Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+            sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Export Diagram Data', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
             ]]
 
 class RefineWindow:
     def __init__(self, parent):
         self.parent = parent
-        xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(inputSize,1))]],vertical_alignment='t'),
+        xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                           sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-        tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
-                        sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(inputSize,1))]],vertical_alignment='t'),
+        tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+                        sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                         sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
         refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
         self.sgw = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
@@ -430,7 +307,7 @@ class RefineWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         elif event =='Refine':
@@ -454,7 +331,7 @@ class RefineWindow:
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
                 confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
                 while True:
-                    event, values = confirmWindow.read(timeout=timeout)
+                    event, values = confirmWindow.read(timeout=thermoToolsGUI.timeout)
                     if event == sg.WIN_CLOSED or event == 'Cancel':
                         break
                     elif event == 'Continue':
@@ -511,8 +388,8 @@ class RefineWindow:
 class LabelWindow:
     def __init__(self, parent):
         self.parent = parent
-        xLabLayout  = [[sg.Text(f'{self.parent.calculation.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(inputSize,1))]]
-        tLabLayout  = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(inputSize,1))]]
+        xLabLayout  = [[sg.Text(f'{self.parent.calculation.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(thermoToolsGUI.inputSize,1))]]
+        tLabLayout  = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(thermoToolsGUI.inputSize,1))]]
         labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
         self.sgw = sg.Window('Add phase label', labelLayout, location = [400,0], finalize=True)
         windowList.append(self)
@@ -524,7 +401,7 @@ class LabelWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         elif event =='Add Label':
@@ -572,7 +449,7 @@ class RemoveWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Cancel':
             self.close()
         if event == 'Remove Label(s)':
@@ -635,9 +512,9 @@ class SettingsWindow:
                         #   [sg.Text('Auto-Label Settings:')],
                         #   [sg.Checkbox('1-Phase Regions', default=self.parent.calculation.label1phase, key='-label1phase-'),
                         #    sg.Checkbox('2-Phase Regions', default=self.parent.calculation.label2phase, key='-label2phase-')],
-                          [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                          [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
                           [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                          [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                          [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
                           [sg.Button('Accept')]]
         self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
         self.children = []
@@ -656,7 +533,7 @@ class SettingsWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED:
             self.close()
         elif event == '-mline-':
@@ -735,7 +612,7 @@ class AddDataWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == "-FOLDER-":
@@ -785,8 +662,8 @@ class MacroSettingsWindow:
             file_list = os.listdir(self.folder)
         except:
             file_list = []
-        buttonLayout = [sg.Button('Select Macro', size = buttonSize)]
-        inputNameLayout = [[sg.Text('Macro File Save Name:')],[sg.Input(key='-macroSaveName-',size=(inputSize,1)),sg.Text('.py')],[sg.Button('Set Save Name', size = buttonSize), sg.Button('Exit', size = buttonSize)]]
+        buttonLayout = [sg.Button('Select Macro', size = thermoToolsGUI.buttonSize)]
+        inputNameLayout = [[sg.Text('Macro File Save Name:')],[sg.Input(key='-macroSaveName-',size=(thermoToolsGUI.inputSize,1)),sg.Text('.py')],[sg.Button('Set Save Name', size = thermoToolsGUI.buttonSize), sg.Button('Exit', size = thermoToolsGUI.buttonSize)]]
         addDataLayout = [file_list_column,buttonLayout,inputNameLayout]
         self.sgw = sg.Window('Macro file', addDataLayout, location = [0,0], finalize=True)
         fnames = [
@@ -806,7 +683,7 @@ class MacroSettingsWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == "-FOLDER-":
@@ -846,14 +723,14 @@ if not(os.path.isfile('bin/InputScriptMode')):
                    [sg.Button('Exit')]]
     errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True)
     while True:
-        event, values = errorWindow.read(timeout=timeout)
+        event, values = errorWindow.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     errorWindow.close()
     sys.exit()
 
 windowList = []
-dataWindow = DataWindow()
+dataWindow = thermoToolsGUI.DataWindow(windowList,CalculationWindow)
 while len(windowList) > 0:
     for window in windowList:
         window.read()
