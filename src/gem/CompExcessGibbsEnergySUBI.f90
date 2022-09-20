@@ -1414,7 +1414,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
                         ! neutral
                         if (j == k2) dydn = dydn + 1 / dSub2Total
                     else
-                        !anion                      
+                        ! anion
                     end if
                 ! cation / anion
                 else

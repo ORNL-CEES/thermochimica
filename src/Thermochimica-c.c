@@ -174,6 +174,41 @@ void GetSublSiteMol(const char* phaseName, int* sublattice, int* constituent, do
   FORTRAN_CALL(getsublsitemol)(cphaseName, &lcphaseName, sublattice, constituent, siteMoles, info);
 }
 
+// MQMQA functions
+
+void GetMqmqaMolesPairs(const char* phaseName, double* molesPairs, int* info)
+{
+  char cphaseName[25];
+  int lcphaseName = sizeof cphaseName;
+  ConvertToFortran(cphaseName,lcphaseName,phaseName);
+
+  FORTRAN_CALL(getmqmqamolespairs)(cphaseName, molesPairs, info);
+}
+
+void GetMqmqaPairMolFraction(const char* phaseName, const char* pairName, double* molesPairs, int* info)
+{
+  char cphaseName[25];
+  int lcphaseName = sizeof cphaseName;
+  ConvertToFortran(cphaseName,lcphaseName,phaseName);
+
+  char cpairName[25];
+  int lcpairName = sizeof cpairName;
+  ConvertToFortran(cpairName,lcpairName,pairName);
+
+  FORTRAN_CALL(getmqmqapairmolfraction)(cphaseName, &lcphaseName, cpairName, &lcpairName, molesPairs, info);
+}
+
+void GetMqmqaNumberPairsQuads(const char* phaseName, int* nPairs, int* nQuads, int* info)
+{
+  char cphaseName[25];
+  int lcphaseName = sizeof cphaseName;
+  ConvertToFortran(cphaseName,lcphaseName,phaseName);
+
+  // GetMqmqaNumberPairsQuads was given a mismatched number of arguments between Fortran and C
+  // The last argument in C is the string length.
+  FORTRAN_CALL(getmqmqanumberpairsquads)(cphaseName, nPairs, nQuads, info, &lcphaseName);
+}
+
 struct cmp_str
 {
    bool operator()(const char *a, const char *b) const
@@ -218,3 +253,4 @@ atomicNumber(const char* element)
   else
     return -1;
 }
+
