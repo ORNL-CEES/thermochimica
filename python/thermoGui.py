@@ -1,124 +1,14 @@
 import PySimpleGUI as sg
 import subprocess
-import math
 import os
 import sys
 import numpy as np
 import shutil
 import thermoTools
-
-timeout = 50
-inputSize = 20
-
-futureBlue = '#003C71'
-simcoeBlue = '#0077CA'
-techTangerine = '#E75D2A'
-coolGrey = '#A7A8AA'
-sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
-                                 'TEXT': 'white',
-                                 'INPUT': 'white',
-                                 'TEXT_INPUT': 'black',
-                                 'SCROLL': coolGrey,
-                                 'BUTTON': ('white', techTangerine),
-                                 'PROGRESS': ('#01826B', '#D0D0D0'),
-                                 'BORDER': 1,
-                                 'SLIDER_DEPTH': 0,
-                                 'PROGRESS_DEPTH': 0})
-sg.theme('OntarioTech')
-
-class DataWindow:
-    def __init__(self):
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()+'/data'
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".dat", ".DAT"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".dat", ".DAT"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            try:
-                datafile = os.path.join(self.folder, values["-FILE LIST-"][0])
-                with open(datafile) as f:
-                    f.readline() # read comment line
-                    line = f.readline() # read first data line (# elements, # phases, n*# species)
-                    nElements = int(line[1:5])
-                    nSoln = int(line[6:10])
-                    elements = []
-                    while True:
-                        line = f.readline() # read the rest of the # species but don't need them)
-                        if any(c.isalpha() for c in line):
-                            break
-                    elLen = 25 # element names are formatted 25 wide
-                    els = line # get the first line with letters in it
-                    for i in range(math.ceil(nElements/3)):
-                        for j in range(3):
-                            elements.append(els[1+j*elLen:(1+j)*elLen].strip())
-                        els = f.readline() # read a line of elements (3 per line)
-                        # It doesn't matter now, but this reads one more line than required
-            except:
-                return
-            for el in elements:
-                try:
-                    index = thermoTools.atomic_number_map.index(el)+1 # get element indices in PT (i.e. # of protons)
-                except ValueError:
-                    if len(el) > 0:
-                        if el[0] != 'e':
-                            print(el+' not in list') # if the name is bogus (or e(phase)), discard
-                    elements = list(filter(lambda a: a != el, elements))
-            nElements = len(elements)
-            if nElements == 0:
-                return
-            calcWindow = CalculationWindow(datafile,nElements,elements)
-            self.children.append(calcWindow)
+import thermoToolsGUI
 
 class CalculationWindow:
-    def __init__(self, datafile, nElements, elements):
+    def __init__(self, parent, datafile, nElements, elements, active):
         windowList.append(self)
         self.datafile = datafile
         self.nElements = nElements
@@ -134,7 +24,7 @@ class CalculationWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-tdis-':
@@ -280,10 +170,10 @@ class CalculationWindow:
                     except:
                         pass
         elif event == 'Set name':
-            setNameLayout = [[sg.Input(key='-jsonname-',size=(inputSize,1)),sg.Text('.json')],[sg.Button('Accept'), sg.Button('Cancel')]]
+            setNameLayout = [[sg.Input(key='-jsonname-',size=(thermoToolsGUI.inputSize,1)),sg.Text('.json')],[sg.Button('Accept'), sg.Button('Cancel')]]
             setNameWindow = sg.Window('Set JSON name', setNameLayout, location = [400,0], finalize=True)
             while True:
-                event, values = setNameWindow.read(timeout=timeout)
+                event, values = setNameWindow.read(timeout=thermoToolsGUI.timeout)
                 if event == sg.WIN_CLOSED or event == 'Cancel':
                     break
                 elif event == 'Accept':
@@ -295,17 +185,17 @@ class CalculationWindow:
                     break
             setNameWindow.close()
     def makeLayout(self):
-        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(inputSize,1))],
+        tempLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
                       [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('End Temperature',key='-endtemperaturelabel-',visible=False)],
-                      [sg.Input(key='-endtemperature-',size=(inputSize,1),visible=False)],
+                      [sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1),visible=False)],
                       [sg.Text('Temperature range:')],
                       [sg.Radio('Disabled', 'trange', default=True, enable_events=True, key='-tdis-')],
                       [sg.Radio('Enabled', 'trange', default=False, enable_events=True, key='-ten-')]],vertical_alignment='t'),
                       sg.Column([[sg.Text('# of steps',key='-tsteplabel-',visible=False)],[sg.Input(key='-ntstep-',size=(8,1),visible=False)]],vertical_alignment='t')]
-        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(inputSize,1))],
+        presLayout = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                       [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t'),
-                      sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-',visible=False)],[sg.Input(key='-endpressure-',size=(inputSize,1),visible=False)],
+                      sg.Column([[sg.Text('End Pressure',key='-endpressurelabel-',visible=False)],[sg.Input(key='-endpressure-',size=(thermoToolsGUI.inputSize,1),visible=False)],
                       [sg.Text('Pressure range:')],
                       [sg.Radio('Disabled', 'prange', default=True, enable_events=True, key='-pdis-')],
                       [sg.Radio('Enabled', 'prange', default=False, enable_events=True, key='-pen-')],
@@ -316,10 +206,10 @@ class CalculationWindow:
         elem2Layout = [[sg.Text('Composition 2')]]
         for el in self.elements:
             elem1Layout.append([sg.Text(el)])
-            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(inputSize,1))])
+            elem1Layout.append([sg.Input(key=f'-{el}1-',size=(thermoToolsGUI.inputSize,1))])
         for el in self.elements:
             elem2Layout.append([sg.Text(el)])
-            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(inputSize,1))])
+            elem2Layout.append([sg.Input(key=f'-{el}2-',size=(thermoToolsGUI.inputSize,1))])
         massLayout = [sg.Column([
                         [sg.Text('Mass unit')],
                         [sg.Combo(['moles', 'kg', 'atoms', 'g'],default_value='moles',key='-munit-')]
@@ -358,7 +248,7 @@ class ResultWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
 
@@ -369,14 +259,14 @@ if not(os.path.isfile('bin/InputScriptMode')):
                    [sg.Button('Exit')]]
     errorWindow = sg.Window('Thermochimica Error Message', errorLayout, location = [0,0], finalize=True)
     while True:
-        event, values = errorWindow.read(timeout=timeout)
+        event, values = errorWindow.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
     errorWindow.close()
     sys.exit()
 
 windowList = []
-dataWindow = DataWindow()
+dataWindow = thermoToolsGUI.DataWindow(windowList,CalculationWindow)
 while len(windowList) > 0:
     for window in windowList:
         window.read()
