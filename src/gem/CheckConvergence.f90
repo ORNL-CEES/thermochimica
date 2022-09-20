@@ -196,15 +196,15 @@ subroutine CheckConvergence
     ! Now that crucial tests have been done, can check for convergence shortcut
     ! If the functional norm is less than a specified tolerance and the system hasn't changed,
     ! call it a day:
-    if ((dGEMFunctionNorm < dTolerance(12)).AND.(iterGlobal - iterLast > 100).AND.(iterGlobal > 4000))  then
+    if ((dGEMFunctionNorm < dTolerance(12)).AND.(iterGlobal - iterLast > 100).AND.(iterGlobal > shortcut1Iter))  then
         if (lDebugMode) print *, "Took Shortcut 1 after ", iterGlobal
         lConverged = .TRUE.
         return
-    else if ((dGEMFunctionNorm < 1D-2).AND.          (iterGlobal - iterLast > 5000)) then
+    else if ((dGEMFunctionNorm < 1D-2).AND.          (iterGlobal - iterLast > shortcut2Iter)) then
         if (lDebugMode) print *, "Took Shortcut 2 after ", iterGlobal
         lConverged = .TRUE.
         return
-    else if ((dGEMFunctionNorm < 1D-5).AND.(iterGlobal > 4000)) then
+    else if ((dGEMFunctionNorm < 1D-5).AND.(iterGlobal > shortcut3Iter)) then
         if (lDebugMode) print *, "Took Shortcut 3 after ", iterGlobal
         lConverged = .TRUE.
         return

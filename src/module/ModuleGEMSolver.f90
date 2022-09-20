@@ -60,7 +60,10 @@ module ModuleGEMSolver
     integer                              ::  iterLast,      iterStep, iterRevert, iterGlobal
     integer                              ::  iterLastCon,   iterLastSoln,         iterSwap,   iterLastMiscGapCheck
     integer                              ::  iConPhaseLast, iSolnPhaseLast,       iSolnSwap,  iPureConSwap
-    integer,                 parameter   ::  iterGlobalMax = 6000
+    integer                              ::  iterGlobalMax = 3000
+    integer                              ::  shortcut1Iter = 1000
+    integer                              ::  shortcut2Iter = 2000
+    integer                              ::  shortcut3Iter = 1000
     integer, dimension(:,:), allocatable ::  iterHistory
 
     real(8)                              ::  dGEMFunctionNorm,    dGEMFunctionNormLast, dMaxSpeciesChange
