@@ -20,6 +20,7 @@ class CalculationWindow:
         self.children = []
         self.calculation = binaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
         self.macro = []
+        self.macroSaveName = 'macroPhaseDiagram.py'
     def close(self):
         for child in self.children:
             child.close()
@@ -176,6 +177,9 @@ class CalculationWindow:
                     if event == sg.WIN_CLOSED or event == 'Continue':
                         break
                 errorWindow.close()
+            else:
+                self.macro.append(f'macroPD.makePlot()')
+                self.macro.append(f'macroPD.exportPlot()')
         elif event =='Plot Settings':
             settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
@@ -215,7 +219,7 @@ class CalculationWindow:
         elif event =='Clear Macro':
             self.macro = []
         elif event =='Export Macro':
-            with open('python/macroPhaseDiagram.py', 'w') as f:
+            with open('python/' + self.macroSaveName, 'w') as f:
                 f.write('import binaryPhaseDiagramFunctions\n')
                 f.write('import copy\n')
                 f.write(f'macroPD = binaryPhaseDiagramFunctions.diagram("{self.datafile}", False, False)\n')
@@ -490,6 +494,17 @@ class SettingsWindow:
         self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
+        # Log settings in macro before closing
+        self.parent.macro.append(f'macroPD.plotMarker = "{self.parent.calculation.plotMarker}"')
+        self.parent.macro.append(f'macroPD.plotColor = "{self.parent.calculation.plotColor}"')
+        self.parent.macro.append(f'macroPD.experimentColor = "{self.parent.calculation.experimentColor}"')
+        self.parent.macro.append(f'macroPD.showExperiment = {self.parent.calculation.showExperiment}')
+        self.parent.macro.append(f'macroPD.exportFileName = "{self.parent.calculation.exportFileName}"')
+        self.parent.macro.append(f'macroPD.exportFormat = "{self.parent.calculation.exportFormat}"')
+        self.parent.macro.append(f'macroPD.exportDPI = {self.parent.calculation.exportDPI}')
+        self.parent.macro.append(f'macroPD.showLoaded = {self.parent.calculation.showLoaded}')
+        self.parent.macro.append(f'macroPD.label1phase = {self.parent.calculation.label1phase}')
+        self.parent.macro.append(f'macroPD.label2phase = {self.parent.calculation.label2phase}')
         for child in self.children:
             child.close()
         self.sgw.close()
