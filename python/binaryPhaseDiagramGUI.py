@@ -3,7 +3,6 @@ import PySimpleGUI as sg
 import os
 import sys
 import pickle
-import csv
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
@@ -200,7 +199,7 @@ class CalculationWindow:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            addDataWindow = AddDataWindow(self)
+            addDataWindow = thermoToolsGUI.AddDataWindow(self,windowList)
             self.children.append(addDataWindow)
         elif event =='Inspect':
             self.calculation.makeBackup()
@@ -230,6 +229,9 @@ class CalculationWindow:
             self.calculation = macroPhaseDiagram.macroPD
             self.calculation.active = True
             self.calculation.interactivePlot = True
+        elif event =='Macro Settings':
+            macroSettingsWindow = thermoToolsGUI.MacroSettingsWindow(self,windowList)
+            self.children.append(macroSettingsWindow)
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
@@ -247,7 +249,8 @@ class CalculationWindow:
             sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Exit(size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+                       [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Auto Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Auto Smoothen', disabled = True, size = thermoToolsGUI.buttonSize)],
@@ -528,79 +531,6 @@ class SettingsWindow:
             except:
                 pass
             self.parent.calculation.makePlot()
-            self.close()
-
-class AddDataWindow:
-    def __init__(self,parent):
-        self.parent = parent
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Experimental Data Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".csv"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Experimental data selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".csv"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            newData = []
-            filename = values["-FILE LIST-"][0]
-            datafile = os.path.join(self.folder, filename)
-            with open(datafile) as f:
-                data = csv.reader(f)
-                next(data, None)  # skip the header
-                for row in data:
-                    newrow = []
-                    for number in row:
-                        newrow.append(float(number))
-                    newData.append(newrow)
-            self.parent.experimentalData.append(np.array(newData))
-            self.parent.experimentNames.append(filename.split('.',1)[0])
-            self.parent.makePlot()
             self.close()
 
 class InspectWindow:
