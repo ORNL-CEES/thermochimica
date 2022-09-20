@@ -66,7 +66,7 @@ subroutine CheckMiscibilityGap(iSolnPhaseIndex,lAddPhase)
     iFirst           = nSpeciesPhase(iSolnPhaseIndex-1) + 1
     iLast            = nSpeciesPhase(iSolnPhaseIndex)
     nConstituents    = iLast - iFirst + 1
-    if (nConstituents > 100) then
+    if (nConstituents > 12) then
         dMinMoleFraction = 1D-10
     else
         dMinMoleFraction = 1D-3
