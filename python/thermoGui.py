@@ -159,7 +159,7 @@ class CalculationWindow:
                     thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
-                    resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines),font='TkFixedFont')]], size = (440, 800), scrollable = True, vertical_scroll_only = True)]]
+                    resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines),font='TkFixedFont')]], size = (None, 800), scrollable = True, vertical_scroll_only = True)]]
                 else:
                     resultOutput = [[sg.Text('Output is too large to display')]]
                 resultWindow = ResultWindow(resultOutput)
@@ -242,7 +242,7 @@ class CalculationWindow:
 class ResultWindow:
     def __init__(self, layout):
         windowList.append(self)
-        self.sgw = sg.Window('Thermochimica output',layout, location = [825,0], finalize=True)
+        self.sgw = sg.Window('Thermochimica output',layout, location = [825,0], finalize=True, resizable=True)
     def close(self):
         self.sgw.close()
         if self in windowList:
