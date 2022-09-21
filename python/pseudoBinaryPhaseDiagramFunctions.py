@@ -275,7 +275,7 @@ class diagram:
         ax.set_ylabel(f'Temperature [{tunit_display}{self.tunit}]')
         for lab in self.labels:
             plt.text(float(lab[0][0]),float(lab[0][1]),lab[1], ha="center")
-        if self.showExperimentLegend:
+        if self.showExperimentLegend and len(self.experimentalData):
             ax.legend(loc = 0)
         plt.show()
         plt.pause(0.001)

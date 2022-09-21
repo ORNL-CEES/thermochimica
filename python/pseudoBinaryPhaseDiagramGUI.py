@@ -226,8 +226,8 @@ class CalculationWindow:
             self.sgw.Element('Add Data').Update(disabled = False)
         elif event =='Add Data':
             self.calculation.makeBackup()
-            addDataWindow = thermoToolsGUI.PhaseDiagramAddDataWindow(self)
-            self.children.append(addDataWindow,windowList)
+            addDataWindow = thermoToolsGUI.PhaseDiagramAddDataWindow(self,windowList)
+            self.children.append(addDataWindow)
         elif event =='Macro Settings':
             macroSettingsWindow = thermoToolsGUI.PhaseDiagramMacroSettingsWindow(self,windowList)
             self.children.append(macroSettingsWindow)
