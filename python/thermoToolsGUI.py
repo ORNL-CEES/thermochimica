@@ -31,32 +31,11 @@ class DataWindow:
         self.calc = calc
         self.parser = parser
         self.ext = ext.lower()
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
         self.folder = os.getcwd()+rootDir
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith(self.ext)
-        ]
-        fnames = sorted(fnames, key=str.lower)
+        windowList.append(self)
+        file_list_column = MakeFileListColumn('Database Folder')
         self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
+        fnames = GetFileNames(self.folder,self.ext)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
     def close(self):
@@ -71,18 +50,7 @@ class DataWindow:
             self.close()
         elif event == "-FOLDER-":
             self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith(self.ext)
-            ]
-            fnames = sorted(fnames, key=str.lower)
+            fnames = GetFileNames(self.folder,self.ext)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             try:
@@ -96,34 +64,14 @@ class PhaseDiagramAddDataWindow:
     def __init__(self,parent,windowList):
         self.parent = parent
         self.windowList = windowList
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Experimental Data Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
+        self.ext = '.csv'
         self.folder = os.getcwd()
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
+        windowList.append(self)
+        file_list_column = MakeFileListColumn('Experimental Data Folder')
         buttonLayout = [sg.Button('Add Data'), sg.Button('Exit')]
         addDataLayout = [file_list_column,buttonLayout]
         self.sgw = sg.Window('Experimental data selection', addDataLayout, location = [0,0], finalize=True)
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".csv"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
+        fnames = GetFileNames(self.folder,self.ext)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
         self.filename = ''
@@ -140,18 +88,7 @@ class PhaseDiagramAddDataWindow:
         elif event == "-FOLDER-":
             self.filename = ''
             self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".csv"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
+            fnames = GetFileNames(self.folder,self.ext)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             self.filename = values["-FILE LIST-"][0]
@@ -167,35 +104,15 @@ class PhaseDiagramMacroSettingsWindow:
     def __init__(self,parent,windowList):
         self.parent = parent
         self.windowList = windowList
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Macro Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
+        self.ext = '.py'
         self.folder = os.getcwd() + '/python'
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
+        windowList.append(self)
+        file_list_column = MakeFileListColumn('Macro Folder')
         buttonLayout = [sg.Button('Select Macro', size = buttonSize)]
         inputNameLayout = [[sg.Text('Macro File Save Name:')],[sg.Input(key='-macroSaveName-',size=(inputSize,1)),sg.Text('.py')],[sg.Button('Set Save Name', size = buttonSize), sg.Button('Exit', size = buttonSize)]]
         addDataLayout = [file_list_column,buttonLayout,inputNameLayout]
         self.sgw = sg.Window('Macro file', addDataLayout, location = [0,0], finalize=True)
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith((".py"))
-        ]
-        fnames = sorted(fnames, key=str.lower)
+        fnames = GetFileNames(self.folder,self.ext)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
         self.filename = ''
@@ -212,18 +129,7 @@ class PhaseDiagramMacroSettingsWindow:
         elif event == "-FOLDER-":
             self.filename = ''
             self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith((".py"))
-            ]
-            fnames = sorted(fnames, key=str.lower)
+            fnames = GetFileNames(self.folder,self.ext)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
             self.filename = values["-FILE LIST-"][0]
@@ -281,3 +187,32 @@ def JSONParse(parent,datafile):
         parent.children.append(plotWindow)
     except:
         return
+
+def MakeFileListColumn(text):
+    file_list_column = [
+        [
+            sg.Text(text),
+            sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
+            sg.FolderBrowse(),
+        ],
+        [
+            sg.Listbox(
+                values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+            )
+        ],
+    ]
+    return file_list_column
+
+def GetFileNames(folder,ext):
+    try:
+        file_list = os.listdir(folder)
+    except:
+        file_list = []
+    fnames = [
+        f
+        for f in file_list
+        if os.path.isfile(os.path.join(folder, f))
+        and f.lower().endswith(ext)
+    ]
+    fnames = sorted(fnames, key=str.lower)
+    return fnames
