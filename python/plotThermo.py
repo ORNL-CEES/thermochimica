@@ -1,95 +1,9 @@
 import PySimpleGUI as sg
-import subprocess
-import math
 import os
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-
-timeout = 50
-inputSize = 20
-buttonSize = 12
-popupLocation = [300,0]
-
-futureBlue = '#003C71'
-simcoeBlue = '#0077CA'
-techTangerine = '#E75D2A'
-coolGrey = '#A7A8AA'
-sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
-                                 'TEXT': 'white',
-                                 'INPUT': 'white',
-                                 'TEXT_INPUT': 'black',
-                                 'SCROLL': coolGrey,
-                                 'BUTTON': ('white', techTangerine),
-                                 'PROGRESS': ('#01826B', '#D0D0D0'),
-                                 'BORDER': 1,
-                                 'SLIDER_DEPTH': 0,
-                                 'PROGRESS_DEPTH': 0})
-sg.theme('OntarioTech')
-
-class DataWindow:
-    def __init__(self):
-        windowList.append(self)
-        file_list_column = [
-            [
-                sg.Text("Database Folder"),
-                sg.In(size=(25, 1), enable_events=True, key="-FOLDER-"),
-                sg.FolderBrowse(),
-            ],
-            [
-                sg.Listbox(
-                    values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
-                )
-            ],
-        ]
-        self.folder = os.getcwd()
-        try:
-            file_list = os.listdir(self.folder)
-        except:
-            file_list = []
-        fnames = [
-            f
-            for f in file_list
-            if os.path.isfile(os.path.join(self.folder, f))
-            and f.lower().endswith(('.json', '.JSON'))
-        ]
-        fnames = sorted(fnames, key=str.lower)
-        self.sgw = sg.Window('Thermochimica output data selection', file_list_column, location = [0,0], finalize=True)
-        self.sgw["-FILE LIST-"].update(fnames)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == "-FOLDER-":
-            self.folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(self.folder)
-            except:
-                file_list = []
-
-            fnames = [
-                f
-                for f in file_list
-                if os.path.isfile(os.path.join(self.folder, f))
-                and f.lower().endswith(('.json', '.JSON'))
-            ]
-            self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            try:
-                datafile = os.path.join(
-                    self.folder, values["-FILE LIST-"][0]
-                )
-                pWindow = PlotWindow(datafile)
-                self.children.append(pWindow)
-            except:
-                pass
+import thermoToolsGUI
 
 class PlotWindow:
     def __init__(self,datafile):
@@ -125,11 +39,11 @@ class PlotWindow:
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
                         ]
         plotLayout = [optionsLayout,
-                      [sg.Column([[sg.Button('Plot', disabled = True, size = buttonSize)],
-                                  [sg.Button('Export Plot', disabled = True, size = buttonSize)]
+                      [sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                  [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)]
                                  ],vertical_alignment='t'),
-                      sg.Column([[sg.Button('Export Plot Script', disabled = True, size = buttonSize)],
-                                  [sg.Button('Plot Settings', size = buttonSize)]
+                      sg.Column([[sg.Button('Export Plot Script', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                  [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)]
                                  ],vertical_alignment='t')]]
         self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
         self.children = []
@@ -151,7 +65,7 @@ class PlotWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-yaxis-':
@@ -256,7 +170,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -299,7 +213,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -349,7 +263,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -386,7 +300,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -422,7 +336,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -455,7 +369,7 @@ class PlotWindow:
                     break
                 phaseSelectLayout = phaseColumns
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -567,7 +481,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -609,7 +523,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -652,7 +566,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -685,7 +599,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -721,7 +635,7 @@ class PlotWindow:
                 for j in phaseColumns:
                     phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -753,7 +667,7 @@ class PlotWindow:
                     break
                 phaseSelectLayout = phaseColumns
                 phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = popupLocation, finalize=True)
+                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
                 while True:
                     event, values = selectWindow.read()
                     if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -982,9 +896,9 @@ class PlotWindow:
                                           [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
                                           [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
                                          ],vertical_alignment='t')],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(inputSize,1))],
+                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
                              [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(inputSize,1))],
+                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
@@ -995,7 +909,7 @@ class PlotWindow:
             errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
             errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
             while True:
-                event, values = errorWindow.read(timeout=timeout)
+                event, values = errorWindow.read(timeout=thermoToolsGUI.timeout)
                 if event == sg.WIN_CLOSED or event == 'Continue':
                     break
             errorWindow.close()
@@ -1013,7 +927,7 @@ class SettingsWindow:
         if self in windowList:
             windowList.remove(self)
     def read(self):
-        event, values = self.sgw.read(timeout=timeout)
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED:
             self.close()
         elif event == '-mline-':
@@ -1052,7 +966,7 @@ class SettingsWindow:
             self.close()
 
 windowList = []
-dataWindow = DataWindow()
+dataWindow = thermoToolsGUI.DataWindow(windowList,PlotWindow,thermoToolsGUI.JSONParse,ext='.json',rootDir='')
 while len(windowList) > 0:
     for window in windowList:
         window.read()

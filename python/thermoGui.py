@@ -266,7 +266,7 @@ if not(os.path.isfile('bin/InputScriptMode')):
     sys.exit()
 
 windowList = []
-dataWindow = thermoToolsGUI.DataWindow(windowList,CalculationWindow)
+dataWindow = thermoToolsGUI.DataWindow(windowList,CalculationWindow,thermoToolsGUI.DatFileParse)
 while len(windowList) > 0:
     for window in windowList:
         window.read()
