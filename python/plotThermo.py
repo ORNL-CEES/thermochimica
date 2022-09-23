@@ -21,12 +21,7 @@ class PlotWindow:
         self.y = []
         self.y2 = []
         self.xlab = []
-        f = open(self.datafile,)
-        self.data = json.load(f)
-        f.close()
-        if list(self.data.keys())[0] != '1':
-            print('Output does not contain data series')
-            exit()
+        self.readDatabase()
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'driving force', 'vapor pressure',
@@ -40,10 +35,11 @@ class PlotWindow:
                         ]
         plotLayout = [optionsLayout,
                       [sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
-                                  [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)]
+                                  [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
+                                  [sg.Button('Refresh Data', size = thermoToolsGUI.buttonSize)]
                                  ],vertical_alignment='t'),
                       sg.Column([[sg.Button('Export Plot Script', disabled = True, size = thermoToolsGUI.buttonSize)],
-                                  [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)]
+                                 [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)]                                  
                                  ],vertical_alignment='t')]]
         self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
         self.children = []
@@ -902,6 +898,8 @@ class PlotWindow:
                              [sg.Button('Accept')]]
             settingsWindow = SettingsWindow(self, settingsLayout)
             self.children.append(settingsWindow)
+        elif event == 'Refresh Data':
+            self.readDatabase()
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
@@ -913,6 +911,13 @@ class PlotWindow:
                 if event == sg.WIN_CLOSED or event == 'Continue':
                     break
             errorWindow.close()
+    def readDatabase(self):
+        f = open(self.datafile,)
+        self.data = json.load(f)
+        f.close()
+        if list(self.data.keys())[0] != '1':
+            print('Output does not contain data series')
+            exit()
 
 class SettingsWindow:
     def __init__(self, parent, windowLayout):
