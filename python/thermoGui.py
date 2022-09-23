@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-import subprocess
 import os
 import sys
 import numpy as np
@@ -153,10 +152,10 @@ class CalculationWindow:
                         calcList.append(calc)
 
                     thermoTools.WriteRunCalculationList(filename,self.datafile,self.elements,calcList,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"])
-                    thermoOut = subprocess.check_output(['./bin/RunCalculationList',filename]).decode("utf-8")
+                    thermoOut = thermoTools.RunRunCalculationList(filename,checkOutput=True)
                 else:
                     thermoTools.WriteInputScript(filename,self.datafile,self.elements,temperature,tend,ntstep,pressure,pend,npstep,masses1,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],stepTogether=values["-pent-"])
-                    thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
+                    thermoOut = thermoTools.RunInputScript(filename,checkOutput=True)
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
                     resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines),font='TkFixedFont')]], size = (None, 800), scrollable = True, vertical_scroll_only = True)]]

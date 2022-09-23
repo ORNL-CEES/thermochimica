@@ -1,7 +1,6 @@
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import subprocess
 import copy
 import scipy.optimize
 from itertools import cycle
@@ -87,7 +86,7 @@ class diagram:
                 calcList.append(calc)
         thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
         print('Thermochimica calculation initiated.')
-        subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+        thermoTools.RunRunCalculationList(self.inputFileName)
         print('Thermochimica calculation finished.')
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
