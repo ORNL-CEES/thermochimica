@@ -21,6 +21,10 @@ class PlotWindow:
         self.y = []
         self.y2 = []
         self.xlab = []
+        self.xkey = []
+        self.xlog = False
+        self.ylog = False
+        self.y2log = False
         self.readDatabase()
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
@@ -697,103 +701,11 @@ class PlotWindow:
                     self.leg2.append(j)
                 self.sgw.Element('Plot').Update(disabled = False)
         elif event == 'Plot':
-            x = []
-            y = []
-            y2 = []
-            xkey = values['-xaxis-']
-            for yi in range(len(self.ykey)):
-                y.append([])
-            for yi in range(len(self.ykey2)):
-                y2.append([])
-            for j in self.data.keys():
-                try:
-                    for yi in range(len(self.ykey)):
-                        if len(self.ykey[yi]) == 1:
-                            y[yi].append(self.data[j][self.ykey[yi][0]])
-                        elif len(self.ykey[yi]) == 3:
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]])
-                        elif len(self.ykey[yi]) == 5:
-                            if self.ykey[yi][4] == 'vapor pressure':
-                                y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                            else:
-                                y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
-                    for yi in range(len(self.ykey2)):
-                        if len(self.ykey2[yi]) == 1:
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]])
-                        elif len(self.ykey2[yi]) == 3:
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]])
-                        elif len(self.ykey2[yi]) == 5:
-                            if self.ykey2[yi][4] == 'vapor pressure':
-                                y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                            else:
-                                y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
-                    if xkey == 'iteration':
-                        x.append(int(j))
-                        xlab = 'Iteration'
-                    else:
-                        x.append(self.data[j][xkey])
-                        if xkey == 'temperature':
-                            xlab = 'Temperature [K]'
-                        elif xkey == 'pressure':
-                            xlab = 'Pressure [atm]'
-                except:
-                    # do nothing
-                    continue
-            # Start figure
-            fig = plt.figure()
-            plt.ion()
-            lns=[]
-            if True in self.yen2:
-                ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
-            else:
-                ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-            en = 0
-            for yi in range(len(self.yen)):
-                if self.yen[yi]:
-                    en += 1
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-            for yi in range(len(self.yen)):
-                if self.yen[yi]:
-                    if self.plotColor == 'colorful':
-                        c = next(color)
-                    else:
-                        c = 'k'
-                    lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label = self.leg[yi])
-            ax.set_xlabel(xlab)
-            if values['-xlog-']:
-                ax.set_xscale('log')
-            ax.set_ylabel(self.ylab)
-            if True in self.yen2:
-                ax2 = ax.twinx()
-                en = 0
-                for yi in range(len(self.yen2)):
-                    if self.yen2[yi]:
-                        en += 1
-                color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-                for yi in range(len(self.yen2)):
-                    if self.yen2[yi]:
-                        if self.plotColor2 == 'colorful':
-                            c = next(color)
-                        else:
-                            c = 'k'
-                        lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label = self.leg2[yi])
-                ax2.set_ylabel(self.ylab2)
-                if values['-y2log-']:
-                    ax2.set_yscale('log')
-            labs = [l.get_label() for l in lns]
-            if values['-ylog-']:
-                ax.set_yscale('log')
-            ax.legend(lns, labs, loc=0)
-            plt.show()
-            plt.pause(0.001)
-            self.currentPlot = fig
-            self.figureList.append(fig)
-            self.sgw.Element('Export Plot').Update(disabled = False)
-            self.x = x
-            self.y = y
-            self.y2 = y2
-            self.xlab = xlab
-            self.sgw.Element('Export Plot Script').Update(disabled = False)
+            self.xkey  = values['-xaxis-']
+            self.xlog  = values['-xlog-']
+            self.ylog  = values['-ylog-']
+            self.y2log = values['-y2log-']
+            self.makePlot()
         elif event == 'Export Plot Script':
             with open('python/generatedPlotScript.py', 'w') as f:
                 f.write('# Thermochimica-generated plot script\n')
@@ -900,6 +812,103 @@ class PlotWindow:
             self.children.append(settingsWindow)
         elif event == 'Refresh Data':
             self.readDatabase()
+    def makePlot(self):
+        x = []
+        y = []
+        y2 = []
+        for yi in range(len(self.ykey)):
+            y.append([])
+        for yi in range(len(self.ykey2)):
+            y2.append([])
+        for j in self.data.keys():
+            try:
+                for yi in range(len(self.ykey)):
+                    if len(self.ykey[yi]) == 1:
+                        y[yi].append(self.data[j][self.ykey[yi][0]])
+                    elif len(self.ykey[yi]) == 3:
+                        y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]])
+                    elif len(self.ykey[yi]) == 5:
+                        if self.ykey[yi][4] == 'vapor pressure':
+                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                        else:
+                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
+                for yi in range(len(self.ykey2)):
+                    if len(self.ykey2[yi]) == 1:
+                        y2[yi].append(self.data[j][self.ykey2[yi][0]])
+                    elif len(self.ykey2[yi]) == 3:
+                        y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]])
+                    elif len(self.ykey2[yi]) == 5:
+                        if self.ykey2[yi][4] == 'vapor pressure':
+                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                        else:
+                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
+                if self.xkey == 'iteration':
+                    x.append(int(j))
+                    xlab = 'Iteration'
+                else:
+                    x.append(self.data[j][self.xkey])
+                    if self.xkey == 'temperature':
+                        xlab = 'Temperature [K]'
+                    elif self.xkey == 'pressure':
+                        xlab = 'Pressure [atm]'
+            except:
+                # do nothing
+                continue
+        # Start figure
+        fig = plt.figure()
+        plt.ion()
+        lns=[]
+        if True in self.yen2:
+            ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
+        else:
+            ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+        en = 0
+        for yi in range(len(self.yen)):
+            if self.yen[yi]:
+                en += 1
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
+        for yi in range(len(self.yen)):
+            if self.yen[yi]:
+                if self.plotColor == 'colorful':
+                    c = next(color)
+                else:
+                    c = 'k'
+                lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label = self.leg[yi])
+        ax.set_xlabel(xlab)
+        if self.xlog:
+            ax.set_xscale('log')
+        ax.set_ylabel(self.ylab)
+        if True in self.yen2:
+            ax2 = ax.twinx()
+            en = 0
+            for yi in range(len(self.yen2)):
+                if self.yen2[yi]:
+                    en += 1
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
+            for yi in range(len(self.yen2)):
+                if self.yen2[yi]:
+                    if self.plotColor2 == 'colorful':
+                        c = next(color)
+                    else:
+                        c = 'k'
+                    lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label = self.leg2[yi])
+            ax2.set_ylabel(self.ylab2)
+            if self.y2log:
+                ax2.set_yscale('log')
+        labs = [l.get_label() for l in lns]
+        if self.ylog:
+            ax.set_yscale('log')
+        ax.legend(lns, labs, loc=0)
+        plt.show()
+        plt.pause(0.001)
+        self.currentPlot = fig
+        self.figureList.append(fig)
+        self.sgw.Element('Export Plot').Update(disabled = False)
+        self.x = x
+        self.y = y
+        self.y2 = y2
+        self.xlab = xlab
+        self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
