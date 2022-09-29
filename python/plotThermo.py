@@ -711,65 +711,7 @@ class PlotWindow:
         elif event == 'Export Plot':
             self.exportPlot()
         elif event == 'Plot Settings':
-            if self.plotMarker == '-':
-                line  = True
-                point = False
-                both  = False
-            elif self.plotMarker == '.':
-                line  = False
-                point = True
-                both  = False
-            else:
-                line  = False
-                point = False
-                both  = True
-            if self.plotMarker2 == '--':
-                line2  = True
-                point2 = False
-                both2  = False
-            elif self.plotMarker2 == '*':
-                line2  = False
-                point2 = True
-                both2  = False
-            else:
-                line2  = False
-                point2 = False
-                both2  = True
-            if self.plotColor == 'colorful':
-                colorful = True
-                bland    = False
-            else:
-                colorful = False
-                bland    = True
-            if self.plotColor2 == 'colorful':
-                colorful2 = True
-                bland2    = False
-            else:
-                colorful2 = False
-                bland2    = True
-            settingsLayout = [[sg.Column([[sg.Text('Marker Style:')],
-                                          [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
-                                          [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
-                                          [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')]
-                                         ],vertical_alignment='t'),
-                               sg.Column([[sg.Text('Marker Style 2:')],
-                                          [sg.Radio('Lines', 'mstyle2', default=line2,  enable_events=True, key='-mline2-')],
-                                          [sg.Radio('Points','mstyle2', default=point2, enable_events=True, key='-mpoint2-')],
-                                          [sg.Radio('Both',  'mstyle2', default=both2,  enable_events=True, key='-mboth2-')]
-                                         ],vertical_alignment='t')],
-                              [sg.Column([[sg.Text('Plot Colors:')],
-                                          [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
-                                          [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')]
-                                         ],vertical_alignment='t'),
-                               sg.Column([[sg.Text('Plot Colors 2:')],
-                                          [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
-                                          [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
-                                         ],vertical_alignment='t')],
-                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
-                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
-                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
-                             [sg.Button('Accept')]]
-            settingsWindow = SettingsWindow(self, settingsLayout)
+            settingsWindow = SettingsWindow(self)
             self.children.append(settingsWindow)
         elif event == 'Refresh Data':
             self.readDatabase()
@@ -931,10 +873,10 @@ class PlotWindow:
             exit()
 
 class SettingsWindow:
-    def __init__(self, parent, windowLayout):
+    def __init__(self, parent):
         self.parent = parent
+        self.makeLayout()
         windowList.append(self)
-        self.sgw = sg.Window('Plot Settings', windowLayout, location = [400,0], finalize=True)
         self.children = []
     def close(self):
         for child in self.children:
@@ -942,6 +884,66 @@ class SettingsWindow:
         self.sgw.close()
         if self in windowList:
             windowList.remove(self)
+    def makeLayout(self):
+        if self.parent.plotMarker == '-':
+            line  = True
+            point = False
+            both  = False
+        elif self.parent.plotMarker == '.':
+            line  = False
+            point = True
+            both  = False
+        else:
+            line  = False
+            point = False
+            both  = True
+        if self.parent.plotMarker2 == '--':
+            line2  = True
+            point2 = False
+            both2  = False
+        elif self.parent.plotMarker2 == '*':
+            line2  = False
+            point2 = True
+            both2  = False
+        else:
+            line2  = False
+            point2 = False
+            both2  = True
+        if self.parent.plotColor == 'colorful':
+            colorful = True
+            bland    = False
+        else:
+            colorful = False
+            bland    = True
+        if self.parent.plotColor2 == 'colorful':
+            colorful2 = True
+            bland2    = False
+        else:
+            colorful2 = False
+            bland2    = True
+        settingsLayout = [[sg.Column([[sg.Text('Marker Style:')],
+                                        [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                                        [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                                        [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')]
+                                        ],vertical_alignment='t'),
+                            sg.Column([[sg.Text('Marker Style 2:')],
+                                        [sg.Radio('Lines', 'mstyle2', default=line2,  enable_events=True, key='-mline2-')],
+                                        [sg.Radio('Points','mstyle2', default=point2, enable_events=True, key='-mpoint2-')],
+                                        [sg.Radio('Both',  'mstyle2', default=both2,  enable_events=True, key='-mboth2-')]
+                                        ],vertical_alignment='t')],
+                            [sg.Column([[sg.Text('Plot Colors:')],
+                                        [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                                        [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')]
+                                        ],vertical_alignment='t'),
+                            sg.Column([[sg.Text('Plot Colors 2:')],
+                                        [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
+                                        [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
+                                        ],vertical_alignment='t')],
+                            [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
+                            [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                            [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
+                            [sg.Button('Accept')]]
+        self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
     def read(self):
         event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
         if event == sg.WIN_CLOSED:
