@@ -707,46 +707,7 @@ class PlotWindow:
             self.y2log = values['-y2log-']
             self.makePlot()
         elif event == 'Export Plot Script':
-            with open('python/generatedPlotScript.py', 'w') as f:
-                f.write('# Thermochimica-generated plot script\n')
-                f.write('import matplotlib.pyplot as plt\n')
-                f.write('x = '+"{}\n".format(self.x))
-                f.write('y = '+"{}\n".format(self.y))
-                f.write('xlab = \''+self.xlab+'\'\n')
-                f.write('ylab = \''+self.ylab+'\'\n')
-                f.write('yen = '+"{}\n".format(self.yen))
-                f.write('leg = '+"{}\n".format(self.leg))
-                f.write('lns=[]\n')
-                f.write('# Start figure\n')
-                f.write('fig = plt.figure()\n')
-                if True in self.yen2:
-                    f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
-                else:
-                    f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
-                f.write('for yi in range(len(yen)):\n')
-                f.write('    if yen[yi]:\n')
-                f.write('        lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
-                if True in self.yen2:
-                    f.write('y2 = '+"{}\n".format(self.y2))
-                    f.write('ylab2 = \''+self.ylab2+'\'\n')
-                    f.write('yen2 = '+"{}\n".format(self.yen2))
-                    f.write('leg2 = '+"{}\n".format(self.leg2))
-                    f.write('ax2 = ax.twinx()\n')
-                    f.write('for yi in range(len(yen2)):\n')
-                    f.write('    if yen2[yi]:\n')
-                    f.write('        lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
-                    f.write('ax2.set_ylabel(ylab2)\n')
-                    if values['-y2log-']:
-                        f.write("ax2.set_yscale('log')\n")
-                f.write('labs = [l.get_label() for l in lns]\n')
-                f.write('ax.legend(lns, labs, loc=0)\n')
-                f.write('ax.set_xlabel(xlab)\n')
-                f.write('ax.set_ylabel(ylab)\n')
-                if values['-xlog-']:
-                    f.write("ax.set_xscale('log')\n")
-                if values['-ylog-']:
-                    f.write("ax.set_yscale('log')\n")
-                f.write('plt.show()\n')
+            self.exportPlotScript()
         elif event == 'Export Plot':
             self.exportPlot()
         elif event == 'Plot Settings':
@@ -909,6 +870,47 @@ class PlotWindow:
         self.y2 = y2
         self.xlab = xlab
         self.sgw.Element('Export Plot Script').Update(disabled = False)
+    def exportPlotScript(self):
+        with open('python/generatedPlotScript.py', 'w') as f:
+            f.write('# Thermochimica-generated plot script\n')
+            f.write('import matplotlib.pyplot as plt\n')
+            f.write('x = '+"{}\n".format(self.x))
+            f.write('y = '+"{}\n".format(self.y))
+            f.write('xlab = \''+self.xlab+'\'\n')
+            f.write('ylab = \''+self.ylab+'\'\n')
+            f.write('yen = '+"{}\n".format(self.yen))
+            f.write('leg = '+"{}\n".format(self.leg))
+            f.write('lns=[]\n')
+            f.write('# Start figure\n')
+            f.write('fig = plt.figure()\n')
+            if True in self.yen2:
+                f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
+            else:
+                f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
+            f.write('for yi in range(len(yen)):\n')
+            f.write('    if yen[yi]:\n')
+            f.write('        lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
+            if True in self.yen2:
+                f.write('y2 = '+"{}\n".format(self.y2))
+                f.write('ylab2 = \''+self.ylab2+'\'\n')
+                f.write('yen2 = '+"{}\n".format(self.yen2))
+                f.write('leg2 = '+"{}\n".format(self.leg2))
+                f.write('ax2 = ax.twinx()\n')
+                f.write('for yi in range(len(yen2)):\n')
+                f.write('    if yen2[yi]:\n')
+                f.write('        lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
+                f.write('ax2.set_ylabel(ylab2)\n')
+                if self.y2log:
+                    f.write("ax2.set_yscale('log')\n")
+            f.write('labs = [l.get_label() for l in lns]\n')
+            f.write('ax.legend(lns, labs, loc=0)\n')
+            f.write('ax.set_xlabel(xlab)\n')
+            f.write('ax.set_ylabel(ylab)\n')
+            if self.xlog:
+                f.write("ax.set_xscale('log')\n")
+            if self.ylog:
+                f.write("ax.set_yscale('log')\n")
+            f.write('plt.show()\n')
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
