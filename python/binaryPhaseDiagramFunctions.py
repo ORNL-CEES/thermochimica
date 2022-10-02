@@ -802,7 +802,7 @@ class diagram:
                     calcList.append(calc)
                 thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
                 print('Thermochimica calculation initiated.')
-                subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+                thermoTools.RunRunCalculationList(self.inputFileName)
                 print('Thermochimica calculation finished.')
                 self.processPhaseDiagramData()
 
@@ -848,7 +848,7 @@ class diagram:
                 calcList.append(calc)
             thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
             print('Thermochimica calculation initiated.')
-            subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+            thermoTools.RunRunCalculationList(self.inputFileName)
             print('Thermochimica calculation finished.')
             self.processPhaseDiagramData()
 
@@ -887,7 +887,7 @@ class diagram:
                     calcList.append(calc)
                 thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
                 print('Thermochimica calculation initiated.')
-                subprocess.run(['./bin/RunCalculationList',self.inputFileName])
+                thermoTools.RunRunCalculationList(self.inputFileName)
                 print('Thermochimica calculation finished.')
                 self.processPhaseDiagramData()
 

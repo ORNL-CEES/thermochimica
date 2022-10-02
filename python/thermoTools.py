@@ -1,3 +1,5 @@
+import subprocess
+
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
     'S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn',
@@ -62,3 +64,17 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         if minSpecies:
             # Preserve Thermochimica default unless set
             inputFile.write(f'min species       = {minSpecies}\n')
+
+def RunRunCalculationList(filename,checkOutput=False):
+    if checkOutput:
+        thermoOut = subprocess.check_output(['./bin/RunCalculationList',filename]).decode("utf-8")
+        return thermoOut
+    else:
+        subprocess.run(['./bin/RunCalculationList',filename])
+
+def RunInputScript(filename,checkOutput=False):
+    if checkOutput:
+        thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
+        return thermoOut
+    else:
+        subprocess.run(['./bin/InputScriptMode',filename])
