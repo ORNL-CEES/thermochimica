@@ -282,7 +282,8 @@ program RunCalculationList
             return
           end if
         case ('fuzzy','fuzzy stoichiometry','fuzzystoichiometry','fuzzy_stoichiometry',&
-          'Fuzzy','Fuzzy Stoichiometry','FuzzyStoichiometry','Fuzzy_Stoichiometry')
+          'Fuzzy','Fuzzy Stoichiometry','FuzzyStoichiometry','Fuzzy_Stoichiometry',&
+          'lFuzzyStoich','fuzz','Fuzz','fuzzy stoich')
           read(cValue,*,IOSTAT = INFO) lFuzzyStoich
           if (INFO /= 0) then
             INFOThermo = 54
@@ -291,7 +292,8 @@ program RunCalculationList
             return
           end if
         case ('fuzzy mag','fuzzy magnitude','fuzzymagnitude','fuzzy_magnitude',&
-          'Fuzzy Mag','Fuzzy Magnitude','FuzzyMagnitude','Fuzzy_Magnitude')
+          'Fuzzy Mag','Fuzzy Magnitude','FuzzyMagnitude','Fuzzy_Magnitude',&
+          'dFuzzMag','fuzz magnitude','Fuzz Magnitude')
           read(cValue,*,IOSTAT = INFO) dFuzzMag
           if (INFO /= 0) then
             INFOThermo = 54
