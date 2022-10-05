@@ -725,7 +725,7 @@ class PlotWindow:
         self.sgw.Element('Export Plot').Update(disabled = False)
         self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlotScript(self):
-        thermoTools.exportPlotScript(self.plotScriptFilename,self.x,self.y,self.xlab,self.ylab,self.plotLeg,yen2=self.yen2,y2=self.y2,ylab2=self.ylab2,plotLeg2=self.plotLeg2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
+        thermoTools.exportPlotScript(self.plotScriptFilename,self.x,self.y,self.xlab,self.ylab,self.plotLeg,yen2=self.yen2,y2=self.y2,ylab2=self.ylab2,plotLeg2=self.plotLeg2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)

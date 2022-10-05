@@ -179,14 +179,16 @@ def makePlot(data,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=No
 
     return x, y, y2, legend, legend2, xlab
 
-def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None,plotLeg2=None,xlog=False,ylog=False,ylog2=False):
+def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None,plotLeg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+    # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
     with open(filename, 'w') as f:
         f.write('# Thermochimica-generated plot script\n')
         f.write('import matplotlib.pyplot as plt\n')
+        f.write('import numpy as np\n')
         f.write('x = '+"{}\n".format(x))
         f.write('y = '+"{}\n".format(y))
-        f.write('xlab = \''+xlab+'\'\n')
-        f.write('ylab = \''+ylab+'\'\n')
+        f.write(f'xlab = \'{xlab}\'\n')
+        f.write(f'ylab = \'{ylab}\'\n')
         f.write('leg = '+"{}\n".format(plotLeg))
         f.write('lns=[]\n')
         f.write('# Start figure\n')
@@ -195,15 +197,25 @@ def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None
             f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
         else:
             f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
+        f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y))))\n')
         f.write('for yi in range(len(y)):\n')
-        f.write('    lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
+        if plotColor == 'colorful':
+            f.write('    c = next(color)\n')
+        else:
+            f.write('    c = \'k\'\n')
+        f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=leg[yi])\n')
         if True in yen2:
             f.write('y2 = '+"{}\n".format(y2))
-            f.write('ylab2 = \''+ylab2+'\'\n')
+            f.write('ylab2 = \'{ylab2}\'\n')
             f.write('leg2 = '+"{}\n".format(plotLeg2))
             f.write('ax2 = ax.twinx()\n')
+            f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
             f.write('for yi in range(len(y2)):\n')
-            f.write('    lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
+            if plotColor2 == 'colorful':
+                f.write('    c = next(color)\n')
+            else:
+                f.write('    c = \'k\'\n')
+            f.write(f'    lns = lns + ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c,label=leg2[yi])\n')
             f.write('ax2.set_ylabel(ylab2)\n')
             if ylog2:
                 f.write("ax2.set_yscale('log')\n")
