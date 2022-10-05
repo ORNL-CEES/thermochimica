@@ -717,12 +717,8 @@ class PlotWindow:
             self.readDatabase()
     def makePlot(self):
         x = []
-        y = []
-        y2 = []
-        for yi in range(len(self.ykey)):
-            y.append([])
-        for yi in range(len(self.ykey2)):
-            y2.append([])
+        y = [[] for _ in range(len(self.ykey))]
+        y2 = [[] for _ in range(len(self.ykey2))]
         for j in self.data.keys():
             try:
                 for yi in range(len(self.ykey)):
