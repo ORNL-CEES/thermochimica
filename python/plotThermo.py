@@ -57,6 +57,7 @@ class PlotWindow:
         self.plotColor = 'colorful'
         self.plotColor2 = 'colorful'
         self.exportDPI = 300
+        self.plotScriptFilename = 'python/generatedPlotScript.py'
     def close(self):
         for child in self.children:
             child.close()
@@ -724,42 +725,7 @@ class PlotWindow:
         self.sgw.Element('Export Plot').Update(disabled = False)
         self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlotScript(self):
-        with open('python/generatedPlotScript.py', 'w') as f:
-            f.write('# Thermochimica-generated plot script\n')
-            f.write('import matplotlib.pyplot as plt\n')
-            f.write('x = '+"{}\n".format(self.x))
-            f.write('y = '+"{}\n".format(self.y))
-            f.write('xlab = \''+self.xlab+'\'\n')
-            f.write('ylab = \''+self.ylab+'\'\n')
-            f.write('leg = '+"{}\n".format(self.plotLeg))
-            f.write('lns=[]\n')
-            f.write('# Start figure\n')
-            f.write('fig = plt.figure()\n')
-            if True in self.yen2:
-                f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
-            else:
-                f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
-            f.write('for yi in range(len(y)):\n')
-            f.write('    lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
-            if True in self.yen2:
-                f.write('y2 = '+"{}\n".format(self.y2))
-                f.write('ylab2 = \''+self.ylab2+'\'\n')
-                f.write('leg2 = '+"{}\n".format(self.plotLeg2))
-                f.write('ax2 = ax.twinx()\n')
-                f.write('for yi in range(len(y2)):\n')
-                f.write('    lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
-                f.write('ax2.set_ylabel(ylab2)\n')
-                if self.ylog2:
-                    f.write("ax2.set_yscale('log')\n")
-            f.write('labs = [l.get_label() for l in lns]\n')
-            f.write('ax.legend(lns, labs, loc=0)\n')
-            f.write('ax.set_xlabel(xlab)\n')
-            f.write('ax.set_ylabel(ylab)\n')
-            if self.xlog:
-                f.write("ax.set_xscale('log')\n")
-            if self.ylog:
-                f.write("ax.set_yscale('log')\n")
-            f.write('plt.show()\n')
+        thermoTools.exportPlotScript(self.plotScriptFilename,self.x,self.y,self.xlab,self.ylab,self.plotLeg,yen2=self.yen2,y2=self.y2,ylab2=self.ylab2,plotLeg2=self.plotLeg2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)

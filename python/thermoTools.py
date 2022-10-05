@@ -178,3 +178,42 @@ def makePlot(data,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=No
     plt.pause(0.001)
 
     return x, y, y2, legend, legend2, xlab
+
+def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None,plotLeg2=None,xlog=False,ylog=False,ylog2=False):
+    with open(filename, 'w') as f:
+        f.write('# Thermochimica-generated plot script\n')
+        f.write('import matplotlib.pyplot as plt\n')
+        f.write('x = '+"{}\n".format(x))
+        f.write('y = '+"{}\n".format(y))
+        f.write('xlab = \''+xlab+'\'\n')
+        f.write('ylab = \''+ylab+'\'\n')
+        f.write('leg = '+"{}\n".format(plotLeg))
+        f.write('lns=[]\n')
+        f.write('# Start figure\n')
+        f.write('fig = plt.figure()\n')
+        if True in yen2:
+            f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
+        else:
+            f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
+        f.write('for yi in range(len(y)):\n')
+        f.write('    lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
+        if True in yen2:
+            f.write('y2 = '+"{}\n".format(y2))
+            f.write('ylab2 = \''+ylab2+'\'\n')
+            f.write('leg2 = '+"{}\n".format(plotLeg2))
+            f.write('ax2 = ax.twinx()\n')
+            f.write('for yi in range(len(y2)):\n')
+            f.write('    lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
+            f.write('ax2.set_ylabel(ylab2)\n')
+            if ylog2:
+                f.write("ax2.set_yscale('log')\n")
+        f.write('labs = [l.get_label() for l in lns]\n')
+        f.write('ax.legend(lns, labs, loc=0)\n')
+        f.write('ax.set_xlabel(xlab)\n')
+        f.write('ax.set_ylabel(ylab)\n')
+        if xlog:
+            f.write("ax.set_xscale('log')\n")
+        if ylog:
+            f.write("ax.set_yscale('log')\n")
+        f.write('plt.show()\n')
+
