@@ -207,7 +207,7 @@ def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None
         f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=leg[yi])\n')
         if True in yen2:
             f.write('y2 = '+"{}\n".format(y2))
-            f.write('ylab2 = \'{ylab2}\'\n')
+            f.write(f'ylab2 = \'{ylab2}\'\n')
             f.write('leg2 = '+"{}\n".format(plotLeg2))
             f.write('ax2 = ax.twinx()\n')
             f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
