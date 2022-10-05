@@ -718,14 +718,19 @@ class PlotWindow:
         elif event == 'Refresh Data':
             self.readDatabase()
     def makePlot(self):
+        # Select data
+        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
         # Call plotter
-        self.x, self.y, self.y2, self.plotLeg, self.plotLeg2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,self.yen,self.ykey,self.leg,self.ylab,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2,ylab2=self.ylab2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
+        self.x, self.y, self.y2, self.plotLeg, self.plotLeg2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend,yused2=yused2,ylab2=self.ylab2,leg2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
         
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
         self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlotScript(self):
-        thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,self.yen,self.ykey,self.leg,self.ylab,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2,ylab2=self.ylab2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
+        # Select data
+        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        # Call plot exporter
+        thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,self.ylab,legend,yused2=yused2,ylab2=self.ylab2,leg2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)

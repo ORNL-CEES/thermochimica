@@ -82,15 +82,15 @@ def RunInputScript(filename,checkOutput=False):
     else:
         subprocess.run(['./bin/InputScriptMode',filename])
 
-def makePlot(datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Do plot setup
-    x,y,y2,xlab,legend,legend2 = plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=yen2,ykey2=ykey2,leg2=leg2)
+    x,y,y2,xlab,legend,legend2 = plotDataSetup(datafile,xkey,yused,leg,yused2=yused2,legend2=leg2)
 
     # Start figure
     fig = plt.figure()
     plt.ion()
     lns=[]
-    if True in yen2:
+    if yused2:
         ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
     else:
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
@@ -105,7 +105,7 @@ def makePlot(datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab
     if xlog:
         ax.set_xscale('log')
     ax.set_ylabel(ylab)
-    if True in yen2:
+    if yused2:
         ax2 = ax.twinx()
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))
         for yi in range(len(y2)):
@@ -126,26 +126,29 @@ def makePlot(datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab
 
     return x, y, y2, legend, legend2, xlab
 
-def plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
-    # Init x-axis
-    x = []
-    
-    # Init left-hand y-axis
+def selectData(yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
+    # Select for left-hand y-axis
     yused = []
     legend = []
     for i in range(len(yen)):
         if yen[i]:
             yused.append(ykey[i])
             legend.append(leg[i])
-    y = [[] for _ in range(len(yused))]
-    
-    # Init right-hand y-axis
+
+    # Select for right-hand y-axis
     yused2 = []
     legend2 = []
     for i in range(len(yen2)):
         if yen2[i]:
             yused2.append(ykey2[i])
             legend2.append(leg2[i])
+
+    return yused, legend, yused2, legend2
+
+def plotDataSetup(datafile,xkey,yused,legend,yused2=None,legend2=None):
+    # Init axes
+    x = []
+    y = [[] for _ in range(len(yused))]
     y2 = [[] for _ in range(len(yused2))]
     
     # Loop over all calculations and get requested values
@@ -187,7 +190,7 @@ def plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
     
     return x,y,y2,xlab,legend,legend2
 
-def exportPlotScript(filename,datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+def exportPlotScript(filename,datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
     # Call plotDataSetup() instead
     with open(filename, 'w') as f:
@@ -200,20 +203,18 @@ def exportPlotScript(filename,datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=No
         # Copy data
         f.write(f'datafile = \'{datafile}\'\n')
         f.write(f'xkey     = \'{xkey}\'\n')
-        f.write(f'yen      = {yen}\n')
-        f.write(f'ykey     = {ykey}\n')
+        f.write(f'yused      = {yused}\n')
         f.write(f'leg      = {leg}\n')
-        f.write(f'yen2     = {yen2}\n')
-        f.write(f'ykey2    = {ykey2}\n')
+        f.write(f'yused2     = {yused2}\n')
         f.write(f'leg2     = {leg2}\n')
         f.write(f'ylab     = \'{ylab}\'\n')
         # Call plotDataSetup (enables use of datafile path)
-        f.write('x,y,y2,xlab,legend,legend2 = thermoTools.plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=yen2,ykey2=ykey2,leg2=leg2)\n')
+        f.write('x,y,y2,xlab,legend,legend2 = thermoTools.plotDataSetup(datafile,xkey,yused,leg,yused2=yused2,legend2=leg2)\n')
         # Figure generation commands
         f.write('lns=[]\n')
         f.write('# Start figure\n')
         f.write('fig = plt.figure()\n')
-        if True in yen2:
+        if yused2:
             f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
         else:
             f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
@@ -224,7 +225,7 @@ def exportPlotScript(filename,datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=No
         else:
             f.write('    c = \'k\'\n')
         f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=legend[yi])\n')
-        if True in yen2:
+        if yused2:
             f.write(f'ylab2 = \'{ylab2}\'\n')
             f.write('ax2 = ax.twinx()\n')
             f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
