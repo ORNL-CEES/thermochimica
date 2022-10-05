@@ -12,9 +12,11 @@ class PlotWindow:
         self.ykey = [[]]
         self.yen = []
         self.leg = []
+        self.plotLeg = []
         self.ykey2 = [[]]
         self.yen2 = []
         self.leg2 = []
+        self.plotLeg2 = []
         self.ylab = ''
         self.ylab2 = ''
         self.x = []
@@ -716,31 +718,50 @@ class PlotWindow:
         elif event == 'Refresh Data':
             self.readDatabase()
     def makePlot(self):
+        # Init x-axis
         x = []
-        y = [[] for _ in range(len(self.ykey))]
-        y2 = [[] for _ in range(len(self.ykey2))]
+        
+        # Init left-hand y-axis
+        yused = []
+        leg = []
+        for i in range(len(self.yen)):
+            if self.yen[i]:
+                yused.append(self.ykey[i])
+                leg.append(self.leg[i])
+        y = [[] for _ in range(len(yused))]
+        
+        # Init right-hand y-axis
+        yused2 = []
+        leg2 = []
+        for i in range(len(self.yen2)):
+            if self.yen2[i]:
+                yused2.append(self.ykey2[i])
+                leg2.append(self.leg2[i])
+        y2 = [[] for _ in range(len(yused2))]
+        
+        # Loop over all calculations and get requested values
         for j in self.data.keys():
             try:
-                for yi in range(len(self.ykey)):
-                    if len(self.ykey[yi]) == 1:
-                        y[yi].append(self.data[j][self.ykey[yi][0]])
-                    elif len(self.ykey[yi]) == 3:
-                        y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]])
-                    elif len(self.ykey[yi]) == 5:
-                        if self.ykey[yi][4] == 'vapor pressure':
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                for yi in range(len(yused)):
+                    if len(yused[yi]) == 1:
+                        y[yi].append(self.data[j][yused[yi][0]])
+                    elif len(yused[yi]) == 3:
+                        y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]])
+                    elif len(yused[yi]) == 5:
+                        if yused[yi][4] == 'vapor pressure':
+                            y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*self.data[j]['pressure'])
                         else:
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
-                for yi in range(len(self.ykey2)):
-                    if len(self.ykey2[yi]) == 1:
-                        y2[yi].append(self.data[j][self.ykey2[yi][0]])
-                    elif len(self.ykey2[yi]) == 3:
-                        y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]])
-                    elif len(self.ykey2[yi]) == 5:
-                        if self.ykey2[yi][4] == 'vapor pressure':
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]]['mole fraction']*self.data[j]['pressure'])
+                            y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
+                for yi in range(len(yused2)):
+                    if len(yused2[yi]) == 1:
+                        y2[yi].append(self.data[j][yused2[yi][0]])
+                    elif len(yused2[yi]) == 3:
+                        y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
+                    elif len(yused2[yi]) == 5:
+                        if yused2[yi][4] == 'vapor pressure':
+                            y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*self.data[j]['pressure'])
                         else:
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
+                            y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
                 if self.xkey == 'iteration':
                     x.append(int(j))
                     xlab = 'Iteration'
@@ -753,6 +774,7 @@ class PlotWindow:
             except:
                 # do nothing
                 continue
+        
         # Start figure
         fig = plt.figure()
         plt.ion()
@@ -761,36 +783,26 @@ class PlotWindow:
             ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
         else:
             ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-        en = 0
-        for yi in range(len(self.yen)):
-            if self.yen[yi]:
-                en += 1
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-        for yi in range(len(self.yen)):
-            if self.yen[yi]:
-                if self.plotColor == 'colorful':
-                    c = next(color)
-                else:
-                    c = 'k'
-                lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label = self.leg[yi])
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y))))
+        for yi in range(len(y)):
+            if self.plotColor == 'colorful':
+                c = next(color)
+            else:
+                c = 'k'
+            lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label=leg[yi])
         ax.set_xlabel(xlab)
         if self.xlog:
             ax.set_xscale('log')
         ax.set_ylabel(self.ylab)
         if True in self.yen2:
             ax2 = ax.twinx()
-            en = 0
-            for yi in range(len(self.yen2)):
-                if self.yen2[yi]:
-                    en += 1
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-            for yi in range(len(self.yen2)):
-                if self.yen2[yi]:
-                    if self.plotColor2 == 'colorful':
-                        c = next(color)
-                    else:
-                        c = 'k'
-                    lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label = self.leg2[yi])
+            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))
+            for yi in range(len(y2)):
+                if self.plotColor2 == 'colorful':
+                    c = next(color)
+                else:
+                    c = 'k'
+                lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label=leg2[yi])
             ax2.set_ylabel(self.ylab2)
             if self.y2log:
                 ax2.set_yscale('log')
@@ -805,6 +817,8 @@ class PlotWindow:
         self.sgw.Element('Export Plot').Update(disabled = False)
         self.x = x
         self.y = y
+        self.plotLeg = leg
+        self.plotLeg2 = leg2
         self.y2 = y2
         self.xlab = xlab
         self.sgw.Element('Export Plot Script').Update(disabled = False)
@@ -816,8 +830,7 @@ class PlotWindow:
             f.write('y = '+"{}\n".format(self.y))
             f.write('xlab = \''+self.xlab+'\'\n')
             f.write('ylab = \''+self.ylab+'\'\n')
-            f.write('yen = '+"{}\n".format(self.yen))
-            f.write('leg = '+"{}\n".format(self.leg))
+            f.write('leg = '+"{}\n".format(self.plotLeg))
             f.write('lns=[]\n')
             f.write('# Start figure\n')
             f.write('fig = plt.figure()\n')
@@ -825,18 +838,15 @@ class PlotWindow:
                 f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
             else:
                 f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
-            f.write('for yi in range(len(yen)):\n')
-            f.write('    if yen[yi]:\n')
-            f.write('        lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
+            f.write('for yi in range(len(y)):\n')
+            f.write('    lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
             if True in self.yen2:
                 f.write('y2 = '+"{}\n".format(self.y2))
                 f.write('ylab2 = \''+self.ylab2+'\'\n')
-                f.write('yen2 = '+"{}\n".format(self.yen2))
-                f.write('leg2 = '+"{}\n".format(self.leg2))
+                f.write('leg2 = '+"{}\n".format(self.plotLeg2))
                 f.write('ax2 = ax.twinx()\n')
-                f.write('for yi in range(len(yen2)):\n')
-                f.write('    if yen2[yi]:\n')
-                f.write('        lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
+                f.write('for yi in range(len(y2)):\n')
+                f.write('    lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
                 f.write('ax2.set_ylabel(ylab2)\n')
                 if self.y2log:
                     f.write("ax2.set_yscale('log')\n")
