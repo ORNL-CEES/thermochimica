@@ -187,8 +187,10 @@ def plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
     
     return x,y,y2,xlab,legend,legend2
 
-def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None,plotLeg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+def exportPlotScript(filename,datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
+    # Call plotDataSetup() instead
+    x,y,y2,xlab,legend,legend2 = plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=yen2,ykey2=ykey2,leg2=leg2)
     with open(filename, 'w') as f:
         f.write('# Thermochimica-generated plot script\n')
         f.write('import matplotlib.pyplot as plt\n')
@@ -197,7 +199,7 @@ def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None
         f.write('y = '+"{}\n".format(y))
         f.write(f'xlab = \'{xlab}\'\n')
         f.write(f'ylab = \'{ylab}\'\n')
-        f.write('leg = '+"{}\n".format(plotLeg))
+        f.write('leg = '+"{}\n".format(legend))
         f.write('lns=[]\n')
         f.write('# Start figure\n')
         f.write('fig = plt.figure()\n')
@@ -215,7 +217,7 @@ def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None
         if True in yen2:
             f.write('y2 = '+"{}\n".format(y2))
             f.write(f'ylab2 = \'{ylab2}\'\n')
-            f.write('leg2 = '+"{}\n".format(plotLeg2))
+            f.write('leg2 = '+"{}\n".format(legend2))
             f.write('ax2 = ax.twinx()\n')
             f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
             f.write('for yi in range(len(y2)):\n')
