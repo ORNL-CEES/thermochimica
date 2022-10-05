@@ -1,4 +1,6 @@
 import subprocess
+import matplotlib.pyplot as plt
+import numpy as np
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -78,3 +80,101 @@ def RunInputScript(filename,checkOutput=False):
         return thermoOut
     else:
         subprocess.run(['./bin/InputScriptMode',filename])
+
+def makePlot(data,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+    # Init x-axis
+    x = []
+    
+    # Init left-hand y-axis
+    yused = []
+    legend = []
+    for i in range(len(yen)):
+        if yen[i]:
+            yused.append(ykey[i])
+            legend.append(leg[i])
+    y = [[] for _ in range(len(yused))]
+    
+    # Init right-hand y-axis
+    yused2 = []
+    legend2 = []
+    for i in range(len(yen2)):
+        if yen2[i]:
+            yused2.append(ykey2[i])
+            legend2.append(leg2[i])
+    y2 = [[] for _ in range(len(yused2))]
+    
+    # Loop over all calculations and get requested values
+    for j in data.keys():
+        try:
+            for yi in range(len(yused)):
+                if len(yused[yi]) == 1:
+                    y[yi].append(data[j][yused[yi][0]])
+                elif len(yused[yi]) == 3:
+                    y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]])
+                elif len(yused[yi]) == 5:
+                    if yused[yi][4] == 'vapor pressure':
+                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*data[j]['pressure'])
+                    else:
+                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
+            for yi in range(len(yused2)):
+                if len(yused2[yi]) == 1:
+                    y2[yi].append(data[j][yused2[yi][0]])
+                elif len(yused2[yi]) == 3:
+                    y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
+                elif len(yused2[yi]) == 5:
+                    if yused2[yi][4] == 'vapor pressure':
+                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*data[j]['pressure'])
+                    else:
+                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
+            if xkey == 'iteration':
+                x.append(int(j))
+                xlab = 'Iteration'
+            else:
+                x.append(data[j][xkey])
+                if xkey == 'temperature':
+                    xlab = 'Temperature [K]'
+                elif xkey == 'pressure':
+                    xlab = 'Pressure [atm]'
+        except:
+            # do nothing
+            continue
+    
+    # Start figure
+    fig = plt.figure()
+    plt.ion()
+    lns=[]
+    if True in yen2:
+        ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
+    else:
+        ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
+    color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y))))
+    for yi in range(len(y)):
+        if plotColor == 'colorful':
+            c = next(color)
+        else:
+            c = 'k'
+        lns = lns + ax.plot(x,y[yi],plotMarker,c=c,label=legend[yi])
+    ax.set_xlabel(xlab)
+    if xlog:
+        ax.set_xscale('log')
+    ax.set_ylabel(ylab)
+    if True in yen2:
+        ax2 = ax.twinx()
+        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))
+        for yi in range(len(y2)):
+            if plotColor2 == 'colorful':
+                c = next(color)
+            else:
+                c = 'k'
+            lns = lns + ax2.plot(x,y2[yi],plotMarker2,c=c,label=legend2[yi])
+        ax2.set_ylabel(ylab2)
+        if ylog2:
+            ax2.set_yscale('log')
+    labs = [l.get_label() for l in lns]
+    if ylog:
+        ax.set_yscale('log')
+    ax.legend(lns, labs, loc=0)
+    plt.show()
+    plt.pause(0.001)
+
+    return x, y, y2, legend, legend2, xlab

@@ -1,8 +1,7 @@
 import PySimpleGUI as sg
-import os
 import json
 import matplotlib.pyplot as plt
-import numpy as np
+import thermoTools
 import thermoToolsGUI
 
 class PlotWindow:
@@ -26,7 +25,7 @@ class PlotWindow:
         self.xkey = []
         self.xlog = False
         self.ylog = False
-        self.y2log = False
+        self.ylog2 = False
         self.readDatabase()
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
@@ -37,7 +36,7 @@ class PlotWindow:
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'driving force', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
-                            key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
+                            key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-ylog2-')]
                         ]
         plotLayout = [optionsLayout,
                       [sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
@@ -706,7 +705,7 @@ class PlotWindow:
             self.xkey  = values['-xaxis-']
             self.xlog  = values['-xlog-']
             self.ylog  = values['-ylog-']
-            self.y2log = values['-y2log-']
+            self.ylog2 = values['-ylog2-']
             self.makePlot()
         elif event == 'Export Plot Script':
             self.exportPlotScript()
@@ -718,109 +717,11 @@ class PlotWindow:
         elif event == 'Refresh Data':
             self.readDatabase()
     def makePlot(self):
-        # Init x-axis
-        x = []
+        # Call plotter
+        self.x, self.y, self.y2, self.plotLeg, self.plotLeg2, self.xlab = thermoTools.makePlot(self.data,self.xkey,self.yen,self.ykey,self.leg,self.ylab,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2,ylab2=self.ylab2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
         
-        # Init left-hand y-axis
-        yused = []
-        leg = []
-        for i in range(len(self.yen)):
-            if self.yen[i]:
-                yused.append(self.ykey[i])
-                leg.append(self.leg[i])
-        y = [[] for _ in range(len(yused))]
-        
-        # Init right-hand y-axis
-        yused2 = []
-        leg2 = []
-        for i in range(len(self.yen2)):
-            if self.yen2[i]:
-                yused2.append(self.ykey2[i])
-                leg2.append(self.leg2[i])
-        y2 = [[] for _ in range(len(yused2))]
-        
-        # Loop over all calculations and get requested values
-        for j in self.data.keys():
-            try:
-                for yi in range(len(yused)):
-                    if len(yused[yi]) == 1:
-                        y[yi].append(self.data[j][yused[yi][0]])
-                    elif len(yused[yi]) == 3:
-                        y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]])
-                    elif len(yused[yi]) == 5:
-                        if yused[yi][4] == 'vapor pressure':
-                            y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                        else:
-                            y[yi].append(self.data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
-                for yi in range(len(yused2)):
-                    if len(yused2[yi]) == 1:
-                        y2[yi].append(self.data[j][yused2[yi][0]])
-                    elif len(yused2[yi]) == 3:
-                        y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
-                    elif len(yused2[yi]) == 5:
-                        if yused2[yi][4] == 'vapor pressure':
-                            y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                        else:
-                            y2[yi].append(self.data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
-                if self.xkey == 'iteration':
-                    x.append(int(j))
-                    xlab = 'Iteration'
-                else:
-                    x.append(self.data[j][self.xkey])
-                    if self.xkey == 'temperature':
-                        xlab = 'Temperature [K]'
-                    elif self.xkey == 'pressure':
-                        xlab = 'Pressure [atm]'
-            except:
-                # do nothing
-                continue
-        
-        # Start figure
-        fig = plt.figure()
-        plt.ion()
-        lns=[]
-        if True in self.yen2:
-            ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
-        else:
-            ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y))))
-        for yi in range(len(y)):
-            if self.plotColor == 'colorful':
-                c = next(color)
-            else:
-                c = 'k'
-            lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label=leg[yi])
-        ax.set_xlabel(xlab)
-        if self.xlog:
-            ax.set_xscale('log')
-        ax.set_ylabel(self.ylab)
-        if True in self.yen2:
-            ax2 = ax.twinx()
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))
-            for yi in range(len(y2)):
-                if self.plotColor2 == 'colorful':
-                    c = next(color)
-                else:
-                    c = 'k'
-                lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label=leg2[yi])
-            ax2.set_ylabel(self.ylab2)
-            if self.y2log:
-                ax2.set_yscale('log')
-        labs = [l.get_label() for l in lns]
-        if self.ylog:
-            ax.set_yscale('log')
-        ax.legend(lns, labs, loc=0)
-        plt.show()
-        plt.pause(0.001)
-        self.currentPlot = fig
-        self.figureList.append(fig)
+        # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
-        self.x = x
-        self.y = y
-        self.plotLeg = leg
-        self.plotLeg2 = leg2
-        self.y2 = y2
-        self.xlab = xlab
         self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlotScript(self):
         with open('python/generatedPlotScript.py', 'w') as f:
@@ -848,7 +749,7 @@ class PlotWindow:
                 f.write('for yi in range(len(y2)):\n')
                 f.write('    lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
                 f.write('ax2.set_ylabel(ylab2)\n')
-                if self.y2log:
+                if self.ylog2:
                     f.write("ax2.set_yscale('log')\n")
             f.write('labs = [l.get_label() for l in lns]\n')
             f.write('ax.legend(lns, labs, loc=0)\n')
