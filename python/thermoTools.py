@@ -1,6 +1,7 @@
 import subprocess
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 atomic_number_map = [
     'H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P',
@@ -228,4 +229,10 @@ def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None
         if ylog:
             f.write("ax.set_yscale('log')\n")
         f.write('plt.show()\n')
+
+def readDatabase(datafile):
+    f = open(datafile,)
+    data = json.load(f)
+    f.close()
+    return data
 

@@ -738,9 +738,7 @@ class PlotWindow:
                     break
             errorWindow.close()
     def readDatabase(self):
-        f = open(self.datafile,)
-        self.data = json.load(f)
-        f.close()
+        self.data = thermoTools.readDatabase(self.datafile)
         if list(self.data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
