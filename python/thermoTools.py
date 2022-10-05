@@ -82,64 +82,10 @@ def RunInputScript(filename,checkOutput=False):
     else:
         subprocess.run(['./bin/InputScriptMode',filename])
 
-def makePlot(data,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
-    # Init x-axis
-    x = []
-    
-    # Init left-hand y-axis
-    yused = []
-    legend = []
-    for i in range(len(yen)):
-        if yen[i]:
-            yused.append(ykey[i])
-            legend.append(leg[i])
-    y = [[] for _ in range(len(yused))]
-    
-    # Init right-hand y-axis
-    yused2 = []
-    legend2 = []
-    for i in range(len(yen2)):
-        if yen2[i]:
-            yused2.append(ykey2[i])
-            legend2.append(leg2[i])
-    y2 = [[] for _ in range(len(yused2))]
-    
-    # Loop over all calculations and get requested values
-    for j in data.keys():
-        try:
-            for yi in range(len(yused)):
-                if len(yused[yi]) == 1:
-                    y[yi].append(data[j][yused[yi][0]])
-                elif len(yused[yi]) == 3:
-                    y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]])
-                elif len(yused[yi]) == 5:
-                    if yused[yi][4] == 'vapor pressure':
-                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*data[j]['pressure'])
-                    else:
-                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
-            for yi in range(len(yused2)):
-                if len(yused2[yi]) == 1:
-                    y2[yi].append(data[j][yused2[yi][0]])
-                elif len(yused2[yi]) == 3:
-                    y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
-                elif len(yused2[yi]) == 5:
-                    if yused2[yi][4] == 'vapor pressure':
-                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*data[j]['pressure'])
-                    else:
-                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
-            if xkey == 'iteration':
-                x.append(int(j))
-                xlab = 'Iteration'
-            else:
-                x.append(data[j][xkey])
-                if xkey == 'temperature':
-                    xlab = 'Temperature [K]'
-                elif xkey == 'pressure':
-                    xlab = 'Pressure [atm]'
-        except:
-            # do nothing
-            continue
-    
+def makePlot(datafile,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+    # Do plot setup
+    x,y,y2,xlab,legend,legend2 = plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=yen2,ykey2=ykey2,leg2=leg2)
+
     # Start figure
     fig = plt.figure()
     plt.ion()
@@ -179,6 +125,67 @@ def makePlot(data,xkey,yen,ykey,leg,ylab,yen2=None,ykey2=None,leg2=None,ylab2=No
     plt.pause(0.001)
 
     return x, y, y2, legend, legend2, xlab
+
+def plotDataSetup(datafile,xkey,yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
+    # Init x-axis
+    x = []
+    
+    # Init left-hand y-axis
+    yused = []
+    legend = []
+    for i in range(len(yen)):
+        if yen[i]:
+            yused.append(ykey[i])
+            legend.append(leg[i])
+    y = [[] for _ in range(len(yused))]
+    
+    # Init right-hand y-axis
+    yused2 = []
+    legend2 = []
+    for i in range(len(yen2)):
+        if yen2[i]:
+            yused2.append(ykey2[i])
+            legend2.append(leg2[i])
+    y2 = [[] for _ in range(len(yused2))]
+    
+    # Loop over all calculations and get requested values
+    data = readDatabase(datafile)
+    for j in data.keys():
+        try:
+            for yi in range(len(yused)):
+                if len(yused[yi]) == 1:
+                    y[yi].append(data[j][yused[yi][0]])
+                elif len(yused[yi]) == 3:
+                    y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]])
+                elif len(yused[yi]) == 5:
+                    if yused[yi][4] == 'vapor pressure':
+                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*data[j]['pressure'])
+                    else:
+                        y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
+            for yi in range(len(yused2)):
+                if len(yused2[yi]) == 1:
+                    y2[yi].append(data[j][yused2[yi][0]])
+                elif len(yused2[yi]) == 3:
+                    y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
+                elif len(yused2[yi]) == 5:
+                    if yused2[yi][4] == 'vapor pressure':
+                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*data[j]['pressure'])
+                    else:
+                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
+            if xkey == 'iteration':
+                x.append(int(j))
+                xlab = 'Iteration'
+            else:
+                x.append(data[j][xkey])
+                if xkey == 'temperature':
+                    xlab = 'Temperature [K]'
+                elif xkey == 'pressure':
+                    xlab = 'Pressure [atm]'
+        except:
+            # do nothing
+            continue
+    
+    return x,y,y2,xlab,legend,legend2
 
 def exportPlotScript(filename,x,y,xlab,ylab,plotLeg,yen2=None,y2=None,ylab2=None,plotLeg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
