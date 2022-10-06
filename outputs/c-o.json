@@ -1,0 +1,2016 @@
+ {
+ "1":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.5000000000697042E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   1.1288180912802528E-117 ,
+           "moles":  8.4661356846805796E-118,
+           "chemical potential":   238482.35089874495      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   6.6712081364410423E-137 ,
+           "moles":  5.0034061023772831E-137,
+           "chemical potential":   347197.45644456905      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   3.7950851751224772E-132 ,
+           "moles":  2.8463138813683112E-132,
+           "chemical potential":   318165.28247263096      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   3.8712016591664370E-159 ,
+           "moles":  2.9034012444018117E-159,
+           "chemical potential":   471466.41328270099      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   3.4998598951311752E-160 ,
+           "moles":  2.6248949213727771E-160,
+           "chemical potential":   475739.33305777691      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   2.1418732338549026E-075 ,
+           "moles":  1.6064049254061068E-075,
+           "chemical potential":  -227969.32957473706      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   2.1161075439928561E-069 ,
+           "moles":  1.5870806580093921E-069,
+           "chemical potential":  -455938.65914942767      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   2.7034430557532173E-132 ,
+           "moles":  2.0275822918337571E-132,
+           "chemical potential":  -359730.52832958952      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   3.7196389883931020E-011 ,
+           "moles":  2.7897292413207541E-011,
+           "chemical potential":  -229691.37804852228      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   7.0838757415412341E-079 ,
+           "moles":  5.3129068062053032E-079,
+           "chemical potential":  -214040.74355552281      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.99999999996280353      ,
+           "moles":  7.4999999997907307E-001,
+           "chemical potential":  -457660.70762321295      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   2.7176272593393450E-050 ,
+           "moles":  2.0382204445234517E-050,
+           "chemical potential":  -461104.80457078340      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999860434E+000,
+           "mole fraction of phase by element":  0.66666666666253371      ,
+           "mole fraction of element by phase":  0.99999999999069555     
+         },
+         "C": {
+           "moles of element in phase":  7.5000000000697031E-001,
+           "mole fraction of phase by element":  0.33333333333746623      ,
+           "mole fraction of element by phase":  0.75000000000697031     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.4999999999303057E-001,
+       "chemical potential":  -1722.0484737852314      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.4999999999303057E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.24999999999303057     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":   1186.9671637602951      ,
+       "driving force":   1.1662458893142489E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.2796932957469061E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -1.7220484737852314E+003
+     }
+   },
+   "temperature":    300.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -3.4367604283582116E+005,
+   "entropy":   1.6196693570923526E+002,
+   "enthalpy":  -2.9508596212305059E+005,
+   "heat capacity":   3.0059926584362984E+001,
+   "functional norm":    5.5826233111711562E-009 ,
+   "GEM iterations":            1 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "2":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.5000007089975140E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   1.0495021182714087E-086 ,
+           "moles":  7.8712666311299583E-087,
+           "chemical potential":   78759.725048928827      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   1.2199537334660325E-100 ,
+           "moles":  9.1496538659394079E-101,
+           "chemical potential":   183023.66269918458      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   1.1041208397995058E-096 ,
+           "moles":  8.2809070813152236E-097,
+           "chemical potential":   150277.50338495083      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   4.1655773700588099E-117 ,
+           "moles":  3.1241833228825075E-117,
+           "chemical potential":   304231.34381766041      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   8.8179302501484940E-118 ,
+           "moles":  6.6134483128004332E-118,
+           "chemical potential":   306948.83421811461      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   5.7056465281600073E-056 ,
+           "moles":  4.2792353006489258E-056,
+           "chemical potential":  -238599.13767841129      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   2.8577197310238586E-052 ,
+           "moles":  2.1432900008795123E-052,
+           "chemical potential":  -477198.27526699484      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.2041258428112884E-100 ,
+           "moles":  9.0309446748068924E-101,
+           "chemical potential":  -527837.70757988049      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   2.1607540800013212E-007 ,
+           "moles":  1.6205657131979180E-007,
+           "chemical potential":  -241045.44259145428      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.0884268460300631E-057 ,
+           "moles":  8.1632021169174020E-058,
+           "chemical potential":  -243491.74750449715      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.99999978392459199      ,
+           "moles":  7.4999990884318013E-001,
+           "chemical potential":  -479644.58018003788      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   3.2532047602658121E-037 ,
+           "moles":  2.4399038008507678E-037,
+           "chemical potential":  -484537.19000612374      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999797429315E+000,
+           "mole fraction of phase by element":  0.66666664265828635      ,
+           "mole fraction of element by phase":  0.99999998649528765     
+         },
+         "C": {
+           "moles of element in phase":  7.5000007089975140E-001,
+           "mole fraction of phase by element":  0.33333335734171377      ,
+           "mole fraction of element by phase":  0.75000007089975140     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.4999992910024013E-001,
+       "chemical potential":  -2446.3049130429699      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.4999992910024013E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.24999992910024013     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":   832.74216896872520      ,
+       "driving force":   9.8594567460558391E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.3859913758858366E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -2.4463049130429699E+003
+     }
+   },
+   "temperature":    400.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -3.6034501129591843E+005,
+   "entropy":   1.7115814950433560E+002,
+   "enthalpy":  -2.9188175149418419E+005,
+   "heat capacity":   3.3927904814481735E+001,
+   "functional norm":    8.1028724662867620E-006 ,
+   "GEM iterations":            3 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "3":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.5001496037509041E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   1.4155051146384674E-067 ,
+           "moles":  1.0616500124663079E-067,
+           "chemical potential":  -3465.0544798211854      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   1.2914352937707997E-078 ,
+           "moles":  9.6859579068449959E-079,
+           "chemical potential":   17842.004100165854      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   7.1259940637734962E-075 ,
+           "moles":  5.3446021553742087E-075,
+           "chemical potential":  -10395.163426231764      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   1.2315354207761550E-091 ,
+           "moles":  9.2366998981394824E-092,
+           "chemical potential":   135550.39815167725      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   4.4068578695376545E-092 ,
+           "moles":  3.3052093303999391E-092,
+           "chemical potential":   136357.67217175738      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   2.6887380498860675E-044 ,
+           "moles":  2.0165937619442967E-044,
+           "chemical potential":  -249600.69061957885      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   5.4458232636573224E-042 ,
+           "moles":  4.0844489193016921E-042,
+           "chemical potential":  -499201.38123419561      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.9588232218794692E-081 ,
+           "moles":  1.4691467211397369E-081,
+           "chemical potential":  -697044.40265807894      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   3.9893537799731275E-005 ,
+           "moles":  2.9920750172087625E-005,
+           "chemical potential":  -253065.74509278403      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   4.9599208978917533E-045 ,
+           "moles":  3.7200148756958662E-045,
+           "chemical potential":  -256530.79956598935      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.99996010646220035      ,
+           "moles":  7.4998503962491836E-001,
+           "chemical potential":  -502666.43570740084      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   2.4318265578041130E-029 ,
+           "moles":  1.8239062993905443E-029,
+           "chemical potential":  -509596.54465381143      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000089E+000,
+           "mole fraction of phase by element":  0.66666223399241054      ,
+           "mole fraction of element by phase":   1.0000000000000060     
+         },
+         "C": {
+           "moles of element in phase":  7.5001496037509041E-001,
+           "mole fraction of phase by element":  0.33333776600758941      ,
+           "mole fraction of element by phase":  0.75001496037509041     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.4998503962490529E-001,
+       "chemical potential":  -3465.0544732052731      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.4998503962490529E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.24998503962490529     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":   213.54589294128530      ,
+       "driving force":   8.8486686013172167E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.4960069061709783E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -3.4650544732052731E+003
+     }
+   },
+   "temperature":    500.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -3.7786609039885201E+005,
+   "entropy":   1.7909110841120128E+002,
+   "enthalpy":  -2.8832053619325138E+005,
+   "heat capacity":   3.7241632118821144E+001,
+   "functional norm":    3.9214957633154302E-012 ,
+   "GEM iterations":            1 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "4":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.5048569043547031E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   4.6279832213223595E-055 ,
+           "moles":  3.4732351831778832E-055,
+           "chemical potential":  -4775.5726665478105      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   1.1501540572423474E-063 ,
+           "moles":  8.6317416175668053E-064,
+           "chemical potential":  -9551.1369845126919      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   1.3613275347434333E-060 ,
+           "moles":  1.0216568348207423E-060,
+           "chemical potential":  -14326.701302477430      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   2.1441046305631722E-074 ,
+           "moles":  1.6091198440340913E-074,
+           "chemical potential":  -19102.265620442169      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   1.0964638689170605E-074 ,
+           "moles":  8.2288044370176717E-075,
+           "chemical potential":  -23877.829938406907      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   1.6689575375231730E-036 ,
+           "moles":  1.2525287498555609E-036,
+           "chemical potential":  -260907.26599705897      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   3.8973653334214744E-035 ,
+           "moles":  2.9249169131320821E-035,
+           "chemical potential":  -521814.52573223267      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   2.2607552004426991E-068 ,
+           "moles":  1.6966644275098192E-068,
+           "chemical potential":  -782721.78755680600      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   1.2943362989116392E-003 ,
+           "moles":  9.7138087094439287E-004,
+           "chemical potential":  -265682.83031502372      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.3899265306781740E-036 ,
+           "moles":  1.0431199720305873E-036,
+           "chemical potential":  -270458.39463298855      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.99870566370108838      ,
+           "moles":  7.4951430956452592E-001,
+           "chemical potential":  -526590.09005019744      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   4.4349633780604602E-024 ,
+           "moles":  3.3283765528397305E-024,
+           "chemical potential":  -536141.21868612699      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999999962E+000,
+           "mole fraction of phase by element":  0.66652278944717391      ,
+           "mole fraction of element by phase":  0.99999999999999745     
+         },
+         "C": {
+           "moles of element in phase":  7.5048569043547031E-001,
+           "mole fraction of phase by element":  0.33347721055282609      ,
+           "mole fraction of element by phase":  0.75048569043547031     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.4951430956453713E-001,
+       "chemical potential":  -4775.5643179647832      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.4951430956453713E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.24951430956453713     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -684.27990663617675      ,
+       "driving force":   8.2011309343688255E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.6090726286746759E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -4.7755643179647832E+003
+     }
+   },
+   "temperature":    600.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -3.9613645861916622E+005,
+   "entropy":   1.8624165771610569E+002,
+   "enthalpy":  -2.8439146398950281E+005,
+   "heat capacity":   4.2163426056504250E+001,
+   "functional norm":    9.7573712146534133E-010 ,
+   "GEM iterations":            1 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "5":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.5580772934445672E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   4.0681194422361853E-046 ,
+           "moles":  3.0747161183385691E-046,
+           "chemical potential":  -6366.2950252570599      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   3.3675449242650926E-053 ,
+           "moles":  2.5452164826742502E-053,
+           "chemical potential":  -12732.505206751777      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   2.0972183884468288E-050 ,
+           "moles":  1.5850938681114385E-050,
+           "chemical potential":  -19098.715388246579      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   2.6985152210958353E-062 ,
+           "moles":  2.0395586618578977E-062,
+           "chemical potential":  -25464.925569741463      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   1.7864559780969988E-062 ,
+           "moles":  1.3502172363793232E-062,
+           "chemical potential":  -31831.135751236263      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   6.2123327703123848E-031 ,
+           "moles":  4.6953291250619621E-031,
+           "chemical potential":  -272508.04377337371      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   3.0417926587803720E-030 ,
+           "moles":  2.2990104025694307E-030,
+           "chemical potential":  -545016.02386722236      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   2.9220046109311494E-059 ,
+           "moles":  2.2084736701219050E-059,
+           "chemical potential":  -817524.02544650109      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   1.5368271900303146E-002 ,
+           "moles":  1.1615458688916339E-002,
+           "chemical potential":  -278874.25395486847      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.5032935435029199E-030 ,
+           "moles":  1.1362008796531242E-030,
+           "chemical potential":  -285240.46413636324      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.98463172809969679      ,
+           "moles":  7.4419227065554039E-001,
+           "chemical potential":  -551382.23404871719      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   2.5393865661548318E-020 ,
+           "moles":  1.9192879944933004E-020,
+           "chemical potential":  -564114.65441170672      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999999971E+000,
+           "mole fraction of phase by element":  0.66495028831021108      ,
+           "mole fraction of element by phase":  0.99999999999999811     
+         },
+         "C": {
+           "moles of element in phase":  7.5580772934445661E-001,
+           "mole fraction of phase by element":  0.33504971168978892      ,
+           "mole fraction of element by phase":  0.75580772934445661     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.4419227065553586E-001,
+       "chemical potential":  -6366.2101814947782      ,
+       "driving force":   4.2188474935755949E-015,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.4419227065553586E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.24419227065553586     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -1852.4384950163733      ,
+       "driving force":   7.7554476897604052E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.7250801209740678E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -6.3662101814948037E+003
+     }
+   },
+   "temperature":    700.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -4.1512822832760494E+005,
+   "entropy":   1.9391180887247901E+002,
+   "enthalpy":  -2.7938996211686963E+005,
+   "heat capacity":   6.3128903880715370E+001,
+   "functional norm":    1.0033635467762184E-007 ,
+   "GEM iterations":            5 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "6":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   7.8707649626263787E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   2.0872907205235372E-039 ,
+           "moles":  1.6428574669911826E-039,
+           "chemical potential":  -8221.7024420021207      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   2.3769199643785298E-045 ,
+           "moles":  1.8708178374597673E-045,
+           "chemical potential":  -16443.171705004235      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   8.8924289990799263E-043 ,
+           "moles":  6.9990218598601044E-043,
+           "chemical potential":  -24664.640968006352      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   3.1820918447198727E-053 ,
+           "moles":  2.5045496999280313E-053,
+           "chemical potential":  -32886.110231008563      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   2.5596739604856652E-053 ,
+           "moles":  2.0146592123937671E-053,
+           "chemical potential":  -41107.579494010679      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   9.1352832979125827E-027 ,
+           "moles":  7.1901667704876306E-027,
+           "chemical potential":  -284573.48236752744      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   1.3260104668638159E-026 ,
+           "moles":  1.0436716722667569E-026,
+           "chemical potential":  -569146.90119632252      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.8053867113421262E-052 ,
+           "moles":  1.4209774471622870E-052,
+           "chemical potential":  -853720.35632646980      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":   9.4213196401349356E-002 ,
+           "moles":  7.4152992525277808E-002,
+           "chemical potential":  -292794.95163052960      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   4.8671201595314716E-026 ,
+           "moles":  3.8307958820532820E-026,
+           "chemical potential":  -301016.42089353176      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.90578680359865060      ,
+           "moles":  7.1292350373736002E-001,
+           "chemical potential":  -577368.37045932456      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   1.5636865150867599E-017 ,
+           "moles":  1.2307409035476215E-017,
+           "chemical potential":  -593811.30898532888      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999999978E+000,
+           "mole fraction of phase by element":  0.65585912952679215      ,
+           "mole fraction of element by phase":  0.99999999999999856     
+         },
+         "C": {
+           "moles of element in phase":  7.8707649626263787E-001,
+           "mole fraction of phase by element":  0.34414087047320790      ,
+           "mole fraction of element by phase":  0.78707649626263787     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   2.1292350373736743E-001,
+       "chemical potential":  -8221.4692630021636      ,
+       "driving force":  -1.3322676295501878E-015,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  2.1292350373736743E-001,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":  0.21292350373736743     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -3276.2440638279004      ,
+       "driving force":   7.4346651224128446E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.8457345059047616E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -8.2214692630021545E+003
+     }
+   },
+   "temperature":    800.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -4.3508164514871634E+005,
+   "entropy":   2.0668535014858935E+002,
+   "enthalpy":  -2.6973336502984486E+005,
+   "heat capacity":   1.4651091545820236E+002,
+   "functional norm":    4.5009622178707968E-007 ,
+   "GEM iterations":            2 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "7":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   9.0286527292166852E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   3.4623474258124936E-034 ,
+           "moles":  3.1260332535558333E-034,
+           "chemical potential":  -10324.805747469700      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   3.0040415328622202E-039 ,
+           "moles":  2.7122447784356759E-039,
+           "chemical potential":  -20649.532229168952      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   7.3980898638413289E-037 ,
+           "moles":  6.6794784240161310E-037,
+           "chemical potential":  -30974.258710868206      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   3.5801716512204074E-046 ,
+           "moles":  3.2324126549855337E-046,
+           "chemical potential":  -41298.985192567459      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   3.3519279959834909E-046 ,
+           "moles":  3.0263393849074161E-046,
+           "chemical potential":  -51623.711674266713      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   1.4179937563340717E-023 ,
+           "moles":  1.2802573198137835E-023,
+           "chemical potential":  -297770.54910811741      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   7.0204965822084171E-024 ,
+           "moles":  6.3385625627412432E-024,
+           "chemical potential":  -595541.09644316405      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   2.3985894385226093E-047 ,
+           "moles":  2.1656031080387473E-047,
+           "chemical potential":  -893311.64464991272      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.33862255533872493      ,
+           "moles":  3.0573054584333070E-001,
+           "chemical potential":  -308095.27558981662      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.3818265649755656E-022 ,
+           "moles":  1.2476032187170758E-022,
+           "chemical potential":  -318420.00207151583      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.66137744466127335      ,
+           "moles":  5.9713472707833626E-001,
+           "chemical potential":  -605865.82292486331      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   1.8049989274539650E-015 ,
+           "moles":  1.6296708492590430E-015,
+           "chemical potential":  -626515.27588826185      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000064E+000,
+           "mole fraction of phase by element":  0.62425472493351031      ,
+           "mole fraction of element by phase":   1.0000000000000042     
+         },
+         "C": {
+           "moles of element in phase":  9.0286527292167174E-001,
+           "mole fraction of phase by element":  0.37574527506648964      ,
+           "mole fraction of element by phase":  0.90286527292167174     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles":   9.7134727078310765E-002,
+       "chemical potential":  -10324.726481699263      ,
+       "driving force":   0.0000000000000000E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  9.7134727078310765E-002,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   9.7134727078310765E-002
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -4939.7903789616112      ,
+       "driving force":   7.1962024003149783E-001,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -2.9777054820445029E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -1.0324726481699263E+004
+     }
+   },
+   "temperature":    900.00000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -4.5698054878837470E+005,
+   "entropy":   2.3500942222122103E+002,
+   "enthalpy":  -2.4547206878927577E+005,
+   "heat capacity":   3.6378567684441805E+002,
+   "functional norm":    4.1004809466138137E-008 ,
+   "GEM iterations":            3 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            1
+ }
+ ,
+ "8":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   9.9999999999998257E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   1.5205010142265566E-030 ,
+           "moles":  1.5205010142265301E-030,
+           "chemical potential":  -22867.675274014175      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   1.9464859609472971E-035 ,
+           "moles":  1.9464859609472631E-035,
+           "chemical potential":  -45735.321824866805      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   9.8782843575858799E-034 ,
+           "moles":  9.8782843575857072E-034,
+           "chemical potential":  -68602.979685370054      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   1.1411220976172826E-042 ,
+           "moles":  1.1411220976172627E-042,
+           "chemical potential":  -91470.645377265260      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   3.5333999806152588E-043 ,
+           "moles":  3.5333999806151970E-043,
+           "chemical potential":  -114338.31604071432      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   9.2846107647023938E-021 ,
+           "moles":  9.2846107647022313E-021,
+           "chemical potential":  -306159.47119287174      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   3.5293772957871119E-021 ,
+           "moles":  3.5293772957870502E-021,
+           "chemical potential":  -612318.89809455024      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.8349431207312224E-042 ,
+           "moles":  1.8349431207311906E-042,
+           "chemical potential":  -918478.32499622868      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.49999999999997075      ,
+           "moles":  4.9999999999996203E-001,
+           "chemical potential":  -329027.10217569262      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.2476035748590095E-020 ,
+           "moles":  1.2476035748589876E-020,
+           "chemical potential":  -351894.74872654525      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.50000000000002265      ,
+           "moles":  5.0000000000001388E-001,
+           "chemical potential":  -635186.52907737123      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   6.7320381208793614E-015 ,
+           "moles":  6.7320381208792438E-015,
+           "chemical potential":  -680921.83348872710      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000033E+000,
+           "mole fraction of phase by element":  0.60000000000000142      ,
+           "mole fraction of element by phase":   1.0000000000000022     
+         },
+         "C": {
+           "moles of element in phase":  9.9999999999999611E-001,
+           "mole fraction of phase by element":  0.39999999999999852      ,
+           "mole fraction of element by phase":  0.99999999999999611     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -12659.606478396687      ,
+       "driving force":   1.2277427930064198E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -6827.7582826241496      ,
+       "driving force":   1.9291521183096423E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.0615942690167850E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -2.2867639554050358E+004
+     }
+   },
+   "temperature":    1000.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -4.8210677990656806E+005,
+   "entropy":   2.5762515330198221E+002,
+   "enthalpy":  -2.2448162660458585E+005,
+   "heat capacity":   4.3720928952097893E+001,
+   "functional norm":    3.0378151051067935E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ ,
+ "9":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   9.9999999999999467E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   6.1674963256317451E-028 ,
+           "moles":  6.1674963256317119E-028,
+           "chemical potential":  -43457.027970609444      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   4.5784519627341491E-033 ,
+           "moles":  4.5784519627341245E-033,
+           "chemical potential":  -86914.024345741054      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   2.6729997970735474E-032 ,
+           "moles":  2.6729997970735332E-032,
+           "chemical potential":  -130371.03316148859      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   2.7039467872598883E-041 ,
+           "moles":  2.7039467872598740E-041,
+           "chemical potential":  -173828.05059176704      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   1.4379629047310997E-042 ,
+           "moles":  1.4379629047310920E-042,
+           "chemical potential":  -217285.07349075473      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   3.2331362202220672E-018 ,
+           "moles":  3.2331362202220498E-018,
+           "chemical potential":  -309750.26437165658      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   1.6987754961679537E-018 ,
+           "moles":  1.6987754961679446E-018,
+           "chemical potential":  -619500.48002300039      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   9.3117580435689931E-038 ,
+           "moles":  9.3117580435689430E-038,
+           "chemical potential":  -929250.69567434432      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.49999999999998707      ,
+           "moles":  4.9999999999998440E-001,
+           "chemical potential":  -353207.24362195336      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.5380650075553729E-019 ,
+           "moles":  1.5380650075553647E-019,
+           "chemical potential":  -396664.23999708507      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.50000000000000844      ,
+           "moles":  5.0000000000000577E-001,
+           "chemical potential":  -662957.45927329722      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   4.4844077075119251E-015 ,
+           "moles":  4.4844077075119014E-015,
+           "chemical potential":  -749871.46446417621      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000049E+000,
+           "mole fraction of phase by element":  0.59999999999999998      ,
+           "mole fraction of element by phase":   1.0000000000000033     
+         },
+         "C": {
+           "moles of element in phase":  1.0000000000000038E+000,
+           "mole fraction of phase by element":  0.40000000000000013      ,
+           "mole fraction of element by phase":   1.0000000000000038     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -15210.699589035252      ,
+       "driving force":   3.0884035242312136E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -8926.0100248957606      ,
+       "driving force":   3.7755613075778554E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.0975021565134387E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -4.3456988678649177E+004
+     }
+   },
+   "temperature":    1100.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -5.0808231215566496E+005,
+   "entropy":   2.6183174234651960E+002,
+   "enthalpy":  -2.2006739557449339E+005,
+   "heat capacity":   4.4543300196528435E+001,
+   "functional norm":    3.0378151101313472E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ ,
+ "10":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   9.9999999999999856E-001,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   9.2686881964215977E-026 ,
+           "moles":  9.2686881964215839E-026,
+           "chemical potential":  -64155.788211132276      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   4.3828806027996258E-031 ,
+           "moles":  4.3828806027996196E-031,
+           "chemical potential":  -128311.54195447062      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   4.2115923980444382E-031 ,
+           "moles":  4.2115923980444321E-031,
+           "chemical potential":  -192467.30926938981      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   3.8863220169626747E-040 ,
+           "moles":  3.8863220169626690E-040,
+           "chemical potential":  -256623.08598197924      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   4.8036717174208247E-042 ,
+           "moles":  4.8036717174208177E-042,
+           "chemical potential":  -320778.86866043316      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   4.2416294180577803E-016 ,
+           "moles":  4.2416294180577744E-016,
+           "chemical potential":  -313538.32339971646      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   2.8994728453449210E-016 ,
+           "moles":  2.8994728453449170E-016,
+           "chemical potential":  -627076.59365000087      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   7.7002193772386987E-034 ,
+           "moles":  7.7002193772386876E-034,
+           "chemical potential":  -940614.86390028556      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.49999999999999628      ,
+           "moles":  4.9999999999999556E-001,
+           "chemical potential":  -377694.05846141675      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.2618201971714162E-018 ,
+           "moles":  1.2618201971714144E-018,
+           "chemical potential":  -441849.81220475509      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.49999999999999972      ,
+           "moles":  4.9999999999999900E-001,
+           "chemical potential":  -691232.32871170132      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   3.2556002925835221E-015 ,
+           "moles":  3.2556002925835173E-015,
+           "chemical potential":  -819543.84976995876      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000009E+000,
+           "mole fraction of phase by element":  0.59999999999999909      ,
+           "mole fraction of element by phase":   1.0000000000000007     
+         },
+         "C": {
+           "moles of element in phase":  1.0000000000000042E+000,
+           "mole fraction of phase by element":  0.40000000000000091      ,
+           "mole fraction of element by phase":   1.0000000000000042     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -17964.188347835236      ,
+       "driving force":   4.6296342288622760E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -11221.719655164750      ,
+       "driving force":   5.3054106233896414E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.1353827025028440E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -6.4155745347175616E+004
+     }
+   },
+   "temperature":    1200.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -5.3446315072260227E+005,
+   "entropy":   2.6573864522133954E+002,
+   "enthalpy":  -2.1557677645699482E+005,
+   "heat capacity":   4.5251311361789703E+001,
+   "functional norm":    3.0378151151552000E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ ,
+ "11":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   1.0000000000000426E+000,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   6.4856884064378393E-024 ,
+           "moles":  6.4856884064381155E-024,
+           "chemical potential":  -84954.861802691856      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   2.0998426700613270E-029 ,
+           "moles":  2.0998426700614164E-029,
+           "chemical potential":  -169909.68626527360      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   4.3774043726941169E-030 ,
+           "moles":  4.3774043726943032E-030,
+           "chemical potential":  -254864.52543040153      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   3.7977276118728300E-039 ,
+           "moles":  3.7977276118729918E-039,
+           "chemical potential":  -339819.37477633869      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   1.3764280527877419E-041 ,
+           "moles":  1.3764280527878006E-041,
+           "chemical potential":  -424774.23058529571      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   2.6253371757932753E-014 ,
+           "moles":  2.6253371757933873E-014,
+           "chemical potential":  -317511.09762561816      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   2.2294857505494102E-014 ,
+           "moles":  2.2294857505495052E-014,
+           "chemical potential":  -635022.13767268497      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.5770767259950790E-030 ,
+           "moles":  1.5770767259951462E-030,
+           "chemical potential":  -952533.17771975196      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.50000000000003864      ,
+           "moles":  5.0000000000005995E-001,
+           "chemical potential":  -402465.90184975875      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   7.5635716462884829E-018 ,
+           "moles":  7.5635716462888049E-018,
+           "chemical potential":  -487420.72631234053      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.49999999999991035      ,
+           "moles":  4.9999999999993167E-001,
+           "chemical potential":  -719976.94189682568      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   2.5229105257141038E-015 ,
+           "moles":  2.5229105257142115E-015,
+           "chemical potential":  -889886.60552453529      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999999993E+000,
+           "mole fraction of phase by element":  0.60000000000000009      ,
+           "mole fraction of element by phase":  0.99999999999999956     
+         },
+         "C": {
+           "moles of element in phase":  9.9999999999999911E-001,
+           "mole fraction of phase by element":  0.39999999999999986      ,
+           "mole fraction of element by phase":  0.99999999999999911     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -20907.615582261285      ,
+       "driving force":   5.9254606615177092E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -13703.325251296877      ,
+       "driving force":   6.5919806513678818E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.1751104004706693E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -8.4954815366738912E+004
+     }
+   },
+   "temperature":    1300.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -5.6122137543733930E+005,
+   "entropy":   2.6938531758217141E+002,
+   "enthalpy":  -2.1102046258051647E+005,
+   "heat capacity":   4.5859394967556000E+001,
+   "functional norm":    3.0378150950573714E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ ,
+ "12":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   1.0000000000018114E+000,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   2.4879688678110014E-022 ,
+           "moles":  2.4879688678155083E-022,
+           "chemical potential":  -105846.65554689735      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   5.8370086078818391E-028 ,
+           "moles":  5.8370086078924127E-028,
+           "chemical potential":  -211693.27088136863      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   3.2807896803043578E-029 ,
+           "moles":  3.2807896803103010E-029,
+           "chemical potential":  -317539.90204935084      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   2.7375347879302419E-038 ,
+           "moles":  2.7375347879352006E-038,
+           "chemical potential":  -423386.54418128170      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   3.4907425141255455E-041 ,
+           "moles":  3.4907425141318689E-041,
+           "chemical potential":  -529233.19327338785      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   9.0033952239951844E-013 ,
+           "moles":  9.0033952240114938E-013,
+           "chemical potential":  -321657.39269587619      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   9.1636348463593049E-013 ,
+           "moles":  9.1636348463759050E-013,
+           "chemical potential":  -643314.72338408174      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   1.0789171273422373E-027 ,
+           "moles":  1.0789171273441917E-027,
+           "chemical potential":  -964972.05407228752      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.50000000000182265      ,
+           "moles":  5.0000000000272837E-001,
+           "chemical potential":  -427503.98623510305      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   3.5413349607028367E-017 ,
+           "moles":  3.5413349607092517E-017,
+           "chemical potential":  -533350.60156957433      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.49999999999635869      ,
+           "moles":  4.9999999999726441E-001,
+           "chemical potential":  -749161.31692330877      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   2.0562884463708434E-015 ,
+           "moles":  2.0562884463745684E-015,
+           "chemical potential":  -960854.56342576200      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.4999999999999944E+000,
+           "mole fraction of phase by element":  0.59999999999999931      ,
+           "mole fraction of element by phase":  0.99999999999999634     
+         },
+         "C": {
+           "moles of element in phase":  9.9999999999999911E-001,
+           "mole fraction of phase by element":  0.40000000000000069      ,
+           "mole fraction of element by phase":  0.99999999999999911     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -24029.732705873550      ,
+       "driving force":   7.0287834816445462E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -16360.418255967876      ,
+       "driving force":   7.6876445313819950E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.2165733068820566E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -1.0584660553894809E+005
+     }
+   },
+   "temperature":    1400.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -5.8833260157125664E+005,
+   "entropy":   2.7280341812502593E+002,
+   "enthalpy":  -2.0640781619622034E+005,
+   "heat capacity":   4.6379821747541428E+001,
+   "functional norm":    3.0378151051014428E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ ,
+ "13":
+ {
+   "solution phases": {
+     "gas_ideal": {
+       "phase model": "IDMX",
+       "moles":   1.0000000000420710E+000,
+       "driving force":   0.0000000000000000E+000,
+       "species": {
+         "C": {
+           "mole fraction":   5.8982723674719802E-021 ,
+           "moles":  5.8982723677201264E-021,
+           "chemical potential":  -126824.65284530156      ,
+           "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2": {
+           "mole fraction":   1.0492438871904229E-026 ,
+           "moles":  1.0492438872345656E-026,
+           "chemical potential":  -253649.26260586097      ,
+           "stoichiometry": [   0.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "C3": {
+           "mole fraction":   1.8926542676048463E-028 ,
+           "moles":  1.8926542676844721E-028,
+           "chemical potential":  -380473.88933089632      ,
+           "stoichiometry": [   0.0000000000000000      ,   3.0000000000000000      ]
+         },
+         "C4": {
+           "mole fraction":   1.5453820768735411E-037 ,
+           "moles":  1.5453820769385569E-037,
+           "chemical potential":  -507298.52780301950      ,
+           "stoichiometry": [   0.0000000000000000      ,   4.0000000000000000      ]
+         },
+         "C5": {
+           "mole fraction":   8.0184099936481644E-041 ,
+           "moles":  8.0184099939855074E-041,
+           "chemical potential":  -634123.17373247328      ,
+           "stoichiometry": [   0.0000000000000000      ,   5.0000000000000000      ]
+         },
+         "O": {
+           "mole fraction":   1.9249893189707160E-011 ,
+           "moles":  1.9249893190517022E-011,
+           "chemical potential":  -325967.20520228252      ,
+           "stoichiometry": [   1.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O2": {
+           "mole fraction":   2.2823829646138011E-011 ,
+           "moles":  2.2823829647098232E-011,
+           "chemical potential":  -651934.34396777523      ,
+           "stoichiometry": [   2.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "O3": {
+           "mole fraction":   3.0704073533619458E-025 ,
+           "moles":  3.0704073534911211E-025,
+           "chemical potential":  -977901.48273326829      ,
+           "stoichiometry": [   3.0000000000000000      ,   0.0000000000000000      ]
+         },
+         "CO": {
+           "mole fraction":  0.50000000004384570      ,
+           "moles":  5.0000000006488121E-001,
+           "chemical potential":  -452791.79161079432      ,
+           "stoichiometry": [   1.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C2O": {
+           "mole fraction":   1.3602099921498667E-016 ,
+           "moles":  1.3602099922070922E-016,
+           "chemical potential":  -579616.40137135366      ,
+           "stoichiometry": [   1.0000000000000000      ,   2.0000000000000000      ]
+         },
+         "CO2": {
+           "mole fraction":  0.49999999991407884      ,
+           "moles":  4.9999999993511435E-001,
+           "chemical potential":  -778758.93037628708      ,
+           "stoichiometry": [   2.0000000000000000      ,   1.0000000000000000      ]
+         },
+         "C3O2": {
+           "mole fraction":   1.7437453703102145E-015 ,
+           "moles":  1.7437453703835756E-015,
+           "chemical potential":  -1032408.1668618820      ,
+           "stoichiometry": [   2.0000000000000000      ,   3.0000000000000000      ]
+         }
+       },
+       "elements": {
+         "O": {
+           "moles of element in phase":  1.5000000000000111E+000,
+           "mole fraction of phase by element":  0.60000000000000153      ,
+           "mole fraction of element by phase":   1.0000000000000073     
+         },
+         "C": {
+           "moles of element in phase":  1.0000000000000009E+000,
+           "mole fraction of phase by element":  0.39999999999999841      ,
+           "mole fraction of element by phase":   1.0000000000000009     
+         }
+       }
+     }
+   },
+   "pure condensed phases": {
+     "C_Graphite(s)": {
+       "moles": 0.0,
+       "chemical potential":  -27320.422769117245      ,
+       "driving force":   7.9783920932272245E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     },
+     "C_diamond(s2)": {
+       "moles": 0.0,
+       "chemical potential":  -19183.617551118950      ,
+       "driving force":   8.6308131744454748E+000,
+       "stoichiometry": [   0.0000000000000000      ,   1.0000000000000000      ],
+       "elements": {
+         "O": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   0.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         },
+         "C": {
+           "moles of element in phase":  0.0000000000000000E+000,
+           "mole fraction of phase by element":   1.0000000000000000      ,
+           "mole fraction of element by phase":   0.0000000000000000     
+         }
+       }
+     }
+   },
+   "elements": {
+     "O": {
+       "moles":    1.5000000000000000      ,
+       "element potential":  -3.2596713876549283E+005
+     },
+     "C": {
+       "moles":    1.0000000000000000      ,
+       "element potential":  -1.2682459926535598E+005
+     }
+   },
+   "temperature":    1500.0000000000000      ,
+   "pressure":    1.0000000000000000      ,
+   "integral Gibbs energy":  -6.1577530741359515E+005,
+   "entropy":   2.7601882287673652E+002,
+   "enthalpy":  -2.0174707309849036E+005,
+   "heat capacity":   4.6822914853692055E+001,
+   "functional norm":    3.0378150924207950E-006 ,
+   "GEM iterations":           19 ,
+   "# solution phases":            1 ,
+   "# pure condensed phases":            0
+ }
+ }
