@@ -22,22 +22,33 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
         inputFile.write(f'temperature unit  = {tunit}\n')
         inputFile.write(f'pressure unit     = {punit}\n')
         inputFile.write(f'mass unit         = {munit}\n')
+        # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
+        # Toggle for running properties requiring derivatives: enthalpy, entropy, heat capacity
         inputFile.write(f'heat capacity     = {".TRUE." if heatCapacity else ".FALSE."}\n')
+        # Toggle for writing JSON output database
         inputFile.write(f'write json        = {".TRUE." if writeJson else ".FALSE."}\n')
+        # Outputs a huge amount of information to terminal
         inputFile.write(f'debug mode        = {".TRUE." if debugMode else ".FALSE."}\n')
+        # Toggle reinitialization mode
         inputFile.write(f'reinitialization  = {".TRUE." if reinitialization else ".FALSE."}\n')
+        # Sets minimum number of species in solution phase for it to be included in the calculation (traditionally 2, 1 also makes sense)
+        # Preserve Thermochimica default unless set
         if minSpecies:
-            # Preserve Thermochimica default unless set
             inputFile.write(f'min species       = {minSpecies}\n')
+        # Number of elements to be used
         inputFile.write(f'nEl               = {nElements} \n')
+        # List of elements (by number)
         inputFile.write(f'iEl               = {" ".join([str(atomic_number_map.index(elem)+1) for elem in elements])}\n')
+        # Discard phases by name from database
         if excludePhases:
             inputFile.write(f'number excluded = {len(excludePhases)}\n')
             inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+        # Discard all phases except these
         if excludePhasesExcept:
             inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
             inputFile.write(f'phases excluded except = {" ".join(excludePhasesExcept)}\n')
+        # Number of calculations to be run in list
         inputFile.write(f'nCalc             = {len(calcList)}\n')
         # Write calculations list
         for calc in calcList:
@@ -47,37 +58,48 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
     nElements = len(elements)
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
+        # Temperature stepping
         if ntstep > 0:
             tstep = (float(tend)-float(tstart))/ntstep
             inputFile.write(f'temperature       = {tstart}:{tend}:{tstep}\n')
         else:
             inputFile.write(f'temperature       = {tstart}\n')
+        # Pressure stepping
         if npstep > 0:
             pstep = (float(pend)-float(pstart))/npstep
             inputFile.write(f'pressure          = {pstart}:{pend}:{pstep}\n')
         else:
             inputFile.write(f'pressure          = {pstart}\n')
+        # List of elements (by number)
         for i in range(nElements):
             inputFile.write(f'mass(' + str(atomic_number_map.index(elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
         inputFile.write(f'temperature unit  = {tunit}\n')
         inputFile.write(f'pressure unit     = {punit}\n')
+        # Toggles whether loops over temperature and pressure are nested (false) or simultaneous (true)
         inputFile.write(f'step together     = {".TRUE." if stepTogether else ".FALSE."}\n')
         inputFile.write(f'mass unit         = {munit}\n')
         inputFile.write(f'data file         = {datafile}\n')
+        # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
+        # Toggle for running properties requiring derivatives: enthalpy, entropy, heat capacity
         inputFile.write(f'heat capacity     = {".TRUE." if heatCapacity else ".FALSE."}\n')
+        # Outputs a huge amount of information to terminal
         inputFile.write(f'debug mode        = {".TRUE." if debugMode else ".FALSE."}\n')
+        # Toggle for writing JSON output database
         inputFile.write(f'write json        = {".TRUE." if writeJson else ".FALSE."}\n')
-        inputFile.write(f'debug mode        = {".TRUE." if debugMode else ".FALSE."}\n')
+        # Toggle reinitialization mode
         inputFile.write(f'reinitialization  = {".TRUE." if reinitialization else ".FALSE."}\n')
+        # Discard phases by name from database
         if excludePhases:
             inputFile.write(f'number excluded = {len(excludePhases)}\n')
             inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+        # Discard all phases except these
         if excludePhasesExcept:
             inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
             inputFile.write(f'phases excluded except = {" ".join(excludePhasesExcept)}\n')
+        # Sets minimum number of species in solution phase for it to be included in the calculation (traditionally 2, 1 also makes sense)
+        # Preserve Thermochimica default unless set
         if minSpecies:
-            # Preserve Thermochimica default unless set
             inputFile.write(f'min species       = {minSpecies}\n')
 
 def RunRunCalculationList(filename,checkOutput=False):
