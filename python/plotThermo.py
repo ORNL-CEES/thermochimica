@@ -654,8 +654,10 @@ class PlotWindow:
         if not self.showLeg2:
             legend2 = None
         # Call plotter
-        thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        self.currentPlot = thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
         
+        self.figureList.append(self.currentPlot)
+
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
         self.sgw.Element('Export Plot Script').Update(disabled = False)

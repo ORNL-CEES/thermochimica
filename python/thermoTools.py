@@ -179,6 +179,8 @@ def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor=
     plt.show()
     plt.pause(0.001)
 
+    return fig
+
 def selectData(yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
     # Select for left-hand y-axis
     yused = []
