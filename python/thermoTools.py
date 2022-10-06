@@ -129,9 +129,9 @@ def RunInputScript(filename,checkOutput=False,jsonName=None):
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,ylab,legend=None,yused2=None,ylab2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False,interactive=False):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False,interactive=False):
     # Do plot setup
-    x,y,y2,xlab = plotDataSetup(datafile,xkey,yused,yused2=yused2)
+    x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2)
 
     # Start figure
     fig = plt.figure()
@@ -234,20 +234,85 @@ def plotDataSetup(datafile,xkey,yused,yused2=None):
                             y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
             if xkey == 'iteration':
                 x.append(int(j))
-                xlab = 'Iteration'
             else:
                 x.append(data[j][xkey])
-                if xkey == 'temperature':
-                    xlab = 'Temperature [K]'
-                elif xkey == 'pressure':
-                    xlab = 'Pressure [atm]'
         except:
             # do nothing
             continue
     
-    return x,y,y2,xlab
+    # Set axis labels based on tags
+    if xkey == 'iteration':
+        xlab = 'Iteration'
+    elif xkey == 'temperature':
+        xlab = 'Temperature [K]'
+    elif xkey == 'pressure':
+        xlab = 'Pressure [atm]'
+    else:
+        xlab = ''
 
-def exportPlotScript(filename,datafile,xkey,yused,ylab,legend=None,yused2=None,ylab2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+    # Use first key, last entry
+    ykey = yused[0][-1]
+    ylab = getYlab(ykey)
+
+    if yused2:
+        ykey = yused2[0][-1]
+        ylab2 = getYlab(ykey)
+    else:
+        ylab2 = None
+
+    return x,y,y2,xlab,ylab,ylab2
+
+def getYlab(ykey):
+    if ykey == 'temperature':
+        ylab = 'Temperature [K]'
+    elif ykey == 'pressure':
+        ylab = 'Pressure [atm]'
+    elif ykey == 'integral Gibbs energy':
+        ylab = 'Integral Gibbs Energy [J]'
+    elif ykey == 'functional norm':
+        ylab = 'Functional Norm'
+    elif ykey == 'GEM iterations':
+        ylab = 'GEM Iterations'
+    elif ykey == 'heat capacity':
+        ylab = 'Heat Capacity'
+    elif ykey == 'enthalpy':
+        ylab = 'Enthalpy'
+    elif ykey == 'entropy':
+        ylab = 'Entropy'
+    elif ykey == '# phases':
+        ylab = 'Number of Stable Phases'
+    elif ykey == '# solution phases':
+        ylab = 'Number of Stable Phases'
+    elif ykey == '# pure condensed phases':
+        ylab = 'Number of Stable Phases'
+    elif ykey == 'moles':
+        ylab = 'Moles'
+    elif ykey == 'chemical potential':
+        ylab = 'Chemical Potential [J]'
+    elif ykey == 'driving force':
+        ylab = 'Driving Force [J]'
+    elif ykey == 'moles of element in phase':
+        ylab = 'Moles of Element in Phase'
+    elif ykey == 'mole fraction of phase by element':
+        ylab = 'Mole Fraction of Phase by Element'
+    elif ykey == 'mole fraction of element by phase':
+        ylab = 'Mole Fraction of Element by Phase'
+    elif ykey == 'mole fraction':
+        ylab = 'Mole Fraction'
+    elif ykey == 'mole fraction of endmembers':
+        ylab = 'Mole Fraction'
+    elif ykey == 'vapor pressure':
+        ylab = 'Vapor Pressure [atm]'
+    elif ykey == 'moles of elements':
+        ylab = 'Moles'
+    elif ykey == 'element potential':
+        ylab = 'Element Potential [J]'
+    else:
+        ylab = ''
+    
+    return ylab    
+
+def exportPlotScript(filename,datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
     # Call plotDataSetup() instead
     with open(filename, 'w') as f:
@@ -264,9 +329,8 @@ def exportPlotScript(filename,datafile,xkey,yused,ylab,legend=None,yused2=None,y
         f.write(f'legend   = {legend}\n')
         f.write(f'yused2   = {yused2}\n')
         f.write(f'legend2  = {legend2}\n')
-        f.write(f'ylab     = \'{ylab}\'\n')
         # Call plotDataSetup (enables use of datafile path)
-        f.write('x,y,y2,xlab = thermoTools.plotDataSetup(datafile,xkey,yused,yused2=yused2)\n')
+        f.write('x,y,y2,xlab,ylab,ylab2 = thermoTools.plotDataSetup(datafile,xkey,yused,yused2=yused2)\n')
         # Figure generation commands
         f.write('lns=[]\n')
         f.write('# Start figure\n')
@@ -286,7 +350,6 @@ def exportPlotScript(filename,datafile,xkey,yused,ylab,legend=None,yused2=None,y
         else:
             f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c)\n')
         if yused2:
-            f.write(f'ylab2 = \'{ylab2}\'\n')
             f.write('ax2 = ax.twinx()\n')
             f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
             f.write('for yi in range(len(y2)):\n')

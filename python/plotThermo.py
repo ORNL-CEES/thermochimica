@@ -15,8 +15,6 @@ class PlotWindow:
         self.yen2 = []
         self.leg2 = []
         self.showLeg2 = True
-        self.ylab = ''
-        self.ylab2 = ''
         self.xkey = []
         self.xlog = False
         self.ylog = False
@@ -75,22 +73,6 @@ class PlotWindow:
                     self.ykey[0].append(values['-yaxis-'])
                     self.yen.append(True)
                     self.leg.append(values['-yaxis-'])
-                    if values['-yaxis-'] == 'temperature':
-                        self.ylab = 'Temperature [K]'
-                    elif values['-yaxis-'] == 'pressure':
-                        self.ylab = 'Pressure [atm]'
-                    elif values['-yaxis-'] == 'integral Gibbs energy':
-                        self.ylab = 'Integral Gibbs Energy [J]'
-                    elif values['-yaxis-'] == 'functional norm':
-                        self.ylab = 'Functional Norm'
-                    elif values['-yaxis-'] == 'GEM iterations':
-                        self.ylab = 'GEM Iterations'
-                    elif values['-yaxis-'] == 'heat capacity':
-                        self.ylab = 'Heat Capacity'
-                    elif values['-yaxis-'] == 'enthalpy':
-                        self.ylab = 'Enthalpy'
-                    elif values['-yaxis-'] == 'entropy':
-                        self.ylab = 'Entropy'
                     self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
@@ -104,7 +86,6 @@ class PlotWindow:
                     self.ykey[1].append('# pure condensed phases')
                     self.yen.append(True)
                     self.leg.append('# of Pure Condensed Phases')
-                    self.ylab = 'Number of Stable Phases'
                     self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
@@ -128,18 +109,14 @@ class PlotWindow:
                                 self.yen.append(False)
                                 phaseColumns[-1].append([sg.Checkbox('Moles of Endmembers',key=str(yi))])
                                 self.leg.append(j)
-                                self.ylab = 'Moles'
                                 yi = yi + 1
                             self.ykey.append(['solution phases',j,values['-yaxis-']])
                             self.yen.append(False)
                             phaseColumns[-1].append([sg.Checkbox('Moles',key=str(yi))])
                             self.leg.append(j)
-                            self.ylab = 'Moles'
                             yi = yi + 1
                         except:
                             continue
-                    else:
-                        self.ylab = 'Chemical Potential [J]'
                     if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
                         speciesLabel = 'quadruplets'
                     else:
@@ -190,7 +167,6 @@ class PlotWindow:
                 yi = 0
                 for j in solutionPhases:
                     phaseColumns.append([[sg.Text(j)]])
-                    self.ylab = 'Driving Force [J]'
                     self.ykey.append(['solution phases',j,values['-yaxis-']])
                     self.yen.append(False)
                     self.leg.append(j)
@@ -230,12 +206,6 @@ class PlotWindow:
                 yi = 0
                 for j in solutionPhases:
                     phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis-'] == 'moles of element in phase':
-                        self.ylab = 'Moles of Element in Phase'
-                    if values['-yaxis-'] == 'mole fraction of phase by element':
-                        self.ylab = 'Mole Fraction of Phase by Element'
-                    else:
-                        self.ylab = 'Mole Fraction of Element by Phase'
                     for k in list(self.data['1']['solution phases'][j]['elements'].keys()):
                         try:
                             self.ykey.append(['solution phases',j,'elements',k,values['-yaxis-']])
@@ -274,7 +244,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis-'] == 'mole fraction':
                 self.ykey = []
-                self.ylab = 'Mole Fraction'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -311,7 +280,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis-'] == 'mole fraction of endmembers':
                 self.ykey = []
-                self.ylab = 'Mole Fraction'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -347,7 +315,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis-'] == 'vapor pressure':
                 self.ykey = []
-                self.ylab = 'Vapor Pressure [atm]'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -380,7 +347,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis-'] == 'moles of elements':
                 self.ykey = []
-                self.ylab = 'Moles'
                 elements = list(self.data['1']['elements'].keys())
                 for j in elements:
                     try:
@@ -393,7 +359,6 @@ class PlotWindow:
                 self.sgw.Element('-yaxis2-').Update(disabled = False)
             elif values['-yaxis-'] == 'element potential':
                 self.ykey = []
-                self.ylab = 'Element Potential [J]'
                 elements = list(self.data['1']['elements'].keys())
                 for j in elements:
                     try:
@@ -412,22 +377,6 @@ class PlotWindow:
                 self.ykey2[0].append(values['-yaxis2-'])
                 self.yen2.append(True)
                 self.leg2.append(values['-yaxis2-'])
-                if values['-yaxis2-'] == 'temperature':
-                    self.ylab2 = 'Temperature [K]'
-                elif values['-yaxis2-'] == 'pressure':
-                    self.ylab2 = 'Pressure [atm]'
-                elif values['-yaxis2-'] == 'integral Gibbs energy':
-                    self.ylab2 = 'Integral Gibbs Energy [J]'
-                elif values['-yaxis2-'] == 'functional norm':
-                    self.ylab2 = 'Functional Norm'
-                elif values['-yaxis2-'] == 'GEM iterations':
-                    self.ylab2 = 'GEM Iterations'
-                elif values['-yaxis2-'] == 'heat capacity':
-                    self.ylab2 = 'Heat Capacity'
-                elif values['-yaxis2-'] == 'enthalpy':
-                    self.ylab2 = 'Enthalpy'
-                elif values['-yaxis2-'] == 'entropy':
-                    self.ylab2 = 'Entropy'
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == '# phases':
                 self.ykey2[0].append('# solution phases')
@@ -437,7 +386,6 @@ class PlotWindow:
                 self.ykey2[1].append('# pure condensed phases')
                 self.yen2.append(True)
                 self.leg2.append('# of Pure Condensed Phases')
-                self.ylab2 = 'Number of Stable Phases'
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] in ['moles','chemical potential']:
                 self.ykey2 = []
@@ -453,10 +401,7 @@ class PlotWindow:
                         self.yen2.append(False)
                         phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
                         self.leg2.append(j)
-                        self.ylab2 = 'Moles'
                         yi = yi + 1
-                    else:
-                        self.ylab2 = 'Chemical Potential [J]'
                     if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
                         speciesLabel = 'quadruplets'
                     else:
@@ -500,7 +445,6 @@ class PlotWindow:
                 yi = 0
                 for j in solutionPhases:
                     phaseColumns.append([[sg.Text(j)]])
-                    self.ylab2 = 'Driving Force [J]'
                     self.ykey2.append(['solution phases',j,values['-yaxis2-']])
                     self.yen2.append(False)
                     self.leg2.append(j)
@@ -539,12 +483,6 @@ class PlotWindow:
                 yi = 0
                 for j in solutionPhases:
                     phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis2-'] == 'moles of element in phase':
-                        self.ylab2 = 'Moles of Element in Phase'
-                    if values['-yaxis2-'] == 'mole fraction of phase by element':
-                        self.ylab2 = 'Mole Fraction of Phase by Element'
-                    else:
-                        self.ylab2 = 'Mole Fraction of Element by Phase'
                     for k in list(self.data['1']['solution phases'][j]['elements'].keys()):
                         self.ykey2.append(['solution phases',j,'elements',k,values['-yaxis2-']])
                         self.yen2.append(False)
@@ -576,7 +514,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis2-'] == 'mole fraction':
                 self.ykey2 = []
-                self.ylab2 = 'Mole Fraction'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -610,7 +547,6 @@ class PlotWindow:
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == 'mole fraction of endmembers':
                 self.ykey2 = []
-                self.ylab2 = 'Mole Fraction'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -645,7 +581,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis2-'] == 'vapor pressure':
                 self.ykey2 = []
-                self.ylab2 = 'Vapor Pressure [atm]'
                 solutionPhases = list(self.data['1']['solution phases'].keys())
                 phaseColumns = []
                 yi = 0
@@ -678,7 +613,6 @@ class PlotWindow:
                 selectWindow.close()
             elif values['-yaxis2-'] == 'moles of elements':
                 self.ykey2 = []
-                self.ylab2 = 'Moles'
                 elements = list(self.data['1']['elements'].keys())
                 for j in elements:
                     try:
@@ -690,7 +624,6 @@ class PlotWindow:
                 self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == 'element potential':
                 self.ykey2 = []
-                self.ylab2 = 'Element Potential [J]'
                 elements = list(self.data['1']['elements'].keys())
                 for j in elements:
                     self.ykey2.append(['elements',j,values['-yaxis2-']])
@@ -721,7 +654,7 @@ class PlotWindow:
         if not self.showLeg2:
             legend2 = None
         # Call plotter
-        thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
         
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
@@ -735,7 +668,7 @@ class PlotWindow:
         if not self.showLeg2:
             legend2 = None
         # Call plot exporter
-        thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
+        thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
             self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
