@@ -129,13 +129,14 @@ def RunInputScript(filename,checkOutput=False,jsonName=None):
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False,interactive=False):
     # Do plot setup
-    x,y,y2,xlab,legend,legend2 = plotDataSetup(datafile,xkey,yused,leg,yused2=yused2,legend2=leg2)
+    x,y,y2,xlab = plotDataSetup(datafile,xkey,yused,yused2=yused2)
 
     # Start figure
     fig = plt.figure()
-    plt.ion()
+    if interactive:
+        plt.ion()
     lns=[]
     if yused2:
         ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
@@ -147,7 +148,7 @@ def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotC
             c = next(color)
         else:
             c = 'k'
-        lns = lns + ax.plot(x,y[yi],plotMarker,c=c,label=legend[yi])
+        lns = lns + ax.plot(x,y[yi],plotMarker,c=c,label=leg[yi])
     ax.set_xlabel(xlab)
     if xlog:
         ax.set_xscale('log')
@@ -160,7 +161,7 @@ def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotC
                 c = next(color)
             else:
                 c = 'k'
-            lns = lns + ax2.plot(x,y2[yi],plotMarker2,c=c,label=legend2[yi])
+            lns = lns + ax2.plot(x,y2[yi],plotMarker2,c=c,label=leg2[yi])
         ax2.set_ylabel(ylab2)
         if ylog2:
             ax2.set_yscale('log')
@@ -171,7 +172,7 @@ def makePlot(datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotC
     plt.show()
     plt.pause(0.001)
 
-    return x, y, y2, legend, legend2, xlab
+    return x, y, y2, xlab
 
 def selectData(yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
     # Select for left-hand y-axis
@@ -192,11 +193,14 @@ def selectData(yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
 
     return yused, legend, yused2, legend2
 
-def plotDataSetup(datafile,xkey,yused,legend,yused2=None,legend2=None):
+def plotDataSetup(datafile,xkey,yused,yused2=None):
     # Init axes
     x = []
     y = [[] for _ in range(len(yused))]
-    y2 = [[] for _ in range(len(yused2))]
+    if yused2:
+        y2 = [[] for _ in range(len(yused2))]
+    else:
+        y2 = []
     
     # Loop over all calculations and get requested values
     data = readDatabase(datafile)
@@ -212,16 +216,17 @@ def plotDataSetup(datafile,xkey,yused,legend,yused2=None,legend2=None):
                         y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]]['mole fraction']*data[j]['pressure'])
                     else:
                         y[yi].append(data[j][yused[yi][0]][yused[yi][1]][yused[yi][2]][yused[yi][3]][yused[yi][4]])
-            for yi in range(len(yused2)):
-                if len(yused2[yi]) == 1:
-                    y2[yi].append(data[j][yused2[yi][0]])
-                elif len(yused2[yi]) == 3:
-                    y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
-                elif len(yused2[yi]) == 5:
-                    if yused2[yi][4] == 'vapor pressure':
-                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*data[j]['pressure'])
-                    else:
-                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
+            if yused2:
+                for yi in range(len(yused2)):
+                    if len(yused2[yi]) == 1:
+                        y2[yi].append(data[j][yused2[yi][0]])
+                    elif len(yused2[yi]) == 3:
+                        y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]])
+                    elif len(yused2[yi]) == 5:
+                        if yused2[yi][4] == 'vapor pressure':
+                            y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]]['mole fraction']*data[j]['pressure'])
+                        else:
+                            y2[yi].append(data[j][yused2[yi][0]][yused2[yi][1]][yused2[yi][2]][yused2[yi][3]][yused2[yi][4]])
             if xkey == 'iteration':
                 x.append(int(j))
                 xlab = 'Iteration'
@@ -235,7 +240,7 @@ def plotDataSetup(datafile,xkey,yused,legend,yused2=None,legend2=None):
             # do nothing
             continue
     
-    return x,y,y2,xlab,legend,legend2
+    return x,y,y2,xlab
 
 def exportPlotScript(filename,datafile,xkey,yused,ylab,leg,yused2=None,ylab2=None,leg2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
@@ -256,7 +261,7 @@ def exportPlotScript(filename,datafile,xkey,yused,ylab,leg,yused2=None,ylab2=Non
         f.write(f'leg2     = {leg2}\n')
         f.write(f'ylab     = \'{ylab}\'\n')
         # Call plotDataSetup (enables use of datafile path)
-        f.write('x,y,y2,xlab,legend,legend2 = thermoTools.plotDataSetup(datafile,xkey,yused,leg,yused2=yused2,legend2=leg2)\n')
+        f.write('x,y,y2,xlab = thermoTools.plotDataSetup(datafile,xkey,yused,yused2=yused2)\n')
         # Figure generation commands
         f.write('lns=[]\n')
         f.write('# Start figure\n')
@@ -271,7 +276,7 @@ def exportPlotScript(filename,datafile,xkey,yused,ylab,leg,yused2=None,ylab2=Non
             f.write('    c = next(color)\n')
         else:
             f.write('    c = \'k\'\n')
-        f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=legend[yi])\n')
+        f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=leg[yi])\n')
         if yused2:
             f.write(f'ylab2 = \'{ylab2}\'\n')
             f.write('ax2 = ax.twinx()\n')
@@ -281,7 +286,7 @@ def exportPlotScript(filename,datafile,xkey,yused,ylab,leg,yused2=None,ylab2=Non
                 f.write('    c = next(color)\n')
             else:
                 f.write('    c = \'k\'\n')
-            f.write(f'    lns = lns + ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c,label=legend2[yi])\n')
+            f.write(f'    lns = lns + ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c,label=leg2[yi])\n')
             f.write('ax2.set_ylabel(ylab2)\n')
             if ylog2:
                 f.write("ax2.set_yscale('log')\n")

@@ -718,9 +718,9 @@ class PlotWindow:
             self.readDatabase()
     def makePlot(self):
         # Select data
-        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        yused, self.plotLeg, yused2, self.plotLeg2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
         # Call plotter
-        self.x, self.y, self.y2, self.plotLeg, self.plotLeg2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend,yused2=yused2,ylab2=self.ylab2,leg2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
+        self.x, self.y, self.y2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,self.plotLeg,yused2=yused2,ylab2=self.ylab2,leg2=self.plotLeg2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
         
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
