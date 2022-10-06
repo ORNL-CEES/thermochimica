@@ -33,7 +33,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         calc = [temperature, pressure]
         calc.extend([endpoint[element] for element in elements])
         calcList.append(calc)
-    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity)
+    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
     thermoTools.RunRunCalculationList(inputFileName)
@@ -62,7 +62,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         calc = [temperature, pressure]
         calc.extend([(1-mixture)*endpoints[0][element] + (mixture)*endpoints[1][element] for element in elements])
         calcList.append(calc)
-    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity)
+    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
     thermoTools.RunRunCalculationList(inputFileName)
