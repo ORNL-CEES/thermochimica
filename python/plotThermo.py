@@ -1,5 +1,4 @@
 import PySimpleGUI as sg
-import json
 import matplotlib.pyplot as plt
 import thermoTools
 import thermoToolsGUI
