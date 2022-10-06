@@ -10,11 +10,11 @@ class PlotWindow:
         self.ykey = [[]]
         self.yen = []
         self.leg = []
-        self.plotLeg = []
+        self.showLeg = True
         self.ykey2 = [[]]
         self.yen2 = []
         self.leg2 = []
-        self.plotLeg2 = []
+        self.showLeg2 = True
         self.ylab = ''
         self.ylab2 = ''
         self.x = []
@@ -718,9 +718,14 @@ class PlotWindow:
             self.readDatabase()
     def makePlot(self):
         # Select data
-        yused, self.plotLeg, yused2, self.plotLeg2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        # Check if legends should be displayed
+        if not self.showLeg:
+            legend = None
+        if not self.showLeg2:
+            legend2 = None
         # Call plotter
-        self.x, self.y, self.y2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend=self.plotLeg,yused2=yused2,ylab2=self.ylab2,legend2=self.plotLeg2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        self.x, self.y, self.y2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
         
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
@@ -728,6 +733,11 @@ class PlotWindow:
     def exportPlotScript(self):
         # Select data
         yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        # Check if legends should be displayed
+        if not self.showLeg:
+            legend = None
+        if not self.showLeg2:
+            legend2 = None
         # Call plot exporter
         thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
@@ -814,6 +824,12 @@ class SettingsWindow:
                                         [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
                                         [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
                                         ],vertical_alignment='t')],
+                            [sg.Column([
+                                        [sg.Checkbox('Show Legend', default=self.parent.showLeg, key='-showLegend-')]
+                                        ],vertical_alignment='t'),
+                            sg.Column([
+                                        [sg.Checkbox('Show Legend 2', default=self.parent.showLeg2, key='-showLegend2-')]
+                                        ],vertical_alignment='t')],
                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
@@ -844,6 +860,8 @@ class SettingsWindow:
         elif event =='-mbland2-':
             self.parent.plotColor2 = 'bland'
         elif event =='Accept':
+            self.parent.showLeg  = values['-showLegend-']
+            self.parent.showLeg2 = values['-showLegend2-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.exportFileName = str(values['-filename-'])
