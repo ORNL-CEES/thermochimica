@@ -318,7 +318,7 @@ program RunCalculationList
 
     ! Specify values:
     if (lWriteJSON) then
-        OPEN(2, file= DATA_DIRECTORY // '../thermoout.json', &
+        OPEN(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
             status='REPLACE', action='write')
         WRITE(2,*) '{'
         CLOSE(2)
@@ -336,7 +336,7 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+      open(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
       write(intStr,*) i
@@ -357,7 +357,7 @@ program RunCalculationList
     CLOSE(3)
 
     if (lWriteJSON) then
-        open(2, file= DATA_DIRECTORY // '../thermoout.json', &
+        open(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
             status='OLD', position='append', action='write')
         write(2,*) '}'
         close (2)

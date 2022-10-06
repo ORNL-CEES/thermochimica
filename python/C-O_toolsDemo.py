@@ -2,7 +2,7 @@ import thermoTools
 
 scriptName = 'inputs/co-script-demo.ti'
 datafile   = 'data/C-O.dat'
-jsonName   = 'c-o.json'
+jsonName   = 'outputs/c-o.json'
 elements   = ['C','O']
 tstart     = 300
 tend       = 1500

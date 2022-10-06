@@ -673,7 +673,7 @@ class PlotWindow:
         thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
-            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+            self.currentPlot.savefig(f'outputs/{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
         except:
             errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
             errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
@@ -808,7 +808,7 @@ class SettingsWindow:
             self.close()
 
 windowList = []
-dataWindow = thermoToolsGUI.DataWindow(windowList,PlotWindow,thermoToolsGUI.JSONParse,ext='.json',rootDir='')
+dataWindow = thermoToolsGUI.DataWindow(windowList,PlotWindow,thermoToolsGUI.JSONParse,ext='.json',rootDir='outputs')
 while len(windowList) > 0:
     for window in windowList:
         window.read()

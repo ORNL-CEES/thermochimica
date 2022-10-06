@@ -39,7 +39,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.RunRunCalculationList(inputFileName)
 
     # Process output
-    f = open(thermochimica_path+'/thermoout.json',)
+    f = open(thermochimica_path+'/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()
@@ -68,7 +68,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.RunRunCalculationList(inputFileName)
 
     # Process output
-    f = open(thermochimica_path+'/thermoout.json',)
+    f = open(thermochimica_path+'/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()

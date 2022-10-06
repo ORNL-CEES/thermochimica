@@ -26,12 +26,12 @@ sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
 sg.theme('OntarioTech')
 
 class DataWindow:
-    def __init__(self,windowList,calc,parser,ext='.dat',rootDir='/data'):
+    def __init__(self,windowList,calc,parser,ext='.dat',rootDir='data'):
         self.windowList = windowList
         self.calc = calc
         self.parser = parser
         self.ext = ext.lower()
-        self.folder = os.getcwd()+rootDir
+        self.folder = os.getcwd()+'/'+rootDir
         windowList.append(self)
         file_list_column = MakeFileListColumn('Database Folder')
         self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)

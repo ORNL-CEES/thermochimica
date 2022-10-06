@@ -173,7 +173,7 @@ class CalculationWindow:
         self.temperature = 300
         self.pressure = 1
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
-        self.outputFileName = 'thermoout.json'
+        self.outputFileName = 'outputs/thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
         self.backup = []

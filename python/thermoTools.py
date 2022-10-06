@@ -111,7 +111,7 @@ def RunRunCalculationList(filename,checkOutput=False,jsonName=None):
         subprocess.run(['./bin/RunCalculationList',filename])
     if jsonName:
         try:
-            shutil.copy2('thermoout.json', f'{jsonName}')
+            shutil.copy2('outputs/thermoout.json', f'{jsonName}')
         except:
             pass
     return thermoOut
@@ -124,7 +124,7 @@ def RunInputScript(filename,checkOutput=False,jsonName=None):
         subprocess.run(['./bin/InputScriptMode',filename])
     if jsonName:
         try:
-            shutil.copy2('thermoout.json', f'{jsonName}')
+            shutil.copy2('outputs/thermoout.json', f'{jsonName}')
         except:
             pass
     return thermoOut
