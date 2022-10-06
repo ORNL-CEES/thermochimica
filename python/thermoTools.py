@@ -129,7 +129,7 @@ def RunInputScript(filename,checkOutput=False,jsonName=None):
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False,interactive=False):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False):
     # Do plot setup
     x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2)
 
@@ -151,7 +151,7 @@ def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor=
         if legend:
             lns = lns + ax.plot(x,y[yi],plotMarker,c=c,label=legend[yi])
         else:
-            lns = lns + ax.plot(x,y[yi],plotMarker,c=c)
+            ax.plot(x,y[yi],plotMarker,c=c)
     ax.set_xlabel(xlab)
     if xlog:
         ax.set_xscale('log')
@@ -167,7 +167,7 @@ def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor=
             if legend2:
                 lns = lns + ax2.plot(x,y2[yi],plotMarker2,c=c,label=legend2[yi])
             else:
-                lns = lns + ax2.plot(x,y2[yi],plotMarker2,c=c)
+                ax2.plot(x,y2[yi],plotMarker2,c=c)
         ax2.set_ylabel(ylab2)
         if ylog2:
             ax2.set_yscale('log')
@@ -312,7 +312,7 @@ def getYlab(ykey):
     
     return ylab    
 
-def exportPlotScript(filename,datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='-.',plotMarker2='--*',xlog=False,ylog=False,ylog2=False):
+def exportPlotScript(filename,datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False):
     # Don't want to call makePlot() from here because then it is too hard to reconfigure the plot
     # Call plotDataSetup() instead
     with open(filename, 'w') as f:
@@ -348,7 +348,7 @@ def exportPlotScript(filename,datafile,xkey,yused,legend=None,yused2=None,legend
         if legend:
             f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c,label=legend[yi])\n')
         else:
-            f.write(f'    lns = lns + ax.plot(x,y[yi],\'{plotMarker}\',c=c)\n')
+            f.write(f'    ax.plot(x,y[yi],\'{plotMarker}\',c=c)\n')
         if yused2:
             f.write('ax2 = ax.twinx()\n')
             f.write('color = iter(plt.cm.rainbow(np.linspace(0, 1, len(y2))))\n')
@@ -360,7 +360,7 @@ def exportPlotScript(filename,datafile,xkey,yused,legend=None,yused2=None,legend
             if legend2:
                 f.write(f'    lns = lns + ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c,label=legend2[yi])\n')
             else:
-                f.write(f'    lns = lns + ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c)\n')
+                f.write(f'    ax2.plot(x,y2[yi],\'{plotMarker2}\',c=c)\n')
             f.write('ax2.set_ylabel(ylab2)\n')
             if ylog2:
                 f.write("ax2.set_yscale('log')\n")
