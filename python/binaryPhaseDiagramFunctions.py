@@ -1010,4 +1010,3 @@ class diagram:
                 newData.append(newrow)
         self.experimentalData.append(np.array(newData))
         self.experimentNames.append(expName)
-        self.makePlot()
