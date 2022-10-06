@@ -17,10 +17,6 @@ class PlotWindow:
         self.showLeg2 = True
         self.ylab = ''
         self.ylab2 = ''
-        self.x = []
-        self.y = []
-        self.y2 = []
-        self.xlab = []
         self.xkey = []
         self.xlog = False
         self.ylog = False
@@ -725,7 +721,7 @@ class PlotWindow:
         if not self.showLeg2:
             legend2 = None
         # Call plotter
-        self.x, self.y, self.y2, self.xlab = thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        thermoTools.makePlot(self.datafile,self.xkey,yused,self.ylab,legend=legend,yused2=yused2,ylab2=self.ylab2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
         
         # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
