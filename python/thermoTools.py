@@ -14,14 +14,14 @@ atomic_number_map = [
     'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
 ]
 
-def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None):
+def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,excludePhases=None,excludePhasesExcept=None):
     nElements = len(elements)
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
         inputFile.write(f'data file         = {datafile}\n')
         inputFile.write(f'temperature unit  = {tunit}\n')
         inputFile.write(f'pressure unit     = {punit}\n')
-        inputFile.write(f'mass unit         = \'{munit}\'\n')
+        inputFile.write(f'mass unit         = {munit}\n')
         inputFile.write(f'print mode        = {printMode}\n')
         inputFile.write(f'heat capacity     = {".TRUE." if heatCapacity else ".FALSE."}\n')
         inputFile.write(f'write json        = {".TRUE." if writeJson else ".FALSE."}\n')
@@ -32,12 +32,18 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
             inputFile.write(f'min species       = {minSpecies}\n')
         inputFile.write(f'nEl               = {nElements} \n')
         inputFile.write(f'iEl               = {" ".join([str(atomic_number_map.index(elem)+1) for elem in elements])}\n')
+        if excludePhases:
+            inputFile.write(f'number excluded = {len(excludePhases)}\n')
+            inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+        if excludePhasesExcept:
+            inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
+            inputFile.write(f'phases excluded except = {" ".join(excludePhasesExcept)}\n')
         inputFile.write(f'nCalc             = {len(calcList)}\n')
         # Write calculations list
         for calc in calcList:
             inputFile.write(f'{calc[0]} {calc[1]} {" ".join([str(calc[i]) for i in range(2,len(calc))])}\n')
 
-def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,npstep,masses,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,stepTogether=False):
+def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,npstep,masses,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,stepTogether=False,excludePhases=None,excludePhasesExcept=None):
     nElements = len(elements)
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -64,6 +70,12 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         inputFile.write(f'write json        = {".TRUE." if writeJson else ".FALSE."}\n')
         inputFile.write(f'debug mode        = {".TRUE." if debugMode else ".FALSE."}\n')
         inputFile.write(f'reinitialization  = {".TRUE." if reinitialization else ".FALSE."}\n')
+        if excludePhases:
+            inputFile.write(f'number excluded = {len(excludePhases)}\n')
+            inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+        if excludePhasesExcept:
+            inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
+            inputFile.write(f'phases excluded except = {" ".join(excludePhasesExcept)}\n')
         if minSpecies:
             # Preserve Thermochimica default unless set
             inputFile.write(f'min species       = {minSpecies}\n')
