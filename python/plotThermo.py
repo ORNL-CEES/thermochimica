@@ -96,18 +96,17 @@ class PlotWindow:
             window.close()
         if value in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
             try:
-                ykey[0].append(value)
+                ykey.append([value])
                 yen.append(True)
                 leg.append(value)
             except:
                 return
         elif value == '# phases':
             try:
-                ykey[0].append('# solution phases')
+                ykey.append(['# solution phases'])
                 yen.append(True)
                 leg.append('# of Solution Phases')
-                ykey.append([])
-                ykey[1].append('# pure condensed phases')
+                ykey.append(['# pure condensed phases'])
                 yen.append(True)
                 leg.append('# of Pure Condensed Phases')
             except:
