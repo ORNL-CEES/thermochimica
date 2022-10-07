@@ -39,7 +39,7 @@ class PlotWindow:
                       sg.Column([[sg.Button('Export Plot Script', disabled = True, size = thermoToolsGUI.buttonSize)],
                                  [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)]                                  
                                  ],vertical_alignment='t')]]
-        self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [500,0], finalize=True)
         self.children = []
         self.currentPlot = []
         self.figureList = []
@@ -698,7 +698,7 @@ class SelectionWindow:
             [sg.Button('Remove Selected Options')]
         ]
         selectionLayout = [[sg.Column(selectables_column,vertical_alignment='t'),sg.Column(selected_column,vertical_alignment='t')],[sg.Button('Exit')]]
-        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [800,0], finalize=True)
         self.updateSelectables()
     def read(self):
         event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
