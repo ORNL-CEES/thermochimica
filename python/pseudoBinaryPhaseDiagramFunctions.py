@@ -19,7 +19,7 @@ class diagram:
         self.interactivePlot = interactivePlot
         self.children = []
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
-        self.outputFileName = 'thermoout.json'
+        self.outputFileName = 'outputs/thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
         if self.active:
@@ -367,4 +367,3 @@ class diagram:
                 newData.append(newrow)
         self.experimentalData.append(np.array(newData))
         self.experimentNames.append(expName)
-        self.makePlot()

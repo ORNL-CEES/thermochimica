@@ -61,7 +61,7 @@ program ThermochimicaInputScriptMode
   end if
 
   if (lWriteJSON) then
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='REPLACE', action='write')
     write(1,*) '{'
     close (1)
@@ -91,7 +91,7 @@ program ThermochimicaInputScriptMode
       ! Perform post-processing of results:
       if (iPrintResultsMode > 0)  call PrintResults
       if (lWriteJSON) then
-        open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+        open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
             status='OLD', position='append', action='write')
         if ((i > 0) .OR. (j > 0)) write(1,*) ','
         write(intStr,*) nSim
@@ -115,7 +115,7 @@ program ThermochimicaInputScriptMode
   end do
 
   if (lWriteJSON) then
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='OLD', position='append', action='write')
     write(1,*) '}'
     close (1)
