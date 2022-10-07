@@ -75,7 +75,7 @@ class PlotWindow:
             self.ykey2 = []
             self.yen2 = []
             self.leg2 = []
-            self.set_y_axis(values['-yaxis2-'],self.ykey2,self.yen2,self.leg2,self.yWindow2)
+            self.set_y_axis(values['-yaxis2-'],self.ykey2,self.yen2,self.leg2,self.yWindow2,offset=500)
         elif event == 'Plot':
             self.xkey  = values['-xaxis-']
             self.xlog  = values['-xlog-']
@@ -91,7 +91,7 @@ class PlotWindow:
             self.children.append(settingsWindow)
         elif event == 'Refresh Data':
             self.readDatabase()
-    def set_y_axis(self,value,ykey,yen,leg,yWindow):
+    def set_y_axis(self,value,ykey,yen,leg,yWindow,offset=0):
         for window in yWindow:
             window.close()
         if value in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
@@ -161,7 +161,7 @@ class PlotWindow:
                     yi = yi + 1
                 except:
                     continue
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value in ['driving force']:
@@ -187,7 +187,7 @@ class PlotWindow:
                     yi = yi + 1
                 except:
                     continue
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
@@ -217,7 +217,7 @@ class PlotWindow:
                         yi = yi + 1
                     except:
                         continue
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value == 'mole fraction':
@@ -239,7 +239,7 @@ class PlotWindow:
                         yi = yi + 1
                     except:
                         continue
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value == 'mole fraction of endmembers':
@@ -260,7 +260,7 @@ class PlotWindow:
                             continue
                 else:
                     continue
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value == 'vapor pressure':
@@ -280,7 +280,7 @@ class PlotWindow:
                     except:
                         continue
                 break
-            selectWindow = SelectionWindow(phaseOptions,yen)
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value == 'moles of elements':
@@ -296,7 +296,7 @@ class PlotWindow:
                     yi = yi + 1
                 except:
                     continue
-            selectWindow = SelectionWindow(elementOptions,yen)
+            selectWindow = SelectionWindow(elementOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
         elif value == 'element potential':
@@ -312,7 +312,7 @@ class PlotWindow:
                     yi = yi + 1
                 except:
                     continue
-            selectWindow = SelectionWindow(elementOptions,yen)
+            selectWindow = SelectionWindow(elementOptions,yen,offset=offset)
             self.children.append(selectWindow)
             yWindow.append(selectWindow)
     def makePlot(self):
@@ -359,13 +359,13 @@ class PlotWindow:
             exit()
 
 class SelectionWindow:
-    def __init__(self, options, yen):
+    def __init__(self, options, yen, offset = 0):
         self.options = options
         self.yen = yen
         self.selectables = []
         self.selected = []
         self.drop_selection = ''
-        self.makeLayout()
+        self.makeLayout(offset)
         windowList.append(self)
         self.children = []
     def close(self):
@@ -374,7 +374,7 @@ class SelectionWindow:
         self.sgw.close()
         if self in windowList:
             windowList.remove(self)
-    def makeLayout(self):
+    def makeLayout(self,offset):
         dropdown_options = list(self.options.keys())
         try:
             self.drop_selection = dropdown_options[0]
@@ -404,7 +404,7 @@ class SelectionWindow:
             [sg.Button('Remove Selected Options')]
         ]
         selectionLayout = [[sg.Column(selectables_column,vertical_alignment='t'),sg.Column(selected_column,vertical_alignment='t')],[sg.Button('Exit')]]
-        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [800,0], finalize=True)
+        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [800,offset], finalize=True)
         self.updateSelectables()
     def read(self):
         event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
