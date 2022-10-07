@@ -41,8 +41,8 @@ class PlotWindow:
                                  ],vertical_alignment='t')]]
         self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [500,0], finalize=True)
         self.children = []
-        self.yWindow = None
-        self.yWindow2 = None
+        self.yWindow = []
+        self.yWindow2 = []
         self.currentPlot = []
         self.figureList = []
         self.exportFormat = 'png'
@@ -92,8 +92,8 @@ class PlotWindow:
         elif event == 'Refresh Data':
             self.readDatabase()
     def set_y_axis(self,value,ykey,yen,leg,yWindow):
-        if yWindow:
-            yWindow.close()
+        for window in yWindow:
+            window.close()
         if value in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
             try:
                 ykey[0].append(value)
@@ -163,7 +163,7 @@ class PlotWindow:
                     continue
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value in ['driving force']:
             try:
                 solutionPhases = list(self.data['1']['solution phases'].keys())
@@ -189,7 +189,7 @@ class PlotWindow:
                     continue
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
             solutionPhases = list(self.data['1']['solution phases'].keys())
             pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
@@ -219,7 +219,7 @@ class PlotWindow:
                         continue
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value == 'mole fraction':
             solutionPhases = list(self.data['1']['solution phases'].keys())
             phaseOptions = {}
@@ -241,7 +241,7 @@ class PlotWindow:
                         continue
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value == 'mole fraction of endmembers':
             solutionPhases = list(self.data['1']['solution phases'].keys())
             phaseOptions = {}
@@ -262,7 +262,7 @@ class PlotWindow:
                     continue
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value == 'vapor pressure':
             solutionPhases = list(self.data['1']['solution phases'].keys())
             phaseOptions = {'Vapor Pressures':[]}
@@ -282,7 +282,7 @@ class PlotWindow:
                 break
             selectWindow = SelectionWindow(phaseOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value == 'moles of elements':
             elements = list(self.data['1']['elements'].keys())
             elementOptions = {'Elements':[]}
@@ -298,7 +298,7 @@ class PlotWindow:
                     continue
             selectWindow = SelectionWindow(elementOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
         elif value == 'element potential':
             elements = list(self.data['1']['elements'].keys())
             elementOptions = {'Elements':[]}
@@ -314,7 +314,7 @@ class PlotWindow:
                     continue
             selectWindow = SelectionWindow(elementOptions,yen)
             self.children.append(selectWindow)
-            yWindow = selectWindow
+            yWindow.append(selectWindow)
     def makePlot(self):
         # Select data
         yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
