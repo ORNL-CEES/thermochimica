@@ -104,12 +104,12 @@ class PlotWindow:
                             if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
                                 self.ykey.append(['solution phases',phase,'moles of endmembers'])
                                 self.yen.append(False)
-                                phaseOptions[phase].append(['Moles of Endmembers',str(yi)])
+                                phaseOptions[phase].append(['Moles of Endmembers',yi])
                                 self.leg.append(phase)
                                 yi = yi + 1
                             self.ykey.append(['solution phases',phase,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseOptions[phase].append(['Moles',str(yi)])
+                            phaseOptions[phase].append(['Moles',yi])
                             self.leg.append(phase)
                             yi = yi + 1
                         except:
@@ -122,7 +122,7 @@ class PlotWindow:
                         try:
                             self.ykey.append(['solution phases',phase,speciesLabel,k,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseOptions[phase].append([self.ykey[yi][-2],str(yi)])
+                            phaseOptions[phase].append([self.ykey[yi][-2],yi])
                             self.leg.append(phase+': '+k)
                             yi = yi + 1
                         except:
@@ -132,7 +132,7 @@ class PlotWindow:
                     try:
                         self.ykey.append(['pure condensed phases',phase,values['-yaxis-']])
                         self.yen.append(False)
-                        phaseOptions[phase].append([self.ykey[yi][-2],str(yi)])
+                        phaseOptions[phase].append([self.ykey[yi][-2],yi])
                         self.leg.append(phase)
                         yi = yi + 1
                     except:
@@ -724,20 +724,20 @@ class SelectionWindow:
             self.updateSelectables()
     def updateSelectables(self):
         self.selectables = self.options[self.drop_selection]
-        self.selectables.sort(key=lambda x: int(x[1]))
+        self.selectables.sort(key=lambda x: x[1])
         self.sgw['-selectables-'].update(self.selectables)
     def updateSelected(self):
-        self.selected.sort(key=lambda x: int(x[2]))
+        self.selected.sort(key=lambda x: x[2])
         self.sgw['-selected-'].update(self.selected)
         # Set enabled array status in parent
         if not self.y2:
             self.parent.yen = [False for _ in self.parent.yen]
             for selected in self.selected:
-                self.parent.yen[int(selected[2])] = True
+                self.parent.yen[selected[2]] = True
         else:
             self.parent.yen2 = [False for _ in self.parent.yen2]
             for selected in self.selected:
-                self.parent.yen2[int(selected[2])] = True
+                self.parent.yen2[selected[2]] = True
 
 class SettingsWindow:
     def __init__(self, parent):
