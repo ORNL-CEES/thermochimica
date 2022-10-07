@@ -390,7 +390,7 @@ class SelectionWindow:
                     values=[], enable_events=False, size=(40, 20), key="-selectables-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
                 )
             ],
-            [sg.Button('Add Selected Options')]
+            [sg.Button('Add Selected Options'),sg.Button('Add All')]
         ]
         selected_column = [
             [
@@ -401,7 +401,7 @@ class SelectionWindow:
                     values=[], enable_events=False, size=(40, 20), key="-selected-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
                 )
             ],
-            [sg.Button('Remove Selected Options')]
+            [sg.Button('Remove Selected Options'),sg.Button('Remove All')]
         ]
         selectionLayout = [[sg.Column(selectables_column,vertical_alignment='t'),sg.Column(selected_column,vertical_alignment='t')],[sg.Button('Exit')]]
         self.sgw = sg.Window('Plot Selection', selectionLayout, location = [800,offset], finalize=True)
@@ -413,7 +413,7 @@ class SelectionWindow:
         elif event == '-drop-':
             self.drop_selection = values['-drop-']
             self.updateSelectables()
-        elif event =='Add Selected Options':
+        elif event == 'Add Selected Options':
             for option in values['-selectables-']:
                 o = option.copy()
                 o.insert(0,self.drop_selection)
@@ -421,8 +421,27 @@ class SelectionWindow:
                 self.options[self.drop_selection].remove(option)
             self.updateSelected()
             self.updateSelectables()
-        elif event =='Remove Selected Options':
+        elif event == 'Remove Selected Options':
             for option in values['-selected-']:
+                self.selected.remove(option)
+                drop = option[0]
+                self.options[drop].append([option[1],option[2]])
+            self.updateSelected()
+            self.updateSelectables()
+        elif event == 'Add All':
+            drop_options = list(self.options.keys())
+            for drop_option in drop_options:
+                options = list(self.options[drop_option])
+                for option in options:
+                    o = option.copy()
+                    o.insert(0,drop_option)
+                    self.selected.append(o)
+                    self.options[drop_option].remove(option)
+            self.updateSelected()
+            self.updateSelectables()
+        elif event == 'Remove All':
+            options = list(self.selected)
+            for option in options:
                 self.selected.remove(option)
                 drop = option[0]
                 self.options[drop].append([option[1],option[2]])
