@@ -65,250 +65,10 @@ class PlotWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-yaxis-':
-            self.ykey = [[]]
+            self.ykey = []
             self.yen = []
             self.leg = []
-            if self.yWindow:
-                self.yWindow.close()
-            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
-                try:
-                    self.ykey[0].append(values['-yaxis-'])
-                    self.yen.append(True)
-                    self.leg.append(values['-yaxis-'])
-                    self.sgw.Element('-yaxis2-').Update(disabled = False)
-                except:
-                    return
-            elif values['-yaxis-'] == '# phases':
-                try:
-                    self.ykey[0].append('# solution phases')
-                    self.yen.append(True)
-                    self.leg.append('# of Solution Phases')
-                    self.ykey.append([])
-                    self.ykey[1].append('# pure condensed phases')
-                    self.yen.append(True)
-                    self.leg.append('# of Pure Condensed Phases')
-                    self.sgw.Element('-yaxis2-').Update(disabled = False)
-                except:
-                    return
-            elif values['-yaxis-'] in ['moles','chemical potential']:
-                self.ykey = []
-                try:
-                    solutionPhases = list(self.data['1']['solution phases'].keys())
-                    pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                except:
-                    return
-                phaseOptions = {}
-                yi = 0
-                for phase in solutionPhases:
-                    phaseOptions[phase] = []
-                    if values['-yaxis-'] == 'moles':
-                        # total moles of solution phase
-                        try:
-                            if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
-                                self.ykey.append(['solution phases',phase,'moles of endmembers'])
-                                self.yen.append(False)
-                                phaseOptions[phase].append(['Moles of Endmembers',yi])
-                                self.leg.append(phase)
-                                yi = yi + 1
-                            self.ykey.append(['solution phases',phase,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions[phase].append(['Moles',yi])
-                            self.leg.append(phase)
-                            yi = yi + 1
-                        except:
-                            continue
-                    if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
-                        try:
-                            self.ykey.append(['solution phases',phase,speciesLabel,k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                            self.leg.append(phase+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                for phase in pureCondensedPhases:
-                    phaseOptions[phase] = []
-                    try:
-                        self.ykey.append(['pure condensed phases',phase,values['-yaxis-']])
-                        self.yen.append(False)
-                        phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                        self.leg.append(phase)
-                        yi = yi + 1
-                    except:
-                        continue
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] in ['driving force']:
-                self.ykey = []
-                try:
-                    solutionPhases = list(self.data['1']['solution phases'].keys())
-                    pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                except:
-                    return
-                phaseOptions = {'Phases':[]}
-                yi = 0
-                for phase in solutionPhases:
-                    self.ykey.append(['solution phases',phase,values['-yaxis-']])
-                    self.yen.append(False)
-                    self.leg.append(phase)
-                    phaseOptions['Phases'].append([phase,yi])
-                    yi = yi + 1
-                for phase in pureCondensedPhases:
-                    try:
-                        self.ykey.append(['pure condensed phases',phase,values['-yaxis-']])
-                        self.yen.append(False)
-                        phaseOptions['Phases'].append([phase,yi])
-                        self.leg.append(phase)
-                        yi = yi + 1
-                    except:
-                        continue
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
-                self.ykey = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                phaseOptions = {}
-                yi = 0
-                for phase in solutionPhases:
-                    phaseOptions[phase] = []
-                    for element in list(self.data['1']['solution phases'][phase]['elements'].keys()):
-                        try:
-                            self.ykey.append(['solution phases',phase,'elements',element,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                            self.leg.append(phase+': '+element)
-                            yi = yi + 1
-                        except:
-                            continue
-                for phase in pureCondensedPhases:
-                    phaseOptions[phase] = []
-                    for element in list(self.data['1']['pure condensed phases'][phase]['elements'].keys()):
-                        try:
-                            self.ykey.append(['pure condensed phases',phase,'elements',element,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                            self.leg.append(phase+': '+element)
-                            yi = yi + 1
-                        except:
-                            continue
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)                
-            elif values['-yaxis-'] == 'mole fraction':
-                self.ykey = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseOptions = {}
-                yi = 0
-                for phase in solutionPhases:
-                    phaseOptions[phase] = []
-                    if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for species in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
-                        try:
-                            self.ykey.append(['solution phases',phase,speciesLabel,species,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                            self.leg.append(phase+': '+species)
-                            yi = yi + 1
-                        except:
-                            continue
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] == 'mole fraction of endmembers':
-                self.ykey = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseOptions = {}
-                yi = 0
-                for phase in solutionPhases:
-                    if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
-                        phaseOptions[phase] = []
-                        for endmember in list(self.data['1']['solution phases'][phase]['endmembers'].keys()):
-                            try:
-                                self.ykey.append(['solution phases',phase,'endmembers',endmember,'mole fraction'])
-                                self.yen.append(False)
-                                phaseOptions[phase].append([self.ykey[yi][-2],yi])
-                                self.leg.append(phase+': '+endmember)
-                                yi = yi + 1
-                            except:
-                                continue
-                    else:
-                        continue
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] == 'vapor pressure':
-                self.ykey = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseOptions = {'Vapor Pressures':[]}
-                yi = 0
-                for phase in solutionPhases:
-                    if self.data['1']['solution phases'][phase]['phase model'] != 'IDMX':
-                        break
-                    for species in list(self.data['1']['solution phases'][phase]['species'].keys()):
-                        try:
-                            self.ykey.append(['solution phases',phase,'species',species,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseOptions['Vapor Pressures'].append([self.ykey[yi][-2],yi])
-                            self.leg.append(phase+': '+species)
-                            yi = yi + 1
-                        except:
-                            continue
-                    break
-                selectWindow = SelectionWindow(self,phaseOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] == 'moles of elements':
-                self.ykey = []
-                elements = list(self.data['1']['elements'].keys())
-                elementOptions = {'Elements':[]}
-                yi = 0
-                for element in elements:
-                    try:
-                        self.ykey.append(['elements',element,'moles'])
-                        self.yen.append(False)
-                        elementOptions['Elements'].append([element,yi])
-                        self.leg.append(element)
-                        yi = yi + 1
-                    except:
-                        continue
-                selectWindow = SelectionWindow(self,elementOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] == 'element potential':
-                self.ykey = []
-                elements = list(self.data['1']['elements'].keys())
-                elementOptions = {'Elements':[]}
-                yi = 0
-                for element in elements:
-                    try:
-                        self.ykey.append(['elements',element,values['-yaxis-']])
-                        self.yen.append(False)
-                        elementOptions['Elements'].append([element,yi])
-                        self.leg.append(element)
-                        yi = yi + 1
-                    except:
-                        continue
-                selectWindow = SelectionWindow(self,elementOptions)
-                self.children.append(selectWindow)
-                self.yWindow = selectWindow
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
+            self.set_y_axis(values['-yaxis-'],self.ykey,self.yen,self.leg,self.yWindow)
         elif event == '-yaxis2-':
             self.ykey2 = [[]]
             self.yen2 = []
@@ -574,6 +334,240 @@ class PlotWindow:
             self.children.append(settingsWindow)
         elif event == 'Refresh Data':
             self.readDatabase()
+    def set_y_axis(self,value,ykey,yen,leg,yWindow):
+        if yWindow:
+            yWindow.close()
+        if value in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
+            try:
+                ykey[0].append(value)
+                yen.append(True)
+                leg.append(value)
+                self.sgw.Element('-yaxis2-').Update(disabled = False)
+            except:
+                return
+        elif value == '# phases':
+            try:
+                ykey[0].append('# solution phases')
+                yen.append(True)
+                leg.append('# of Solution Phases')
+                ykey.append([])
+                ykey[1].append('# pure condensed phases')
+                yen.append(True)
+                leg.append('# of Pure Condensed Phases')
+                self.sgw.Element('-yaxis2-').Update(disabled = False)
+            except:
+                return
+        elif value in ['moles','chemical potential']:
+            try:
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            except:
+                return
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                if value == 'moles':
+                    # total moles of solution phase
+                    try:
+                        if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                            ykey.append(['solution phases',phase,'moles of endmembers'])
+                            yen.append(False)
+                            phaseOptions[phase].append(['Moles of Endmembers',yi])
+                            leg.append(phase)
+                            yi = yi + 1
+                        ykey.append(['solution phases',phase,value])
+                        yen.append(False)
+                        phaseOptions[phase].append(['Moles',yi])
+                        leg.append(phase)
+                        yi = yi + 1
+                    except:
+                        continue
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    speciesLabel = 'quadruplets'
+                else:
+                    speciesLabel = 'species'
+                for k in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,speciesLabel,k,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
+            for phase in pureCondensedPhases:
+                phaseOptions[phase] = []
+                try:
+                    ykey.append(['pure condensed phases',phase,value])
+                    yen.append(False)
+                    phaseOptions[phase].append([ykey[yi][-2],yi])
+                    leg.append(phase)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value in ['driving force']:
+            try:
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            except:
+                return
+            phaseOptions = {'Phases':[]}
+            yi = 0
+            for phase in solutionPhases:
+                ykey.append(['solution phases',phase,value])
+                yen.append(False)
+                leg.append(phase)
+                phaseOptions['Phases'].append([phase,yi])
+                yi = yi + 1
+            for phase in pureCondensedPhases:
+                try:
+                    ykey.append(['pure condensed phases',phase,value])
+                    yen.append(False)
+                    phaseOptions['Phases'].append([phase,yi])
+                    leg.append(phase)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                for element in list(self.data['1']['solution phases'][phase]['elements'].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,'elements',element,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+element)
+                        yi = yi + 1
+                    except:
+                        continue
+            for phase in pureCondensedPhases:
+                phaseOptions[phase] = []
+                for element in list(self.data['1']['pure condensed phases'][phase]['elements'].keys()):
+                    try:
+                        ykey.append(['pure condensed phases',phase,'elements',element,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+element)
+                        yi = yi + 1
+                    except:
+                        continue
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)                
+        elif value == 'mole fraction':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    speciesLabel = 'quadruplets'
+                else:
+                    speciesLabel = 'species'
+                for species in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,speciesLabel,species,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+species)
+                        yi = yi + 1
+                    except:
+                        continue
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value == 'mole fraction of endmembers':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    phaseOptions[phase] = []
+                    for endmember in list(self.data['1']['solution phases'][phase]['endmembers'].keys()):
+                        try:
+                            ykey.append(['solution phases',phase,'endmembers',endmember,'mole fraction'])
+                            yen.append(False)
+                            phaseOptions[phase].append([ykey[yi][-2],yi])
+                            leg.append(phase+': '+endmember)
+                            yi = yi + 1
+                        except:
+                            continue
+                else:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value == 'vapor pressure':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {'Vapor Pressures':[]}
+            yi = 0
+            for phase in solutionPhases:
+                if self.data['1']['solution phases'][phase]['phase model'] != 'IDMX':
+                    break
+                for species in list(self.data['1']['solution phases'][phase]['species'].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,'species',species,value])
+                        yen.append(False)
+                        phaseOptions['Vapor Pressures'].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+species)
+                        yi = yi + 1
+                    except:
+                        continue
+                break
+            selectWindow = SelectionWindow(phaseOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value == 'moles of elements':
+            elements = list(self.data['1']['elements'].keys())
+            elementOptions = {'Elements':[]}
+            yi = 0
+            for element in elements:
+                try:
+                    ykey.append(['elements',element,'moles'])
+                    yen.append(False)
+                    elementOptions['Elements'].append([element,yi])
+                    leg.append(element)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(elementOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
+        elif value == 'element potential':
+            elements = list(self.data['1']['elements'].keys())
+            elementOptions = {'Elements':[]}
+            yi = 0
+            for element in elements:
+                try:
+                    ykey.append(['elements',element,value])
+                    yen.append(False)
+                    elementOptions['Elements'].append([element,yi])
+                    leg.append(element)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(elementOptions,yen)
+            self.children.append(selectWindow)
+            yWindow = selectWindow
+            self.sgw.Element('-yaxis2-').Update(disabled = False)
     def makePlot(self):
         # Select data
         yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
@@ -618,10 +612,9 @@ class PlotWindow:
             exit()
 
 class SelectionWindow:
-    def __init__(self, parent, options, y2 = False):
-        self.parent = parent
+    def __init__(self, options, yen):
         self.options = options
-        self.y2 = y2
+        self.yen = yen
         self.selectables = []
         self.selected = []
         self.drop_selection = ''
@@ -697,14 +690,10 @@ class SelectionWindow:
         self.selected.sort(key=lambda x: x[2])
         self.sgw['-selected-'].update(self.selected)
         # Set enabled array status in parent
-        if not self.y2:
-            self.parent.yen = [False for _ in self.parent.yen]
-            for selected in self.selected:
-                self.parent.yen[selected[2]] = True
-        else:
-            self.parent.yen2 = [False for _ in self.parent.yen2]
-            for selected in self.selected:
-                self.parent.yen2[selected[2]] = True
+        for yi in range(len(self.yen)):
+            self.yen[yi] = False
+        for selected in self.selected:
+            self.yen[selected[2]] = True
 
 class SettingsWindow:
     def __init__(self, parent):
