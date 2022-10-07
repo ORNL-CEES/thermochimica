@@ -29,7 +29,7 @@ class PlotWindow:
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'driving force', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
-                            key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-ylog2-')]
+                            key='-yaxis2-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog2-')]
                         ]
         plotLayout = [optionsLayout,
                       [sg.Column([[sg.Button('Plot', size = thermoToolsGUI.buttonSize)],
@@ -70,7 +70,6 @@ class PlotWindow:
             self.yen = []
             self.leg = []
             self.set_y_axis(values['-yaxis-'],self.ykey,self.yen,self.leg,self.yWindow)
-            self.sgw.Element('-yaxis2-').Update(disabled = False)
         elif event == '-yaxis2-':
             self.ykey2 = []
             self.yen2 = []
