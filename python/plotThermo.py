@@ -673,7 +673,10 @@ class SelectionWindow:
             windowList.remove(self)
     def makeLayout(self):
         dropdown_options = list(self.options.keys())
-        self.drop_selection = dropdown_options[0]
+        try:
+            self.drop_selection = dropdown_options[0]
+        except IndexError:
+            self.drop_selection = None
         selectables_column = [
             [
                 sg.Text('Unselected Options'),
@@ -723,9 +726,10 @@ class SelectionWindow:
             self.updateSelected()
             self.updateSelectables()
     def updateSelectables(self):
-        self.selectables = self.options[self.drop_selection]
-        self.selectables.sort(key=lambda x: x[1])
-        self.sgw['-selectables-'].update(self.selectables)
+        if self.drop_selection:
+            self.selectables = self.options[self.drop_selection]
+            self.selectables.sort(key=lambda x: x[1])
+            self.sgw['-selectables-'].update(self.selectables)
     def updateSelected(self):
         self.selected.sort(key=lambda x: x[2])
         self.sgw['-selected-'].update(self.selected)
