@@ -32,7 +32,7 @@ class PlotWindow:
                             key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-ylog2-')]
                         ]
         plotLayout = [optionsLayout,
-                      [sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                      [sg.Column([[sg.Button('Plot', size = thermoToolsGUI.buttonSize)],
                                   [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
                                   [sg.Button('Refresh Data', size = thermoToolsGUI.buttonSize)]
                                  ],vertical_alignment='t'),
@@ -67,13 +67,11 @@ class PlotWindow:
             self.ykey = [[]]
             self.yen = []
             self.leg = []
-            self.sgw.Element('Plot').Update(disabled = True)
             if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
                 try:
                     self.ykey[0].append(values['-yaxis-'])
                     self.yen.append(True)
                     self.leg.append(values['-yaxis-'])
-                    self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
                     return
@@ -86,7 +84,6 @@ class PlotWindow:
                     self.ykey[1].append('# pure condensed phases')
                     self.yen.append(True)
                     self.leg.append('# of Pure Condensed Phases')
-                    self.sgw.Element('Plot').Update(disabled = False)
                     self.sgw.Element('-yaxis2-').Update(disabled = False)
                 except:
                     return
@@ -194,7 +191,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey)):
                             self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -238,7 +234,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey)):
                             self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -274,7 +269,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey)):
                             self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -309,7 +303,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey)):
                             self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -341,7 +334,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey)):
                             self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -355,7 +347,6 @@ class PlotWindow:
                         self.leg.append(j)
                     except:
                         continue
-                self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('-yaxis2-').Update(disabled = False)
             elif values['-yaxis-'] == 'element potential':
                 self.ykey = []
@@ -367,7 +358,6 @@ class PlotWindow:
                         self.leg.append(j)
                     except:
                         continue
-                self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('-yaxis2-').Update(disabled = False)
         elif event == '-yaxis2-':
             self.ykey2 = [[]]
@@ -377,7 +367,6 @@ class PlotWindow:
                 self.ykey2[0].append(values['-yaxis2-'])
                 self.yen2.append(True)
                 self.leg2.append(values['-yaxis2-'])
-                self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == '# phases':
                 self.ykey2[0].append('# solution phases')
                 self.yen2.append(True)
@@ -386,7 +375,6 @@ class PlotWindow:
                 self.ykey2[1].append('# pure condensed phases')
                 self.yen2.append(True)
                 self.leg2.append('# of Pure Condensed Phases')
-                self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] in ['moles','chemical potential']:
                 self.ykey2 = []
                 solutionPhases = list(self.data['1']['solution phases'].keys())
@@ -431,7 +419,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         break
                 selectWindow.close()
             elif values['-yaxis2-'] in ['driving force']:
@@ -472,7 +459,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         break
                 selectWindow.close()
             elif values['-yaxis2-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
@@ -509,7 +495,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         break
                 selectWindow.close()
             elif values['-yaxis2-'] == 'mole fraction':
@@ -541,10 +526,8 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         break
                 selectWindow.close()
-                self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == 'mole fraction of endmembers':
                 self.ykey2 = []
                 solutionPhases = list(self.data['1']['solution phases'].keys())
@@ -576,7 +559,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         break
                 selectWindow.close()
             elif values['-yaxis2-'] == 'vapor pressure':
@@ -607,7 +589,6 @@ class PlotWindow:
                     elif event == 'Accept':
                         for yi in range(len(self.ykey2)):
                             self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
                         self.sgw.Element('-yaxis2-').Update(disabled = False)
                         break
                 selectWindow.close()
@@ -621,7 +602,6 @@ class PlotWindow:
                         self.leg2.append(j)
                     except:
                         continue
-                self.sgw.Element('Plot').Update(disabled = False)
             elif values['-yaxis2-'] == 'element potential':
                 self.ykey2 = []
                 elements = list(self.data['1']['elements'].keys())
@@ -629,7 +609,6 @@ class PlotWindow:
                     self.ykey2.append(['elements',j,values['-yaxis2-']])
                     self.yen2.append(True)
                     self.leg2.append(j)
-                self.sgw.Element('Plot').Update(disabled = False)
         elif event == 'Plot':
             self.xkey  = values['-xaxis-']
             self.xlog  = values['-xlog-']
