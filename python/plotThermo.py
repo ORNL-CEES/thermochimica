@@ -94,65 +94,52 @@ class PlotWindow:
                     pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
                 except:
                     return
-                phaseColumns = []
+                phaseOptions = {}
                 yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
+                for phase in solutionPhases:
+                    phaseOptions[phase] = []
                     if values['-yaxis-'] == 'moles':
                         # total moles of solution phase
                         try:
-                            if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                                self.ykey.append(['solution phases',j,'moles of endmembers'])
+                            if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                                self.ykey.append(['solution phases',phase,'moles of endmembers'])
                                 self.yen.append(False)
-                                phaseColumns[-1].append([sg.Checkbox('Moles of Endmembers',key=str(yi))])
-                                self.leg.append(j)
+                                phaseOptions[phase].append(['Moles of Endmembers',str(yi)])
+                                self.leg.append(phase)
                                 yi = yi + 1
-                            self.ykey.append(['solution phases',j,values['-yaxis-']])
+                            self.ykey.append(['solution phases',phase,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox('Moles',key=str(yi))])
-                            self.leg.append(j)
+                            phaseOptions[phase].append(['Moles',str(yi)])
+                            self.leg.append(phase)
                             yi = yi + 1
                         except:
                             continue
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
+                    if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
                         speciesLabel = 'quadruplets'
                     else:
                         speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][j][speciesLabel].keys()):
+                    for k in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
                         try:
-                            self.ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
+                            self.ykey.append(['solution phases',phase,speciesLabel,k,values['-yaxis-']])
                             self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
+                            phaseOptions[phase].append([self.ykey[yi][-2],str(yi)])
+                            self.leg.append(phase+': '+k)
                             yi = yi + 1
                         except:
                             continue
-                phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
-                for j in pureCondensedPhases:
+                for phase in pureCondensedPhases:
+                    phaseOptions[phase] = []
                     try:
-                        self.ykey.append(['pure condensed phases',j,values['-yaxis-']])
+                        self.ykey.append(['pure condensed phases',phase,values['-yaxis-']])
                         self.yen.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                        self.leg.append(j)
+                        phaseOptions[phase].append([self.ykey[yi][-2],str(yi)])
+                        self.leg.append(phase)
                         yi = yi + 1
                     except:
                         continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
+                selectWindow = SelectionWindow(self,phaseOptions)
+                self.children.append(selectWindow)
+                self.sgw.Element('-yaxis2-').Update(disabled = False)
             elif values['-yaxis-'] in ['driving force']:
                 self.ykey = []
                 try:
@@ -666,6 +653,91 @@ class PlotWindow:
         if list(self.data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
+
+class SelectionWindow:
+    def __init__(self, parent, options, y2 = False):
+        self.parent = parent
+        self.options = options
+        self.y2 = y2
+        self.selectables = []
+        self.selected = []
+        self.drop_selection = ''
+        self.makeLayout()
+        windowList.append(self)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def makeLayout(self):
+        dropdown_options = list(self.options.keys())
+        self.drop_selection = dropdown_options[0]
+        selectables_column = [
+            [
+                sg.Text('Unselected Options'),
+                sg.Combo(dropdown_options, default_value=self.drop_selection, key='-drop-', enable_events=True)
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=False, size=(40, 20), key="-selectables-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
+                )
+            ],
+            [sg.Button('Add Selected Options')]
+        ]
+        selected_column = [
+            [
+                sg.Text('Selected Options')
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=False, size=(40, 20), key="-selected-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
+                )
+            ],
+            [sg.Button('Remove Selected Options')]
+        ]
+        selectionLayout = [[sg.Column(selectables_column,vertical_alignment='t'),sg.Column(selected_column,vertical_alignment='t')],[sg.Button('Exit')]]
+        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [400,0], finalize=True)
+        self.updateSelectables()
+    def read(self):
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == '-drop-':
+            self.drop_selection = values['-drop-']
+            self.updateSelectables()
+        elif event =='Add Selected Options':
+            for option in values['-selectables-']:
+                o = option.copy()
+                o.insert(0,self.drop_selection)
+                self.selected.append(o)
+                self.options[self.drop_selection].remove(option)
+            self.updateSelected()
+            self.updateSelectables()
+        elif event =='Remove Selected Options':
+            for option in values['-selected-']:
+                self.selected.remove(option)
+                drop = option[0]
+                self.options[drop].append([option[1],option[2]])
+            self.updateSelected()
+            self.updateSelectables()
+    def updateSelectables(self):
+        self.selectables = self.options[self.drop_selection]
+        self.selectables.sort(key=lambda x: int(x[1]))
+        self.sgw['-selectables-'].update(self.selectables)
+    def updateSelected(self):
+        self.selected.sort(key=lambda x: int(x[2]))
+        self.sgw['-selected-'].update(self.selected)
+        # Set enabled array status in parent
+        if not self.y2:
+            self.parent.yen = [False for _ in self.parent.yen]
+            for selected in self.selected:
+                self.parent.yen[int(selected[2])] = True
+        else:
+            self.parent.yen2 = [False for _ in self.parent.yen2]
+            for selected in self.selected:
+                self.parent.yen2[int(selected[2])] = True
 
 class SettingsWindow:
     def __init__(self, parent):
