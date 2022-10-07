@@ -253,8 +253,11 @@ def plotDataSetup(datafile,xkey,yused,yused2=None):
         xlab = ''
 
     # Use first key, last entry
-    ykey = yused[0][-1]
-    ylab = getYlab(ykey)
+    if yused:
+        ykey = yused[0][-1]
+        ylab = getYlab(ykey)
+    else:
+        ylab = None
 
     if yused2:
         ykey = yused2[0][-1]
