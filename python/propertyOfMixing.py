@@ -1,6 +1,7 @@
 import thermoTools
 import subprocess
 import json
+import shutil
 
 def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database,
                      thermochimica_path = '.',
@@ -87,8 +88,8 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         data[str(i)][f'{property} of mixing'] = prop
 
     # Save data
-    with open('thermoout.json', 'w') as outfile:
+    with open('outputs/thermoout.json', 'w') as outfile:
         json.dump(data, outfile, indent=4)
-    subprocess.run(['cp','thermoout.json',f'{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json'])
+    shutil.copy2('outputs/thermoout.json', f'outputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json')
 
     return mixtureProp
