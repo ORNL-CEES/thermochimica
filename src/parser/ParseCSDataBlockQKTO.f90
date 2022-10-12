@@ -63,8 +63,8 @@ subroutine ParseCSDataBlockQKTO( i )
 
     implicit none
 
-    integer :: i
-
+    integer :: i, k
+    character(8),dimension(20)  :: cTempVec
 
     ! Loop through excess parameters:
     LOOP_ExcessMixingQKTO: do
@@ -72,7 +72,17 @@ subroutine ParseCSDataBlockQKTO( i )
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
-        if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingQKTO
+        ! if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingQKTO
+        ! The end of the parameter listing is marked by "0"
+        ! or a negative number indicating the number of extra parameter lines.
+        ! These lines indicate overwriting of default interpolation schemes.
+        ! Not implemented yet.
+        if (iRegularParamCS(nParamCS+1,1) <= 0) then
+            do k = 1, -iRegularParamCS(nParamCS+1,1)
+                read (1,*,IOSTAT = INFO) cTempVec(1:10)
+            end do
+            exit LOOP_ExcessMixingQKTO
+        end if
 
         nParamCS = nParamCS + 1
 
