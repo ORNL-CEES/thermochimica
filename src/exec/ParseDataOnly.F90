@@ -19,7 +19,7 @@ program ParseDataOnly
 
     ! Write JSON with phase lists
     open(1, file = DATA_DIRECTORY // &
-            '../phaseLists.json', status='REPLACE', action='write')
+            '../outputs/phaseLists.json', status='REPLACE', action='write')
 
     write(1,*) '{'
     write(1,*) '  "solution phases": {'

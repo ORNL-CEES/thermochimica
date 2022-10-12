@@ -2,7 +2,6 @@ import PySimpleGUI as sg
 import os
 import sys
 import numpy as np
-import shutil
 import thermoTools
 import thermoToolsGUI
 
@@ -135,6 +134,11 @@ class CalculationWindow:
                 else:
                     pend = None
                     npstep = 0
+                
+                jsonName = None
+                if values['-json-']:
+                    jsonName = f'{self.exportFileName}.json'
+                
                 if values['-men-']:
                     nxstep = 10
                     try:
@@ -152,10 +156,10 @@ class CalculationWindow:
                         calcList.append(calc)
 
                     thermoTools.WriteRunCalculationList(filename,self.datafile,self.elements,calcList,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"])
-                    thermoOut = thermoTools.RunRunCalculationList(filename,checkOutput=True)
+                    thermoOut = thermoTools.RunRunCalculationList(filename,checkOutput=True,jsonName=jsonName)
                 else:
                     thermoTools.WriteInputScript(filename,self.datafile,self.elements,temperature,tend,ntstep,pressure,pend,npstep,masses1,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],stepTogether=values["-pent-"])
-                    thermoOut = thermoTools.RunInputScript(filename,checkOutput=True)
+                    thermoOut = thermoTools.RunInputScript(filename,checkOutput=True,jsonName=jsonName)
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
                     resultOutput = [[sg.Column([[sg.Multiline(thermoOut, size = (65, nLines),font='TkFixedFont')]], size = (None, 800), scrollable = True, vertical_scroll_only = True)]]
@@ -163,11 +167,6 @@ class CalculationWindow:
                     resultOutput = [[sg.Text('Output is too large to display')]]
                 resultWindow = ResultWindow(resultOutput)
                 self.children.append(resultWindow)
-                if values['-json-']:
-                    try:
-                        shutil.copy2('thermoout.json', f'{self.exportFileName}.json')
-                    except:
-                        pass
         elif event == 'Set name':
             setNameLayout = [[sg.Input(key='-jsonname-',size=(thermoToolsGUI.inputSize,1)),sg.Text('.json')],[sg.Button('Accept'), sg.Button('Cancel')]]
             setNameWindow = sg.Window('Set JSON name', setNameLayout, location = [400,0], finalize=True)

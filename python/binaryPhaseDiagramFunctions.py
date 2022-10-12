@@ -14,6 +14,7 @@ from shapely.prepared import prep
 from shapely.ops import split
 from functools import reduce
 import operator
+import csv
 import thermoTools
 
 phaseIncludeTol = 1e-8
@@ -42,7 +43,7 @@ class diagram:
         self.outline = MultiPolygon([])
         self.pressure = 1
         self.inputFileName = 'inputs/pythonPhaseDiagramInput.ti'
-        self.outputFileName = 'thermoout.json'
+        self.outputFileName = 'outputs/thermoout.json'
         self.plotMarker = '-'
         self.plotColor = 'colorful'
         if self.active:
@@ -997,3 +998,15 @@ class diagram:
             return 0
         except:
             return 1
+    def addData(self,datafile,expName):
+        newData = []
+        with open(datafile) as f:
+            data = csv.reader(f)
+            # next(data, None)  # skip the header WHY SHOULD THERE BE A HEADER
+            for row in data:
+                newrow = []
+                for number in row:
+                    newrow.append(float(number))
+                newData.append(newrow)
+        self.experimentalData.append(np.array(newData))
+        self.experimentNames.append(expName)

@@ -1,8 +1,6 @@
 import PySimpleGUI as sg
-import os
-import json
 import matplotlib.pyplot as plt
-import numpy as np
+import thermoTools
 import thermoToolsGUI
 
 class PlotWindow:
@@ -12,19 +10,15 @@ class PlotWindow:
         self.ykey = [[]]
         self.yen = []
         self.leg = []
+        self.showLeg = True
         self.ykey2 = [[]]
         self.yen2 = []
         self.leg2 = []
-        self.ylab = ''
-        self.ylab2 = ''
-        self.x = []
-        self.y = []
-        self.y2 = []
-        self.xlab = []
+        self.showLeg2 = True
         self.xkey = []
         self.xlog = False
         self.ylog = False
-        self.y2log = False
+        self.ylog2 = False
         self.readDatabase()
         optionsLayout = [
                           [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
@@ -35,18 +29,20 @@ class PlotWindow:
                           [sg.Text('y-axis 2')],[sg.Combo(['','temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'driving force', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
-                            key='-yaxis2-', enable_events=True, disabled=True)],[sg.Checkbox('Log scale',key='-y2log-')]
+                            key='-yaxis2-', enable_events=True)],[sg.Checkbox('Log scale',key='-ylog2-')]
                         ]
         plotLayout = [optionsLayout,
-                      [sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                      [sg.Column([[sg.Button('Plot', size = thermoToolsGUI.buttonSize)],
                                   [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
                                   [sg.Button('Refresh Data', size = thermoToolsGUI.buttonSize)]
                                  ],vertical_alignment='t'),
                       sg.Column([[sg.Button('Export Plot Script', disabled = True, size = thermoToolsGUI.buttonSize)],
                                  [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)]                                  
                                  ],vertical_alignment='t')]]
-        self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [400,0], finalize=True)
+        self.sgw = sg.Window('Thermochimica plot setup', plotLayout, location = [500,0], finalize=True)
         self.children = []
+        self.yWindow = []
+        self.yWindow2 = []
         self.currentPlot = []
         self.figureList = []
         self.exportFormat = 'png'
@@ -56,6 +52,7 @@ class PlotWindow:
         self.plotColor = 'colorful'
         self.plotColor2 = 'colorful'
         self.exportDPI = 300
+        self.plotScriptFilename = 'python/generatedPlotScript.py'
     def close(self):
         for child in self.children:
             child.close()
@@ -69,642 +66,20 @@ class PlotWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-yaxis-':
-            self.ykey = [[]]
+            self.ykey = []
             self.yen = []
             self.leg = []
-            self.sgw.Element('Plot').Update(disabled = True)
-            if values['-yaxis-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
-                try:
-                    self.ykey[0].append(values['-yaxis-'])
-                    self.yen.append(True)
-                    self.leg.append(values['-yaxis-'])
-                    if values['-yaxis-'] == 'temperature':
-                        self.ylab = 'Temperature [K]'
-                    elif values['-yaxis-'] == 'pressure':
-                        self.ylab = 'Pressure [atm]'
-                    elif values['-yaxis-'] == 'integral Gibbs energy':
-                        self.ylab = 'Integral Gibbs Energy [J]'
-                    elif values['-yaxis-'] == 'functional norm':
-                        self.ylab = 'Functional Norm'
-                    elif values['-yaxis-'] == 'GEM iterations':
-                        self.ylab = 'GEM Iterations'
-                    elif values['-yaxis-'] == 'heat capacity':
-                        self.ylab = 'Heat Capacity'
-                    elif values['-yaxis-'] == 'enthalpy':
-                        self.ylab = 'Enthalpy'
-                    elif values['-yaxis-'] == 'entropy':
-                        self.ylab = 'Entropy'
-                    self.sgw.Element('Plot').Update(disabled = False)
-                    self.sgw.Element('-yaxis2-').Update(disabled = False)
-                except:
-                    return
-            elif values['-yaxis-'] == '# phases':
-                try:
-                    self.ykey[0].append('# solution phases')
-                    self.yen.append(True)
-                    self.leg.append('# of Solution Phases')
-                    self.ykey.append([])
-                    self.ykey[1].append('# pure condensed phases')
-                    self.yen.append(True)
-                    self.leg.append('# of Pure Condensed Phases')
-                    self.ylab = 'Number of Stable Phases'
-                    self.sgw.Element('Plot').Update(disabled = False)
-                    self.sgw.Element('-yaxis2-').Update(disabled = False)
-                except:
-                    return
-            elif values['-yaxis-'] in ['moles','chemical potential']:
-                self.ykey = []
-                try:
-                    solutionPhases = list(self.data['1']['solution phases'].keys())
-                    pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                except:
-                    return
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis-'] == 'moles':
-                        # total moles of solution phase
-                        try:
-                            if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                                self.ykey.append(['solution phases',j,'moles of endmembers'])
-                                self.yen.append(False)
-                                phaseColumns[-1].append([sg.Checkbox('Moles of Endmembers',key=str(yi))])
-                                self.leg.append(j)
-                                self.ylab = 'Moles'
-                                yi = yi + 1
-                            self.ykey.append(['solution phases',j,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox('Moles',key=str(yi))])
-                            self.leg.append(j)
-                            self.ylab = 'Moles'
-                            yi = yi + 1
-                        except:
-                            continue
-                    else:
-                        self.ylab = 'Chemical Potential [J]'
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][j][speciesLabel].keys()):
-                        try:
-                            self.ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
-                for j in pureCondensedPhases:
-                    try:
-                        self.ykey.append(['pure condensed phases',j,values['-yaxis-']])
-                        self.yen.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                        self.leg.append(j)
-                        yi = yi + 1
-                    except:
-                        continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] in ['driving force']:
-                self.ykey = []
-                try:
-                    solutionPhases = list(self.data['1']['solution phases'].keys())
-                    pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                except:
-                    return
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    self.ylab = 'Driving Force [J]'
-                    self.ykey.append(['solution phases',j,values['-yaxis-']])
-                    self.yen.append(False)
-                    self.leg.append(j)
-                    phaseColumns[-1].append([sg.Checkbox('',key=str(yi))])
-                    yi = yi + 1
-                phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
-                for j in pureCondensedPhases:
-                    try:
-                        self.ykey.append(['pure condensed phases',j,values['-yaxis-']])
-                        self.yen.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                        self.leg.append(j)
-                        yi = yi + 1
-                    except:
-                        continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
-                self.ykey = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis-'] == 'moles of element in phase':
-                        self.ylab = 'Moles of Element in Phase'
-                    if values['-yaxis-'] == 'mole fraction of phase by element':
-                        self.ylab = 'Mole Fraction of Phase by Element'
-                    else:
-                        self.ylab = 'Mole Fraction of Element by Phase'
-                    for k in list(self.data['1']['solution phases'][j]['elements'].keys()):
-                        try:
-                            self.ykey.append(['solution phases',j,'elements',k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                for j in pureCondensedPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    for k in list(self.data['1']['pure condensed phases'][j]['elements'].keys()):
-                        try:
-                            self.ykey.append(['pure condensed phases',j,'elements',k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] == 'mole fraction':
-                self.ykey = []
-                self.ylab = 'Mole Fraction'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][j][speciesLabel].keys()):
-                        try:
-                            self.ykey.append(['solution phases',j,speciesLabel,k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] == 'mole fraction of endmembers':
-                self.ykey = []
-                self.ylab = 'Mole Fraction'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        phaseColumns.append([[sg.Text(j)]])
-                        for k in list(self.data['1']['solution phases'][j]['endmembers'].keys()):
-                            try:
-                                self.ykey.append(['solution phases',j,'endmembers',k,'mole fraction'])
-                                self.yen.append(False)
-                                phaseColumns[-1].append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                                self.leg.append(j+': '+k)
-                                yi = yi + 1
-                            except:
-                                continue
-                    else:
-                        continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] == 'vapor pressure':
-                self.ykey = []
-                self.ylab = 'Vapor Pressure [atm]'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    if self.data['1']['solution phases'][j]['phase model'] != 'IDMX':
-                        break
-                    for k in list(self.data['1']['solution phases'][j]['species'].keys()):
-                        try:
-                            self.ykey.append(['solution phases',j,'species',k,values['-yaxis-']])
-                            self.yen.append(False)
-                            phaseColumns.append([sg.Checkbox(self.ykey[yi][-2],key=str(yi))])
-                            self.leg.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                    break
-                phaseSelectLayout = phaseColumns
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey)):
-                            self.yen[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis-'] == 'moles of elements':
-                self.ykey = []
-                self.ylab = 'Moles'
-                elements = list(self.data['1']['elements'].keys())
-                for j in elements:
-                    try:
-                        self.ykey.append(['elements',j,'moles'])
-                        self.yen.append(True)
-                        self.leg.append(j)
-                    except:
-                        continue
-                self.sgw.Element('Plot').Update(disabled = False)
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
-            elif values['-yaxis-'] == 'element potential':
-                self.ykey = []
-                self.ylab = 'Element Potential [J]'
-                elements = list(self.data['1']['elements'].keys())
-                for j in elements:
-                    try:
-                        self.ykey.append(['elements',j,values['-yaxis-']])
-                        self.yen.append(True)
-                        self.leg.append(j)
-                    except:
-                        continue
-                self.sgw.Element('Plot').Update(disabled = False)
-                self.sgw.Element('-yaxis2-').Update(disabled = False)
+            self.set_y_axis(values['-yaxis-'],self.ykey,self.yen,self.leg,self.yWindow)
         elif event == '-yaxis2-':
-            self.ykey2 = [[]]
+            self.ykey2 = []
             self.yen2 = []
             self.leg2 = []
-            if values['-yaxis2-'] in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
-                self.ykey2[0].append(values['-yaxis2-'])
-                self.yen2.append(True)
-                self.leg2.append(values['-yaxis2-'])
-                if values['-yaxis2-'] == 'temperature':
-                    self.ylab2 = 'Temperature [K]'
-                elif values['-yaxis2-'] == 'pressure':
-                    self.ylab2 = 'Pressure [atm]'
-                elif values['-yaxis2-'] == 'integral Gibbs energy':
-                    self.ylab2 = 'Integral Gibbs Energy [J]'
-                elif values['-yaxis2-'] == 'functional norm':
-                    self.ylab2 = 'Functional Norm'
-                elif values['-yaxis2-'] == 'GEM iterations':
-                    self.ylab2 = 'GEM Iterations'
-                elif values['-yaxis2-'] == 'heat capacity':
-                    self.ylab2 = 'Heat Capacity'
-                elif values['-yaxis2-'] == 'enthalpy':
-                    self.ylab2 = 'Enthalpy'
-                elif values['-yaxis2-'] == 'entropy':
-                    self.ylab2 = 'Entropy'
-                self.sgw.Element('Plot').Update(disabled = False)
-            elif values['-yaxis2-'] == '# phases':
-                self.ykey2[0].append('# solution phases')
-                self.yen2.append(True)
-                self.leg2.append('# of Solution Phases')
-                self.ykey2.append([])
-                self.ykey2[1].append('# pure condensed phases')
-                self.yen2.append(True)
-                self.leg2.append('# of Pure Condensed Phases')
-                self.ylab2 = 'Number of Stable Phases'
-                self.sgw.Element('Plot').Update(disabled = False)
-            elif values['-yaxis2-'] in ['moles','chemical potential']:
-                self.ykey2 = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis2-'] == 'moles':
-                        # total moles of solution phase
-                        self.ykey2.append(['solution phases',j,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j)
-                        self.ylab2 = 'Moles'
-                        yi = yi + 1
-                    else:
-                        self.ylab2 = 'Chemical Potential [J]'
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][j][speciesLabel].keys()):
-                        self.ykey2.append(['solution phases',j,speciesLabel,k,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j+': '+k)
-                        yi = yi + 1
-                phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
-                for j in pureCondensedPhases:
-                    self.ykey2.append(['pure condensed phases',j,values['-yaxis2-']])
-                    self.yen2.append(False)
-                    phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                    self.leg2.append(j)
-                    yi = yi + 1
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis2-'] in ['driving force']:
-                self.ykey2 = []
-                try:
-                    solutionPhases = list(self.data['1']['solution phases'].keys())
-                    pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                except:
-                    return
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    self.ylab2 = 'Driving Force [J]'
-                    self.ykey2.append(['solution phases',j,values['-yaxis2-']])
-                    self.yen2.append(False)
-                    self.leg2.append(j)
-                    phaseColumns[-1].append([sg.Checkbox('',key=str(yi))])
-                    yi = yi + 1
-                phaseColumns.append([[sg.Text('Pure Condensed Phases')]])
-                for j in pureCondensedPhases:
-                    try:
-                        self.ykey2.append(['pure condensed phases',j,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j)
-                        yi = yi + 1
-                    except:
-                        continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis2-'] in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
-                self.ykey2 = []
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if values['-yaxis2-'] == 'moles of element in phase':
-                        self.ylab2 = 'Moles of Element in Phase'
-                    if values['-yaxis2-'] == 'mole fraction of phase by element':
-                        self.ylab2 = 'Mole Fraction of Phase by Element'
-                    else:
-                        self.ylab2 = 'Mole Fraction of Element by Phase'
-                    for k in list(self.data['1']['solution phases'][j]['elements'].keys()):
-                        self.ykey2.append(['solution phases',j,'elements',k,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j+': '+k)
-                        yi = yi + 1
-                for j in pureCondensedPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    for k in list(self.data['1']['pure condensed phases'][j]['elements'].keys()):
-                        self.ykey2.append(['pure condensed phases',j,'elements',k,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j+': '+k)
-                        yi = yi + 1
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis2-'] == 'mole fraction':
-                self.ykey2 = []
-                self.ylab2 = 'Mole Fraction'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    phaseColumns.append([[sg.Text(j)]])
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        speciesLabel = 'quadruplets'
-                    else:
-                        speciesLabel = 'species'
-                    for k in list(self.data['1']['solution phases'][j][speciesLabel].keys()):
-                        self.ykey2.append(['solution phases',j,speciesLabel,k,values['-yaxis2-']])
-                        self.yen2.append(False)
-                        phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                        self.leg2.append(j+': '+k)
-                        yi = yi + 1
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
-                self.sgw.Element('Plot').Update(disabled = False)
-            elif values['-yaxis2-'] == 'mole fraction of endmembers':
-                self.ykey2 = []
-                self.ylab2 = 'Mole Fraction'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    if self.data['1']['solution phases'][j]['phase model'] in ['SUBG', 'SUBQ']:
-                        phaseColumns.append([[sg.Text(j)]])
-                        for k in list(self.data['1']['solution phases'][j]['endmembers'].keys()):
-                            try:
-                                self.ykey2.append(['solution phases',j,'endmembers',k,'mole fraction'])
-                                self.yen2.append(False)
-                                phaseColumns[-1].append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                                self.leg2.append(j+': '+k)
-                                yi = yi + 1
-                            except:
-                                continue
-                    else:
-                        continue
-                phaseSelectLayout = [[]]
-                for j in phaseColumns:
-                    phaseSelectLayout[0].append(sg.Column(j,vertical_alignment='t'))
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis2-'] == 'vapor pressure':
-                self.ykey2 = []
-                self.ylab2 = 'Vapor Pressure [atm]'
-                solutionPhases = list(self.data['1']['solution phases'].keys())
-                phaseColumns = []
-                yi = 0
-                for j in solutionPhases:
-                    if self.data['1']['solution phases'][j]['phase model'] != 'IDMX':
-                        break
-                    for k in list(self.data['1']['solution phases'][j]['species'].keys()):
-                        try:
-                            self.ykey2.append(['solution phases',j,'species',k,values['-yaxis2-']])
-                            self.yen2.append(False)
-                            phaseColumns.append([sg.Checkbox(self.ykey2[yi][-2],key=str(yi))])
-                            self.leg2.append(j+': '+k)
-                            yi = yi + 1
-                        except:
-                            continue
-                    break
-                phaseSelectLayout = phaseColumns
-                phaseSelectLayout.append([sg.Button('Accept'), sg.Button('Cancel')])
-                selectWindow = sg.Window('Thermochimica species selection', phaseSelectLayout, location = thermoToolsGUI.popupLocation, finalize=True)
-                while True:
-                    event, values = selectWindow.read()
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Accept':
-                        for yi in range(len(self.ykey2)):
-                            self.yen2[yi] = values[str(yi)]
-                        self.sgw.Element('Plot').Update(disabled = False)
-                        self.sgw.Element('-yaxis2-').Update(disabled = False)
-                        break
-                selectWindow.close()
-            elif values['-yaxis2-'] == 'moles of elements':
-                self.ykey2 = []
-                self.ylab2 = 'Moles'
-                elements = list(self.data['1']['elements'].keys())
-                for j in elements:
-                    try:
-                        self.ykey2.append(['elements',j,'moles'])
-                        self.yen2.append(True)
-                        self.leg2.append(j)
-                    except:
-                        continue
-                self.sgw.Element('Plot').Update(disabled = False)
-            elif values['-yaxis2-'] == 'element potential':
-                self.ykey2 = []
-                self.ylab2 = 'Element Potential [J]'
-                elements = list(self.data['1']['elements'].keys())
-                for j in elements:
-                    self.ykey2.append(['elements',j,values['-yaxis2-']])
-                    self.yen2.append(True)
-                    self.leg2.append(j)
-                self.sgw.Element('Plot').Update(disabled = False)
+            self.set_y_axis(values['-yaxis2-'],self.ykey2,self.yen2,self.leg2,self.yWindow2,offset=500)
         elif event == 'Plot':
             self.xkey  = values['-xaxis-']
             self.xlog  = values['-xlog-']
             self.ylog  = values['-ylog-']
-            self.y2log = values['-y2log-']
+            self.ylog2 = values['-ylog2-']
             self.makePlot()
         elif event == 'Export Plot Script':
             self.exportPlotScript()
@@ -715,147 +90,258 @@ class PlotWindow:
             self.children.append(settingsWindow)
         elif event == 'Refresh Data':
             self.readDatabase()
-    def makePlot(self):
-        x = []
-        y = []
-        y2 = []
-        for yi in range(len(self.ykey)):
-            y.append([])
-        for yi in range(len(self.ykey2)):
-            y2.append([])
-        for j in self.data.keys():
+    def set_y_axis(self,value,ykey,yen,leg,yWindow,offset=0):
+        for window in yWindow:
+            window.close()
+        if value in ['temperature','pressure','integral Gibbs energy','functional norm','GEM iterations','heat capacity','enthalpy','entropy']:
             try:
-                for yi in range(len(self.ykey)):
-                    if len(self.ykey[yi]) == 1:
-                        y[yi].append(self.data[j][self.ykey[yi][0]])
-                    elif len(self.ykey[yi]) == 3:
-                        y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]])
-                    elif len(self.ykey[yi]) == 5:
-                        if self.ykey[yi][4] == 'vapor pressure':
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                        else:
-                            y[yi].append(self.data[j][self.ykey[yi][0]][self.ykey[yi][1]][self.ykey[yi][2]][self.ykey[yi][3]][self.ykey[yi][4]])
-                for yi in range(len(self.ykey2)):
-                    if len(self.ykey2[yi]) == 1:
-                        y2[yi].append(self.data[j][self.ykey2[yi][0]])
-                    elif len(self.ykey2[yi]) == 3:
-                        y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]])
-                    elif len(self.ykey2[yi]) == 5:
-                        if self.ykey2[yi][4] == 'vapor pressure':
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]]['mole fraction']*self.data[j]['pressure'])
-                        else:
-                            y2[yi].append(self.data[j][self.ykey2[yi][0]][self.ykey2[yi][1]][self.ykey2[yi][2]][self.ykey2[yi][3]][self.ykey2[yi][4]])
-                if self.xkey == 'iteration':
-                    x.append(int(j))
-                    xlab = 'Iteration'
-                else:
-                    x.append(self.data[j][self.xkey])
-                    if self.xkey == 'temperature':
-                        xlab = 'Temperature [K]'
-                    elif self.xkey == 'pressure':
-                        xlab = 'Pressure [atm]'
+                ykey.append([value])
+                yen.append(True)
+                leg.append(value)
             except:
-                # do nothing
-                continue
-        # Start figure
-        fig = plt.figure()
-        plt.ion()
-        lns=[]
-        if True in self.yen2:
-            ax = fig.add_axes([0.2, 0.1, 0.65, 0.85])
-        else:
-            ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
-        en = 0
-        for yi in range(len(self.yen)):
-            if self.yen[yi]:
-                en += 1
-        color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-        for yi in range(len(self.yen)):
-            if self.yen[yi]:
-                if self.plotColor == 'colorful':
-                    c = next(color)
+                return
+        elif value == '# phases':
+            try:
+                ykey.append(['# solution phases'])
+                yen.append(True)
+                leg.append('# of Solution Phases')
+                ykey.append(['# pure condensed phases'])
+                yen.append(True)
+                leg.append('# of Pure Condensed Phases')
+            except:
+                return
+        elif value in ['moles','chemical potential']:
+            try:
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            except:
+                return
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                if value == 'moles':
+                    # total moles of solution phase
+                    try:
+                        if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                            ykey.append(['solution phases',phase,'moles of endmembers'])
+                            yen.append(False)
+                            phaseOptions[phase].append(['Moles of Endmembers',yi])
+                            leg.append(phase)
+                            yi = yi + 1
+                        ykey.append(['solution phases',phase,value])
+                        yen.append(False)
+                        phaseOptions[phase].append(['Moles',yi])
+                        leg.append(phase)
+                        yi = yi + 1
+                    except:
+                        continue
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    speciesLabel = 'quadruplets'
                 else:
-                    c = 'k'
-                lns = lns + ax.plot(x,y[yi],self.plotMarker,c=c,label = self.leg[yi])
-        ax.set_xlabel(xlab)
-        if self.xlog:
-            ax.set_xscale('log')
-        ax.set_ylabel(self.ylab)
-        if True in self.yen2:
-            ax2 = ax.twinx()
-            en = 0
-            for yi in range(len(self.yen2)):
-                if self.yen2[yi]:
-                    en += 1
-            color = iter(plt.cm.rainbow(np.linspace(0, 1, en)))
-            for yi in range(len(self.yen2)):
-                if self.yen2[yi]:
-                    if self.plotColor2 == 'colorful':
-                        c = next(color)
-                    else:
-                        c = 'k'
-                    lns = lns + ax2.plot(x,y2[yi],self.plotMarker2,c=c,label = self.leg2[yi])
-            ax2.set_ylabel(self.ylab2)
-            if self.y2log:
-                ax2.set_yscale('log')
-        labs = [l.get_label() for l in lns]
-        if self.ylog:
-            ax.set_yscale('log')
-        ax.legend(lns, labs, loc=0)
-        plt.show()
-        plt.pause(0.001)
-        self.currentPlot = fig
-        self.figureList.append(fig)
+                    speciesLabel = 'species'
+                for k in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,speciesLabel,k,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+k)
+                        yi = yi + 1
+                    except:
+                        continue
+            for phase in pureCondensedPhases:
+                phaseOptions[phase] = []
+                try:
+                    ykey.append(['pure condensed phases',phase,value])
+                    yen.append(False)
+                    phaseOptions[phase].append([ykey[yi][-2],yi])
+                    leg.append(phase)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value in ['driving force']:
+            try:
+                solutionPhases = list(self.data['1']['solution phases'].keys())
+                pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            except:
+                return
+            phaseOptions = {'Phases':[]}
+            yi = 0
+            for phase in solutionPhases:
+                ykey.append(['solution phases',phase,value])
+                yen.append(False)
+                leg.append(phase)
+                phaseOptions['Phases'].append([phase,yi])
+                yi = yi + 1
+            for phase in pureCondensedPhases:
+                try:
+                    ykey.append(['pure condensed phases',phase,value])
+                    yen.append(False)
+                    phaseOptions['Phases'].append([phase,yi])
+                    leg.append(phase)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value in ['moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase']:
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            pureCondensedPhases = list(self.data['1']['pure condensed phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                for element in list(self.data['1']['solution phases'][phase]['elements'].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,'elements',element,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+element)
+                        yi = yi + 1
+                    except:
+                        continue
+            for phase in pureCondensedPhases:
+                phaseOptions[phase] = []
+                for element in list(self.data['1']['pure condensed phases'][phase]['elements'].keys()):
+                    try:
+                        ykey.append(['pure condensed phases',phase,'elements',element,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+element)
+                        yi = yi + 1
+                    except:
+                        continue
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value == 'mole fraction':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                phaseOptions[phase] = []
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    speciesLabel = 'quadruplets'
+                else:
+                    speciesLabel = 'species'
+                for species in list(self.data['1']['solution phases'][phase][speciesLabel].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,speciesLabel,species,value])
+                        yen.append(False)
+                        phaseOptions[phase].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+species)
+                        yi = yi + 1
+                    except:
+                        continue
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value == 'mole fraction of endmembers':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {}
+            yi = 0
+            for phase in solutionPhases:
+                if self.data['1']['solution phases'][phase]['phase model'] in ['SUBG', 'SUBQ']:
+                    phaseOptions[phase] = []
+                    for endmember in list(self.data['1']['solution phases'][phase]['endmembers'].keys()):
+                        try:
+                            ykey.append(['solution phases',phase,'endmembers',endmember,'mole fraction'])
+                            yen.append(False)
+                            phaseOptions[phase].append([ykey[yi][-2],yi])
+                            leg.append(phase+': '+endmember)
+                            yi = yi + 1
+                        except:
+                            continue
+                else:
+                    continue
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value == 'vapor pressure':
+            solutionPhases = list(self.data['1']['solution phases'].keys())
+            phaseOptions = {'Vapor Pressures':[]}
+            yi = 0
+            for phase in solutionPhases:
+                if self.data['1']['solution phases'][phase]['phase model'] != 'IDMX':
+                    break
+                for species in list(self.data['1']['solution phases'][phase]['species'].keys()):
+                    try:
+                        ykey.append(['solution phases',phase,'species',species,value])
+                        yen.append(False)
+                        phaseOptions['Vapor Pressures'].append([ykey[yi][-2],yi])
+                        leg.append(phase+': '+species)
+                        yi = yi + 1
+                    except:
+                        continue
+                break
+            selectWindow = SelectionWindow(phaseOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value == 'moles of elements':
+            elements = list(self.data['1']['elements'].keys())
+            elementOptions = {'Elements':[]}
+            yi = 0
+            for element in elements:
+                try:
+                    ykey.append(['elements',element,'moles'])
+                    yen.append(False)
+                    elementOptions['Elements'].append([element,yi])
+                    leg.append(element)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(elementOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+        elif value == 'element potential':
+            elements = list(self.data['1']['elements'].keys())
+            elementOptions = {'Elements':[]}
+            yi = 0
+            for element in elements:
+                try:
+                    ykey.append(['elements',element,value])
+                    yen.append(False)
+                    elementOptions['Elements'].append([element,yi])
+                    leg.append(element)
+                    yi = yi + 1
+                except:
+                    continue
+            selectWindow = SelectionWindow(elementOptions,yen,offset=offset)
+            self.children.append(selectWindow)
+            yWindow.append(selectWindow)
+    def makePlot(self):
+        # Select data
+        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        # Check if legends should be displayed
+        if not self.showLeg:
+            legend = None
+        if not self.showLeg2:
+            legend2 = None
+        # Call plotter
+        self.currentPlot = thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        
+        self.figureList.append(self.currentPlot)
+
+        # Update buttons
         self.sgw.Element('Export Plot').Update(disabled = False)
-        self.x = x
-        self.y = y
-        self.y2 = y2
-        self.xlab = xlab
         self.sgw.Element('Export Plot Script').Update(disabled = False)
     def exportPlotScript(self):
-        with open('python/generatedPlotScript.py', 'w') as f:
-            f.write('# Thermochimica-generated plot script\n')
-            f.write('import matplotlib.pyplot as plt\n')
-            f.write('x = '+"{}\n".format(self.x))
-            f.write('y = '+"{}\n".format(self.y))
-            f.write('xlab = \''+self.xlab+'\'\n')
-            f.write('ylab = \''+self.ylab+'\'\n')
-            f.write('yen = '+"{}\n".format(self.yen))
-            f.write('leg = '+"{}\n".format(self.leg))
-            f.write('lns=[]\n')
-            f.write('# Start figure\n')
-            f.write('fig = plt.figure()\n')
-            if True in self.yen2:
-                f.write('ax  = fig.add_axes([0.2, 0.1, 0.65, 0.85])\n')
-            else:
-                f.write('ax  = fig.add_axes([0.2, 0.1, 0.75, 0.85])\n')
-            f.write('for yi in range(len(yen)):\n')
-            f.write('    if yen[yi]:\n')
-            f.write('        lns = lns + ax.plot(x,y[yi],\'.-\',label = leg[yi])\n')
-            if True in self.yen2:
-                f.write('y2 = '+"{}\n".format(self.y2))
-                f.write('ylab2 = \''+self.ylab2+'\'\n')
-                f.write('yen2 = '+"{}\n".format(self.yen2))
-                f.write('leg2 = '+"{}\n".format(self.leg2))
-                f.write('ax2 = ax.twinx()\n')
-                f.write('for yi in range(len(yen2)):\n')
-                f.write('    if yen2[yi]:\n')
-                f.write('        lns = lns + ax2.plot(x,y2[yi],\'^--\',label = leg2[yi])\n')
-                f.write('ax2.set_ylabel(ylab2)\n')
-                if self.y2log:
-                    f.write("ax2.set_yscale('log')\n")
-            f.write('labs = [l.get_label() for l in lns]\n')
-            f.write('ax.legend(lns, labs, loc=0)\n')
-            f.write('ax.set_xlabel(xlab)\n')
-            f.write('ax.set_ylabel(ylab)\n')
-            if self.xlog:
-                f.write("ax.set_xscale('log')\n")
-            if self.ylog:
-                f.write("ax.set_yscale('log')\n")
-            f.write('plt.show()\n')
+        # Select data
+        yused, legend, yused2, legend2 = thermoTools.selectData(self.yen,self.ykey,self.leg,yen2=self.yen2,ykey2=self.ykey2,leg2=self.leg2)
+        # Check if legends should be displayed
+        if not self.showLeg:
+            legend = None
+        if not self.showLeg2:
+            legend2 = None
+        # Call plot exporter
+        thermoTools.exportPlotScript(self.plotScriptFilename,self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2)
     def exportPlot(self):
         try:
-            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+            self.currentPlot.savefig(f'outputs/{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
         except:
             errorLayout = [[sg.Text('The export failed, try changing plot settings.')],[sg.Button('Continue'), sg.Button('Cancel')]]
             errorWindow = sg.Window('Plot export failed', errorLayout, location = [400,0], finalize=True, keep_on_top = True)
@@ -865,12 +351,113 @@ class PlotWindow:
                     break
             errorWindow.close()
     def readDatabase(self):
-        f = open(self.datafile,)
-        self.data = json.load(f)
-        f.close()
+        self.data = thermoTools.readDatabase(self.datafile)
         if list(self.data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
+
+class SelectionWindow:
+    def __init__(self, options, yen, offset = 0):
+        self.options = options
+        self.yen = yen
+        self.selectables = []
+        self.selected = []
+        self.drop_selection = ''
+        self.makeLayout(offset)
+        windowList.append(self)
+        self.children = []
+    def close(self):
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in windowList:
+            windowList.remove(self)
+    def makeLayout(self,offset):
+        dropdown_options = list(self.options.keys())
+        try:
+            self.drop_selection = dropdown_options[0]
+        except IndexError:
+            self.drop_selection = None
+        selectables_column = [
+            [
+                sg.Text('Unselected Options'),
+                sg.Combo(dropdown_options, default_value=self.drop_selection, key='-drop-', enable_events=True)
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=False, size=(40, 20), key="-selectables-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
+                )
+            ],
+            [sg.Button('Add Selected Options'),sg.Button('Add All')]
+        ]
+        selected_column = [
+            [
+                sg.Text('Selected Options')
+            ],
+            [
+                sg.Listbox(
+                    values=[], enable_events=False, size=(40, 20), key="-selected-", select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED
+                )
+            ],
+            [sg.Button('Remove Selected Options'),sg.Button('Remove All')]
+        ]
+        selectionLayout = [[sg.Column(selectables_column,vertical_alignment='t'),sg.Column(selected_column,vertical_alignment='t')],[sg.Button('Exit')]]
+        self.sgw = sg.Window('Plot Selection', selectionLayout, location = [800,offset], finalize=True)
+        self.updateSelectables()
+    def read(self):
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
+        if event == sg.WIN_CLOSED or event == 'Exit':
+            self.close()
+        elif event == '-drop-':
+            self.drop_selection = values['-drop-']
+            self.updateSelectables()
+        elif event == 'Add Selected Options':
+            for option in values['-selectables-']:
+                o = option.copy()
+                o.insert(0,self.drop_selection)
+                self.selected.append(o)
+                self.options[self.drop_selection].remove(option)
+            self.updateSelected()
+            self.updateSelectables()
+        elif event == 'Remove Selected Options':
+            for option in values['-selected-']:
+                self.selected.remove(option)
+                drop = option[0]
+                self.options[drop].append([option[1],option[2]])
+            self.updateSelected()
+            self.updateSelectables()
+        elif event == 'Add All':
+            drop_options = list(self.options.keys())
+            for drop_option in drop_options:
+                options = list(self.options[drop_option])
+                for option in options:
+                    o = option.copy()
+                    o.insert(0,drop_option)
+                    self.selected.append(o)
+                    self.options[drop_option].remove(option)
+            self.updateSelected()
+            self.updateSelectables()
+        elif event == 'Remove All':
+            options = list(self.selected)
+            for option in options:
+                self.selected.remove(option)
+                drop = option[0]
+                self.options[drop].append([option[1],option[2]])
+            self.updateSelected()
+            self.updateSelectables()
+    def updateSelectables(self):
+        if self.drop_selection:
+            self.selectables = self.options[self.drop_selection]
+            self.selectables.sort(key=lambda x: x[1])
+            self.sgw['-selectables-'].update(self.selectables)
+    def updateSelected(self):
+        self.selected.sort(key=lambda x: x[2])
+        self.sgw['-selected-'].update(self.selected)
+        # Set enabled array status in parent
+        for yi in range(len(self.yen)):
+            self.yen[yi] = False
+        for selected in self.selected:
+            self.yen[selected[2]] = True
 
 class SettingsWindow:
     def __init__(self, parent):
@@ -939,6 +526,12 @@ class SettingsWindow:
                                         [sg.Radio('Colorful', 'mcolor2', default=colorful2, enable_events=True, key='-mcolorful2-')],
                                         [sg.Radio('Black',    'mcolor2', default=bland2,    enable_events=True, key='-mbland2-')]
                                         ],vertical_alignment='t')],
+                            [sg.Column([
+                                        [sg.Checkbox('Show Legend', default=self.parent.showLeg, key='-showLegend-')]
+                                        ],vertical_alignment='t'),
+                            sg.Column([
+                                        [sg.Checkbox('Show Legend 2', default=self.parent.showLeg2, key='-showLegend2-')]
+                                        ],vertical_alignment='t')],
                             [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
                             [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
                             [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
@@ -969,6 +562,8 @@ class SettingsWindow:
         elif event =='-mbland2-':
             self.parent.plotColor2 = 'bland'
         elif event =='Accept':
+            self.parent.showLeg  = values['-showLegend-']
+            self.parent.showLeg2 = values['-showLegend2-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.exportFileName = str(values['-filename-'])
@@ -984,7 +579,7 @@ class SettingsWindow:
             self.close()
 
 windowList = []
-dataWindow = thermoToolsGUI.DataWindow(windowList,PlotWindow,thermoToolsGUI.JSONParse,ext='.json',rootDir='')
+dataWindow = thermoToolsGUI.DataWindow(windowList,PlotWindow,thermoToolsGUI.JSONParse,ext='.json',rootDir='outputs')
 while len(windowList) > 0:
     for window in windowList:
         window.read()

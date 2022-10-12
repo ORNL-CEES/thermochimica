@@ -26,12 +26,12 @@ sg.theme_add_new('OntarioTech', {'BACKGROUND': futureBlue,
 sg.theme('OntarioTech')
 
 class DataWindow:
-    def __init__(self,windowList,calc,parser,ext='.dat',rootDir='/data'):
+    def __init__(self,windowList,calc,parser,ext='.dat',rootDir='data'):
         self.windowList = windowList
         self.calc = calc
         self.parser = parser
         self.ext = ext.lower()
-        self.folder = os.getcwd()+rootDir
+        self.folder = os.getcwd()+'/'+rootDir
         windowList.append(self)
         file_list_column = MakeFileListColumn('Database Folder')
         self.sgw = sg.Window('Thermochimica database selection', file_list_column, location = [0,0], finalize=True)
@@ -67,14 +67,13 @@ class PhaseDiagramAddDataWindow:
         self.ext = '.csv'
         self.folder = os.getcwd()
         windowList.append(self)
-        file_list_column = MakeFileListColumn('Experimental Data Folder')
+        file_list_column = MakeFileListColumn('Experimental Data Folder',enable_events=False,select_mode=sg.LISTBOX_SELECT_MODE_EXTENDED)
         buttonLayout = [sg.Button('Add Data'), sg.Button('Exit')]
         addDataLayout = [file_list_column,buttonLayout]
         self.sgw = sg.Window('Experimental data selection', addDataLayout, location = [0,0], finalize=True)
         fnames = GetFileNames(self.folder,self.ext)
         self.sgw["-FILE LIST-"].update(fnames)
         self.children = []
-        self.filename = ''
     def close(self):
         for child in self.children:
             child.close()
@@ -86,19 +85,19 @@ class PhaseDiagramAddDataWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == "-FOLDER-":
-            self.filename = ''
             self.folder = values["-FOLDER-"]
             fnames = GetFileNames(self.folder,self.ext)
             self.sgw["-FILE LIST-"].update(fnames)
-        elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            self.filename = values["-FILE LIST-"][0]
         elif event == 'Add Data':
-            if not self.filename:
-                return
-            datafile = os.path.join(self.folder, self.filename)
-            expName = self.filename.split('.',1)[0]
-            self.parent.calculation.addData(datafile,expName)
-            self.parent.macro.append(f'macroPD.addData("{datafile}","{expName}")')
+            for file in values["-FILE LIST-"]:
+                if not file:
+                    return
+                datafile = os.path.join(self.folder, file)
+                expName = file.split('.',1)[0]
+                self.parent.calculation.addData(datafile,expName)
+                self.parent.macro.append(f'macroPD.addData("{datafile}","{expName}")')
+            self.parent.calculation.makePlot()
+            self.parent.macro.append(f'macroPD.makePlot()')
 
 class PhaseDiagramMacroSettingsWindow:
     def __init__(self,parent,windowList):
@@ -188,7 +187,7 @@ def JSONParse(parent,datafile):
     except:
         return
 
-def MakeFileListColumn(text):
+def MakeFileListColumn(text,enable_events=True,select_mode=None):
     file_list_column = [
         [
             sg.Text(text),
@@ -197,7 +196,7 @@ def MakeFileListColumn(text):
         ],
         [
             sg.Listbox(
-                values=[], enable_events=True, size=(40, 20), key="-FILE LIST-"
+                values=[], enable_events=enable_events, size=(40, 20), key="-FILE LIST-", select_mode=select_mode
             )
         ],
     ]

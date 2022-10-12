@@ -1,6 +1,7 @@
 import thermoTools
 import subprocess
 import json
+import shutil
 
 def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database,
                      thermochimica_path = '.',
@@ -13,6 +14,9 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     if property not in propList:
         print(f'Property {property} not recognized, please use one of {", ".join(propList)}')
 
+    # Check if heat capacity should be turned on
+    heatCapacity = True if property in ["enthalpy","entropy"] else False
+
     elements = set()
     for endpoint in endpoints:
         elements.update(endpoint.keys())
@@ -23,27 +27,20 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
                 endpoint[element] = 0
 
     # Write and run endpoint calculations
-    inputFileName = f'{thermochimica_path}/inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
-    with open(inputFileName, 'w') as inputFile:
-        inputFile.write(f'data file              = {database}\n')
-        inputFile.write(f'temperature unit       = {tunit}\n')
-        inputFile.write(f'pressure unit          = {punit}\n')
-        inputFile.write(f'mass unit              = {munit}\n')
-        inputFile.write(f'nEl                    = {len(elements)} \n')
-        inputFile.write(f'iEl                    = {" ".join([str(thermoTools.atomic_number_map.index(element)+1) for element in elements])}\n')
-        inputFile.write(f'number excluded except = 1\n')
-        inputFile.write(f'phases excluded except = {phase}\n')
-        inputFile.write(f'heat capacity          = {".TRUE." if property in ["enthalpy","entropy"] else ".FALSE."}\n')
-        inputFile.write(f'nCalc                  = {len(endpoints)}\n')
-        # Write endpoint calculations
-        for endpoint in endpoints:
-            inputFile.write(f'{temperature} {pressure} {" ".join([str(endpoint[element]) for element in elements])}\n')
+    inputFileName = f'{thermochimica_path}/inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}-endpoints.ti'
+    # Set up endpoint calculations
+    calcList = []
+    for endpoint in endpoints:
+        calc = [temperature, pressure]
+        calc.extend([endpoint[element] for element in elements])
+        calcList.append(calc)
+    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
-    subprocess.check_output([thermochimica_path+'/bin/RunCalculationList',inputFileName])
+    thermoTools.RunRunCalculationList(inputFileName)
 
     # Process output
-    f = open(thermochimica_path+'/thermoout.json',)
+    f = open(thermochimica_path+'/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()
@@ -60,25 +57,19 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
 
     # Write and run mixture calculations
     inputFileName = f'{thermochimica_path}/inputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.ti'
-    with open(inputFileName, 'w') as inputFile:
-        inputFile.write(f'data file              = {database}\n')
-        inputFile.write(f'temperature unit       = {tunit}\n')
-        inputFile.write(f'pressure unit          = {punit}\n')
-        inputFile.write(f'mass unit              = {munit}\n')
-        inputFile.write(f'nEl                    = {len(elements)} \n')
-        inputFile.write(f'iEl                    = {" ".join([str(thermoTools.atomic_number_map.index(element)+1) for element in elements])}\n')
-        inputFile.write(f'number excluded except = 1\n')
-        inputFile.write(f'phases excluded except = {phase}\n')
-        inputFile.write(f'heat capacity          = {".TRUE." if property in ["enthalpy","entropy"] else ".FALSE."}\n')
-        inputFile.write(f'nCalc                  = {len(mixtures)}\n')
-        # Write mixture calculations
-        for mixture in mixtures:
-            inputFile.write(f'{temperature} {pressure} {" ".join([str((1-mixture)*endpoints[0][element] + (mixture)*endpoints[1][element]) for element in elements])}\n')
+    # Set up mixture calculations
+    calcList = []
+    for mixture in mixtures:
+        calc = [temperature, pressure]
+        calc.extend([(1-mixture)*endpoints[0][element] + (mixture)*endpoints[1][element] for element in elements])
+        calcList.append(calc)
+    thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
+
     # Run calculation
-    subprocess.check_output([thermochimica_path+'/bin/RunCalculationList',inputFileName])
+    thermoTools.RunRunCalculationList(inputFileName)
 
     # Process output
-    f = open(thermochimica_path+'/thermoout.json',)
+    f = open(thermochimica_path+'/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()
@@ -97,8 +88,8 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         data[str(i)][f'{property} of mixing'] = prop
 
     # Save data
-    with open('thermoout.json', 'w') as outfile:
+    with open('outputs/thermoout.json', 'w') as outfile:
         json.dump(data, outfile, indent=4)
-    subprocess.run(['cp','thermoout.json',f'{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json'])
+    shutil.copy2('outputs/thermoout.json', f'outputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json')
 
     return mixtureProp

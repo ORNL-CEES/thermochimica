@@ -35,7 +35,7 @@ program Phase3DiagramDataGen
       nx2 = CEILING((x2hi - x2lo) / dDeltaX2)
     end if
 
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='REPLACE', action='write')
     write(1,*) '{'
     close (1)
@@ -56,7 +56,7 @@ program Phase3DiagramDataGen
         if (INFOThermo == 0)        call Thermochimica
 
         if (INFOThermo == 0) then
-          open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+          open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
               status='OLD', position='append', action='write')
           if ((i > 0) .OR. (j > 0)) write(1,*) ','
           write(intStr,*) nSim
@@ -78,7 +78,7 @@ program Phase3DiagramDataGen
       end do
     end do
 
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='OLD', position='append', action='write')
     write(1,*) '}'
     close (1)

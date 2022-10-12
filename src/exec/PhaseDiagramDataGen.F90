@@ -34,7 +34,7 @@ program PhaseDiagramDataGen
       nx = CEILING((xhi - xlo) / dDeltaX)
     end if
 
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='REPLACE', action='write')
     write(1,*) '{'
     close (1)
@@ -53,7 +53,7 @@ program PhaseDiagramDataGen
         dElementMass(iEl1) = 1D0-dElementMass(iEl2)
         call Thermochimica
         if (INFOThermo == 0) then
-          open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+          open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
               status='OLD', position='append', action='write')
           if ((i > 0) .OR. (j > 0)) write(1,*) ','
           write(intStr,*) nSim
@@ -70,7 +70,7 @@ program PhaseDiagramDataGen
       end do
     end do
 
-    open(1, file= DATA_DIRECTORY // '../thermoout.json', &
+    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
         status='OLD', position='append', action='write')
     write(1,*) '}'
     close (1)
