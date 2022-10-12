@@ -365,9 +365,8 @@ subroutine ParseCSDataBlockSUBG( i )
 
         ! The end of the parameter listing is marked by "0"
         ! or a negative number indicating the number of extra parameter lines.
-        ! These lines indicate interpolation schemes, but I don't understand
-        ! what these add, given that we can already generate interpolation
-        ! schemes based on the chemical groups.
+        ! These lines indicate overwriting of default interpolation schemes.
+        ! Not implemented yet.
         if (iRegularParamCS(nParamCS+1,1) <= 0) then
             do k = 1, -iRegularParamCS(nParamCS+1,1)
                 read (1,*,IOSTAT = INFO) cTempVec(1:10)
