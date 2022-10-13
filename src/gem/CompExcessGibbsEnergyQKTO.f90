@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompExcessGibbsEnergyQKTO.f90
     !> \brief   Compute the partial molar excess Gibbs energy of mixing of solution phase constituents in a QKTO
@@ -65,7 +65,7 @@
     ! dPartialExcessGibbsLast   Partial molar excess Gibbs energy of mixing of species from the last iteration.
     ! dMolFraction              Current estimated mole fraction.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
@@ -92,7 +92,7 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
 
 end subroutine CompExcessGibbsEnergyQKTO
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     ! Purpose
     ! =======
@@ -122,7 +122,7 @@ end subroutine CompExcessGibbsEnergyQKTO
     !                                constituent in the sub-system (parameter).
     ! zT                            A double real scalar representing the sum of exponents in the sub-system.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
@@ -132,10 +132,12 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
     implicit None
 
-    integer                       :: i, j, zT, iParam, iSolnIndex, iGroup1, iGroup2, iGroupTemp, nSpeciesParam, p, q, r, a, b, c
+    integer                       :: i, j, k, l, zT, p, q, r, a, b, c
+    integer                       :: iParam, iSolnIndex, iGroup1, iGroup2, iGroupTemp, nSpeciesParam
     real(8)                       :: xT, dGex, dXi1, dXi2, dXiDen, dDgex
     real(8), dimension(nSpeciesPhase(iSolnIndex) - nSpeciesPhase(iSolnIndex-1)) :: y, dPartialGParam
     logical, dimension(nSpeciesPhase(iSolnIndex) - nSpeciesPhase(iSolnIndex-1)) :: lAsymmetric1, lAsymmetric2
+    logical :: lIsException
 
     ! Initialize variables:
     xT             = 0D0
@@ -167,18 +169,36 @@ subroutine PolyRegularQKTO(iSolnIndex,iParam)
     ! Count them as asymmetric with respect to themselves
     lAsymmetric1(a) = .TRUE.
     lAsymmetric2(b) = .TRUE.
-    ! If they are equal, everything else will be symmetric
-    if (iGroup1 /= iGroup2) then
-        do j = nSpeciesPhase(iSolnIndex-1) + 1, nSpeciesPhase(iSolnIndex)
-            i = j - nSpeciesPhase(iSolnIndex-1)
+    LOOP_checkSymmetry: do j = nSpeciesPhase(iSolnIndex-1) + 1, nSpeciesPhase(iSolnIndex)
+        i = j - nSpeciesPhase(iSolnIndex-1)
+        ! First check if this ternary is an exception
+        lIsException = .FALSE.
+        LOOP_overrides: do k = 1, nInterpolationOverride(iSolnIndex)
+            ! Check if this override applies to this ternary
+            do l = 1, 3
+                if (.NOT.((iInterpolationOverride(iSolnIndex,k,l) == a) .OR. &
+                          (iInterpolationOverride(iSolnIndex,k,l) == b) .OR. &
+                          (iInterpolationOverride(iSolnIndex,k,l) == i))) &
+                    cycle LOOP_overrides
+            end do
+            ! If we get here, this one is an exception
+            lIsException = .TRUE.
+            if (iInterpolationOverride(iSolnIndex,k,5) == b) lAsymmetric1(i) = .TRUE.
+            if (iInterpolationOverride(iSolnIndex,k,5) == a) lAsymmetric2(i) = .TRUE.
+            exit LOOP_overrides
+        end do LOOP_overrides
+
+        if (lIsException) cycle LOOP_checkSymmetry
+        ! If they are equal, everything else will be symmetric
+        if (iGroup1 /= iGroup2) then
             iGroupTemp = INT(dQKTOParams(j,2))
             if      (iGroupTemp == iGroup1) then
                 lAsymmetric1(i) = .TRUE.
             else if (iGroupTemp == iGroup2) then
                 lAsymmetric2(i) = .TRUE.
             end if
-        end do
-    end if
+        end if
+    end do LOOP_checkSymmetry
 
     ! Compute sum of equivalent fractions
     do j = nSpeciesPhase(iSolnIndex-1) + 1, nSpeciesPhase(iSolnIndex)
