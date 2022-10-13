@@ -141,6 +141,13 @@ subroutine CompThermoData
 
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
+
+        do k = 1, nPhasesExcluded
+            if (cSolnPhaseNameCS(n) == cPhasesExcluded(k)) then
+                cycle LOOP_nPhasesCS
+            end if
+        end do
+
         iFirst = nSpeciesPhaseCS(n-1) + 1
         iLast  = nSpeciesPhaseCS(n)
         l = MAXVAL(iSpeciesPass(iFirst:iLast))
