@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CheckSystemExcess.f90
     !> \brief   Check the excess terms for the system.
@@ -41,7 +41,7 @@
     ! nParamPhaseCS     An integer vector representing the number of parameters for a phase.
     ! iParamPassCS      An integer vector representing whether a parameter should be considered (1) or not (0).
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CheckSystemExcess
@@ -137,6 +137,37 @@ subroutine CheckSystemExcess
                 end if IF_Param
 
                 nParamPhase(nCounter) = nParam
+
+                ! Check interpolation overrides
+                do j = 1, nInterpolationOverrideCS(i)
+                    if ((iSpeciesPass(iInterpolationOverrideCS(i,j,1)) > 0) &
+                    .AND. (iSpeciesPass(iInterpolationOverrideCS(i,j,2)) > 0) &
+                    .AND. (iSpeciesPass(iInterpolationOverrideCS(i,j,3)) > 0)) then
+                        nInterpolationOverride(nCounter) = nInterpolationOverride(nCounter) + 1
+                        iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),:) = iInterpolationOverrideCS(i,j,:)
+                    end if
+                end do
+
+                ! Must remove unused constituents from iInterpolationOverride indices
+                nRemove = 0
+                iRemove = 0
+                do j = nSpeciesPhaseCS(i), nSpeciesPhaseCS(i-1) + 1, -1
+                    if (iSpeciesPass(j) == 0) then
+                        nRemove = nRemove + 1
+                        iRemove(nRemove) = j - nSpeciesPhaseCS(i-1)
+                    end if
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nInterpolationOverride(nCounter)
+                        do l = 1, 5
+                            if (iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) > iRemove(k)) then
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) = &
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) - 1
+                            end if
+                        end do
+                    end do
+                end do
 
             case ('SUBL', 'SUBLM')
 
@@ -560,6 +591,40 @@ subroutine CheckSystemExcess
                 end do LOOP_excess
 
                 nParamPhase(nCounter) = nParam
+
+                ! Check interpolation overrides
+                do j = 1, nInterpolationOverrideCS(i)
+                    ! Assuming only on first sublattice for now
+                    if ((iConstituentPass(nCurrentSublattice,1,iInterpolationOverrideCS(i,j,1)) > 0) &
+                    .AND. (iConstituentPass(nCurrentSublattice,1,iInterpolationOverrideCS(i,j,2)) > 0) &
+                    .AND. (iConstituentPass(nCurrentSublattice,1,iInterpolationOverrideCS(i,j,3)) > 0)) then
+                        nInterpolationOverride(nCounter) = nInterpolationOverride(nCounter) + 1
+                        iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),:) = iInterpolationOverrideCS(i,j,:)
+                    end if
+                end do
+
+                ! Must remove unused constituents from iInterpolationOverride indices
+                nRemove = 0
+                iRemove = 0
+                do j = nSublatticePhaseCS(nCurrentSublattice), 1, -1
+                    do l = nConstituentSublatticeCS(nCurrentSublattice,j), 1, -1
+                        if (iConstituentPass(nCurrentSublattice,j,l) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nConstituentSublatticeCS(nCurrentSublattice,1))
+                        end if
+                    end do
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nInterpolationOverride(nCounter)
+                        do l = 1, 5
+                            if (iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) > iRemove(k)) then
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) = &
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) - 1
+                            end if
+                        end do
+                    end do
+                end do
 
             case default
                 ! The character string representing input units is not recognized.

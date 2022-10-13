@@ -1,6 +1,6 @@
 
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    ParseCSDataBlockQKTO.f90
     !> \brief   Parse the data block section corresponding to a QKTO phase of a ChemSage data-file.
@@ -9,6 +9,7 @@
     !> \sa      ParseCSDataFile.f90
     !> \sa      ParseCSDataBlock.f90
     !> \sa      ParseCSDataBlockGibbs.f90
+    !> \sa      ParseCSInterpolationOverrides.f90
     !
     !
     ! DISCLAIMER
@@ -54,7 +55,7 @@
     ! cSolnPhaseTypeCS          The type of a solution phase.
     ! cSolnPhaseTypeSupport     A character array representing solution phase types that are supported.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine ParseCSDataBlockQKTO( i )
@@ -63,8 +64,7 @@ subroutine ParseCSDataBlockQKTO( i )
 
     implicit none
 
-    integer :: i, k
-    character(8),dimension(20)  :: cTempVec
+    integer :: i
 
     ! Loop through excess parameters:
     LOOP_ExcessMixingQKTO: do
@@ -72,15 +72,11 @@ subroutine ParseCSDataBlockQKTO( i )
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
-        ! if (iRegularParamCS(nParamCS+1,1) == 0) exit LOOP_ExcessMixingQKTO
-        ! The end of the parameter listing is marked by "0"
+        ! The end of the parameter listing is marked by "0",
         ! or a negative number indicating the number of extra parameter lines.
         ! These lines indicate overwriting of default interpolation schemes.
-        ! Not implemented yet.
         if (iRegularParamCS(nParamCS+1,1) <= 0) then
-            do k = 1, -iRegularParamCS(nParamCS+1,1)
-                read (1,*,IOSTAT = INFO) cTempVec(1:10)
-            end do
+            call ParseCSInterpolationOverrides(i)
             exit LOOP_ExcessMixingQKTO
         end if
 
