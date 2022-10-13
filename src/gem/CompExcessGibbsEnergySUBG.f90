@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompExcessGibbsEnergySUBG.f90
     !> \brief   Compute the partial molar excess Gibbs energy of mixing of solution phase species in a SUBG
@@ -60,7 +60,7 @@
     ! dY(:)                     A temporary double vector used to represent the coordinate equivalent
     !                            fractions of the species.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
@@ -78,6 +78,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
+    logical :: lIsException
     real(8) :: dSum, dConfEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
@@ -381,16 +382,34 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         if (x == y) then
             lAsymmetric1(a) = .TRUE.
             lAsymmetric2(b) = .TRUE.
-            ! First make a list of which constituents make asymmetric ternaries
-            if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
-                do i = 1, nSub1
-                    if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
-                        lAsymmetric1(i) = .TRUE.
-                    else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
-                        lAsymmetric2(i) = .TRUE.
-                    end if
-                end do
-            end if
+            ! First check if this ternary is an exception
+            LOOP_checkSymmetry: do i = 1, nSub1
+                lIsException = .FALSE.
+                LOOP_overrides: do k = 1, nInterpolationOverride(iSolnIndex)
+                    ! Check if this override applies to this ternary
+                    do l = 1, 3
+                        if (.NOT.((iInterpolationOverride(iSolnIndex,k,l) == a) .OR. &
+                                (iInterpolationOverride(iSolnIndex,k,l) == b) .OR. &
+                                (iInterpolationOverride(iSolnIndex,k,l) == i))) &
+                            cycle LOOP_overrides
+                    end do
+                    ! If we get here, this one is an exception
+                    lIsException = .TRUE.
+                    if (iInterpolationOverride(iSolnIndex,k,5) == b) lAsymmetric1(i) = .TRUE.
+                    if (iInterpolationOverride(iSolnIndex,k,5) == a) lAsymmetric2(i) = .TRUE.
+                    exit LOOP_overrides
+                end do LOOP_overrides
+
+                if (lIsException) cycle LOOP_checkSymmetry
+                ! First make a list of which constituents make asymmetric ternaries
+                if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
+                        if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
+                            lAsymmetric1(i) = .TRUE.
+                        else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
+                            lAsymmetric2(i) = .TRUE.
+                        end if
+                end if
+            end do LOOP_checkSymmetry
             ! Now use lists to generate xi and chi
             ! Below is chi with counting of x /= y quads
             do ijkl = 1, nPairsSRO(iSPI,2)

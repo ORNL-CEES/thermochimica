@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompExcessGibbsEnergyQKTO.f90
     !> \brief   Compute the partial molar excess Gibbs energy of mixing of solution phase constituents in a QKTO
@@ -65,7 +65,7 @@
     ! dPartialExcessGibbsLast   Partial molar excess Gibbs energy of mixing of species from the last iteration.
     ! dMolFraction              Current estimated mole fraction.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
@@ -92,7 +92,7 @@ subroutine CompExcessGibbsEnergyQKTO(iSolnIndex)
 
 end subroutine CompExcessGibbsEnergyQKTO
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     ! Purpose
     ! =======
@@ -122,7 +122,7 @@ end subroutine CompExcessGibbsEnergyQKTO
     !                                constituent in the sub-system (parameter).
     ! zT                            A double real scalar representing the sum of exponents in the sub-system.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 subroutine PolyRegularQKTO(iSolnIndex,iParam)
 
