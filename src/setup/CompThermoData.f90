@@ -142,12 +142,6 @@ subroutine CompThermoData
     ! Loop through all species in the system:
     LOOP_nPhasesCS: do n = 1, nSolnPhasesSysCS
 
-        do k = 1, nPhasesExcluded
-            if (cSolnPhaseNameCS(n) == cPhasesExcluded(k)) then
-                cycle LOOP_nPhasesCS
-            end if
-        end do
-
         iFirst = nSpeciesPhaseCS(n-1) + 1
         iLast  = nSpeciesPhaseCS(n)
         l = MAXVAL(iSpeciesPass(iFirst:iLast))
@@ -171,6 +165,12 @@ subroutine CompThermoData
                     iCounterGibbsEqn = iCounterGibbsEqn + 1
                     if ((dTemperatureForLimits <= dGibbsCoeffSpeciesTemp(1,iCounterGibbsEqn)).AND.(l == 0)) then
                         l = k
+                    end if
+                end do
+
+                do k = 1, nPhasesExcluded
+                    if (cSolnPhaseNameCS(n) == cPhasesExcluded(k)) then
+                        cycle LOOP_SROPairs
                     end if
                 end do
 
@@ -234,6 +234,12 @@ subroutine CompThermoData
                 dCoax = dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1)
                 dChemicalPotentialTemp(i) = dChemicalPotentialTemp(i) * 2D0 / dCoax
             end do LOOP_SROPairs
+
+            do k = 1, nPhasesExcluded
+                if (cSolnPhaseNameCS(n) == cPhasesExcluded(k)) then
+                    cycle LOOP_nPhasesCS
+                end if
+            end do
 
             LOOP_nSUBGQCS: do i = nSpeciesPhaseCS(n - 1) + 1, nSpeciesPhaseCS(n)
                 if (iSpeciesPass(i) == 0) cycle LOOP_nSUBGQCS
