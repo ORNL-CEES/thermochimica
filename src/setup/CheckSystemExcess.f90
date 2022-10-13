@@ -138,6 +138,37 @@ subroutine CheckSystemExcess
 
                 nParamPhase(nCounter) = nParam
 
+                ! Check interpolation overrides
+                do j = 1, nInterpolationOverrideCS(i)
+                    if ((iSpeciesPass(iInterpolationOverrideCS(i,j,1)) > 0) &
+                    .AND. (iSpeciesPass(iInterpolationOverrideCS(i,j,2)) > 0) &
+                    .AND. (iSpeciesPass(iInterpolationOverrideCS(i,j,3)) > 0)) then
+                        nInterpolationOverride(nCounter) = nInterpolationOverride(nCounter) + 1
+                        iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),:) = iInterpolationOverrideCS(i,j,:)
+                    end if
+                end do
+
+                ! Must remove unused constituents from iInterpolationOverride indices
+                nRemove = 0
+                iRemove = 0
+                do j = nSpeciesPhaseCS(i), nSpeciesPhaseCS(i-1) + 1, -1
+                    if (iSpeciesPass(j) == 0) then
+                        nRemove = nRemove + 1
+                        iRemove(nRemove) = j - nSpeciesPhaseCS(i-1)
+                    end if
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nInterpolationOverride(nCounter)
+                        do l = 1, 5
+                            if (iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) > iRemove(k)) then
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) = &
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
             case ('SUBL', 'SUBLM')
 
                 ! Check if the constituents pass for a phase with a sublattice:

@@ -63,7 +63,7 @@ subroutine ParseCSDataBlockQKTO( i )
 
     implicit none
 
-    integer :: i, j, k, l, iK, iT
+    integer :: i, j, k, l, iK, iT, nIO
     character(8),dimension(3)  :: cTempVec
     character(8)  :: cTemp
     integer, dimension(6)  :: iTemp
@@ -85,10 +85,11 @@ subroutine ParseCSDataBlockQKTO( i )
         if (iRegularParamCS(nParamCS+1,1) <= 0) then
             do k = 1, -iRegularParamCS(nParamCS+1,1)
                 nInterpolationOverrideCS(i) = nInterpolationOverrideCS(i) + 1
+                nIO = nInterpolationOverrideCS(i)
                 ! Have to read interpolation override line, unfortunately the formatting is a mess.
                 ! Specifically, strings and integers abut.
-                read (1,*,IOSTAT = INFO) iInterpolationOverrideCS(i,1), iInterpolationOverrideCS(i,2), cTempVec(1), & 
-                iTemp(1), cTempVec(2), iTemp(2), cTempVec(3), iTemp(3), iTemp(4), iInterpolationOverrideCS(i,4)
+                read (1,*,IOSTAT = INFO) iInterpolationOverrideCS(i,nIO,1), iInterpolationOverrideCS(i,nIO,2), cTempVec(1), & 
+                iTemp(1), cTempVec(2), iTemp(2), cTempVec(3), iTemp(3), iTemp(4), iInterpolationOverrideCS(i,nIO,4)
 
                 nToop = 0
                 ! Loop over strings and break them into string and integer parts
@@ -100,14 +101,14 @@ subroutine ParseCSDataBlockQKTO( i )
                     iT = INDEX(cTemp,'T')
                     if (iK > 0) then
                         if (j == 1) then
-                            READ(cTemp(1:iK-1),*) iInterpolationOverrideCS(i,3)
+                            READ(cTemp(1:iK-1),*) iInterpolationOverrideCS(i,nIO,3)
                         else
                             READ(cTemp(1:iK-1),*) iTemp(j+3)
                         end if
                     else if (iT > 0) then
                         nToop = nToop + 1
                         if (j == 1) then
-                            READ(cTemp(1:iT-1),*) iInterpolationOverrideCS(i,3)
+                            READ(cTemp(1:iT-1),*) iInterpolationOverrideCS(i,nIO,3)
                         else
                             READ(cTemp(1:iT-1),*) iTemp(j+3)
                         end if
@@ -122,13 +123,13 @@ subroutine ParseCSDataBlockQKTO( i )
                 if (nToop == 2) then
                     LOOP_checkAsym: do j = 1, 3
                         do l = 1, 2
-                            if (iInterpolationOverrideCS(i,j) == iToop(l)) then
+                            if (iInterpolationOverrideCS(i,nIO,j) == iToop(l)) then
                                 ! Constituent NON-CONSTANT, keep going
                                 cycle LOOP_checkAsym
                             end if
                         end do
                         ! If we get here, it is the constant constituent. Save for calculation.
-                        iInterpolationOverrideCS(i,5) = iInterpolationOverrideCS(i,j)
+                        iInterpolationOverrideCS(i,nIO,5) = iInterpolationOverrideCS(i,nIO,j)
                         exit LOOP_checkAsym
                     end do LOOP_checkAsym
                 else if (nToop == 0) then
@@ -137,10 +138,10 @@ subroutine ParseCSDataBlockQKTO( i )
                 else
                     ! This shouldn't be possible
                     nInterpolationOverrideCS(i) = nInterpolationOverrideCS(i) - 1
-                    iInterpolationOverrideCS(i,:) = 0
+                    iInterpolationOverrideCS(i,nIO,:) = 0
                     print *, 'Interpolation override not understood, ignored.'
-                    print *,  iInterpolationOverrideCS(i,1), iInterpolationOverrideCS(i,2), cTempVec(1), & 
-                    iTemp(1), cTempVec(2), iTemp(2), cTempVec(3), iTemp(3), iTemp(4), iInterpolationOverrideCS(i,4)
+                    print *,  iInterpolationOverrideCS(i,nIO,1), iInterpolationOverrideCS(i,nIO,2), cTempVec(1), & 
+                    iTemp(1), cTempVec(2), iTemp(2), cTempVec(3), iTemp(3), iTemp(4), iInterpolationOverrideCS(i,nIO,4)
                 end if
             end do
             exit LOOP_ExcessMixingQKTO

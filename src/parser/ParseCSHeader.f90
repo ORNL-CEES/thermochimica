@@ -218,7 +218,7 @@ subroutine ParseCSHeader
     allocate(dStoichPairsCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS,nElementsCS))
     allocate(cPairNameCS(nSolnPhasesSysCS,nMaxSpeciesPhaseCS))
     allocate(nInterpolationOverrideCS(nSolnPhasesSysCS))
-    allocate(iInterpolationOverrideCS(nSolnPhasesSysCS,1000))
+    allocate(iInterpolationOverrideCS(nSolnPhasesSysCS,1000,5))
 
     ! Initialize variables:
     nSublatticePhaseCS       = 0
@@ -230,6 +230,7 @@ subroutine ParseCSHeader
     iChemicalGroupCS         = 0
     dStoichPairsCS           = 0D0
     nInterpolationOverrideCS = 0
+    iInterpolationOverrideCS = 0
 
     ! Line 4: List of atomic masses of the elements:
     read (1,*,IOSTAT = INFO) dAtomicMassCS(1:nElementsCS)

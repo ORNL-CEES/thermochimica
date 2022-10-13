@@ -85,7 +85,7 @@ module ModuleParseCS
     integer,        dimension(:),   allocatable :: nInterpolationOverrideCS
     integer,        dimension(:,:), allocatable :: iRegularParamCS, nConstituentSublatticeCS, nPairsSROCS, iMagneticParamCS
     integer,        dimension(:,:), allocatable :: iSUBIParamDataCS
-    integer,        dimension(:,:), allocatable :: iInterpolationOverrideCS
+    integer,        dimension(:,:,:), allocatable :: iInterpolationOverrideCS
     integer,        dimension(:,:,:), allocatable :: iConstituentSublatticeCS, iPairIDCS, iChemicalGroupCS
 
     real(8),        dimension(:),   allocatable :: dAtomicMassCS

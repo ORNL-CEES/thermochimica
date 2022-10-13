@@ -510,6 +510,10 @@ subroutine CheckSystem
 
         end if
 
+        deallocate(nInterpolationOverride,iInterpolationOverride)
+        allocate(nInterpolationOverride(nSolnPhasesSys))
+        allocate(iInterpolationOverride(nSolnPhasesSys,MAXVAL(nInterpolationOverrideCS),5))
+
         ! Only allocate if there are sublattice phases:
         if (nCountSublattice > 0) then
 
@@ -546,6 +550,8 @@ subroutine CheckSystem
         allocate(nSpeciesPhase(0:nSolnPhasesSys),nParamPhase(0:nSolnPhasesSys),nMagParamPhase(0:nSolnPhasesSys))
         allocate(cSolnPhaseType(nSolnPhasesSys),cSolnPhaseName(nSolnPhasesSys))
         allocate(lSolnPhases(nSolnPhasesSys),dGibbsSolnPhase(nSolnPhasesSys),lMiscibility(nSolnPhasesSys))
+        allocate(nInterpolationOverride(nSolnPhasesSys))
+        allocate(iInterpolationOverride(nSolnPhasesSys,MAXVAL(nInterpolationOverrideCS),5))
 
         ! Only allocate if there are charged phases:
         if (nCountSublattice > 0) then
@@ -588,6 +594,8 @@ subroutine CheckSystem
     dQKTOParams          = 0D0
     lSolnPhases          = .FALSE.
     lMiscibility         = .FALSE.
+    nInterpolationOverride = 0
+    iInterpolationOverride = 0
 
     ! Initialize arrays (if necessary) for sublattice phases:
     if (nCountSublattice > 0) then
