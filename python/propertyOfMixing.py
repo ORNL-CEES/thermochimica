@@ -78,7 +78,6 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         print('Data load failed, aborting mixture calculation')
         return
 
-    print()
     mixtureProp = []
     i = 0
     for mixture in mixtures:
