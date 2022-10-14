@@ -123,7 +123,7 @@ subroutine CheckSystem
     USE ModuleParseCS
     USE ModuleThermo
     USE ModuleThermoIO
-    USE ModuleGEMSolver, ONLY: lSolnPhases, lMiscibility
+    USE ModuleGEMSolver, ONLY: lSolnPhases, lMiscibility, lDebugMode
 
     implicit none
 
@@ -277,7 +277,7 @@ subroutine CheckSystem
     LOOP_SolnPhases: do i = 1, nSolnPhasesSysCS
         do j = 1, nPhasesExcluded
             if (cSolnPhaseNameCS(i) == cPhasesExcluded(j)) then
-                print *, 'Excluding ', cSolnPhaseNameCS(i)
+                if (lDebugMode) print *, 'Excluding ', cSolnPhaseNameCS(i)
                 cycle LOOP_SolnPhases
             end if
         end do
@@ -414,7 +414,7 @@ subroutine CheckSystem
         ! Check if phase is on the exclusion list
         do i = 1, nPhasesExcluded
             if (cSpeciesNameCS(j) == cPhasesExcluded(i)) then
-                print *, 'Excluding ', cSpeciesNameCS(j)
+                if (lDebugMode) print *, 'Excluding ', cSpeciesNameCS(j)
                 cycle LOOP_PureConPhases
             end if
         end do
