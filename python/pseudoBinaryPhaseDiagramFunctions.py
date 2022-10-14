@@ -230,7 +230,9 @@ class diagram:
         
         # Start figure
         fig = plt.figure()
-        plt.ion()
+        plt.ioff()
+        if self.interactivePlot:
+            plt.ion()
         ax = fig.add_axes([0.12, 0.1, 0.85, 0.85])
 
         color = iter(plt.cm.rainbow(np.linspace(0, 1, len(boundaries))))
