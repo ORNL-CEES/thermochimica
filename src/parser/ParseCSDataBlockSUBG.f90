@@ -1,6 +1,6 @@
 
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    ParseCSDataBlockSUBG.f90
     !> \brief   Parse the data block section corresponding to a SUBG phase of a ChemSage data-file.
@@ -9,6 +9,7 @@
     !> \sa      ParseCSDataFile.f90
     !> \sa      ParseCSDataBlock.f90
     !> \sa      ParseCSDataBlockGibbs.f90
+    !> \sa      ParseCSInterpolationOverrides.f90
     !
     !
     ! DISCLAIMER
@@ -61,7 +62,7 @@
     !                            the next n coefficients correspond to the constituent indices, and the last
     !                            coefficient corresponds to the exponent.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine ParseCSDataBlockSUBG( i )
@@ -77,7 +78,6 @@ subroutine ParseCSDataBlockSUBG( i )
     real(8)                     :: qa, qb, qx, qy, za, zb, zx, zy, dF, dCoax, dCobx, dCoay, dCoby
     real(8)                     :: dZaA2X2, dZbB2X2, dZaA2Y2, dZbB2Y2
     real(8),     dimension(20)  :: dTempVec
-    character(8),dimension(20)  :: cTempVec
     logical, dimension(:), allocatable :: lPairSet
     character(75) :: cTempConstituent
 
@@ -363,15 +363,11 @@ subroutine ParseCSDataBlockSUBG( i )
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
-        ! The end of the parameter listing is marked by "0"
+        ! The end of the parameter listing is marked by "0",
         ! or a negative number indicating the number of extra parameter lines.
-        ! These lines indicate interpolation schemes, but I don't understand
-        ! what these add, given that we can already generate interpolation
-        ! schemes based on the chemical groups.
+        ! These lines indicate overwriting of default interpolation schemes.
         if (iRegularParamCS(nParamCS+1,1) <= 0) then
-            do k = 1, -iRegularParamCS(nParamCS+1,1)
-                read (1,*,IOSTAT = INFO) cTempVec(1:10)
-            end do
+            call ParseCSInterpolationOverrides(i)
             exit LOOP_ExcessMixingSUBG
         end if
 

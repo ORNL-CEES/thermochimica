@@ -189,6 +189,10 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(dQKTOParams)) deallocate(dQKTOParams, STAT = INFO)
     i = i + INFO
+    if (allocated(nInterpolationOverride)) deallocate(nInterpolationOverride, STAT = INFO)
+    i = i + INFO
+    if (allocated(iInterpolationOverride)) deallocate(iInterpolationOverride, STAT = INFO)
+    i = i + INFO
 
     lRetryAttempted = .FALSE.
 
