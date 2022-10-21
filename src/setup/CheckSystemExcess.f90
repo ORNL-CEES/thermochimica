@@ -625,6 +625,131 @@ subroutine CheckSystemExcess
                         end do
                     end do
                 end do
+            case ('SUBM')
+                ! Check if the constituents pass for a phase with a sublattice:
+                nCountSublattice                 = nCountSublattice + 1
+                iPhaseSublattice(nCounter)       = nCountSublattice
+
+                nSublatticePhase(nCountSublattice)  = nSublatticePhaseCS(nCurrentSublattice)
+                do j = 1, nSublatticePhase(nCountSublattice)
+                    m = 0
+                    do k = 1, nConstituentSublatticeCS(nCurrentSublattice,j)
+                        if (iConstituentPass(nCurrentSublattice,j,k) /= 0) then
+                            m = m + 1
+                            dSublatticeCharge(nCountSublattice,j,m) = dSublatticeChargeCS(nCurrentSublattice,j,k)
+                            iChemicalGroup(nCountSublattice,j,m) = iChemicalGroupCS(nCurrentSublattice,j,k)
+                        end if
+                    end do
+                    nConstituentSublattice(nCountSublattice,j) = m
+                end do
+
+                m = 0
+                LOOP_iConstitSubm: do k = 1, SIZE(iConstituentSublatticeCS, DIM=3)
+                    iCon1 = iConstituentSublatticeCS(nCurrentSublattice,1,k)
+                    iCon2 = iConstituentSublatticeCS(nCurrentSublattice,2,k)
+                    if (iCon1 == 0) cycle LOOP_iConstitSubm
+                    if (iCon2 == 0) cycle LOOP_iConstitSubm
+                    if (iConstituentPass(nCurrentSublattice,1,iCon1) == 0) cycle LOOP_iConstitSubm
+                    if (iConstituentPass(nCurrentSublattice,2,iCon2) == 0) cycle LOOP_iConstitSubm
+                    m = m + 1
+                    iConstituentSublattice(nCountSublattice,1,m) = iCon1
+                    iConstituentSublattice(nCountSublattice,2,m) = iCon2
+                    cConstituentNameSUB(nCountSublattice,1,iCon1) = cConstituentNameSUBCS(nCurrentSublattice,1,iCon1)
+                    cConstituentNameSUB(nCountSublattice,2,iCon2) = cConstituentNameSUBCS(nCurrentSublattice,2,iCon2)
+                end do LOOP_iConstitSubm
+
+                ! Remove unused from iConstituentSublattice
+                do j = nSublatticePhaseCS(nCurrentSublattice), 1, -1
+                    nRemove = 0
+                    iRemove = 0
+                    do l = nConstituentSublatticeCS(nCurrentSublattice,j), 1, -1
+                        if (iConstituentPass(nCurrentSublattice,j,l) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l
+                        end if
+                    end do
+                    do k = 1, nRemove
+                        do l = 1, nConstituentSublatticeCS(nCurrentSublattice,j)
+                            if (l >= iRemove(k) .AND. l < SIZE(cConstituentNameSUB,3)) then
+                                cConstituentNameSUB(nCountSublattice,j,l) = cConstituentNameSUB(nCountSublattice,j,l + 1)
+                            end if
+                        end do
+                        do l = SIZE(iConstituentSublattice,3), 1, -1
+                            if (iConstituentSublattice(nCountSublattice,j,l) > iRemove(k)) then
+                                iConstituentSublattice(nCountSublattice,j,l) = iConstituentSublattice(nCountSublattice,j,l) - 1
+                            end if
+                        end do
+                    end do
+                end do
+
+                ! Loop through excess parameters:
+                ! Proceed if there are any mixing parameters for this phase:
+                if (nParamPhaseCS(i) /= nParamPhaseCS(i-1)) then
+
+                    ! Loop through all mixing parameters for this phase:
+                    LOOP_Param_SUBM: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
+
+                        ! Loop through constituents associated with this parameter:
+                        do k = 1, iRegularParamCS(j,1)
+
+                            ! Store the constituent index to memory:
+                            l = iRegularParamCS(j,1+k)
+
+                            ! Loop through sublattices associated with this phase:
+                            LOOP_MC: do m = 1, nSublatticePhaseCS(iPhaseSublatticeCS(i))
+
+                                ! Store the number of constituents for this sublattice:
+                                n = nConstituentSublatticeCS(iPhaseSublatticeCS(i),m)
+
+                                if (l <= n) then
+                                    ! l is the constituent index on sublattice m.
+
+                                    if (iConstituentPass(iPhaseSublatticeCS(i),m,l) == 0) then
+
+                                        ! If any of the constituents associated with this parameter did not pass, then
+                                        ! the mixing parameter will not be used.
+                                        cycle LOOP_Param_SUBM
+                                    else
+                                        exit LOOP_MC
+                                    end if
+                                else
+                                    l = l - n
+                                    cycle LOOP_MC
+                                end if
+                            end do LOOP_MC
+
+                        end do
+
+                        ! The parameter will be considered in the system.
+                        nParam          = nParam + 1
+                        iParamPassCS(j) = 1
+
+                    end do LOOP_Param_SUBM
+
+                end if
+
+                ! Must remove unused constituents from iInterpolationOverride indices
+                nRemove = 0
+                iRemove = 0
+                do j = nSublatticePhaseCS(nCurrentSublattice), 1, -1
+                    do l = nConstituentSublatticeCS(nCurrentSublattice,j), 1, -1
+                        if (iConstituentPass(nCurrentSublattice,j,l) == 0) then
+                            nRemove = nRemove + 1
+                            iRemove(nRemove) = l + ((j - 1) * nConstituentSublatticeCS(nCurrentSublattice,1))
+                        end if
+                    end do
+                end do
+
+                do k = 1, nRemove
+                    do j = 1, nInterpolationOverride(nCounter)
+                        do l = 1, 5
+                            if (iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) > iRemove(k)) then
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) = &
+                                iInterpolationOverride(nCounter,nInterpolationOverride(nCounter),l) - 1
+                            end if
+                        end do
+                    end do
+                end do
 
             case default
                 ! The character string representing input units is not recognized.
