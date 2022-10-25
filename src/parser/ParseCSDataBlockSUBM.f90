@@ -65,7 +65,7 @@ subroutine ParseCSDataBlockSUBM( i )
 
     implicit none
 
-    integer                     :: i, j, k, nPairs, nCSCS, nTotalConst, c, s
+    integer                     :: i, j, k, nPairs, nCSCS, nTotalConst, c, s, iTemp
     character(75) :: cTempConstituent
 
     nCSCS = nCountSublatticeCS
@@ -142,6 +142,14 @@ subroutine ParseCSDataBlockSUBM( i )
 
             ! Read in the list of constituent indices and parameters involved in this excess term:
             read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS,2:iRegularParamCS(nParamCS,1)*2+1), dRegularParamCS(nParamCS,1:6)
+
+            ! Reorder parameters to put constituents contiguously
+            iTemp = iRegularParamCS(nParamCS,iRegularParamCS(nParamCS,1)*2+1)
+            do k = iRegularParamCS(nParamCS,1)*2+1, iRegularParamCS(nParamCS,1)+2, -1
+                iRegularParamCS(nParamCS,k) = iRegularParamCS(nParamCS,k-1)
+            end do
+            iRegularParamCS(nParamCS,iRegularParamCS(nParamCS,1)+1) = iTemp
+
 
         else
             !! This parameter is not recognized; record an error.

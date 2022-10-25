@@ -343,7 +343,7 @@ subroutine CheckSystem
 
         ! Store temporary counter for the number of charged phases from the CS data-file:
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
-            (cSolnPhaseTypeCS(i) == 'SUBI')) then
+            (cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) then
             nCountSublatticeTemp = nCountSublatticeTemp + 1
             if (nSpeciesCurrentPhase > 0) then
                 k = iPhaseSublatticeCS(i)
@@ -393,7 +393,7 @@ subroutine CheckSystem
             ! Check if this is a charged phase:
             if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
                  (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
-                 (cSolnPhaseTypeCS(i) == 'SUBI')) then
+                 (cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) then
                 ! Count the number of charged phases:
                 nCountSublattice = nCountSublattice + 1
                 ! Determine the maximum number of sublattice of any stable phase:

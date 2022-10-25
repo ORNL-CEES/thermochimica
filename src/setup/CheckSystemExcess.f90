@@ -74,7 +74,7 @@ subroutine CheckSystemExcess
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
              (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBI')) then
+             (cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) then
             nCurrentSublattice = nCurrentSublattice + 1
         end if
 
