@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompExcessGibbsEnergy.f90
     !> \brief   Compute the partial molar excess Gibbs energy of mixing of solution phase constituents by calling
@@ -46,7 +46,7 @@
     ! dGibbsSolnPhase          A double real vector represending the molar Gibbs energy for every solution phase
     !                            in the system.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompExcessGibbsEnergy(iSolnIndex)
@@ -129,6 +129,17 @@ subroutine CompExcessGibbsEnergy(iSolnIndex)
 
         ! Compute the excess terms for a phase represented by the Ionic Liquid Model:
         call CompExcessGibbsEnergySUBI(iSolnIndex)
+
+        ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
+        do i = iFirst, iLast
+            dChemicalPotential(i)       = dChemicalPotential(i) + dPartialExcessGibbs(i)
+            dGibbsSolnPhase(iSolnIndex) = dGibbsSolnPhase(iSolnIndex) + dChemicalPotential(i) * dMolesSpecies(i)
+        end do
+
+    case ('SUBM')
+
+        ! Compute the excess terms for a phase represented by the Ionic Liquid Model:
+        call CompExcessGibbsEnergySUBM(iSolnIndex)
 
         ! Compute the chemical potentials of each species and the molar Gibbs energy of the phase:
         do i = iFirst, iLast

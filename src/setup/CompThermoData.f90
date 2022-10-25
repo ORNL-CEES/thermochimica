@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompThermoData.f90
     !> \brief   Compute thermodynamic data
@@ -93,7 +93,7 @@
     ! dGibbsCoeffSpeciesTemp  A double real array containing the coefficients of Gibbs energy equations
     !                        of species in the database.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompThermoData
@@ -153,11 +153,10 @@ subroutine CompThermoData
             end if
         end if
 
+        jj = 0
+        iSublPhaseIndex = iPhaseSublatticeCS(n)
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
-            iSublPhaseIndex = iPhaseSublatticeCS(n)
-            iFirst = nSpeciesPhaseCS(n - 1) + 1
             dChemicalPotentialTemp = 0D0
-            jj = 0
             LOOP_SROPairs: do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
                 l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
@@ -386,6 +385,12 @@ subroutine CompThermoData
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
                 end if
 
+                if ((cSolnPhaseTypeCS(n) == 'SUBM')) then
+                    jj = jj + 1
+                    dConstituentCoefficients(nTempSublattice,jj,1:2) = &
+                                    dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1:2)
+                end if
+                
                 ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
                 ! case of repeated temperature ranges. The rule appears to be to use the greater (less
                 ! negative) energy for pure condensed phases, but just the first expression listed for
