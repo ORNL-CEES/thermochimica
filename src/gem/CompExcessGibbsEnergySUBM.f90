@@ -153,7 +153,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         do j = 1, nSub2
             l = nSub1 + j
             if (.NOT. (i == j)) then 
-                dgdc(k) = dgdc(k) - dXi(k)
+                dgdc(k) = dgdc(k) - dXi(l)
             end if
         end do
     end do
