@@ -51,13 +51,13 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
     implicit none
 
-    integer :: i, j, k, l!, n
-    integer :: a, x!, b, c, abxy, xx
+    integer :: i, j, k, l, n
+    integer :: a, x, b, y!c, abxy, xx
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     ! logical :: lIsException
-    real(8) :: dConfEntropy, dRef, dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2!, p, q, r
+    real(8) :: dConfEntropy, dRef, dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2, dTemp!, p, q, r
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc
 
     ! Only proceed if the correct phase type is selected:
@@ -123,14 +123,22 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         dCWS2 = dCWS2 + dXi(k) * dSublatticeCharge(iSPI,2,i)
     end do
 
+    ! Model enforces random mixing: no ordering allowed!
+    ! Must set X_a,x = X_a * X_x
+    do i = iFirst, iLast
+        k = i + 1 - iFirst
+        a = iConstituentSublattice(iSPI,1,k)
+        x = iConstituentSublattice(iSPI,2,k) + nSub1
+        dMolFraction(i) = dXi(a) * dXi(x)
+    end do
+
     ! ---------------------------------------------------------------
     ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
     ! ---------------------------------------------------------------
 
     dConfEntropy = 0D0
-    ! Sum entropy contributions from first sublattice
+    ! Calculate entropy derivatives on first sublattice
     do i = 1, nSub1
-        ! dConfEntropy = dConfEntropy + dXi(i) * LOG(dXi(i))
         dgdc(i) = dgdc(i) + (1 - dXi(i)) + LOG(dXi(i))
         do j = 1, nSub1
             if (.NOT. (i == j)) then
@@ -138,10 +146,9 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
             end if
         end do
     end do
-    ! Sum entropy contributions from second sublattice
+    ! Calculate entropy derivatives on second sublattice
     do i = 1, nSub2
         k = nSub1 + i
-        ! dConfEntropy = dConfEntropy + dXi(k) * LOG(dXi(k))
         dgdc(k) = dgdc(k) + (1 - dXi(k)) + LOG(dXi(k))
         do j = 1, nSub2
             l = nSub1 + j
@@ -152,18 +159,28 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     end do
 
     do i = iFirst, iLast
-        ! Add base reference and entropy contributions
-        dRef = dStdGibbsEnergy(i)
-
-        ! Calculate chemical potential of quadruplet
-        dChemicalPotential(i) = dRef + dConfEntropy
-
+        ! Get constituents
         k = i + 1 - iFirst
-
-        ! Calculate entropic contributions from derivatives
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
 
+        ! Loop through species to get reference energy contributions:
+        LOOP_species: do j = iFirst, iLast
+            ! Relative species index:
+            n = j + 1 - iFirst
+            b = iConstituentSublattice(iSPI,1,n)
+            y = iConstituentSublattice(iSPI,2,n) + nSub1
+
+            ! Compute pre-factor term:
+            dTemp = -1D0
+            if (a == b) dTemp = dTemp + 1D0 / dXi(a)
+            if (x == y) dTemp = dTemp + 1D0 / dXi(x)
+
+            ! Update the reference molar Gibbs energy:
+            dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
+        end do LOOP_species
+
+        ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
             if (j == a) then
                 dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * dgdc(j)
