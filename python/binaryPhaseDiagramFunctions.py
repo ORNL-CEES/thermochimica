@@ -317,6 +317,7 @@ class diagram:
         self.phaseBoundaries()
         # Start figure
         fig = plt.figure()
+        plt.ioff()
         if self.interactivePlot:
             plt.ion()
         ax = fig.add_axes([0.2, 0.1, 0.75, 0.85])
