@@ -165,7 +165,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
 
         ! Loop through species to get reference energy contributions:
-        LOOP_species: do j = iFirst, iLast
+        do j = iFirst, iLast
             ! Relative species index:
             n = j + 1 - iFirst
             b = iConstituentSublattice(iSPI,1,n)
@@ -178,7 +178,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
             ! Update the reference molar Gibbs energy:
             dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
-        end do LOOP_species
+        end do
 
         ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
