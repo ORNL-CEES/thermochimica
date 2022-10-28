@@ -51,14 +51,14 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
     implicit none
 
-    integer :: i, k, l, n
-    integer :: a, b, c, x, abxy, xx
+    integer :: i, j, k, l!, n
+    integer :: a, x!, b, c, abxy, xx
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    logical :: lIsException
-    real(8) :: dConfEntropy, dRef, p, q, r, dSum1, dSum2, dSumY1, dSumY2
-    real(8), allocatable, dimension(:) :: dXi, dYi, dNi
+    ! logical :: lIsException
+    real(8) :: dConfEntropy, dRef, dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2!, p, q, r
+    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc
 
     ! Only proceed if the correct phase type is selected:
     if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBM')) return
@@ -77,10 +77,12 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     if (allocated(dNi)) deallocate(dNi)
     if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
     if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
+    if (allocated(dgdc)) deallocate(dgdc)
     nPhaseElements = nSub1 + nSub2
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
     allocate(lAsymmetric1(MAX(nSub1,nSub2)))
     allocate(lAsymmetric2(MAX(nSub1,nSub2)))
+    allocate(dgdc(nPhaseElements))
 
     ! Initialize variables:
     dXi                               = 0D0
@@ -88,6 +90,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     dNi                               = 0D0
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
+    dgdc                              = 0D0
 
     ! Compute X_i and Y_i
     dSum1 = 0D0
@@ -105,93 +108,133 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         dSum2 = dSum2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
         dSumY2 = dSumY2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2) * dSublatticeCharge(iSPI,2,x-nSub1)
     end do
+    ! CWS = charge-weighted sum (needed in entropy calculation)
+    dCWS1 = 0
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum1
         dYi(i) = dNi(i) * dSublatticeCharge(iSPI,1,i) / dSumY1
+        dCWS1 = dCWS1 + dXi(i) * dSublatticeCharge(iSPI,1,i)
     end do
+    dCWS2 = 0
     do i = 1, nSub2
         k = nSub1 + i
         dXi(k) = dNi(k) / dSum2
         dYi(k) = dNi(k) * dSublatticeCharge(iSPI,2,i) / dSumY2
+        dCWS2 = dCWS2 + dXi(k) * dSublatticeCharge(iSPI,2,i)
     end do
-
-    call exit()
 
     ! ---------------------------------------------------------------
     ! COMPUTE REFERENCE GIBBS ENERGY AND IDEAL MIXING TERMS
     ! ---------------------------------------------------------------
 
+    dConfEntropy = 0D0
+    ! Sum entropy contributions from first sublattice
+    do i = 1, nSub1
+        ! dConfEntropy = dConfEntropy + dXi(i) * LOG(dXi(i))
+        dgdc(i) = dgdc(i) + (1 - dXi(i)) + LOG(dXi(i))
+        do j = 1, nSub1
+            if (.NOT. (i == j)) then
+                dgdc(i) = dgdc(i) - dXi(j)
+            end if
+        end do
+    end do
+    ! Sum entropy contributions from second sublattice
+    do i = 1, nSub2
+        k = nSub1 + i
+        ! dConfEntropy = dConfEntropy + dXi(k) * LOG(dXi(k))
+        dgdc(k) = dgdc(k) + (1 - dXi(k)) + LOG(dXi(k))
+        do j = 1, nSub2
+            l = nSub1 + j
+            if (.NOT. (i == j)) then 
+                dgdc(k) = dgdc(k) - dXi(k)
+            end if
+        end do
+    end do
+
     do i = iFirst, iLast
-        k = i + 1 - iFirst
-        ! Calculate entropic contributions to chemical potentials
-        dConfEntropy = 0D0
-        dRef = 0D0
-
-        a = iConstituentSublattice(iSPI,1,k)
-        x = iConstituentSublattice(iSPI,2,k) + nSub1
-
+        ! Add base reference and entropy contributions
         dRef = dStdGibbsEnergy(i)
 
         ! Calculate chemical potential of quadruplet
-        dChemicalPotential(l) = dRef + dConfEntropy
+        dChemicalPotential(i) = dRef + dConfEntropy
+
+        k = i + 1 - iFirst
+
+        ! Calculate entropic contributions from derivatives
+        a = iConstituentSublattice(iSPI,1,k)
+        x = iConstituentSublattice(iSPI,2,k) + nSub1
+
+        do j = 1, nSub1
+            if (j == a) then
+                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * dgdc(j)
+            end if
+        end do
+
+        do j = 1, nSub2
+            l = nSub1 + j
+            if (l == x) then
+                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,2) * dgdc(l)
+            end if
+        end do
     end do
 
     ! Loop through excess mixing parameters:
-    LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
+    ! LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
 
-        if (dExcessGibbsParam(abxy) == 0D0) cycle LOOP_Param
+    !     if (dExcessGibbsParam(abxy) == 0D0) cycle LOOP_Param
 
-        ! AB/XY parametrization
-        n = iRegularParam(abxy,1)
-        a = iRegularParam(abxy,2)              ! Index of A
-        b = iRegularParam(abxy,3)              ! Index of B
-        xx = iRegularParam(abxy,n+1)           ! Index of X, unadjusted
-        x = xx - nSub1                         ! Index of X
-        p = iRegularParam(abxy,n+2)            ! Exponent 1
-        q = iRegularParam(abxy,n+3)            ! Exponent 2
-        if (n == 4) then
-            c = iRegularParam(abxy,4)          ! Index of C
-            r = iRegularParam(abxy,8)          ! Exponent 3
-        end if
+    !     ! AB/XY parametrization
+    !     n = iRegularParam(abxy,1)
+    !     a = iRegularParam(abxy,2)              ! Index of A
+    !     b = iRegularParam(abxy,3)              ! Index of B
+    !     xx = iRegularParam(abxy,n+1)           ! Index of X, unadjusted
+    !     x = xx - nSub1                         ! Index of X
+    !     p = iRegularParam(abxy,n+2)            ! Exponent 1
+    !     q = iRegularParam(abxy,n+3)            ! Exponent 2
+    !     if (n == 4) then
+    !         c = iRegularParam(abxy,4)          ! Index of C
+    !         r = iRegularParam(abxy,8)          ! Exponent 3
+    !     end if
 
 
-        lAsymmetric1 = .FALSE.
-        lAsymmetric2 = .FALSE.
-        lAsymmetric1(a) = .TRUE.
-        lAsymmetric2(b) = .TRUE.
-        ! First check if this ternary is an exception
-        LOOP_checkSymmetry: do i = 1, nSub1
-            lIsException = .FALSE.
-            LOOP_overrides: do k = 1, nInterpolationOverride(iSolnIndex)
-                ! Check if this override applies to this ternary
-                do l = 1, 3
-                    if (.NOT.((iInterpolationOverride(iSolnIndex,k,l) == a) .OR. &
-                            (iInterpolationOverride(iSolnIndex,k,l) == b) .OR. &
-                            (iInterpolationOverride(iSolnIndex,k,l) == i))) &
-                        cycle LOOP_overrides
-                end do
-                ! If we get here, this one is an exception
-                lIsException = .TRUE.
-                if (iInterpolationOverride(iSolnIndex,k,5) == b) lAsymmetric1(i) = .TRUE.
-                if (iInterpolationOverride(iSolnIndex,k,5) == a) lAsymmetric2(i) = .TRUE.
-                exit LOOP_overrides
-            end do LOOP_overrides
+    !     lAsymmetric1 = .FALSE.
+    !     lAsymmetric2 = .FALSE.
+    !     lAsymmetric1(a) = .TRUE.
+    !     lAsymmetric2(b) = .TRUE.
+    !     ! First check if this ternary is an exception
+    !     LOOP_checkSymmetry: do i = 1, nSub1
+    !         lIsException = .FALSE.
+    !         LOOP_overrides: do k = 1, nInterpolationOverride(iSolnIndex)
+    !             ! Check if this override applies to this ternary
+    !             do l = 1, 3
+    !                 if (.NOT.((iInterpolationOverride(iSolnIndex,k,l) == a) .OR. &
+    !                         (iInterpolationOverride(iSolnIndex,k,l) == b) .OR. &
+    !                         (iInterpolationOverride(iSolnIndex,k,l) == i))) &
+    !                     cycle LOOP_overrides
+    !             end do
+    !             ! If we get here, this one is an exception
+    !             lIsException = .TRUE.
+    !             if (iInterpolationOverride(iSolnIndex,k,5) == b) lAsymmetric1(i) = .TRUE.
+    !             if (iInterpolationOverride(iSolnIndex,k,5) == a) lAsymmetric2(i) = .TRUE.
+    !             exit LOOP_overrides
+    !         end do LOOP_overrides
 
-            if (lIsException) cycle LOOP_checkSymmetry
-            ! First make a list of which constituents make asymmetric ternaries
-            if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
-                    if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
-                        lAsymmetric1(i) = .TRUE.
-                    else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
-                        lAsymmetric2(i) = .TRUE.
-                    end if
-            end if
-        end do LOOP_checkSymmetry
+    !         if (lIsException) cycle LOOP_checkSymmetry
+    !         ! First make a list of which constituents make asymmetric ternaries
+    !         if (iChemicalGroup(iSPI,1,a) /= iChemicalGroup(iSPI,1,b)) then
+    !                 if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,a)) then
+    !                     lAsymmetric1(i) = .TRUE.
+    !                 else if (iChemicalGroup(iSPI,1,i) == iChemicalGroup(iSPI,1,b)) then
+    !                     lAsymmetric2(i) = .TRUE.
+    !                 end if
+    !         end if
+    !     end do LOOP_checkSymmetry
 
-    end do LOOP_Param
+    ! end do LOOP_Param
 
     ! Deallocate allocatable arrays:
     deallocate(dXi,dYi,dNi,lAsymmetric1,lAsymmetric2)
+    deallocate(dgdc)
 
     return
 
