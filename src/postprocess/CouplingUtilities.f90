@@ -651,9 +651,21 @@ subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
   real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
   integer, intent(in), dimension(0:168)  :: mElementsUsed
 
-  allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
-  dMolFraction_Old(mSpecies))
-  allocate(iAssemblage_Old(mElements))
+  if (.NOT.allocated(dMolesPhase_Old)) then
+    allocate(dMolesPhase_Old(mElements))
+  end if
+  if (.NOT.allocated(dChemicalPotential_Old)) then
+    allocate(dChemicalPotential_Old(mSpecies))
+  end if
+  if (.NOT.allocated(dElementPotential_Old)) then
+    allocate(dElementPotential_Old(mElements))
+  end if
+  if (.NOT.allocated(dMolFraction_Old)) then
+    allocate(dMolFraction_Old(mSpecies))
+  end if
+  if (.NOT.allocated(iAssemblage_Old)) then
+    allocate(iAssemblage_Old(mElements))
+  end if
   ! allocate(iElementsUsed_Old(0:168))
 
   iAssemblage_Old = mAssemblage
