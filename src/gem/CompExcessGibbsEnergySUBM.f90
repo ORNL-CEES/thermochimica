@@ -164,24 +164,31 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     gideal = 0D0
     ! Calculate entropy derivatives on first sublattice
     do i = 1, nSub1
-        gideal = gideal + dXi(i) * DLOG(dXi(i))
-        dgdc(i) = dgdc(i) + (1 - dXi(i)) * DLOG(dXi(i))
+        gideal = gideal + dCWS2 * dXi(i) * DLOG(dXi(i))
+        dgdc(i) = dgdc(i) + dCWS2 * (1 - dXi(i)) * DLOG(dXi(i))
         do j = 1, nSub1
             if (.NOT. (i == j)) then
-                dgdc(i) = dgdc(i) - dXi(j) * DLOG(dXi(j))
+                dgdc(i) = dgdc(i) - dCWS2 * dXi(j) * DLOG(dXi(j))
             end if
+        end do
+        do j = 1, nSub2
+            l = nSub1 + j
+            dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - dCWS1) * dXi(l) * DLOG(dXi(l))
         end do
     end do
     ! Calculate entropy derivatives on second sublattice
     do i = 1, nSub2
         k = nSub1 + i
-        gideal = gideal + dXi(k) * DLOG(dXi(k))
-        dgdc(k) = dgdc(k) + (1 - dXi(k)) * DLOG(dXi(k))
+        gideal = gideal + dCWS1 * dXi(k) * DLOG(dXi(k))
+        dgdc(k) = dgdc(k) + dCWS1 * (1 - dXi(k)) * DLOG(dXi(k))
         do j = 1, nSub2
             l = nSub1 + j
             if (.NOT. (i == j)) then 
-                dgdc(k) = dgdc(k) - dXi(l) * DLOG(dXi(l))
+                dgdc(k) = dgdc(k) - dCWS1 * dXi(l) * DLOG(dXi(l))
             end if
+        end do
+        do j = 1, nSub1
+            dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - dCWS2) * dXi(j) * DLOG(dXi(j))
         end do
     end do
 
