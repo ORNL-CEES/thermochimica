@@ -52,14 +52,13 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, n
-    integer :: a, x, b, y!c, abxy, xx
+    integer :: a, x
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    ! logical :: lIsException
-    real(8) :: dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2, dTemp!, p, q, r
-    real(8) :: gref, gideal, dConfEntropy, natom, dMol
-    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc
+    real(8) :: dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2
+    real(8) :: gref, gideal, natom, dMol, lc1, lc2, dMolAtoms
+    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives
 
     ! Only proceed if the correct phase type is selected:
     if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBM')) return
@@ -79,6 +78,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     if (allocated(lAsymmetric1)) deallocate(lAsymmetric1)
     if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     if (allocated(dgdc)) deallocate(dgdc)
+    if (allocated(dMolDerivatives)) deallocate(dMolDerivatives)
+    allocate(dMolDerivatives(nA2X2))
     nPhaseElements = nSub1 + nSub2
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
     allocate(lAsymmetric1(MAX(nSub1,nSub2)))
@@ -86,12 +87,14 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     allocate(dgdc(nPhaseElements))
 
     ! Initialize variables:
+    dSiteFraction(iSPI,1:2,1:nMaxConstituentSys) = 0D0
     dXi                               = 0D0
     dYi                               = 0D0
     dNi                               = 0D0
     dChemicalPotential(iFirst:iLast)  = 0D0
     dPartialExcessGibbs(iFirst:iLast) = 0D0
     dgdc                              = 0D0
+    dMolDerivatives                   = 0D0
 
     ! Compute X_i and Y_i
     dSum1 = 0D0
@@ -133,6 +136,27 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
         dMolFraction(i) = dXi(a) * dXi(x)
+    end do
+
+    ! Compute number of moles and its derivatives
+    dMol = dCWS1 + dCWS2
+    dMolAtoms = 0D0
+    do j = iFirst, iLast
+        ! Relative species index:
+        n = j - iFirst + 1
+
+        ! Store constituent indices:
+        a = iConstituentSublattice(iSPI,1,n)
+        x = iConstituentSublattice(iSPI,2,n)
+
+        ! Allocating the correct constituent charges
+        lc1 = dSublatticeCharge(iSPI,1,a)
+        lc2 = dSublatticeCharge(iSPI,2,x)
+
+        dMolDerivatives(n) = (dCWS1-lc1)*lc2/(dSum1*dMol**2)
+        dMolDerivatives(n) = dMolDerivatives(n) + (dCWS2-lc2)*lc1/(dSum2*dMol**2)
+
+        dMolAtoms = dMolAtoms + dMolFraction(j) * (dSublatticeCharge(iSPI,1,a) + dSublatticeCharge(iSPI,2,x))
     end do
 
     ! ---------------------------------------------------------------
@@ -198,27 +222,9 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
 
-        dMol = 1D0
-        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref) * dMol
-        ! Loop through species to get reference energy contributions:
-        ! do j = iFirst, iLast
-        !     ! Relative species index:
-        !     n = j + 1 - iFirst
-        !     b = iConstituentSublattice(iSPI,1,n)
-        !     y = iConstituentSublattice(iSPI,2,n) + nSub1
+        natom = (dSublatticeCharge(iSPI,1,a) + dSublatticeCharge(iSPI,2,x-nSub1)) / dMol + dMolDerivatives(k) * dMolAtoms
 
-        !     ! Compute pre-factor term:
-        !     dTemp = -1D0
-        !     if (a == b) dTemp = dTemp + 1D0 / dXi(a)
-        !     if (x == y) dTemp = dTemp + 1D0 / dXi(x)
-
-        !     ! Update the reference molar Gibbs energy:
-        !     dChemicalPotential(i) = dChemicalPotential(i) + dTemp * dMolFraction(j) * dStdGibbsEnergy(j)
-        ! end do
-
-        ! Add ideal mixing contribution:
-        ! dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * DLOG(dXi(a))
-        ! dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,2) * DLOG(dXi(x))
+        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref) * natom
 
         ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
