@@ -24,7 +24,8 @@
     ! ========
     !
     !> \details The purpose of this subroutine is to compute the chemical potentials of species in the
-    !! 2-sublattice solution phase model.
+    !! 2-sublattice solution phase model. This model is equivalent to IS2L (SUBI), except has no neutral
+    !! or vacancy species.
     !
     ! Pertinent variables:
     ! ====================
@@ -56,7 +57,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum1, dSum2, dSumY1, dSumY2, dCWS1, dCWS2
+    real(8) :: dSum1, dSum2, dSumY1, dSumY2, q, p
     real(8) :: gref, gideal, natom, dMol, lc1, lc2, dMolAtoms
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives
 
@@ -112,20 +113,21 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         dSum2 = dSum2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
         dSumY2 = dSumY2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2) * dSublatticeCharge(iSPI,2,x-nSub1)
     end do
-    ! CWS = charge-weighted sum (needed in entropy calculation)
-    dCWS1 = 0
+
+    ! q and p are charge-weighted sums on each sublattice (used to match SUBI)
+    q = 0
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum1
         dYi(i) = dNi(i) * dSublatticeCharge(iSPI,1,i) / dSumY1
-        dCWS1 = dCWS1 + dXi(i) * dSublatticeCharge(iSPI,1,i)
+        q = q + dXi(i) * dSublatticeCharge(iSPI,1,i)
         dSiteFraction(iSPI,1,i) = dXi(i)
     end do
-    dCWS2 = 0
+    p = 0
     do i = 1, nSub2
         k = nSub1 + i
         dXi(k) = dNi(k) / dSum2
         dYi(k) = dNi(k) * dSublatticeCharge(iSPI,2,i) / dSumY2
-        dCWS2 = dCWS2 + dXi(k) * dSublatticeCharge(iSPI,2,i)
+        p = p + dXi(k) * dSublatticeCharge(iSPI,2,i)
         dSiteFraction(iSPI,2,i) = dXi(k)
     end do
 
@@ -139,7 +141,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     end do
 
     ! Compute number of moles and its derivatives
-    dMol = dCWS1 + dCWS2
+    dMol = q + p
     dMolAtoms = 0D0
     do j = iFirst, iLast
         ! Relative species index:
@@ -153,8 +155,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         lc1 = dSublatticeCharge(iSPI,1,a)
         lc2 = dSublatticeCharge(iSPI,2,x)
 
-        dMolDerivatives(n) = (dCWS1-lc1)*lc2/(dSum1*dMol**2)
-        dMolDerivatives(n) = dMolDerivatives(n) + (dCWS2-lc2)*lc1/(dSum2*dMol**2)
+        dMolDerivatives(n) = (q-lc1)*lc2/(dSum1*dMol**2)
+        dMolDerivatives(n) = dMolDerivatives(n) + (p-lc2)*lc1/(dSum2*dMol**2)
 
         dMolAtoms = dMolAtoms + dMolFraction(j) * (dSublatticeCharge(iSPI,1,a) + dSublatticeCharge(iSPI,2,x))
     end do
@@ -188,31 +190,31 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     gideal = 0D0
     ! Calculate entropy derivatives on first sublattice
     do i = 1, nSub1
-        gideal = gideal + dCWS2 * dXi(i) * DLOG(dXi(i))
-        dgdc(i) = dgdc(i) + dCWS2 * (1 - dXi(i)) * DLOG(dXi(i))
+        gideal = gideal + p * dXi(i) * DLOG(dXi(i))
+        dgdc(i) = dgdc(i) + p * (1 - dXi(i)) * DLOG(dXi(i))
         do j = 1, nSub1
             if (.NOT. (i == j)) then
-                dgdc(i) = dgdc(i) - dCWS2 * dXi(j) * DLOG(dXi(j))
+                dgdc(i) = dgdc(i) - p * dXi(j) * DLOG(dXi(j))
             end if
         end do
         do j = 1, nSub2
             l = nSub1 + j
-            dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - dCWS1) * dXi(l) * DLOG(dXi(l))
+            dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - q) * dXi(l) * DLOG(dXi(l))
         end do
     end do
     ! Calculate entropy derivatives on second sublattice
     do i = 1, nSub2
         k = nSub1 + i
-        gideal = gideal + dCWS1 * dXi(k) * DLOG(dXi(k))
-        dgdc(k) = dgdc(k) + dCWS1 * (1 - dXi(k)) * DLOG(dXi(k))
+        gideal = gideal + q * dXi(k) * DLOG(dXi(k))
+        dgdc(k) = dgdc(k) + q * (1 - dXi(k)) * DLOG(dXi(k))
         do j = 1, nSub2
             l = nSub1 + j
             if (.NOT. (i == j)) then 
-                dgdc(k) = dgdc(k) - dCWS1 * dXi(l) * DLOG(dXi(l))
+                dgdc(k) = dgdc(k) - q * dXi(l) * DLOG(dXi(l))
             end if
         end do
         do j = 1, nSub1
-            dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - dCWS2) * dXi(j) * DLOG(dXi(j))
+            dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - p) * dXi(j) * DLOG(dXi(j))
         end do
     end do
 
