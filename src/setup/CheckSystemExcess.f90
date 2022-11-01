@@ -726,6 +726,8 @@ subroutine CheckSystemExcess
 
                     end do LOOP_Param_SUBM
 
+                    nParamPhase(nCounter) = nParam
+
                 end if
 
                 ! Must remove unused constituents from iInterpolationOverride indices
