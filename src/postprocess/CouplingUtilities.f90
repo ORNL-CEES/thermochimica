@@ -1,35 +1,21 @@
-subroutine SetThermoFileName(cFileName,lcFileName)
+subroutine SetThermoFileName(cFileName, lcFileName) &
+  bind(C, name="setThermoFileName")
 
   USE ModuleThermoIO, ONLY: cThermoFileName
+  USE,INTRINSIC :: ISO_C_BINDING
 
   implicit none
 
-  character(*), intent(in)::  cFileName
-  integer, intent(in) :: lcFileName
-  character(120) :: cFileNameLen
+  character(kind=c_char,len=1), target, intent(in) :: cFileName(*)
+  integer(c_size_t), intent(in), value             :: lcFileName
+  character(kind=c_char,len=lcFileName), pointer :: fFileName
 
-  cFileNameLen = cFileName!(1:min(120,lcFileName))
-  cThermoFileName       = trim(cFileNameLen(1:lcFileName))
+  call c_f_pointer(cptr=c_loc(cFileName), fptr=fFileName)
+  cThermoFileName       = fFileName
 
   return
 
 end subroutine SetThermoFileName
-
-subroutine SetThermoFileNameBISON(cFileName)
-
-  USE ModuleThermoIO, ONLY: cThermoFileName
-
-  implicit none
-
-  character(120), intent(in)::  cFileName
-  character(120) :: cFileNameLen
-
-  cFileNameLen = cFileName(1:120)
-  cThermoFileName       = trim(cFileNameLen)
-
-  return
-
-end subroutine SetThermoFileNameBISON
 
 subroutine SetThermoFileNameFortran(cFileName)
 
@@ -45,55 +31,65 @@ subroutine SetThermoFileNameFortran(cFileName)
 
 end subroutine SetThermoFileNameFortran
 
-subroutine SetUnitTemperature(cUnitTemperature)
+subroutine SetUnitTemperature(cUnitTemperature, lcUnitTemperature) &
+  bind(C, name="setUnitTemperature")
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature
+  USE,INTRINSIC :: ISO_C_BINDING
 
   implicit none
 
-  character(15), intent(in)::  cUnitTemperature
-  character(15) :: cUnitTemperatureLen
+  character(kind=c_char,len=1), target, intent(in)      :: cUnitTemperature(*)
+  integer(c_size_t), intent(in), value                  :: lcUnitTemperature
+  character(kind=c_char,len=lcUnitTemperature), pointer :: fUnitTemperature
 
-  cUnitTemperatureLen = cUnitTemperature(1:min(15,len(cUnitTemperature)))
-  cInputUnitTemperature       = trim(cUnitTemperatureLen)
+  call c_f_pointer(cptr=c_loc(cUnitTemperature), fptr=fUnitTemperature)
+  cInputUnitTemperature = fUnitTemperature
 
   return
 
 end subroutine SetUnitTemperature
 
-subroutine SetUnitPressure(cUnitPressure)
+subroutine SetUnitPressure(cUnitPressure, lcUnitPressure) &
+  bind(C, name="setUnitPressure")
 
   USE ModuleThermoIO, ONLY: cInputUnitPressure
+  USE,INTRINSIC :: ISO_C_BINDING
 
   implicit none
 
-  character(15), intent(in)::  cUnitPressure
-  character(15) :: cUnitPressureLen
+  character(kind=c_char,len=1), target, intent(in)   :: cUnitPressure(*)
+  integer(c_size_t), intent(in), value               :: lcUnitPressure
+  character(kind=c_char,len=lcUnitPressure), pointer :: fUnitPressure
 
-  cUnitPressureLen = cUnitPressure(1:min(15,len(cUnitPressure)))
-  cInputUnitPressure       = trim(cUnitPressureLen)
+  call c_f_pointer(cptr=c_loc(cUnitPressure), fptr=fUnitPressure)
+  cInputUnitPressure = fUnitPressure
 
   return
 
 end subroutine SetUnitPressure
 
-subroutine SetUnitMass(cUnitMass)
+subroutine SetUnitMass(cUnitMass, lcUnitMass) &
+  bind(C, name="setUnitMass")
 
   USE ModuleThermoIO, ONLY: cInputUnitMass
+  USE,INTRINSIC :: ISO_C_BINDING
 
   implicit none
 
-  character(15), intent(in)::  cUnitMass
-  character(15) :: cUnitMassLen
+  character(kind=c_char,len=1), target, intent(in)   :: cUnitMass(*)
+  integer(c_size_t), intent(in), value               :: lcUnitMass
+  character(kind=c_char,len=lcUnitMass), pointer :: fUnitMass
 
-  cUnitMassLen = cUnitMass(1:min(15,len(cUnitMass)))
-  cInputUnitMass       = trim(cUnitMassLen)
+  call c_f_pointer(cptr=c_loc(cUnitMass), fptr=fUnitMass)
+  cInputUnitMass = fUnitMass
 
   return
 
 end subroutine SetUnitMass
 
-subroutine SetStandardUnits
+subroutine SetStandardUnits() &
+  bind(C, name="setStandardUnits")
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
@@ -107,7 +103,8 @@ subroutine SetStandardUnits
 
 end subroutine SetStandardUnits
 
-subroutine SetModelicaUnits
+subroutine SetModelicaUnits() &
+  bind(C, name="setModelicaUnits")
 
   USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
@@ -157,7 +154,8 @@ subroutine SetUnits(cTemperature, cPressure, cMass)
 
 end subroutine SetUnits
 
-subroutine SetTemperaturePressure(dTemp, dPress)
+subroutine SetTemperaturePressure(dTemp, dPress) &
+  bind(C, name="setTemperaturePressure")
 
   USE ModuleThermoIO, ONLY: dTemperature, dPressure
 
@@ -210,7 +208,9 @@ subroutine PresetElementMass(iAtom, dMass)
 
 end subroutine PresetElementMass
 
-subroutine SetElementMass(iAtom, dMass)
+subroutine SetElementMass(iAtom, dMass) &
+  bind(C, name="setElementMass")
+
 
   USE ModuleThermoIO, ONLY: dElementMass, lPreset
 
@@ -253,7 +253,8 @@ subroutine GetElementMass(iAtom, dMass)
 
 end subroutine GetElementMass
 
-subroutine CheckINFOThermo(dbginfo)
+subroutine CheckINFOThermo(dbginfo) &
+  bind(C, name="checkInfoThermo")
 
   USE ModuleThermoIO, ONLY: INFOThermo
 
@@ -322,7 +323,8 @@ subroutine SolPhaseParse(iElem, dMolSum)
     return
 end subroutine SolPhaseParse
 
-subroutine SSParseCSDataFile
+subroutine SSParseCSDataFile() &
+    bind(C, name="sSParseCSDataFile")
 
     USE ModuleThermoIO
     USE ModuleSS
