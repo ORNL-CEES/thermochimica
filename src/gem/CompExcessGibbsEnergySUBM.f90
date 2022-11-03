@@ -57,8 +57,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum1, dSum2, dSumY1, dSumY2, q, p, ea, eb, ec, ex
-    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms
+    real(8) :: dSum1, dSum2, dSumY1, dSumY2, q, p, ea, eb, ec, ex, yc
+    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives
 
     ! Only proceed if the correct phase type is selected:
@@ -236,18 +236,52 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         a = iRegularParam(l,2)              ! Index of A
         b = iRegularParam(l,3)              ! Index of B
         xx = iRegularParam(l,order + 1)     ! Index of X, unadjusted
-        x = xx - nSub1                      ! Index of X
+        ! x = xx - nSub1                      ! Index of X
 
         ea = iRegularParam(l,order + 2)     ! Exponent of a
         eb = iRegularParam(l,order + 3)     ! Exponent of b
-        ex = iRegularParam(l,order*2 + 1)   ! Exponent of b
+        ! ex = iRegularParam(l,order*2 + 1)   ! Exponent of x
+        ex = 1                              ! Exponent of x (seems to have to be 1)
 
+        yc = 1D0                            ! Charge-equivalent site fraction of constituent c (default to 1)
+        ec = 0                              ! Exponent of C (default to 0)
         if (order == 4) then
             c = iRegularParam(l,4)          ! Index of C
-            ec = iRegularParam(l,8)         ! Index of C
+            yc = dYi(c)                     ! Charge-equivalent site fraction of constituent c 
+            ec = iRegularParam(l,8)         ! Exponent of C
         end if
 
-        gex = gex + dExcessGibbsParam(l) * dYi(a)**ea * dYi(b)**eb * dYi(xx)
+        gexTemp = dExcessGibbsParam(l) * dYi(a)**ea * dYi(b)**eb * yc**ec * dYi(xx)
+        gex = gex + gexTemp
+
+        ! Contribute to derivatives with respect to constituents
+        if (a <= nSub1) then
+            ! Mixing is on first sublattice
+            do i = 1, nSub1
+                dgdc(i) = dgdc(i) - (ea + eb + ec) * dSublatticeCharge(iSPI,1,i) * dSumY1 * gexTemp
+                if (i == a) dgdc(i) = dgdc(i) + ea * dSublatticeCharge(iSPI,1,i) / dYi(a) * gexTemp
+                if (i == b) dgdc(i) = dgdc(i) + eb * dSublatticeCharge(iSPI,1,i) / dYi(b) * gexTemp
+                if (i == c) dgdc(i) = dgdc(i) + ec * dSublatticeCharge(iSPI,1,i) / dYi(c) * gexTemp
+            end do
+            do i = 1, nSub2
+                k = nSub1 + i
+                dgdc(k) = dgdc(k) - ex * dSublatticeCharge(iSPI,2,i) * dSumY2 * gexTemp
+                if (k == xx) dgdc(k) = dgdc(k) + ex * dSublatticeCharge(iSPI,2,i) / dYi(xx) * gexTemp
+            end do
+        else
+            ! Mixing is on second sublattice
+            do i = 1, nSub2
+                k = nSub1 + i
+                dgdc(k) = dgdc(k) - (ea + eb + ec) * dSublatticeCharge(iSPI,2,i) * dSumY2 * gexTemp
+                if (k == a) dgdc(k) = dgdc(k) + ea * dSublatticeCharge(iSPI,2,i) / dYi(a) * gexTemp
+                if (k == b) dgdc(k) = dgdc(k) + eb * dSublatticeCharge(iSPI,2,i) / dYi(b) * gexTemp
+                if (k == c) dgdc(k) = dgdc(k) + ec * dSublatticeCharge(iSPI,2,i) / dYi(c) * gexTemp
+            end do
+            do i = 1, nSub1
+                dgdc(i) = dgdc(i) - ex * dSublatticeCharge(iSPI,1,i) * dSumY1 * gexTemp
+                if (k == xx) dgdc(i) = dgdc(i) + ex * dSublatticeCharge(iSPI,1,i) / dYi(xx) * gexTemp
+            end do
+        end if
     end do LOOP_Param
 
 
