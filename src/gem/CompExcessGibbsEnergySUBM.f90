@@ -59,8 +59,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     logical :: lIsException
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     real(8) :: dSum1, dSum2, q, p, ea, eb, ec, ex, yc, dYcfac
-    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp
-    real(8) :: dXi1, dXi2, dXiDen, dCharge
+    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp, dgexTemp
+    real(8) :: dXi1, dXi2, dXiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives, dSumY
 
     ! Only proceed if the correct phase type is selected:
@@ -326,26 +326,32 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
         dXiDen = dXi1 + dXi2
 
-        ! gexTemp = dExcessGibbsParam(l) * (dXi1/dXiDen)**(ea + 1D0) * (dXi2/dXiDen)**(eb + 1D0) * dYi(xx)
-        ! gexTemp = dExcessGibbsParam(l) * (dYi(a) + dYi(b))**(2D0 - ea - eb) * dYi(a)**ea * dYi(b)**eb * dYi(xx)
-        ! gexTemp = dExcessGibbsParam(l) * (dXi1 + dXi2)**(2D0 - ea - eb) * dXi1**ea * dXi2**eb * dYi(xx)
-        ! gexTemp = dExcessGibbsParam(l) * (dXi1 + dXi2)**(2D0 - ea - eb) * dXi1**(ea + 1D0) * dXi2**(eb + 1D0) * dYi(xx)
+        ! Same as QKTO
         gexTemp = dExcessGibbsParam(l) * (dXi1**(ea - 1)) * (dXi2**(eb - 1)) / (dXiDen ** (ea + eb - 2))
-        gexTemp = gexTemp * dYi(a) * dYi(b) * dSumY(iSub)
+        gexTemp = gexTemp * dYi(a) * dYi(b)! * dSumY(iSub)
+        ! Include factor from opposite sublattice
+        gexTemp = gexTemp * dYi(xx)
         gex = gex + gexTemp
 
         ! Contribute to derivatives with respect to constituents
         ! Derivatives on mixing sublattice
         do i = iStartCon, iEndCon
-            dCharge = dSublatticeCharge(iSPI,iSub,i-iOffset)
-            dgdc(i) = dgdc(i) - (ea + eb + ec) * dCharge * dSumY(iSub) * gexTemp &
-                - (2D0-ea-eb-ec) * dCharge * dSumY(iSub) * gexTemp
-            if (lAsymmetric1(i)) dgdc(i) = dgdc(i) + ea * dCharge / dXi1 * gexTemp &
-                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
-            if (lAsymmetric2(i)) dgdc(i) = dgdc(i) + eb * dCharge / dXi2 * gexTemp &
-                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
-            if (i == c) dgdc(i) = dgdc(i) + ec * dCharge / dYi(c) * gexTemp &
-                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
+            dgexTemp = 0D0
+            dgexTemp = dgexTemp - 2D0 / dSumY(iSub)
+            if      (lAsymmetric1(i)) then
+                dgexTemp = dgexTemp + (ea - 1) / dXi1 - (ea + eb - 2) / dXiDen
+            else if (lAsymmetric2(i)) then
+                dgexTemp = dgexTemp + (eb - 1) / dXi2 - (ea + eb - 2) / dXiDen
+            end if
+            if      (i == a) then
+                dgexTemp = dgexTemp + 1D0 / dYi(a)
+            else if (i == b) then
+                dgexTemp = dgexTemp + 1D0 / dYi(b)
+            else if (i == c) then
+                dgexTemp = dgexTemp + 1D0 / dYi(c)
+            end if
+            ! Multiply by energy of term and charge of constituent
+            dgdc(i) = dgdc(i) + dgexTemp * gexTemp * dSublatticeCharge(iSPI,iSub,i-iOffset)
         end do
         ! Derivatives on opposite sublattice
         if (iSub == 1) then
