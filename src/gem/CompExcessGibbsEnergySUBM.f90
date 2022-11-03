@@ -53,13 +53,15 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, n
-    integer :: a, b, c, x, xx, order
+    integer :: a, b, c, x, xx, order, iGroup1, iGroup2, iGroupTemp
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
-    integer :: iFirst, iLast
+    integer :: iFirst, iLast, iStartCon, iEndCon, iSub, iOffset
+    logical :: lIsException
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum1, dSum2, dSumY1, dSumY2, q, p, ea, eb, ec, ex, yc
+    real(8) :: dSum1, dSum2, q, p, ea, eb, ec, ex, yc, dYcfac
     real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp
-    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives
+    real(8) :: dXi1, dXi2, dXiDen, dCharge
+    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives, dSumY
 
     ! Only proceed if the correct phase type is selected:
     if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBM')) return
@@ -80,12 +82,14 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     if (allocated(lAsymmetric2)) deallocate(lAsymmetric2)
     if (allocated(dgdc)) deallocate(dgdc)
     if (allocated(dMolDerivatives)) deallocate(dMolDerivatives)
-    allocate(dMolDerivatives(nA2X2))
+    if (allocated(dSumY)) deallocate(dSumY)
     nPhaseElements = nSub1 + nSub2
     allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
-    allocate(lAsymmetric1(MAX(nSub1,nSub2)))
-    allocate(lAsymmetric2(MAX(nSub1,nSub2)))
+    allocate(lAsymmetric1(nPhaseElements))
+    allocate(lAsymmetric2(nPhaseElements))
     allocate(dgdc(nPhaseElements))
+    allocate(dMolDerivatives(nA2X2))
+    allocate(dSumY(2))
 
     ! Initialize variables:
     dSiteFraction(iSPI,1:2,1:nMaxConstituentSys) = 0D0
@@ -100,25 +104,24 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     ! Compute X_i and Y_i
     dSum1 = 0D0
     dSum2 = 0D0
-    dSumY1 = 0D0
-    dSumY2 = 0D0
+    dSumY = 0D0
     do i = iFirst, iLast
         k = i + 1 - iFirst
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
         dNi(a) = dNi(a) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
         dSum1 = dSum1 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
-        dSumY1 = dSumY1 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1) * dSublatticeCharge(iSPI,1,a)
+        dSumY(1) = dSumY(1) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1) * dSublatticeCharge(iSPI,1,a)
         dNi(x) = dNi(x) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
         dSum2 = dSum2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
-        dSumY2 = dSumY2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2) * dSublatticeCharge(iSPI,2,x-nSub1)
+        dSumY(2) = dSumY(2) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2) * dSublatticeCharge(iSPI,2,x-nSub1)
     end do
 
     ! q and p are charge-weighted sums on each sublattice (used to match SUBI)
     q = 0
     do i = 1, nSub1
         dXi(i) = dNi(i) / dSum1
-        dYi(i) = dNi(i) * dSublatticeCharge(iSPI,1,i) / dSumY1
+        dYi(i) = dNi(i) * dSublatticeCharge(iSPI,1,i) / dSumY(1)
         q = q + dXi(i) * dSublatticeCharge(iSPI,1,i)
         dSiteFraction(iSPI,1,i) = dXi(i)
     end do
@@ -126,7 +129,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     do i = 1, nSub2
         k = nSub1 + i
         dXi(k) = dNi(k) / dSum2
-        dYi(k) = dNi(k) * dSublatticeCharge(iSPI,2,i) / dSumY2
+        dYi(k) = dNi(k) * dSublatticeCharge(iSPI,2,i) / dSumY(2)
         p = p + dXi(k) * dSublatticeCharge(iSPI,2,i)
         dSiteFraction(iSPI,2,i) = dXi(k)
     end do
@@ -241,44 +244,119 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         ea = iRegularParam(l,order + 2)     ! Exponent of a
         eb = iRegularParam(l,order + 3)     ! Exponent of b
         ! ex = iRegularParam(l,order*2 + 1)   ! Exponent of x
-        ex = 1                              ! Exponent of x (seems to have to be 1)
+        ex = 1D0                            ! Exponent of x (seems to have to be 1)
 
-        yc = 1D0                            ! Charge-equivalent site fraction of constituent c (default to 1)
-        ec = 0                              ! Exponent of C (default to 0)
+        c = -1                              ! Index of C (default to -1 so references will break)
+        yc = 0D0                            ! Charge-equivalent site fraction of constituent c (default to 0)
+        ec = 0D0                            ! Exponent of C (default to 0)
+        dYcfac = 1D0                        ! yc**ec, define explicitly for 0**0 = 1
         if (order == 4) then
+            ! Ternary mixing, must define parameters for constituent C
             c = iRegularParam(l,4)          ! Index of C
             yc = dYi(c)                     ! Charge-equivalent site fraction of constituent c 
             ec = iRegularParam(l,8)         ! Exponent of C
+            dYcfac = yc**ec                 ! yc**ec
         end if
 
-        gexTemp = dExcessGibbsParam(l) * dYi(a)**ea * dYi(b)**eb * yc**ec * dYi(xx)
+        ! Check which sublattice mixing is on, try to sort out all differences between 1 and 2 here
+        if (a <= nSub1) then
+            ! Mixing on first sublattice
+            iSub      = 1
+            iOffset   = 0
+            iStartCon = 1
+            iEndCon   = nSub1
+        else
+            ! Mixing on second sublattice
+            iSub      = 2
+            iOffset   = nSub1
+            iStartCon = nSub1 + 1
+            iEndCon   = nSub1 + nSub2
+        end if
+
+        ! Get chemical groups of first two constituents
+        iGroup1 = iChemicalGroup(iSPI,iSub,a-iOffset)
+        iGroup2 = iChemicalGroup(iSPI,iSub,b-iOffset)            
+
+        ! Calculate symmetry of all species with these first two
+        ! Count them as asymmetric with respect to themselves
+        lAsymmetric1 = .FALSE.
+        lAsymmetric2 = .FALSE.
+        lAsymmetric1(a) = .TRUE.
+        lAsymmetric2(b) = .TRUE.
+        LOOP_checkSymmetry: do i = iStartCon, iEndCon
+            ! First check if this ternary is an exception
+            lIsException = .FALSE.
+            LOOP_overrides: do k = 1, nInterpolationOverride(iSolnIndex)
+                ! Check if this override applies to this ternary
+                do j = 1, 3
+                    if (.NOT.((iInterpolationOverride(iSolnIndex,k,j) == a) .OR. &
+                              (iInterpolationOverride(iSolnIndex,k,j) == b) .OR. &
+                              (iInterpolationOverride(iSolnIndex,k,j) == i))) &
+                        cycle LOOP_overrides
+                end do
+                ! If we get here, this one is an exception
+                lIsException = .TRUE.
+                if (iInterpolationOverride(iSolnIndex,k,5) == b) lAsymmetric1(i) = .TRUE.
+                if (iInterpolationOverride(iSolnIndex,k,5) == a) lAsymmetric2(i) = .TRUE.
+                exit LOOP_overrides
+            end do LOOP_overrides
+
+            if (lIsException) cycle LOOP_checkSymmetry
+            ! If they are equal, everything else will be symmetric
+            if (iGroup1 /= iGroup2) then
+                iGroupTemp = iChemicalGroup(iSPI,iSub,i-iOffset)
+                if      (iGroupTemp == iGroup1) then
+                    lAsymmetric1(i) = .TRUE.
+                else if (iGroupTemp == iGroup2) then
+                    lAsymmetric2(i) = .TRUE.
+                end if
+            end if
+        end do LOOP_checkSymmetry
+
+        ! Now calculate xis and sigma
+        dXi1 = 0D0
+        dXi2 = 0D0
+        do i = iStartCon, iEndCon
+            if      (lAsymmetric1(i)) then
+                dXi1 = dXi1 + dYi(i)
+            else if (lAsymmetric2(i)) then
+                dXi2 = dXi2 + dYi(i)
+            end if
+        end do
+
+        dXiDen = dXi1 + dXi2
+
+        ! gexTemp = dExcessGibbsParam(l) * (dXi1/dXiDen)**(ea + 1D0) * (dXi2/dXiDen)**(eb + 1D0) * dYi(xx)
+        ! gexTemp = dExcessGibbsParam(l) * (dYi(a) + dYi(b))**(2D0 - ea - eb) * dYi(a)**ea * dYi(b)**eb * dYi(xx)
+        ! gexTemp = dExcessGibbsParam(l) * (dXi1 + dXi2)**(2D0 - ea - eb) * dXi1**ea * dXi2**eb * dYi(xx)
+        ! gexTemp = dExcessGibbsParam(l) * (dXi1 + dXi2)**(2D0 - ea - eb) * dXi1**(ea + 1D0) * dXi2**(eb + 1D0) * dYi(xx)
+        gexTemp = dExcessGibbsParam(l) * (dXi1**(ea - 1)) * (dXi2**(eb - 1)) / (dXiDen ** (ea + eb - 2))
+        gexTemp = gexTemp * dYi(a) * dYi(b) * dSumY(iSub)
         gex = gex + gexTemp
 
         ! Contribute to derivatives with respect to constituents
-        if (a <= nSub1) then
-            ! Mixing is on first sublattice
-            do i = 1, nSub1
-                dgdc(i) = dgdc(i) - (ea + eb + ec) * dSublatticeCharge(iSPI,1,i) * dSumY1 * gexTemp
-                if (i == a) dgdc(i) = dgdc(i) + ea * dSublatticeCharge(iSPI,1,i) / dYi(a) * gexTemp
-                if (i == b) dgdc(i) = dgdc(i) + eb * dSublatticeCharge(iSPI,1,i) / dYi(b) * gexTemp
-                if (i == c) dgdc(i) = dgdc(i) + ec * dSublatticeCharge(iSPI,1,i) / dYi(c) * gexTemp
-            end do
+        ! Derivatives on mixing sublattice
+        do i = iStartCon, iEndCon
+            dCharge = dSublatticeCharge(iSPI,iSub,i-iOffset)
+            dgdc(i) = dgdc(i) - (ea + eb + ec) * dCharge * dSumY(iSub) * gexTemp &
+                - (2D0-ea-eb-ec) * dCharge * dSumY(iSub) * gexTemp
+            if (lAsymmetric1(i)) dgdc(i) = dgdc(i) + ea * dCharge / dXi1 * gexTemp &
+                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
+            if (lAsymmetric2(i)) dgdc(i) = dgdc(i) + eb * dCharge / dXi2 * gexTemp &
+                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
+            if (i == c) dgdc(i) = dgdc(i) + ec * dCharge / dYi(c) * gexTemp &
+                        + (2D0-ea-eb-ec) * dCharge / (dXi1 + dXi2 + yc) * gexTemp
+        end do
+        ! Derivatives on opposite sublattice
+        if (iSub == 1) then
             do i = 1, nSub2
                 k = nSub1 + i
-                dgdc(k) = dgdc(k) - ex * dSublatticeCharge(iSPI,2,i) * dSumY2 * gexTemp
+                dgdc(k) = dgdc(k) - ex * dSublatticeCharge(iSPI,2,i) * dSumY(2) * gexTemp
                 if (k == xx) dgdc(k) = dgdc(k) + ex * dSublatticeCharge(iSPI,2,i) / dYi(xx) * gexTemp
             end do
         else
-            ! Mixing is on second sublattice
-            do i = 1, nSub2
-                k = nSub1 + i
-                dgdc(k) = dgdc(k) - (ea + eb + ec) * dSublatticeCharge(iSPI,2,i) * dSumY2 * gexTemp
-                if (k == a) dgdc(k) = dgdc(k) + ea * dSublatticeCharge(iSPI,2,i) / dYi(a) * gexTemp
-                if (k == b) dgdc(k) = dgdc(k) + eb * dSublatticeCharge(iSPI,2,i) / dYi(b) * gexTemp
-                if (k == c) dgdc(k) = dgdc(k) + ec * dSublatticeCharge(iSPI,2,i) / dYi(c) * gexTemp
-            end do
             do i = 1, nSub1
-                dgdc(i) = dgdc(i) - ex * dSublatticeCharge(iSPI,1,i) * dSumY1 * gexTemp
+                dgdc(i) = dgdc(i) - ex * dSublatticeCharge(iSPI,1,i) * dSumY(1) * gexTemp
                 if (k == xx) dgdc(i) = dgdc(i) + ex * dSublatticeCharge(iSPI,1,i) / dYi(xx) * gexTemp
             end do
         end if
