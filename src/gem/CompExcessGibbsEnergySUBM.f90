@@ -328,7 +328,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
         ! Same as QKTO
         gexTemp = dExcessGibbsParam(l) * (dXi1**(ea - 1)) * (dXi2**(eb - 1)) / (dXiDen ** (ea + eb - 2))
-        gexTemp = gexTemp * dYi(a) * dYi(b)! * dSumY(iSub)
+        gexTemp = gexTemp * dYi(a) * dYi(b) * dSumY(iSub)
         ! Include factor from opposite sublattice
         gexTemp = gexTemp * dYi(xx)
         gex = gex + gexTemp
@@ -337,18 +337,19 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         ! Derivatives on mixing sublattice
         do i = iStartCon, iEndCon
             dgexTemp = 0D0
-            dgexTemp = dgexTemp - 2D0 / dSumY(iSub)
+            ! I can't explain the following line, but hey, it works
+            dgexTemp = dgexTemp - (2D0 + dSumY(iSub) - dSumY(iSub)**2D0) / dSumY(iSub)
             if      (lAsymmetric1(i)) then
                 dgexTemp = dgexTemp + (ea - 1) / dXi1 - (ea + eb - 2) / dXiDen
             else if (lAsymmetric2(i)) then
                 dgexTemp = dgexTemp + (eb - 1) / dXi2 - (ea + eb - 2) / dXiDen
             end if
             if      (i == a) then
-                dgexTemp = dgexTemp + 1D0 / dYi(a)
+                dgexTemp = dgexTemp + 1D0 / dYi(a) / dSumY(iSub)
             else if (i == b) then
-                dgexTemp = dgexTemp + 1D0 / dYi(b)
+                dgexTemp = dgexTemp + 1D0 / dYi(b) / dSumY(iSub)
             else if (i == c) then
-                dgexTemp = dgexTemp + 1D0 / dYi(c)
+                dgexTemp = dgexTemp + 1D0 / dYi(c) / dSumY(iSub)
             end if
             ! Multiply by energy of term and charge of constituent
             dgdc(i) = dgdc(i) + dgexTemp * gexTemp * dSublatticeCharge(iSPI,iSub,i-iOffset)
