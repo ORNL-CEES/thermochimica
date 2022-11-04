@@ -134,6 +134,10 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         dSiteFraction(iSPI,2,i) = dXi(k)
     end do
 
+    ! Store sublattice coefficients
+    dStoichSublattice(iSPI,1) = p
+    dStoichSublattice(iSPI,2) = q
+
     ! Model enforces random mixing: no ordering allowed!
     ! Must set X_a,x = X_a * X_x
     do i = iFirst, iLast
