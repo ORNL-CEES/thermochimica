@@ -395,7 +395,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         else
             do i = 1, nSub1
                 dgdc(i) = dgdc(i) - ex * dSublatticeCharge(iSPI,1,i) * dSumY(1) * gexTemp
-                if (k == xx) dgdc(i) = dgdc(i) + ex * dSublatticeCharge(iSPI,1,i) / dYi(xx) * gexTemp
+                if (i == xx) dgdc(i) = dgdc(i) + ex * dSublatticeCharge(iSPI,1,i) / dYi(xx) * gexTemp
             end do
         end if
     end do LOOP_Param
