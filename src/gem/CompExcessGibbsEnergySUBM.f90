@@ -109,11 +109,11 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         k = i + 1 - iFirst
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
-        dNi(a) = dNi(a) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
-        dSum1 = dSum1 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
+        dNi(a)   = dNi(a)   + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
+        dSum1    = dSum1    + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1)
         dSumY(1) = dSumY(1) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,1) * dSublatticeCharge(iSPI,1,a)
-        dNi(x) = dNi(x) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
-        dSum2 = dSum2 + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
+        dNi(x)   = dNi(x)   + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
+        dSum2    = dSum2    + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2)
         dSumY(2) = dSumY(2) + dMolFraction(i) * dConstituentCoefficients(iSPI,k,2) * dSublatticeCharge(iSPI,2,x-nSub1)
     end do
 
