@@ -369,7 +369,6 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         end if
     end do LOOP_Param
 
-
     ! ---------------------------------------------------------------
     ! SUM ENERGY CONTRIBUTIONS TO CHEMICAL POTENTIALS
     ! ---------------------------------------------------------------
