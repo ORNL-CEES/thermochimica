@@ -239,14 +239,14 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         if (dExcessGibbsParam(l) == 0D0) cycle LOOP_Param
 
         ! Get constituents and exponents from parameter
-        order = iRegularParam(l,1)          ! Mixing order (3 for binary, 4 for ternary)
+        order = iRegularParam(l,1) - 1      ! Mixing order (2 for binary, 3 for ternary)
         a = iRegularParam(l,2)              ! Index of A
         b = iRegularParam(l,3)              ! Index of B
-        xx = iRegularParam(l,order + 1)     ! Index of X, unadjusted
+        xx = iRegularParam(l,order + 2)     ! Index of X, unadjusted
         ! x = xx - nSub1                      ! Index of X
 
-        ea = iRegularParam(l,order + 2)     ! Exponent of a
-        eb = iRegularParam(l,order + 3)     ! Exponent of b
+        ea = iRegularParam(l,order + 3)     ! Exponent of a
+        eb = iRegularParam(l,order + 4)     ! Exponent of b
         ! ex = iRegularParam(l,order*2 + 1)   ! Exponent of x
         ex = 1D0                            ! Exponent of x (seems to have to be 1)
 
@@ -254,7 +254,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         yc = 0D0                            ! Charge-equivalent site fraction of constituent c (default to 0)
         ec = 0D0                            ! Exponent of C (default to 0)
         dYcfac = 1D0                        ! yc**ec, define explicitly for 0**0 = 1
-        if (order == 4) then
+        if (order == 3) then
             ! Ternary mixing, must define parameters for constituent C
             c = iRegularParam(l,4)          ! Index of C
             yc = dYi(c)                     ! Charge-equivalent site fraction of constituent c 
@@ -330,11 +330,31 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
         dXiDen = dXi1 + dXi2
 
+        if (order == 3) then
+            dXi1 = dYi(a)
+            dXi2 = dYi(b)
+            dXiDen = dYi(a) + dYi(b) + dYi(c)
+            ! Force reset of all symmetry arrays, this will enforce the ternary is treated as symmetric no matter the groups
+            lAsymmetric1   = .FALSE.
+            lAsymmetric2   = .FALSE.
+            lAsymmetric1(a) = .TRUE.
+            lAsymmetric2(b) = .TRUE.
+        end if
+
         ! Same as QKTO
-        gexTemp = dExcessGibbsParam(l) * (dXi1**(ea - 1)) * (dXi2**(eb - 1)) / (dXiDen ** (ea + eb - 2))
+        gexTemp = dExcessGibbsParam(l) * (dXi1**(ea - 1)) * (dXi2**(eb - 1)) / (dXiDen ** (ea + eb + ec - order))
         gexTemp = gexTemp * dYi(a) * dYi(b) * dSumY(iSub)
         ! Include factor from opposite sublattice
         gexTemp = gexTemp * dYi(xx)
+
+        ! Include ternary factor if present
+        if (order == 3) then
+            ! Trying to write this parallel to binary
+            gexTemp = gexTemp * dYi(c)**(ec - 1)
+            gexTemp = gexTemp * dYi(c)
+        end if
+
+        ! Contribute to total excess mixing energy of phase
         gex = gex + gexTemp
 
         ! Contribute to derivatives with respect to constituents
@@ -344,9 +364,9 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
             ! I can't explain the following line, but hey, it works
             dgexTemp = dgexTemp - (2D0 + dSumY(iSub) - dSumY(iSub)**2D0) / dSumY(iSub)
             if      (lAsymmetric1(i)) then
-                dgexTemp = dgexTemp + (ea - 1) / dXi1 - (ea + eb - 2) / dXiDen
+                dgexTemp = dgexTemp + (ea - 1) / dXi1 - (ea + eb + ec - order) / dXiDen
             else if (lAsymmetric2(i)) then
-                dgexTemp = dgexTemp + (eb - 1) / dXi2 - (ea + eb - 2) / dXiDen
+                dgexTemp = dgexTemp + (eb - 1) / dXi2 - (ea + eb + ec - order) / dXiDen
             end if
             if      (i == a) then
                 dgexTemp = dgexTemp + 1D0 / dYi(a) / dSumY(iSub)
@@ -354,6 +374,13 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
                 dgexTemp = dgexTemp + 1D0 / dYi(b) / dSumY(iSub)
             else if (i == c) then
                 dgexTemp = dgexTemp + 1D0 / dYi(c) / dSumY(iSub)
+            end if
+            ! Ternary part of derivative
+            if (order == 3) then
+                dgexTemp = dgexTemp - 1D0 / dSumY(iSub)
+                if (i == c) then
+                    dgexTemp = dgexTemp + (ec - 1) / dYi(c) - (ea + eb + ec - order) / dXiDen
+                end if
             end if
             ! Multiply by energy of term and charge of constituent
             dgdc(i) = dgdc(i) + dgexTemp * gexTemp * dSublatticeCharge(iSPI,iSub,i-iOffset)
