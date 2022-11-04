@@ -77,8 +77,6 @@ subroutine ParseCSDataBlockSUBM( i )
     nConstituentSublatticeCS(nCSCS,1:2) = nConstituentSublatticeCS(nCSCS,1:2)
     nSublatticePhaseCS(nCSCS) = 2
     nTotalConst = nConstituentSublatticeCS(nCSCS,1)+nConstituentSublatticeCS(nCSCS,2)
-    allocate(dStoichConstituentCS(nTotalConst,nElementsCS))
-    dStoichConstituentCS = 0D0
 
     nPairs = nConstituentSublatticeCS(nCSCS,1) * nConstituentSublatticeCS(nCSCS,2)
 
