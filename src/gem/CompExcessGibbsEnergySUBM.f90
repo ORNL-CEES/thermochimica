@@ -149,7 +149,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
     ! Compute number of moles and its derivatives
     dMol = q + p
-    dMolAtoms = 0D0
+    dMolAtoms = dSum1 + dSum2
     do j = iFirst, iLast
         ! Relative species index:
         n = j - iFirst + 1
@@ -164,8 +164,6 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
         dMolDerivatives(n) = (q-lc1)*lc2/(dSum1*dMol**2)
         dMolDerivatives(n) = dMolDerivatives(n) + (p-lc2)*lc1/(dSum2*dMol**2)
-
-        dMolAtoms = dMolAtoms + dMolFraction(j) * (dSublatticeCharge(iSPI,1,a) + dSublatticeCharge(iSPI,2,x))
     end do
 
     ! ---------------------------------------------------------------
@@ -410,7 +408,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
 
-        natom = (dSublatticeCharge(iSPI,1,a) + dSublatticeCharge(iSPI,2,x-nSub1)) / dMol + dMolDerivatives(k) * dMolAtoms
+        natom = (dConstituentCoefficients(iSPI,k,1) + dConstituentCoefficients(iSPI,k,2)) / dMol + dMolDerivatives(k) * dMolAtoms
 
         dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom
 
