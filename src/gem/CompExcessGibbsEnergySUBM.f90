@@ -162,6 +162,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         lc1 = dSublatticeCharge(iSPI,1,a)
         lc2 = dSublatticeCharge(iSPI,2,x)
 
+        ! dMolDerivatives is really d(dMol**-1)/dn_ij = -(d(dMol)/dn_ij)/dMol**2
         dMolDerivatives(n) = (q-lc1)*dConstituentCoefficients(iSPI,n,1)/(dSum1*dMol**2)
         dMolDerivatives(n) = dMolDerivatives(n) + (p-lc2)*dConstituentCoefficients(iSPI,n,2)/(dSum2*dMol**2)
     end do
