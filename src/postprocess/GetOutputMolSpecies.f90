@@ -40,7 +40,7 @@
 
 
 subroutine GetOutputMolSpecies(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dMolesOut, INFO) &
-    bind(C, name="getOutputMolSpecies")
+    bind(C, name="TCAPI_getOutputMolSpecies")
 
     USE ModuleThermo
     USE ModuleThermoIO

@@ -37,7 +37,7 @@
 
 
 subroutine GetPhaseIndex(cPhaseName, lcPhaseName, iIndexOut, INFO) &
-    bind(C, name="getPhaseIndex")
+    bind(C, name="TCAPI_getPhaseIndex")
 
     USE ModuleThermo
     USE ModuleThermoIO

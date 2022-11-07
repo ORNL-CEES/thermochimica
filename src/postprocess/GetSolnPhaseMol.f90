@@ -37,19 +37,21 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetSolnPhaseMol(cSolnOut, dSolnMolOut, INFO)
+subroutine GetSolnPhaseMol(cSolnOut, lcSolnOut, dSolnMolOut, INFO) &
+    bind(C, name="TCAPI_getSolnPhaseMol")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, j, k, iph
     real(8),       intent(out)   :: dSolnMolOut
-    character(*),  intent(in)    :: cSolnOut
-    character(25)                :: cTemp
-    cTemp = cSolnOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+    integer                      :: i, j, k, iph
 
     ! Initialize variables:
     INFO            = 0
@@ -58,31 +60,27 @@ subroutine GetSolnPhaseMol(cSolnOut, dSolnMolOut, INFO)
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
 
-        ! Remove trailing blanks:
-        ! cSolnOut    = TRIM(cSolnOut)
-        cTemp    = TRIM(cTemp)
-
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
         j = 0
         LOOP_SOLN: do i = 1, nSolnPhases
-           iph = nElements - i + 1
-           k = -iAssemblage(iph)
-           ! if (cSolnOut == cSolnPhaseName(k)) then
-           if (cTemp == cSolnPhaseName(k)) then
-              ! Solution phase found.  Record integer index and exit loop.
-              j = iph
-              exit LOOP_SOLN
-           end if
+            iph = nElements - i + 1
+            k = -iAssemblage(iph)
+            ! if (cSolnOut == cSolnPhaseName(k)) then
+            if (fSolnOut == cSolnPhaseName(k)) then
+                ! Solution phase found.  Record integer index and exit loop.
+                j = iph
+                exit LOOP_SOLN
+            end if
 
         end do LOOP_SOLN
 
         ! Check to make sure that the solution phase was found:
         IF_SOLN: if (j /= 0) then
-           dSolnMolOut = dMolesPhase(iph)
+            dSolnMolOut = dMolesPhase(iph)
         else
-           ! This solution phase was not found.  Report an error:
-           INFO = 1
+            ! This solution phase was not found.  Report an error:
+            INFO = 1
         end if IF_SOLN
 
     else

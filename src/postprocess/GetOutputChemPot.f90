@@ -38,7 +38,7 @@
 
 
 subroutine GetOutputChemPot(cElementNameRequest, lcElementNameRequest, dElementChemPot, INFO) &
-    bind(C, name="getOutputChemPot")
+    bind(C, name="TCAPI_getOutputChemPot")
 
     USE ModuleThermo
     USE ModuleThermoIO
