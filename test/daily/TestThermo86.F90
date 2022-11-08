@@ -40,7 +40,7 @@ program TestThermo86
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY // 'subm-2sublatticeTest-mixing+zr.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'subm-2sublatticeTest-mixing.dat'
 
     ! Specify values:
     dTemperature          = 1000
