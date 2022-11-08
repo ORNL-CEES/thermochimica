@@ -204,8 +204,6 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         end do
     end do
 
-    gref = gref / dSumMF
-
     ! ---------------------------------------------------------------
     ! COMPUTE IDEAL MIXING ENERGY
     ! ---------------------------------------------------------------
