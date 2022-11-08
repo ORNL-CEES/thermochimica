@@ -58,8 +58,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     integer :: iFirst, iLast, iStartCon, iEndCon, iSub, iOffset
     logical :: lIsException
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
-    real(8) :: dSum1, dSum2, q, p, ea, eb, ec, ex, yc, dYcfac
-    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp, dgexTemp
+    real(8) :: dSum1, dSum2, dSumMF, q, p, ea, eb, ec, ex, yc, dYcfac
+    real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp, dgexTemp, grefTemp
     real(8) :: dXi1, dXi2, dXiDen
     real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives, dSumY
 
@@ -134,18 +134,25 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         dSiteFraction(iSPI,2,i) = dXi(k)
     end do
 
-    ! Store sublattice coefficients
-    dStoichSublattice(iSPI,1) = p
-    dStoichSublattice(iSPI,2) = q
-
     ! Model enforces random mixing: no ordering allowed!
     ! Must set X_a,x = X_a * X_x
+    dSumMF = 0D0
     do i = iFirst, iLast
         k = i + 1 - iFirst
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
-        dMolFraction(i) = dXi(a) * dXi(x)
+        dMolFraction(i) = dXi(a) * dXi(x) * dSublatticeCharge(iSPI,1,a) / dConstituentCoefficients(iSPI,k,2)
+        dSumMF = dSumMF + dMolFraction(i)
     end do
+
+    ! Ensure mole fractions sum to 1
+    do i = iFirst, iLast
+        dMolFraction(i) = dMolFraction(i) / dSumMF
+    end do
+
+    ! Store sublattice coefficients
+    dStoichSublattice(iSPI,1) = p / dSumMF
+    dStoichSublattice(iSPI,2) = q / dSumMF
 
     ! Compute number of moles and its derivatives
     dMol = q + p
@@ -179,25 +186,32 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         ! Store constituent indices:
         a = iConstituentSublattice(iSPI,1,n)
         x = iConstituentSublattice(iSPI,2,n) + nSub1
-        
-        gref = gref + dXi(a) * dXi(x) * dStdGibbsEnergy(j)
+
+        grefTemp = dMolFraction(j) * dStdGibbsEnergy(j)
+        gref = gref + grefTemp
+
+        ! First sublattice derivatives
         do i = 1, nSub1
-            dgdc(i) = dgdc(i) - dXi(a) * dXi(x) * dStdGibbsEnergy(j)
-            if (i == a) dgdc(i) = dgdc(i) + dXi(x) * dStdGibbsEnergy(j)
+            dgdc(i) = dgdc(i) - grefTemp
+            if (i == a) dgdc(i) = dgdc(i) + grefTemp / dXi(a)
         end do
 
+        ! Second sublattice derivatives
         do i = 1, nSub2
             k = nSub1 + i
-            dgdc(k) = dgdc(k) - dXi(a) * dXi(x) * dStdGibbsEnergy(j)
-            if (k == x) dgdc(k) = dgdc(k) + dXi(a) * dStdGibbsEnergy(j)
+            dgdc(k) = dgdc(k) - grefTemp
+            if (k == x) dgdc(k) = dgdc(k) + grefTemp / dXi(x)
         end do
     end do
+
+    gref = gref / dSumMF
 
     ! ---------------------------------------------------------------
     ! COMPUTE IDEAL MIXING ENERGY
     ! ---------------------------------------------------------------
 
     gideal = 0D0
+
     ! Calculate entropy derivatives on first sublattice
     do i = 1, nSub1
         gideal = gideal + p * dXi(i) * DLOG(dXi(i))
@@ -212,6 +226,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
             dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - q) * dXi(l) * DLOG(dXi(l))
         end do
     end do
+
     ! Calculate entropy derivatives on second sublattice
     do i = 1, nSub2
         k = nSub1 + i
@@ -227,6 +242,8 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
             dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - p) * dXi(j) * DLOG(dXi(j))
         end do
     end do
+
+    gideal = gideal / dSumMF
 
     !---------------------------------------------------------------
     ! COMPUTE EXCESS GIBBS ENERGY
@@ -411,19 +428,20 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
         natom = (dConstituentCoefficients(iSPI,k,1) + dConstituentCoefficients(iSPI,k,2)) / dMol + dMolDerivatives(k) * dMolAtoms
 
-        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom
+        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom &
+        * dSublatticeCharge(iSPI,1,a) / dConstituentCoefficients(iSPI,k,2)
 
         ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
             if (j == a) then
-                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * dgdc(j)
+                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * dgdc(j) / dSumMF
             end if
         end do
 
         do j = 1, nSub2
             l = nSub1 + j
             if (l == x) then
-                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,2) * dgdc(l)
+                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,2) * dgdc(l) / dSumMF
             end if
         end do
     end do
