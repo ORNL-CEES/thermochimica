@@ -274,7 +274,6 @@ subroutine ResetReinitISO() &
 
 end subroutine ResetReinitISO
 
-
 subroutine SolPhaseParseISO(iElem, dMolSum) &
     bind(C, name="TCAPI_solPhaseParse")
 
@@ -550,7 +549,6 @@ subroutine GetOutputMolSpeciesPhaseISO(cPhase, lcPhase, cSpecies, lcSpecies, dMo
     integer(c_size_t), intent(in), value             :: lcPhase, lcSpecies
     character(kind=c_char,len=lcPhase), pointer      :: fPhase
     character(kind=c_char,len=lcSpecies), pointer    :: fSpecies
-    character(30)          :: cTempPhase, cTempSpecies
 
     call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
     call c_f_pointer(cptr=c_loc(cSpecies), fptr=fSpecies)
@@ -618,8 +616,6 @@ subroutine GetPhaseIndexISO(cPhaseName, lcPhaseName, iIndexOut, INFO) &
     character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
     integer(c_size_t), intent(in), value             :: lcPhaseName
     character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
-    integer                      :: i, k
-    character(25)                :: cTempPhase
 
     call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
 
@@ -713,7 +709,6 @@ subroutine GetMqmqaMolesPairsISO(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) 
     return
 
 end subroutine GetMqmqaMolesPairsISO
-
 
 subroutine GetMqmqaPairMolFractionISO(cPhaseName, lcPhaseName, cPairIn, lcPairIn, dMolesPairOut, INFO) &
     bind(C, name="TCAPI_getMqmqaPairMolFraction")
