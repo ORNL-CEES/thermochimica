@@ -39,27 +39,24 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
-    bind(C, name="TCAPI_getElementMoleFractionInPhase")
+subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dMolesOut
-    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cElement(*)
-    integer(c_size_t), intent(in), value             :: lcPhase, lcElement
-    character(kind=c_char,len=lcPhase), pointer      :: fPhase
-    character(kind=c_char,len=lcElement), pointer    :: fElement
-    character(25)                :: cTempPhase, cTempElement
     integer                      :: i, j, k, l
+    real(8),       intent(out)   :: dMolesOut
+    character(25), intent(in)    :: cPhase
+    character(3),  intent(in)    :: cElement
+    integer, intent(in)          :: lcPhase, lcElement
+    character(25)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement
     real(8)                      :: dSum
 
-    call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
-    call c_f_pointer(cptr=c_loc(cElement), fptr=fElement)
+    cSearchPhase = TRIM(cPhase(1:min(25,lcPhase)))
+    cSearchElement = TRIM(cElement(1:min(3,lcElement)))
 
     ! Initialize variables:
     INFO      = 0
@@ -69,16 +66,16 @@ subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, d
 
     LOOP_Elements: do i = 1, nElements
         cTempElement = ADJUSTL(cElementName(i))
-        if (cTempElement == fElement) then
+        if (cTempElement == cSearchElement) then
             k = i
             exit LOOP_Elements
         end if
     end do LOOP_Elements
 
     if (k == 0) then
-        ! This element was not found.  Report an error:
-        INFO = 1
-        return
+       ! This element was not found.  Report an error:
+       INFO = 1
+       return
     end if
 
     ! Only proceed if Thermochimica solved successfully:
@@ -88,7 +85,7 @@ subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, d
             cTempPhase = ADJUSTL(cSolnPhaseName(i))
 
             ! Loop through species in this phase:
-            if (cTempPhase == fPhase) then
+            if (cTempPhase == cSearchPhase) then
                 ! Solution phase found. Now compute sums.
                 LOOP_Species: do j = nSpeciesPhase(i-1) + 1, nSpeciesPhase(i)
                     dMolesOut = dMolesOut + dMolFraction(j) * dStoichSpecies(j,k)

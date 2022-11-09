@@ -447,4 +447,30 @@ subroutine PrintStateISO() &
  
     call PrintState
  
- end subroutine PrintStateISO
+end subroutine PrintStateISO
+
+subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
+    bind(C, name="TCAPI_getElementMoleFractionInPhase")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dMolesOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cElement(*)
+    integer(c_size_t), intent(in), value             :: lcPhase, lcElement
+    character(kind=c_char,len=lcPhase), pointer      :: fPhase
+    character(kind=c_char,len=lcElement), pointer    :: fElement
+    character(25)                :: cTempPhase, cTempElement
+    integer                      :: i, j, k, l
+    real(8)                      :: dSum
+
+    call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
+    call c_f_pointer(cptr=c_loc(cElement), fptr=fElement)
+
+    call GetElementMoleFractionInPhase(fElement, lcElement, fPhase, lcPhase, dMolesOut, INFO)
+
+    return
+
+end subroutine GetElementMoleFractionInPhase
