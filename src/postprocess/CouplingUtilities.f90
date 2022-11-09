@@ -582,7 +582,7 @@ subroutine getReinitDataSizes(mElements,mSpecies)
   USE ModuleThermo, ONLY: nElements, nSpecies
   implicit none
 
-  integer, intent(out)                           :: mElements, mSpecies
+  integer, intent(out) :: mElements, mSpecies
 
   mElements = nElements
   mSpecies = nSpecies
