@@ -50,25 +50,24 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetSUBLSiteMol(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteMolOut, INFO) &
-    bind(C, name="TCAPI_getSublSiteMol")
+subroutine GetSUBLSiteMol(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteMolOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dSiteMolOut
-    integer                      :: iSublatticeOut, iConstituentOut
-    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
-    integer(c_size_t), intent(in), value             :: lcSolnOut
-    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
     integer                      :: i, j, k, iph
+    integer                      :: iSublatticeOut, iConstituentOut
+    real(8),       intent(out)   :: dSiteMolOut
     real(8)                      :: dSiteFractionOut, dStoichCoefOut, dSolnMolOut
+    character(*),  intent(in)    :: cSolnOut
+    integer                      :: lcSolnOut
+    character(15)                :: cTemp
 
-    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+    cTemp = cSolnOut(1:min(15,lcSolnOut))
+!    cTemp = cSolnOut(1:min(15,len(cSolnOut)))
 
     ! Initialize variables:
     INFO             = 0
@@ -76,6 +75,10 @@ subroutine GetSUBLSiteMol(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, 
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
+
+        ! Remove trailing blanks:
+        ! cSolnOut    = TRIM(cSolnOut)
+        cTemp    = TRIM(cTemp)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -88,7 +91,7 @@ subroutine GetSUBLSiteMol(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, 
 
 !           write(*,*) 'O ', cSolnOut(1:15), '--', cTemp, len(cTemp), ' = ', cSolnPhaseName(k)
            ! if (cSolnOut == cSolnPhaseName(k)) then
-           if (fSolnOut == cSolnPhaseName(k)) then
+           if (cTemp == cSolnPhaseName(k)) then
               ! Solution phase found.  Record integer index and exit loop.
               j = k
 

@@ -649,3 +649,25 @@ subroutine GetPureConPhaseMolISO(cPureConOut, lcPureConOut, dPureConMolOut, INFO
     return
 
 end subroutine GetPureConPhaseMolISO
+
+subroutine GetSUBLSiteMolISO(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteMolOut, INFO) &
+    bind(C, name="TCAPI_getSublSiteMol")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dSiteMolOut
+    integer                      :: iSublatticeOut, iConstituentOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+
+    call GetSUBLSiteMol(fSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteMolOut, INFO)
+
+    return
+
+end subroutine GetSUBLSiteMolISO
