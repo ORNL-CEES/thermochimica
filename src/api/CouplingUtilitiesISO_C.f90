@@ -605,3 +605,28 @@ subroutine GetOutputSolnSpeciesISO(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOu
     return
 
 end subroutine GetOutputSolnSpeciesISO
+
+subroutine GetPhaseIndexISO(cPhaseName, lcPhaseName, iIndexOut, INFO) &
+    bind(C, name="TCAPI_getPhaseIndex")
+
+    USE ModuleThermo
+    USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    integer,       intent(out)   :: iIndexOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+    integer                      :: i, k
+    character(25)                :: cTempPhase
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+
+    call GetPhaseIndex(cPhaseName, lcPhaseName, iIndexOut, INFO)
+
+    return
+
+end subroutine GetPhaseIndexISO
