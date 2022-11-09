@@ -582,3 +582,26 @@ subroutine GetOutputSiteFractionISO(cSolnOut, lcSolnOut, iSublatticeOut, iConsti
     return
 
 end subroutine GetOutputSiteFractionISO
+
+subroutine GetOutputSolnSpeciesISO(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO) &
+    bind(C, name="TCAPI_getOutputSolnSpecies")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*), cSpeciesOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut, lcSpeciesOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+    character(kind=c_char,len=lcSpeciesOut), pointer :: fSpeciesOut
+
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+    call c_f_pointer(cptr=c_loc(cSpeciesOut), fptr=fSpeciesOut)
+
+    call GetOutputSolnSpecies(fSolnOut, lcSolnOut, fSpeciesOut, lcSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO)
+
+    return
+
+end subroutine GetOutputSolnSpeciesISO
