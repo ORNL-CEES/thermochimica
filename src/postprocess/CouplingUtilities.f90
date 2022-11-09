@@ -1,360 +1,288 @@
-subroutine SetThermoFileName(cFileName, lcFileName) &
-    bind(C, name="TCAPI_setThermoFilename")
+subroutine SetThermoFileName(cFileName,lcFileName)
 
-    USE ModuleThermoIO, ONLY: cThermoFileName
-    USE,INTRINSIC :: ISO_C_BINDING
+  USE ModuleThermoIO, ONLY: cThermoFileName
 
-    implicit none
+  implicit none
 
-    character(kind=c_char,len=1), target, intent(in) :: cFileName(*)
-    integer(c_size_t), intent(in), value             :: lcFileName
-    character(kind=c_char,len=lcFileName), pointer :: fFileName
+  character(*), intent(in)::  cFileName
+  integer, intent(in) :: lcFileName
+  character(120) :: cFileNameLen
 
-    call c_f_pointer(cptr=c_loc(cFileName), fptr=fFileName)
-    cThermoFileName       = fFileName
+  cFileNameLen = cFileName!(1:min(120,lcFileName))
+  cThermoFileName       = trim(cFileNameLen(1:lcFileName))
 
-    return
+  return
 
 end subroutine SetThermoFileName
 
+subroutine SetThermoFileNameBISON(cFileName)
+
+  USE ModuleThermoIO, ONLY: cThermoFileName
+
+  implicit none
+
+  character(120), intent(in)::  cFileName
+  character(120) :: cFileNameLen
+
+  cFileNameLen = cFileName(1:120)
+  cThermoFileName       = trim(cFileNameLen)
+
+  return
+
+end subroutine SetThermoFileNameBISON
+
 subroutine SetThermoFileNameFortran(cFileName)
 
-    USE ModuleThermoIO, ONLY: cThermoFileName
+  USE ModuleThermoIO, ONLY: cThermoFileName
 
-    implicit none
+  implicit none
 
-    character(*), intent(in)::  cFileName
+  character(*), intent(in)::  cFileName
 
-    cThermoFileName       = cFileName
+  cThermoFileName       = cFileName
 
-    return
+  return
 
 end subroutine SetThermoFileNameFortran
 
-subroutine SetUnitTemperature(cUnitTemperature, lcUnitTemperature) &
-    bind(C, name="TCAPI_setUnitTemperature")
+subroutine SetUnitTemperature(cUnitTemperature)
 
-    USE ModuleThermoIO, ONLY: cInputUnitTemperature
-    USE,INTRINSIC :: ISO_C_BINDING
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature
 
-    implicit none
+  implicit none
 
-    character(kind=c_char,len=1), target, intent(in)      :: cUnitTemperature(*)
-    integer(c_size_t), intent(in), value                  :: lcUnitTemperature
-    character(kind=c_char,len=lcUnitTemperature), pointer :: fUnitTemperature
+  character(15), intent(in)::  cUnitTemperature
+  character(15) :: cUnitTemperatureLen
 
-    call c_f_pointer(cptr=c_loc(cUnitTemperature), fptr=fUnitTemperature)
-    cInputUnitTemperature = fUnitTemperature
+  cUnitTemperatureLen = cUnitTemperature(1:min(15,len(cUnitTemperature)))
+  cInputUnitTemperature       = trim(cUnitTemperatureLen)
 
-    return
+  return
 
 end subroutine SetUnitTemperature
 
-subroutine SetUnitPressure(cUnitPressure, lcUnitPressure) &
-    bind(C, name="TCAPI_setUnitPressure")
+subroutine SetUnitPressure(cUnitPressure)
 
-    USE ModuleThermoIO, ONLY: cInputUnitPressure
-    USE,INTRINSIC :: ISO_C_BINDING
+  USE ModuleThermoIO, ONLY: cInputUnitPressure
 
-    implicit none
+  implicit none
 
-    character(kind=c_char,len=1), target, intent(in)   :: cUnitPressure(*)
-    integer(c_size_t), intent(in), value               :: lcUnitPressure
-    character(kind=c_char,len=lcUnitPressure), pointer :: fUnitPressure
+  character(15), intent(in)::  cUnitPressure
+  character(15) :: cUnitPressureLen
 
-    call c_f_pointer(cptr=c_loc(cUnitPressure), fptr=fUnitPressure)
-    cInputUnitPressure = fUnitPressure
+  cUnitPressureLen = cUnitPressure(1:min(15,len(cUnitPressure)))
+  cInputUnitPressure       = trim(cUnitPressureLen)
 
-    return
+  return
 
 end subroutine SetUnitPressure
 
-subroutine SetUnitMass(cUnitMass, lcUnitMass) &
-    bind(C, name="TCAPI_setUnitMass")
+subroutine SetUnitMass(cUnitMass)
 
-    USE ModuleThermoIO, ONLY: cInputUnitMass
-    USE,INTRINSIC :: ISO_C_BINDING
+  USE ModuleThermoIO, ONLY: cInputUnitMass
 
-    implicit none
+  implicit none
 
-    character(kind=c_char,len=1), target, intent(in)   :: cUnitMass(*)
-    integer(c_size_t), intent(in), value               :: lcUnitMass
-    character(kind=c_char,len=lcUnitMass), pointer :: fUnitMass
+  character(15), intent(in)::  cUnitMass
+  character(15) :: cUnitMassLen
 
-    call c_f_pointer(cptr=c_loc(cUnitMass), fptr=fUnitMass)
-    cInputUnitMass = fUnitMass
+  cUnitMassLen = cUnitMass(1:min(15,len(cUnitMass)))
+  cInputUnitMass       = trim(cUnitMassLen)
 
-    return
+  return
 
 end subroutine SetUnitMass
 
-subroutine SetStandardUnits() &
-    bind(C, name="TCAPI_setStandardUnits")
+subroutine SetStandardUnits
 
-    USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
-    implicit none
+  implicit none
 
-    cInputUnitTemperature = 'K'
-    cInputUnitPressure    = 'atm'
-    cInputUnitMass        = 'moles'
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'atm'
+  cInputUnitMass        = 'moles'
 
-    return
+  return
 
 end subroutine SetStandardUnits
 
-subroutine SetModelicaUnits() &
-    bind(C, name="TCAPI_setModelicaUnits")
+subroutine SetModelicaUnits
 
-    USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
-    implicit none
+  implicit none
 
-    cInputUnitTemperature = 'K'
-    cInputUnitPressure    = 'Pa'
-    cInputUnitMass        = 'moles'
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'Pa'
+  cInputUnitMass        = 'moles'
 
-    return
+  return
 
 end subroutine SetModelicaUnits
 
 subroutine SetUnits(cTemperature, cPressure, cMass)
 
-    USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
+  USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
-    implicit none
+  implicit none
 
-    character(*), intent(in)::  cTemperature
-    character(*), intent(in)::  cPressure
-    character(*), intent(in)::  cMass
+  character(*), intent(in)::  cTemperature
+  character(*), intent(in)::  cPressure
+  character(*), intent(in)::  cMass
 
-    character(15) :: cTemperatureLen
-    character(15) :: cPressureLen
-    character(15) :: cMassLen
+  character(15) :: cTemperatureLen
+  character(15) :: cPressureLen
+  character(15) :: cMassLen
 
-    cInputUnitTemperature = 'K'
-    cInputUnitPressure    = 'atm'
-    cInputUnitMass        = 'moles'
+  cInputUnitTemperature = 'K'
+  cInputUnitPressure    = 'atm'
+  cInputUnitMass        = 'moles'
 
 
-    if(len_trim(cTemperature) > 0)then
-        cTemperatureLen = cTemperature(1:min(15,len(cTemperature)))
-        cInputUnitTemperature = trim(cTemperatureLen)
-    end if
-    if(len_trim(cPressure) > 0)then
-        cPressureLen = cPressure(1:min(15,len(cPressure)))
-        cInputUnitPressure = trim(cPressureLen)
-    end if
-    if(len_trim(cMass) > 0)then
-        cMassLen = cMass(1:min(15,len(cMass)))
-        cInputUnitMass = trim(cMassLen)
-    end if
+  if(len_trim(cTemperature) > 0)then
+     cTemperatureLen = cTemperature(1:min(15,len(cTemperature)))
+     cInputUnitTemperature = trim(cTemperatureLen)
+  end if
+  if(len_trim(cPressure) > 0)then
+     cPressureLen = cPressure(1:min(15,len(cPressure)))
+     cInputUnitPressure = trim(cPressureLen)
+  end if
+  if(len_trim(cMass) > 0)then
+     cMassLen = cMass(1:min(15,len(cMass)))
+     cInputUnitMass = trim(cMassLen)
+  end if
 
-    return
+  return
 
 end subroutine SetUnits
 
-subroutine SetTemperaturePressure(dTemp, dPress) &
-    bind(C, name="TCAPI_setTemperaturePressure")
+subroutine SetTemperaturePressure(dTemp, dPress)
 
-    USE ModuleThermoIO, ONLY: dTemperature, dPressure
+  USE ModuleThermoIO, ONLY: dTemperature, dPressure
 
-    implicit none
+  implicit none
 
-    real(8), intent(in)::  dTemp
-    real(8), intent(in)::  dPress
+  real(8), intent(in)::  dTemp
+  real(8), intent(in)::  dPress
 
-    dTemperature = dTemp
-    dPressure = dPress
+  dTemperature = dTemp
+  dPressure = dPress
 
-    return
+  return
 
 end subroutine SetTemperaturePressure
 
-subroutine SetPrintResultsMode(Pinfo) &
-    bind(C, name="TCAPI_setPrintResultsMode")
+subroutine SetPrintResultsMode(Pinfo)
 
-    USE ModuleThermoIO, ONLY: iPrintResultsMode
+  USE ModuleThermoIO, ONLY: iPrintResultsMode
 
-    implicit none
+  implicit none
 
-    integer Pinfo
+  integer Pinfo
 
-    iPrintResultsMode = Pinfo
+  iPrintResultsMode = Pinfo
 
-    return
+  return
 
 end subroutine SetPrintResultsMode
 
-subroutine PresetElementMass(iAtom, dMass) &
-    bind(C, name="TCAPI_presetElementMass")
+subroutine PresetElementMass(iAtom, dMass)
 
-    USE ModuleThermoIO, ONLY: dElementMass, lPreset
+  USE ModuleThermoIO, ONLY: dElementMass, lPreset
 
-    implicit none
+  implicit none
 
-    integer, intent(in)::  iAtom
-    real(8), intent(in)::  dMass
+  integer, intent(in)::  iAtom
+  real(8), intent(in)::  dMass
 
-    if( iAtom == 0 )then
-        dElementMass = dMass
-    else if( iAtom < 0 .or. iAtom > 118 )then
-        write(*,*) 'Error in PresetElementMass ', iAtom, dMass
-        stop
-    else
-        dElementMass(iAtom)      = dMass
-        lPreset(iAtom)           = .TRUE.
-    end if
+  if( iAtom == 0 )then
+      dElementMass = dMass
+  else if( iAtom < 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in PresetElementMass ', iAtom, dMass
+      stop
+  else
+      dElementMass(iAtom)      = dMass
+      lPreset(iAtom)           = .TRUE.
+  end if
 
-    return
+  return
 
 end subroutine PresetElementMass
 
-subroutine SetElementMass(iAtom, dMass) &
-    bind(C, name="TCAPI_setElementMass")
+subroutine SetElementMass(iAtom, dMass)
 
+  USE ModuleThermoIO, ONLY: dElementMass, lPreset
 
-    USE ModuleThermoIO, ONLY: dElementMass, lPreset
+  implicit none
 
-    implicit none
+  integer, intent(in)::  iAtom
+  real(8), intent(in)::  dMass
+  integer :: i
 
-    integer, intent(in)::  iAtom
-    real(8), intent(in)::  dMass
-    integer :: i
+  if( iAtom == 0 ) then
+      do i = 0, 118
+          if (.NOT. lPreset(i)) dElementMass(i) = dMass
+      end do
+  else if( iAtom < 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in SetElementMass ', iAtom, dMass
+      stop
+  else
+      if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
+  end if
 
-    if( iAtom == 0 ) then
-        do i = 0, 118
-            if (.NOT. lPreset(i)) dElementMass(i) = dMass
-        end do
-    else if( iAtom < 0 .or. iAtom > 118 )then
-        write(*,*) 'Error in SetElementMass ', iAtom, dMass
-        stop
-    else
-        if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
-    end if
-
-    return
+  return
 
 end subroutine SetElementMass
 
 subroutine GetElementMass(iAtom, dMass)
 
-    USE ModuleThermoIO, ONLY: dElementMass
+  USE ModuleThermoIO, ONLY: dElementMass
 
-    implicit none
+  implicit none
 
-    integer, intent(in)::  iAtom
-    real(8), intent(out)::  dMass
+  integer, intent(in)::  iAtom
+  real(8), intent(out)::  dMass
 
-    dMass = 0D0
-    if (iAtom > 0 .AND. iAtom <= 118) then
-        dMass =  dElementMass(iAtom)
-    end if
+  dMass = 0D0
+  if (iAtom > 0 .AND. iAtom <= 118) then
+      dMass =  dElementMass(iAtom)
+  end if
 
-    return
+  return
 
 end subroutine GetElementMass
 
-subroutine CheckINFOThermo(dbginfo) &
-    bind(C, name="TCAPI_checkInfoThermo")
+subroutine CheckINFOThermo(dbginfo)
 
-    USE ModuleThermoIO, ONLY: INFOThermo
+  USE ModuleThermoIO, ONLY: INFOThermo
 
-    implicit none
+  implicit none
 
-    integer, intent(out)::  dbginfo
+  integer, intent(out)::  dbginfo
 
-    dbginfo = INFOThermo
+  dbginfo = INFOThermo
 
-    return
+  return
 
 end subroutine CheckINFOThermo
 
-subroutine ResetINFOThermo() &
-    bind(C, name="TCAPI_resetInfoThermo")
+subroutine ResetINFOThermo
 
-    USE ModuleThermoIO, ONLY: INFOThermo
+  USE ModuleThermoIO, ONLY: INFOThermo
 
-    implicit none
+  implicit none
 
-    INFOThermo=0
+  INFOThermo=0
 
-    return
+  return
 
 end subroutine ResetINFOThermo
 
-subroutine ResetThermoAPI() &
-    bind(C, name="TCAPI_resetThermo")
+subroutine SolPhaseParse(iElem, dMolSum)
 
-    implicit none
-
-    call ResetThermo
-
-    return
-
-end subroutine ResetThermoAPI
-
-subroutine ResetThermoAllAPI() &
-    bind(C, name="TCAPI_resetThermoAll")
-
-    implicit none
-
-    call ResetThermoAll
-
-    return
-
-end subroutine ResetThermoAllAPI
-
-subroutine ThermoDebugAPI() &
-    bind(C, name="TCAPI_thermoDebug")
-
-    implicit none
-
-    call ThermoDebug
-
-    return
-
-end subroutine ThermoDebugAPI
-
-subroutine PrintResultsAPI() &
-    bind(C, name="TCAPI_printResults")
-
-    implicit none
-
-    call PrintResults
-
-    return
-
-end subroutine PrintResultsAPI
-
-subroutine SaveReinitDataAPI() &
-    bind(C, name="TCAPI_saveReinitData")
-
-    implicit none
-
-    call SaveReinitData
-
-    return
-
-end subroutine SaveReinitDataAPI
-
-subroutine ResetReinitAPI() &
-    bind(C, name="TCAPI_resetReinit")
-
-    implicit none
-
-    call ResetReinit
-
-    return
-
-end subroutine ResetReinitAPI
-
-
-subroutine SolPhaseParse(iElem, dMolSum) &
-    bind(C, name="TCAPI_solPhaseParse")
-
-    ! quick hack for bison, ZrH, H in
-    ! needs checking of input, intents, etc
+  ! quick hack for bison, ZrH, H in
+  ! needs checking of input, intents, etc
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -375,27 +303,26 @@ subroutine SolPhaseParse(iElem, dMolSum) &
     allocate(dTempVec(nSolnPhases))
 
     do i = 1, nSolnPhases
-        j = nElements - i + 1
-        dTempVec(i) = dMolesPhase(j)
+       j = nElements - i + 1
+       dTempVec(i) = dMolesPhase(j)
     end do
 
     dMolSum = 0D0
     do j = 1, nSolnPhases
 
-        ! Absolute solution phase index:
-        k = -iAssemblage(nElements - j + 1)
+       ! Absolute solution phase index:
+       k = -iAssemblage(nElements - j + 1)
 
-        dMolTemp=dTempVec(j) * dEffStoichSolnPhase(k,iElem)
-        dMolSum = dMolSum + dMolTemp
-        !  write(*,"(A,A,e13.6)", ADVANCE="NO") ' -- ', trim(cSolnPhaseName(k)), dMolTemp
+       dMolTemp=dTempVec(j) * dEffStoichSolnPhase(k,iElem)
+       dMolSum = dMolSum + dMolTemp
+      !  write(*,"(A,A,e13.6)", ADVANCE="NO") ' -- ', trim(cSolnPhaseName(k)), dMolTemp
     end do
     ! write(*,*)
 
     return
 end subroutine SolPhaseParse
 
-subroutine SSParseCSDataFile() &
-    bind(C, name="TCAPI_sSParseCSDataFile")
+subroutine SSParseCSDataFile
 
     USE ModuleThermoIO
     USE ModuleSS
@@ -408,370 +335,348 @@ subroutine SSParseCSDataFile() &
 
 end subroutine SSParseCSDataFile
 
-subroutine ThermochimicaAPI() &
-    bind(C, name="TCAPI_thermochimica")
-
-    implicit none
-
-    call Thermochimica()
-
-    return
-
-end subroutine ThermochimicaAPI
-
 subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
 
-    ! Input
-    ! dAppm          = element A, ppm, 0.000001 MU/MU
-    ! dAMassPerMol   = element A, MU / mol
-    ! dBMassPerMol   = element B, MU / mol
-    ! dBDens         = element B, Density, Mass unit per unit volume  MU/LU^3
-    ! dVol           = Volume, LU^3
-    ! iMolScale      = Scale mol values wrt to 1, 2, or total
-    ! Output
-    ! dAMol          = Mol of element A in dVol
-    ! dBMol          = Mol of element B in dVol
+  ! Input
+  ! dAppm          = element A, ppm, 0.000001 MU/MU
+  ! dAMassPerMol   = element A, MU / mol
+  ! dBMassPerMol   = element B, MU / mol
+  ! dBDens         = element B, Density, Mass unit per unit volume  MU/LU^3
+  ! dVol           = Volume, LU^3
+  ! iMolScale      = Scale mol values wrt to 1, 2, or total
+  ! Output
+  ! dAMol          = Mol of element A in dVol
+  ! dBMol          = Mol of element B in dVol
 
-    implicit none
+  implicit none
 
-    integer, intent(in)  :: iMolScale
-    real(8), intent(in)  :: dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol
-    real(8), intent(out) :: dAMol, dBMol
-    real(8)              :: dATotalMass, dBTotalMass
+  integer, intent(in)  :: iMolScale
+  real(8), intent(in)  :: dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol
+  real(8), intent(out) :: dAMol, dBMol
+  real(8)              :: dATotalMass, dBTotalMass
 
-    ! ppm is 0.000001 MU/MU
-    ! assume total density is equal to density of solvent
-    dBTotalMass = dBDens * dVol
-    dATotalMass = dBTotalMass * 0.000001 * dAppm
+  ! ppm is 0.000001 MU/MU
+  ! assume total density is equal to density of solvent
+  dBTotalMass = dBDens * dVol
+  dATotalMass = dBTotalMass * 0.000001 * dAppm
 
-    dAMol = dATotalMass / dAMassPerMol
-    dBMol = dBTotalMass / dBMassPerMol
+  dAMol = dATotalMass / dAMassPerMol
+  dBMol = dBTotalMass / dBMassPerMol
 
-    if( iMolScale == 1 )then
-        dBMol = dBMol / dAMol
-        dAmol = 1D0
-    else if( iMolScale == 2 )then
-        dAMol = dAMol / dBMol
-        dBmol = 1D0
-    else if( iMolScale == 3 )then
-        dAMol = dAMol / (dAMol+dBMol)
-        dBmol = 1D0 - dAMol
-    end if
+  if( iMolScale == 1 )then
+     dBMol = dBMol / dAMol
+     dAmol = 1D0
+  else if( iMolScale == 2 )then
+     dAMol = dAMol / dBMol
+     dBmol = 1D0
+  else if( iMolScale == 3 )then
+     dAMol = dAMol / (dAMol+dBMol)
+     dBmol = 1D0 - dAMol
+  end if
 
-    return
+  return
 
 end subroutine APpmInBToMolInVol
 
 subroutine SSInitiateZRHD
 
-    call SetThermoFileNameFortran('ZRHD_MHP.dat')
-    call SetUnits('K','atm','moles')
+  call SetThermoFileNameFortran('ZRHD_MHP.dat')
+  call SetUnits('K','atm','moles')
 
-    return
+  return
 
 end subroutine SSInitiateZRHD
 
 subroutine SSInitiateUO2PX
 
-    call SetThermoFileNameFortran('DBV6_TMB_modified.dat')
-    call SetUnits('K','atm','moles')
+  call SetThermoFileNameFortran('DBV6_TMB_modified.dat')
+  call SetUnits('K','atm','moles')
 
-    return
+  return
 
 end subroutine SSInitiateUO2PX
 
 subroutine tokenize(str, delim, word, lword, n)
 
-    implicit none
+  implicit none
 
-    character (len=*) :: str
-    character(1)      :: delim
-    integer           :: lword
-    character(lword)  :: word(*)     ! need to fix the maximum n
-    integer           :: n
+  character (len=*) :: str
+  character(1)      :: delim
+  integer           :: lword
+  character(lword)  :: word(*)     ! need to fix the maximum n
+  integer           :: n
 
-    integer :: pos1, pos2, i
+  integer :: pos1, pos2, i
 
-    n = 0
-    pos1 = 1
-    pos2 = 0
+  n = 0
+  pos1 = 1
+  pos2 = 0
 
-    DO
-        pos2 = INDEX(str(pos1:), delim)
-        IF (pos2 == 0) THEN
-            n = n + 1
-            word(n)=''
-            word(n) = str(pos1:)
-            EXIT
-        END IF
+  DO
+     pos2 = INDEX(str(pos1:), delim)
+     IF (pos2 == 0) THEN
         n = n + 1
         word(n)=''
-        word(n) = str(pos1:pos1+pos2-2)
-        pos1 = pos2+pos1
-    END DO
+        word(n) = str(pos1:)
+        EXIT
+     END IF
+     n = n + 1
+     word(n)=''
+     word(n) = str(pos1:pos1+pos2-2)
+     pos1 = pos2+pos1
+  END DO
 
-    ! write(*,"(3A)") ' tokenize ', str,';'
-    DO i = 1, n
-        ! WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
-    END DO
-    ! write(*,*)
+  ! write(*,"(3A)") ' tokenize ', str,';'
+  DO i = 1, n
+      ! WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
+  END DO
+  ! write(*,*)
 
 end subroutine tokenize
 
 subroutine chomp(str, len)
-    ! remove \0 from c string
-    ! must pass len that was result from strlen
-    implicit none
+  ! remove \0 from c string
+  ! must pass len that was result from strlen
+  implicit none
 
-    character (len=*) ::  str
-    ! character(1)      :: str(*)
-    integer           :: len,lchop
+  character (len=*) ::  str
+  ! character(1)      :: str(*)
+  integer           :: len,lchop
 
-    ! write(*,*) 'chomp ',str,' len ',len
+  ! write(*,*) 'chomp ',str,' len ',len
 
-    lchop=len+1
-    str(lchop:lchop)=""
-    ! str=trim(str)
+  lchop=len+1
+  str(lchop:lchop)=""
+  ! str=trim(str)
 
-    return
+  return
 end subroutine chomp
 
 subroutine matchdict( word, dictionary, nwords, lenword, imatch )
-    !
-    !    Match word in a dictionary
-    !    nwords - number of words in dictionary
-    !    lenwords - array holding length of the words
-    !    imatch - 0 = no match, 1 = match
+  !
+  !    Match word in a dictionary
+  !    nwords - number of words in dictionary
+  !    lenwords - array holding length of the words
+  !    imatch - 0 = no match, 1 = match
 
-    implicit none
+  implicit none
 
-    character (len=*) ::  word
-    integer           :: nwords, lenword
-    character (len=lenword) :: dictionary(nwords)
-    character(25) :: cWord
+  character (len=*) ::  word
+  integer           :: nwords, lenword
+  character (len=lenword) :: dictionary(nwords)
+  character(25) :: cWord
 
-    integer :: imatch
+  integer :: imatch
 
-    integer :: i,lword
+  integer :: i,lword
 
-    imatch=0
+  imatch=0
 
-    ! write(*,*) 'matchdict ',word
+  ! write(*,*) 'matchdict ',word
 
-    lword=len(word)
-    ! write(*,*) 'word ',word,'lword ', lword
-    if(lword > 25)then
-        write(*,"(A,i5)") "matchdict: word to match is too big ", lword
-        stop
-    end if
+  lword=len(word)
+  ! write(*,*) 'word ',word,'lword ', lword
+  if(lword > 25)then
+     write(*,"(A,i5)") "matchdict: word to match is too big ", lword
+     stop
+  end if
 
-    cWord=""
-    cWord(1:lword)=word(1:lword)
+  cWord=""
+  cWord(1:lword)=word(1:lword)
 
-    do i=1,nwords
-        if ( cWord == dictionary(i) ) then
-            imatch = imatch + 1
-        end if
-    end do
+  do i=1,nwords
+     if ( cWord == dictionary(i) ) then
+        imatch = imatch + 1
+     end if
+  end do
 
-    return
+  return
 end subroutine matchdict
 
 subroutine chopnull(str)
 
-    implicit none
+  implicit none
 
-    !
-    character (len=*) ::  str
-    integer           ::  iloc
+  !
+  character (len=*) ::  str
+  integer           ::  iloc
 
-    iloc=scan(str,char(0))
+  iloc=scan(str,char(0))
 
-    if(iloc > 0)then
-        str(iloc:iloc)=""
-    end if
+  if(iloc > 0)then
+     str(iloc:iloc)=""
+  end if
 
-    return
+  return
 end subroutine chopnull
 
-subroutine getMolFraction(i, value, ierr) &
-    bind(C, name="TCAPI_getMolFraction")
+subroutine getMolFraction(i, value, ierr)
+  USE ModuleThermo
+  implicit none
 
-    USE ModuleThermo
-    implicit none
+  integer, intent(in)::  i
+  integer, intent(out):: ierr
+  real(8), intent(out):: value
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+  ierr=0
+  value=0D0
+  if( i < 1 .OR. i > nSpecies )then
+     ierr = 1
+  else
+     value=dMolFraction(i)
+  endif
 
-    ierr=0
-    value=0D0
-    if( i < 1 .OR. i > nSpecies )then
-        ierr = 1
-    else
-        value=dMolFraction(i)
-    endif
-
-    return
+  return
 end subroutine getMolFraction
 
-subroutine getChemicalPotential(i, value, ierr) &
-    bind(C, name="TCAPI_getChemicalPotential")
+subroutine getChemicalPotential(i, value, ierr)
+  USE ModuleThermo
+  implicit none
 
-    USE ModuleThermo
-    implicit none
+  integer, intent(in)::  i
+  integer, intent(out):: ierr
+  real(8), intent(out):: value
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+  ierr=0
+  value=0D0
+  if( i < 1 .OR. i > nSpecies )then
+     ierr = 1
+  else
+     value=dChemicalPotential(i)
+  endif
 
-    ierr=0
-    value=0D0
-    if( i < 1 .OR. i > nSpecies )then
-        ierr = 1
-    else
-        value=dChemicalPotential(i)
-    endif
-
-    return
+  return
 end subroutine getChemicalPotential
 
-subroutine getElementPotential(i, value, ierr) &
-    bind(C, name="TCAPI_getElementPotential")
+subroutine getElementPotential(i, value, ierr)
+  USE ModuleThermoIO
+  USE ModuleThermo
+  implicit none
 
-    USE ModuleThermoIO
-    USE ModuleThermo
-    implicit none
+  integer, intent(in)::  i
+  integer, intent(out):: ierr
+  real(8), intent(out):: value
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+  integer k
 
-    integer k
+  ierr=0
+  value=0D0
+  if( i < 1 .OR. i > nElements )then
+     ierr = 1
+     write(*,*) 'Element out of range ', i, nElements
+     do k=1,nElements
+        write(*,*) 'Element idx',k,' ',cElementName(k)
+     enddo
 
-    ierr=0
-    value=0D0
-    if( i < 1 .OR. i > nElements )then
-        ierr = 1
-        write(*,*) 'Element out of range ', i, nElements
-        do k=1,nElements
-            write(*,*) 'Element idx',k,' ',cElementName(k)
-        enddo
+  else
+     value=dElementPotential(i)*dTemperature*dIdealConstant
+  endif
 
-    else
-        value=dElementPotential(i)*dTemperature*dIdealConstant
-    endif
-
-    return
+  return
 
 end subroutine getElementPotential
 
-subroutine SetReinitRequested(iRequested) &
-    bind(C, name="TCAPI_setReinitRequested")
+subroutine SetReinitRequested(iRequested)
 
-    USE ModuleThermoIO, ONLY: lReinitRequested
+  USE ModuleThermoIO, ONLY: lReinitRequested
 
-    implicit none
+  implicit none
 
-    ! passing bool/logical was sketchy so just going with an int here
-    integer, intent(in)::  iRequested
-    if (iRequested == 0) then
-        lReinitRequested = .FALSE.
-    else
-        lReinitRequested = .TRUE.
-    end if
+  ! passing bool/logical was sketchy so just going with an int here
+  integer, intent(in)::  iRequested
+  if (iRequested == 0) then
+    lReinitRequested = .FALSE.
+  else
+    lReinitRequested = .TRUE.
+  end if
 
-    return
+  return
 
 end subroutine SetReinitRequested
 
-subroutine getReinitDataSizes(mElements, mSpecies) &
-    bind(C, name="TCAPI_getReinitDataSizes")
+subroutine getReinitDataSizes(mElements,mSpecies)
+  USE ModuleThermo, ONLY: nElements, nSpecies
+  implicit none
 
-    USE ModuleThermo, ONLY: nElements, nSpecies
-    implicit none
+  integer, intent(out)                           :: mElements, mSpecies
 
-    integer, intent(out)                           :: mElements, mSpecies
+  mElements = nElements
+  mSpecies = nSpecies
 
-    mElements = nElements
-    mSpecies = nSpecies
-
-    return
+  return
 
 end subroutine getReinitDataSizes
 
 subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
-    mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
-    USE ModuleReinit
-    USE ModuleThermoIO
-    USE ModuleThermo, ONLY: nElements, nSpecies
-    implicit none
+              mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
+  USE ModuleReinit
+  USE ModuleThermoIO
+  USE ModuleThermo, ONLY: nElements, nSpecies
+  implicit none
 
-    integer, intent(out)                           :: mReinitAvailable
-    integer, intent(out), dimension(nElements)     :: mAssemblage
-    real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
-    real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
-    integer, intent(out), dimension(0:168) :: mElementsUsed
-
-
-    if (lReinitAvailable) then
-        mAssemblage = iAssemblage_Old
-        mMolesPhase = dMolesPhase_Old
-        mElementPotential = dElementPotential_Old
-        mChemicalPotential = dChemicalPotential_Old
-        mMolFraction =  dMolFraction_Old
-        mElementsUsed = iElementsUsed_Old
-        mReinitAvailable = 1
-    else
-        mReinitAvailable = 0
-    end if
+  integer, intent(out)                           :: mReinitAvailable
+  integer, intent(out), dimension(nElements)     :: mAssemblage
+  real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
+  real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
+  integer, intent(out), dimension(0:168) :: mElementsUsed
 
 
-    return
+  if (lReinitAvailable) then
+    mAssemblage = iAssemblage_Old
+    mMolesPhase = dMolesPhase_Old
+    mElementPotential = dElementPotential_Old
+    mChemicalPotential = dChemicalPotential_Old
+    mMolFraction =  dMolFraction_Old
+    mElementsUsed = iElementsUsed_Old
+    mReinitAvailable = 1
+  else
+    mReinitAvailable = 0
+  end if
+
+
+  return
 
 end subroutine reinitDataTcToMoose
 
 subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
-    mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
-    USE ModuleReinit
-    USE ModuleThermoIO
-    USE ModuleThermo
-    implicit none
+              mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
+  USE ModuleReinit
+  USE ModuleThermoIO
+  USE ModuleThermo
+  implicit none
 
-    integer, intent(in)                            :: mElements, mSpecies
-    integer, intent(in), dimension(mElements)      :: mAssemblage
-    real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
-    real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
-    integer, intent(in), dimension(0:168)  :: mElementsUsed
+  integer, intent(in)                            :: mElements, mSpecies
+  integer, intent(in), dimension(mElements)      :: mAssemblage
+  real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
+  real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
+  integer, intent(in), dimension(0:168)  :: mElementsUsed
 
-    allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
-        dMolFraction_Old(mSpecies))
-    allocate(iAssemblage_Old(mElements))
-    ! allocate(iElementsUsed_Old(0:168))
+  allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
+  dMolFraction_Old(mSpecies))
+  allocate(iAssemblage_Old(mElements))
+  ! allocate(iElementsUsed_Old(0:168))
 
-    iAssemblage_Old = mAssemblage
-    dMolesPhase_Old = mMolesPhase
-    dElementPotential_Old = mElementPotential
-    dChemicalPotential_Old = mChemicalPotential
-    dMolFraction_Old = mMolFraction
-    iElementsUsed_Old = mElementsUsed
-    lReinitAvailable = .TRUE.
+  iAssemblage_Old = mAssemblage
+  dMolesPhase_Old = mMolesPhase
+  dElementPotential_Old = mElementPotential
+  dChemicalPotential_Old = mChemicalPotential
+  dMolFraction_Old = mMolFraction
+  iElementsUsed_Old = mElementsUsed
+  lReinitAvailable = .TRUE.
 
-    return
+  return
 
 end subroutine reinitDataTcFromMoose
 
-subroutine GetMolesPhase(mMolesPhase) &
-    bind(C, name="TCAPI_getMolesPhase")
+subroutine GetMolesPhase(mMolesPhase)
+  USE ModuleThermo, ONLY: nElements, dMolesPhase
+  implicit none
 
-    USE ModuleThermo, ONLY: nElements, dMolesPhase
-    implicit none
+  real(8), intent(out), dimension(nElements)     :: mMolesPhase
 
-    real(8), intent(out), dimension(nElements)     :: mMolesPhase
+  mMolesPhase = dMolesPhase
 
-    mMolesPhase = dMolesPhase
-
-    return
+  return
 
 end subroutine GetMolesPhase
 
@@ -794,64 +699,59 @@ subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
     end do
 
     call GibbsEnergy(nConPhasesReinit, nSolnPhasesReinit, iAssemblage_Old, &
-        dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
+                     dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
 
     return
 
 end subroutine GibbsEnergyOfReinitData
 
-subroutine GetAssemblage(mAssemblage) &
-    bind(C, name="TCAPI_getAssemblage")
+subroutine GetAssemblage(mAssemblage)
+  USE ModuleThermo, ONLY: nElements, iAssemblage
+  implicit none
 
-    USE ModuleThermo, ONLY: nElements, iAssemblage
-    implicit none
+  integer, intent(out), dimension(nElements)     :: mAssemblage
 
-    integer, intent(out), dimension(nElements)     :: mAssemblage
+  mAssemblage = iAssemblage
 
-    mAssemblage = iAssemblage
-
-    return
+  return
 
 end subroutine GetAssemblage
 
-subroutine GetAllElementPotential(mElementPotential) &
-    bind(C, name="TCAPI_getAllElementPotential")
+subroutine GetAllElementPotential(mElementPotential)
+  USE ModuleThermo, ONLY: nElements, dElementPotential
+  implicit none
 
-    USE ModuleThermo, ONLY: nElements, dElementPotential
-    implicit none
+  real(8), intent(out), dimension(nElements)     :: mElementPotential
 
-    real(8), intent(out), dimension(nElements)     :: mElementPotential
+  mElementPotential = dElementPotential
 
-    mElementPotential = dElementPotential
-
-    return
+  return
 
 end subroutine GetAllElementPotential
 
-subroutine GetElementFraction(iAtom, dFrac) &
-    bind(C, name="TCAPI_getElementFraction")
+subroutine GetElementFraction(iAtom, dFrac)
 
-    USE ModuleThermoIO, ONLY: dElementMass
-    USE ModuleThermo,   ONLY: nElementsPT
+  USE ModuleThermoIO, ONLY: dElementMass
+  USE ModuleThermo,   ONLY: nElementsPT
 
-    implicit none
+  implicit none
 
-    integer, intent(in) ::  iAtom
-    real(8), intent(out)::  dFrac
-    real(8)             ::  dTotalElementMass
-    integer :: i
+  integer, intent(in) ::  iAtom
+  real(8), intent(out)::  dFrac
+  real(8)             ::  dTotalElementMass
+  integer :: i
 
-    if( iAtom <= 0 .or. iAtom > 118 )then
-        write(*,*) 'Error in GetElementFraction ', iAtom
-        stop
-    else
-        dTotalElementMass = 0D0
-        do i = 1, nElementsPT
-            dTotalElementMass = dTotalElementMass + dElementMass(i)
-        end do
-        dFrac = dElementMass(iAtom) / dTotalElementMass
-    end if
+  if( iAtom <= 0 .or. iAtom > 118 )then
+      write(*,*) 'Error in GetElementFraction ', iAtom
+      stop
+  else
+      dTotalElementMass = 0D0
+      do i = 1, nElementsPT
+          dTotalElementMass = dTotalElementMass + dElementMass(i)
+      end do
+      dFrac = dElementMass(iAtom) / dTotalElementMass
+  end if
 
-    return
+  return
 
 end subroutine GetElementFraction
