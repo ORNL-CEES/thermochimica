@@ -609,8 +609,6 @@ end subroutine GetOutputSolnSpeciesISO
 subroutine GetPhaseIndexISO(cPhaseName, lcPhaseName, iIndexOut, INFO) &
     bind(C, name="TCAPI_getPhaseIndex")
 
-    USE ModuleThermo
-    USE ModuleThermoIO
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
