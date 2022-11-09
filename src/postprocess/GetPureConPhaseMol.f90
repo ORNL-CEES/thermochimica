@@ -37,24 +37,20 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetPureConPhaseMol(cPureConOut, lcPureConOut, dPureConMolOut, INFO) &
-    bind(C, name="TCAPI_getPureConPhaseMol")
+subroutine GetPureConPhaseMol(cPureConOut, dPureConMolOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dPureConMolOut
-    character(kind=c_char,len=1), target, intent(in) :: cPureConOut(*)
-    integer(c_size_t), intent(in), value             :: lcPureConOut
-    character(kind=c_char,len=lcPureConOut), pointer :: fPureConOut
     integer                      :: i, j, k
+    real(8),       intent(out)   :: dPureConMolOut
+    character(*),  intent(in)    :: cPureConOut
     character(30)                :: cTemp
-
-    call c_f_pointer(cptr=c_loc(cPureConOut), fptr=fPureConOut)
+    character(15)                :: cPureTemp
+    cPureTemp = cPureConOut(1:min(15,len(cPureConOut)))
 
     ! Initialize variables:
     INFO            = 0
@@ -62,6 +58,10 @@ subroutine GetPureConPhaseMol(cPureConOut, lcPureConOut, dPureConMolOut, INFO) &
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
+
+        ! Remove trailing blanks:
+        ! cPureConOut    = TRIM(cPureConOut)
+        cPureTemp    = TRIM(cPureTemp)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -71,7 +71,7 @@ subroutine GetPureConPhaseMol(cPureConOut, lcPureConOut, dPureConMolOut, INFO) &
             ! Remove leading blanks:
             cTemp = ADJUSTL(cSpeciesName(k))
             ! if (cPureConOut == cTemp) then
-            if (fPureConOut == cTemp) then
+            if (cPureTemp == cTemp) then
                 ! Pure condensed phase found.  Record integer index and exit loop.
                j = i
                exit LOOP_PureStable

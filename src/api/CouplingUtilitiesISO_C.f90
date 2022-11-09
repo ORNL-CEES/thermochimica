@@ -628,3 +628,24 @@ subroutine GetPhaseIndexISO(cPhaseName, lcPhaseName, iIndexOut, INFO) &
     return
 
 end subroutine GetPhaseIndexISO
+
+subroutine GetPureConPhaseMolISO(cPureConOut, lcPureConOut, dPureConMolOut, INFO) &
+    bind(C, name="TCAPI_getPureConPhaseMol")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dPureConMolOut
+    character(kind=c_char,len=1), target, intent(in) :: cPureConOut(*)
+    integer(c_size_t), intent(in), value             :: lcPureConOut
+    character(kind=c_char,len=lcPureConOut), pointer :: fPureConOut
+
+    call c_f_pointer(cptr=c_loc(cPureConOut), fptr=fPureConOut)
+
+    call GetPureConPhaseMol(fPureConOut, dPureConMolOut, INFO)
+
+    return
+
+end subroutine GetPureConPhaseMolISO
