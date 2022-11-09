@@ -15,22 +15,6 @@ subroutine SetThermoFileName(cFileName,lcFileName)
 
 end subroutine SetThermoFileName
 
-subroutine SetThermoFileNameBISON(cFileName)
-
-  USE ModuleThermoIO, ONLY: cThermoFileName
-
-  implicit none
-
-  character(120), intent(in)::  cFileName
-  character(120) :: cFileNameLen
-
-  cFileNameLen = cFileName(1:120)
-  cThermoFileName       = trim(cFileNameLen)
-
-  return
-
-end subroutine SetThermoFileNameBISON
-
 subroutine SetThermoFileNameFortran(cFileName)
 
   USE ModuleThermoIO, ONLY: cThermoFileName
