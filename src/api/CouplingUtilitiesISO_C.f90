@@ -462,9 +462,6 @@ subroutine GetElementMoleFractionInPhaseISO(cElement, lcElement, cPhase, lcPhase
     integer(c_size_t), intent(in), value             :: lcPhase, lcElement
     character(kind=c_char,len=lcPhase), pointer      :: fPhase
     character(kind=c_char,len=lcElement), pointer    :: fElement
-    character(25)                :: cTempPhase, cTempElement
-    integer                      :: i, j, k, l
-    real(8)                      :: dSum
 
     call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
     call c_f_pointer(cptr=c_loc(cElement), fptr=fElement)
