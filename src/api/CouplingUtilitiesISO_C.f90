@@ -540,8 +540,6 @@ end subroutine GetOutputMolSpeciesISO
 subroutine GetOutputMolSpeciesPhaseISO(cPhase, lcPhase, cSpecies, lcSpecies, dMolFractionOut, INFO) &
     bind(C, name="TCAPI_getOutputMolSpeciesPhase")
 
-    USE ModuleThermo
-    USE ModuleThermoIO
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
@@ -566,8 +564,6 @@ end subroutine GetOutputMolSpeciesPhaseISO
 subroutine GetOutputSiteFractionISO(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO) &
     bind(C, name="TCAPI_getOutputSiteFraction")
 
-    USE ModuleThermo
-    USE ModuleThermoIO
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
