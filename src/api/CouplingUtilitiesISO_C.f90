@@ -536,3 +536,29 @@ subroutine GetOutputMolSpeciesISO(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dM
     return
 
 end subroutine GetOutputMolSpeciesISO
+
+subroutine GetOutputMolSpeciesPhaseISO(cPhase, lcPhase, cSpecies, lcSpecies, dMolFractionOut, INFO) &
+    bind(C, name="TCAPI_getOutputMolSpeciesPhase")
+
+    USE ModuleThermo
+    USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer, intent(out)   :: INFO
+    real(8), intent(out)   :: dMolFractionOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cSpecies(*)
+    integer(c_size_t), intent(in), value             :: lcPhase, lcSpecies
+    character(kind=c_char,len=lcPhase), pointer      :: fPhase
+    character(kind=c_char,len=lcSpecies), pointer    :: fSpecies
+    character(30)          :: cTempPhase, cTempSpecies
+
+    call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
+    call c_f_pointer(cptr=c_loc(cSpecies), fptr=fSpecies)
+
+    call GetOutputMolSpeciesPhase(fPhase, lcPhase, fSpecies, lcSpecies, dMolFractionOut, INFO)
+
+    return
+
+end subroutine GetOutputMolSpeciesPhaseISO
