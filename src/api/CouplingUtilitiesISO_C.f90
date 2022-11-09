@@ -1,4 +1,4 @@
-subroutine SetThermoFileName(cFileName, lcFileName) &
+subroutine SetThermoFileNameISO(cFileName, lcFileName) &
     bind(C, name="TCAPI_setThermoFilename")
 
     USE ModuleThermoIO, ONLY: cThermoFileName
@@ -11,27 +11,14 @@ subroutine SetThermoFileName(cFileName, lcFileName) &
     character(kind=c_char,len=lcFileName), pointer :: fFileName
 
     call c_f_pointer(cptr=c_loc(cFileName), fptr=fFileName)
-    cThermoFileName       = fFileName
+    
+    call SetThermoFileName(fFileName,lcFileName)
 
     return
 
-end subroutine SetThermoFileName
+end subroutine SetThermoFileNameISO
 
-subroutine SetThermoFileNameFortran(cFileName)
-
-    USE ModuleThermoIO, ONLY: cThermoFileName
-
-    implicit none
-
-    character(*), intent(in)::  cFileName
-
-    cThermoFileName       = cFileName
-
-    return
-
-end subroutine SetThermoFileNameFortran
-
-subroutine SetUnitTemperature(cUnitTemperature, lcUnitTemperature) &
+subroutine SetUnitTemperatureISO(cUnitTemperature, lcUnitTemperature) &
     bind(C, name="TCAPI_setUnitTemperature")
 
     USE ModuleThermoIO, ONLY: cInputUnitTemperature
@@ -44,13 +31,13 @@ subroutine SetUnitTemperature(cUnitTemperature, lcUnitTemperature) &
     character(kind=c_char,len=lcUnitTemperature), pointer :: fUnitTemperature
 
     call c_f_pointer(cptr=c_loc(cUnitTemperature), fptr=fUnitTemperature)
-    cInputUnitTemperature = fUnitTemperature
+    call SetUnitTemperature(fUnitTemperature)
 
     return
 
-end subroutine SetUnitTemperature
+end subroutine SetUnitTemperatureISO
 
-subroutine SetUnitPressure(cUnitPressure, lcUnitPressure) &
+subroutine SetUnitPressureISO(cUnitPressure, lcUnitPressure) &
     bind(C, name="TCAPI_setUnitPressure")
 
     USE ModuleThermoIO, ONLY: cInputUnitPressure
@@ -63,13 +50,13 @@ subroutine SetUnitPressure(cUnitPressure, lcUnitPressure) &
     character(kind=c_char,len=lcUnitPressure), pointer :: fUnitPressure
 
     call c_f_pointer(cptr=c_loc(cUnitPressure), fptr=fUnitPressure)
-    cInputUnitPressure = fUnitPressure
+    call SetUnitPressure(fUnitPressure)
 
     return
 
-end subroutine SetUnitPressure
+end subroutine SetUnitPressureISO
 
-subroutine SetUnitMass(cUnitMass, lcUnitMass) &
+subroutine SetUnitMassISO(cUnitMass, lcUnitMass) &
     bind(C, name="TCAPI_setUnitMass")
 
     USE ModuleThermoIO, ONLY: cInputUnitMass
@@ -86,9 +73,9 @@ subroutine SetUnitMass(cUnitMass, lcUnitMass) &
 
     return
 
-end subroutine SetUnitMass
+end subroutine SetUnitMassISO
 
-subroutine SetStandardUnits() &
+subroutine SetStandardUnitsISO() &
     bind(C, name="TCAPI_setStandardUnits")
 
     USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -101,9 +88,9 @@ subroutine SetStandardUnits() &
 
     return
 
-end subroutine SetStandardUnits
+end subroutine SetStandardUnitsISO
 
-subroutine SetModelicaUnits() &
+subroutine SetModelicaUnitsISO() &
     bind(C, name="TCAPI_setModelicaUnits")
 
     USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
@@ -116,9 +103,9 @@ subroutine SetModelicaUnits() &
 
     return
 
-end subroutine SetModelicaUnits
+end subroutine SetModelicaUnitsISO
 
-subroutine SetUnits(cTemperature, cPressure, cMass)
+subroutine SetUnitsISO(cTemperature, cPressure, cMass)
 
     USE ModuleThermoIO, ONLY: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
 
@@ -152,9 +139,9 @@ subroutine SetUnits(cTemperature, cPressure, cMass)
 
     return
 
-end subroutine SetUnits
+end subroutine SetUnitsISO
 
-subroutine SetTemperaturePressure(dTemp, dPress) &
+subroutine SetTemperaturePressureISO(dTemp, dPress) &
     bind(C, name="TCAPI_setTemperaturePressure")
 
     USE ModuleThermoIO, ONLY: dTemperature, dPressure
@@ -169,9 +156,9 @@ subroutine SetTemperaturePressure(dTemp, dPress) &
 
     return
 
-end subroutine SetTemperaturePressure
+end subroutine SetTemperaturePressureISO
 
-subroutine SetPrintResultsMode(Pinfo) &
+subroutine SetPrintResultsModeISO(Pinfo) &
     bind(C, name="TCAPI_setPrintResultsMode")
 
     USE ModuleThermoIO, ONLY: iPrintResultsMode
@@ -184,9 +171,9 @@ subroutine SetPrintResultsMode(Pinfo) &
 
     return
 
-end subroutine SetPrintResultsMode
+end subroutine SetPrintResultsModeISO
 
-subroutine PresetElementMass(iAtom, dMass) &
+subroutine PresetElementMassISO(iAtom, dMass) &
     bind(C, name="TCAPI_presetElementMass")
 
     USE ModuleThermoIO, ONLY: dElementMass, lPreset
@@ -208,9 +195,9 @@ subroutine PresetElementMass(iAtom, dMass) &
 
     return
 
-end subroutine PresetElementMass
+end subroutine PresetElementMassISO
 
-subroutine SetElementMass(iAtom, dMass) &
+subroutine SetElementMassISO(iAtom, dMass) &
     bind(C, name="TCAPI_setElementMass")
 
 
@@ -235,9 +222,9 @@ subroutine SetElementMass(iAtom, dMass) &
 
     return
 
-end subroutine SetElementMass
+end subroutine SetElementMassISO
 
-subroutine GetElementMass(iAtom, dMass)
+subroutine GetElementMassISO(iAtom, dMass)
 
     USE ModuleThermoIO, ONLY: dElementMass
 
@@ -253,9 +240,9 @@ subroutine GetElementMass(iAtom, dMass)
 
     return
 
-end subroutine GetElementMass
+end subroutine GetElementMassISO
 
-subroutine CheckINFOThermo(dbginfo) &
+subroutine CheckINFOThermoISO(dbginfo) &
     bind(C, name="TCAPI_checkInfoThermo")
 
     USE ModuleThermoIO, ONLY: INFOThermo
@@ -268,9 +255,9 @@ subroutine CheckINFOThermo(dbginfo) &
 
     return
 
-end subroutine CheckINFOThermo
+end subroutine CheckINFOThermoISO
 
-subroutine ResetINFOThermo() &
+subroutine ResetINFOThermoISO() &
     bind(C, name="TCAPI_resetInfoThermo")
 
     USE ModuleThermoIO, ONLY: INFOThermo
@@ -281,9 +268,9 @@ subroutine ResetINFOThermo() &
 
     return
 
-end subroutine ResetINFOThermo
+end subroutine ResetINFOThermoISO
 
-subroutine ResetThermoAPI() &
+subroutine ResetThermoISO() &
     bind(C, name="TCAPI_resetThermo")
 
     implicit none
@@ -292,9 +279,9 @@ subroutine ResetThermoAPI() &
 
     return
 
-end subroutine ResetThermoAPI
+end subroutine ResetThermoISO
 
-subroutine ResetThermoAllAPI() &
+subroutine ResetThermoAllISO() &
     bind(C, name="TCAPI_resetThermoAll")
 
     implicit none
@@ -303,9 +290,9 @@ subroutine ResetThermoAllAPI() &
 
     return
 
-end subroutine ResetThermoAllAPI
+end subroutine ResetThermoAllISO
 
-subroutine ThermoDebugAPI() &
+subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
 
     implicit none
@@ -314,9 +301,9 @@ subroutine ThermoDebugAPI() &
 
     return
 
-end subroutine ThermoDebugAPI
+end subroutine ThermoDebugISO
 
-subroutine PrintResultsAPI() &
+subroutine PrintResultsISO() &
     bind(C, name="TCAPI_printResults")
 
     implicit none
@@ -325,9 +312,9 @@ subroutine PrintResultsAPI() &
 
     return
 
-end subroutine PrintResultsAPI
+end subroutine PrintResultsISO
 
-subroutine SaveReinitDataAPI() &
+subroutine SaveReinitDataISO() &
     bind(C, name="TCAPI_saveReinitData")
 
     implicit none
@@ -336,9 +323,9 @@ subroutine SaveReinitDataAPI() &
 
     return
 
-end subroutine SaveReinitDataAPI
+end subroutine SaveReinitDataISO
 
-subroutine ResetReinitAPI() &
+subroutine ResetReinitISO() &
     bind(C, name="TCAPI_resetReinit")
 
     implicit none
@@ -347,10 +334,10 @@ subroutine ResetReinitAPI() &
 
     return
 
-end subroutine ResetReinitAPI
+end subroutine ResetReinitISO
 
 
-subroutine SolPhaseParse(iElem, dMolSum) &
+subroutine SolPhaseParseISO(iElem, dMolSum) &
     bind(C, name="TCAPI_solPhaseParse")
 
     ! quick hack for bison, ZrH, H in
@@ -392,9 +379,9 @@ subroutine SolPhaseParse(iElem, dMolSum) &
     ! write(*,*)
 
     return
-end subroutine SolPhaseParse
+end subroutine SolPhaseParseISO
 
-subroutine SSParseCSDataFile() &
+subroutine SSParseCSDataFileISO() &
     bind(C, name="TCAPI_sSParseCSDataFile")
 
     USE ModuleThermoIO
@@ -406,9 +393,9 @@ subroutine SSParseCSDataFile() &
 
     return
 
-end subroutine SSParseCSDataFile
+end subroutine SSParseCSDataFileISO
 
-subroutine ThermochimicaAPI() &
+subroutine ThermochimicaISO() &
     bind(C, name="TCAPI_thermochimica")
 
     implicit none
@@ -417,184 +404,9 @@ subroutine ThermochimicaAPI() &
 
     return
 
-end subroutine ThermochimicaAPI
+end subroutine ThermochimicaISO
 
-subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
-
-    ! Input
-    ! dAppm          = element A, ppm, 0.000001 MU/MU
-    ! dAMassPerMol   = element A, MU / mol
-    ! dBMassPerMol   = element B, MU / mol
-    ! dBDens         = element B, Density, Mass unit per unit volume  MU/LU^3
-    ! dVol           = Volume, LU^3
-    ! iMolScale      = Scale mol values wrt to 1, 2, or total
-    ! Output
-    ! dAMol          = Mol of element A in dVol
-    ! dBMol          = Mol of element B in dVol
-
-    implicit none
-
-    integer, intent(in)  :: iMolScale
-    real(8), intent(in)  :: dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol
-    real(8), intent(out) :: dAMol, dBMol
-    real(8)              :: dATotalMass, dBTotalMass
-
-    ! ppm is 0.000001 MU/MU
-    ! assume total density is equal to density of solvent
-    dBTotalMass = dBDens * dVol
-    dATotalMass = dBTotalMass * 0.000001 * dAppm
-
-    dAMol = dATotalMass / dAMassPerMol
-    dBMol = dBTotalMass / dBMassPerMol
-
-    if( iMolScale == 1 )then
-        dBMol = dBMol / dAMol
-        dAmol = 1D0
-    else if( iMolScale == 2 )then
-        dAMol = dAMol / dBMol
-        dBmol = 1D0
-    else if( iMolScale == 3 )then
-        dAMol = dAMol / (dAMol+dBMol)
-        dBmol = 1D0 - dAMol
-    end if
-
-    return
-
-end subroutine APpmInBToMolInVol
-
-subroutine SSInitiateZRHD
-
-    call SetThermoFileNameFortran('ZRHD_MHP.dat')
-    call SetUnits('K','atm','moles')
-
-    return
-
-end subroutine SSInitiateZRHD
-
-subroutine SSInitiateUO2PX
-
-    call SetThermoFileNameFortran('DBV6_TMB_modified.dat')
-    call SetUnits('K','atm','moles')
-
-    return
-
-end subroutine SSInitiateUO2PX
-
-subroutine tokenize(str, delim, word, lword, n)
-
-    implicit none
-
-    character (len=*) :: str
-    character(1)      :: delim
-    integer           :: lword
-    character(lword)  :: word(*)     ! need to fix the maximum n
-    integer           :: n
-
-    integer :: pos1, pos2, i
-
-    n = 0
-    pos1 = 1
-    pos2 = 0
-
-    DO
-        pos2 = INDEX(str(pos1:), delim)
-        IF (pos2 == 0) THEN
-            n = n + 1
-            word(n)=''
-            word(n) = str(pos1:)
-            EXIT
-        END IF
-        n = n + 1
-        word(n)=''
-        word(n) = str(pos1:pos1+pos2-2)
-        pos1 = pos2+pos1
-    END DO
-
-    ! write(*,"(3A)") ' tokenize ', str,';'
-    DO i = 1, n
-        ! WRITE(*,"(2A)", ADVANCE="NO") word(i), "."
-    END DO
-    ! write(*,*)
-
-end subroutine tokenize
-
-subroutine chomp(str, len)
-    ! remove \0 from c string
-    ! must pass len that was result from strlen
-    implicit none
-
-    character (len=*) ::  str
-    ! character(1)      :: str(*)
-    integer           :: len,lchop
-
-    ! write(*,*) 'chomp ',str,' len ',len
-
-    lchop=len+1
-    str(lchop:lchop)=""
-    ! str=trim(str)
-
-    return
-end subroutine chomp
-
-subroutine matchdict( word, dictionary, nwords, lenword, imatch )
-    !
-    !    Match word in a dictionary
-    !    nwords - number of words in dictionary
-    !    lenwords - array holding length of the words
-    !    imatch - 0 = no match, 1 = match
-
-    implicit none
-
-    character (len=*) ::  word
-    integer           :: nwords, lenword
-    character (len=lenword) :: dictionary(nwords)
-    character(25) :: cWord
-
-    integer :: imatch
-
-    integer :: i,lword
-
-    imatch=0
-
-    ! write(*,*) 'matchdict ',word
-
-    lword=len(word)
-    ! write(*,*) 'word ',word,'lword ', lword
-    if(lword > 25)then
-        write(*,"(A,i5)") "matchdict: word to match is too big ", lword
-        stop
-    end if
-
-    cWord=""
-    cWord(1:lword)=word(1:lword)
-
-    do i=1,nwords
-        if ( cWord == dictionary(i) ) then
-            imatch = imatch + 1
-        end if
-    end do
-
-    return
-end subroutine matchdict
-
-subroutine chopnull(str)
-
-    implicit none
-
-    !
-    character (len=*) ::  str
-    integer           ::  iloc
-
-    iloc=scan(str,char(0))
-
-    if(iloc > 0)then
-        str(iloc:iloc)=""
-    end if
-
-    return
-end subroutine chopnull
-
-subroutine getMolFraction(i, value, ierr) &
+subroutine getMolFractionISO(i, value, ierr) &
     bind(C, name="TCAPI_getMolFraction")
 
     USE ModuleThermo
@@ -613,9 +425,9 @@ subroutine getMolFraction(i, value, ierr) &
     endif
 
     return
-end subroutine getMolFraction
+end subroutine getMolFractionISO
 
-subroutine getChemicalPotential(i, value, ierr) &
+subroutine getChemicalPotentialISO(i, value, ierr) &
     bind(C, name="TCAPI_getChemicalPotential")
 
     USE ModuleThermo
@@ -634,9 +446,9 @@ subroutine getChemicalPotential(i, value, ierr) &
     endif
 
     return
-end subroutine getChemicalPotential
+end subroutine getChemicalPotentialISO
 
-subroutine getElementPotential(i, value, ierr) &
+subroutine getElementPotentialISO(i, value, ierr) &
     bind(C, name="TCAPI_getElementPotential")
 
     USE ModuleThermoIO
@@ -664,9 +476,9 @@ subroutine getElementPotential(i, value, ierr) &
 
     return
 
-end subroutine getElementPotential
+end subroutine getElementPotentialISO
 
-subroutine SetReinitRequested(iRequested) &
+subroutine SetReinitRequestedISO(iRequested) &
     bind(C, name="TCAPI_setReinitRequested")
 
     USE ModuleThermoIO, ONLY: lReinitRequested
@@ -683,9 +495,9 @@ subroutine SetReinitRequested(iRequested) &
 
     return
 
-end subroutine SetReinitRequested
+end subroutine SetReinitRequestedISO
 
-subroutine getReinitDataSizes(mElements, mSpecies) &
+subroutine getReinitDataSizesISO(mElements, mSpecies) &
     bind(C, name="TCAPI_getReinitDataSizes")
 
     USE ModuleThermo, ONLY: nElements, nSpecies
@@ -698,70 +510,9 @@ subroutine getReinitDataSizes(mElements, mSpecies) &
 
     return
 
-end subroutine getReinitDataSizes
+end subroutine getReinitDataSizesISO
 
-subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
-    mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
-    USE ModuleReinit
-    USE ModuleThermoIO
-    USE ModuleThermo, ONLY: nElements, nSpecies
-    implicit none
-
-    integer, intent(out)                           :: mReinitAvailable
-    integer, intent(out), dimension(nElements)     :: mAssemblage
-    real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
-    real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
-    integer, intent(out), dimension(0:168) :: mElementsUsed
-
-
-    if (lReinitAvailable) then
-        mAssemblage = iAssemblage_Old
-        mMolesPhase = dMolesPhase_Old
-        mElementPotential = dElementPotential_Old
-        mChemicalPotential = dChemicalPotential_Old
-        mMolFraction =  dMolFraction_Old
-        mElementsUsed = iElementsUsed_Old
-        mReinitAvailable = 1
-    else
-        mReinitAvailable = 0
-    end if
-
-
-    return
-
-end subroutine reinitDataTcToMoose
-
-subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
-    mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
-    USE ModuleReinit
-    USE ModuleThermoIO
-    USE ModuleThermo
-    implicit none
-
-    integer, intent(in)                            :: mElements, mSpecies
-    integer, intent(in), dimension(mElements)      :: mAssemblage
-    real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
-    real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
-    integer, intent(in), dimension(0:168)  :: mElementsUsed
-
-    allocate(dMolesPhase_Old(mElements),dChemicalPotential_Old(mSpecies),dElementPotential_Old(mElements),&
-        dMolFraction_Old(mSpecies))
-    allocate(iAssemblage_Old(mElements))
-    ! allocate(iElementsUsed_Old(0:168))
-
-    iAssemblage_Old = mAssemblage
-    dMolesPhase_Old = mMolesPhase
-    dElementPotential_Old = mElementPotential
-    dChemicalPotential_Old = mChemicalPotential
-    dMolFraction_Old = mMolFraction
-    iElementsUsed_Old = mElementsUsed
-    lReinitAvailable = .TRUE.
-
-    return
-
-end subroutine reinitDataTcFromMoose
-
-subroutine GetMolesPhase(mMolesPhase) &
+subroutine GetMolesPhaseISO(mMolesPhase) &
     bind(C, name="TCAPI_getMolesPhase")
 
     USE ModuleThermo, ONLY: nElements, dMolesPhase
@@ -773,34 +524,9 @@ subroutine GetMolesPhase(mMolesPhase) &
 
     return
 
-end subroutine GetMolesPhase
+end subroutine GetMolesPhaseISO
 
-subroutine GibbsEnergyOfReinitData(mGibbsEnergyOut)
-    USE ModuleReinit
-    USE ModuleThermo, ONLY: nElements
-    implicit none
-
-    real(8), intent(out) :: mGibbsEnergyOut
-    integer              :: nSolnPhasesReinit, nConPhasesReinit, i
-
-    nSolnPhasesReinit = 0
-    nConPhasesReinit = 0
-    do i = 1, nElements
-        if (iAssemblage_Old(i) > 0) then
-            nConPhasesReinit = nConPhasesReinit + 1
-        else if (iAssemblage_Old(i) < 0) then
-            nSolnPhasesReinit = nSolnPhasesReinit + 1
-        end if
-    end do
-
-    call GibbsEnergy(nConPhasesReinit, nSolnPhasesReinit, iAssemblage_Old, &
-        dMolesPhase_Old, dMolFraction_Old, mGibbsEnergyOut)
-
-    return
-
-end subroutine GibbsEnergyOfReinitData
-
-subroutine GetAssemblage(mAssemblage) &
+subroutine GetAssemblageISO(mAssemblage) &
     bind(C, name="TCAPI_getAssemblage")
 
     USE ModuleThermo, ONLY: nElements, iAssemblage
@@ -812,9 +538,9 @@ subroutine GetAssemblage(mAssemblage) &
 
     return
 
-end subroutine GetAssemblage
+end subroutine GetAssemblageISO
 
-subroutine GetAllElementPotential(mElementPotential) &
+subroutine GetAllElementPotentialISO(mElementPotential) &
     bind(C, name="TCAPI_getAllElementPotential")
 
     USE ModuleThermo, ONLY: nElements, dElementPotential
@@ -826,9 +552,9 @@ subroutine GetAllElementPotential(mElementPotential) &
 
     return
 
-end subroutine GetAllElementPotential
+end subroutine GetAllElementPotentialISO
 
-subroutine GetElementFraction(iAtom, dFrac) &
+subroutine GetElementFractionISO(iAtom, dFrac) &
     bind(C, name="TCAPI_getElementFraction")
 
     USE ModuleThermoIO, ONLY: dElementMass
@@ -854,4 +580,4 @@ subroutine GetElementFraction(iAtom, dFrac) &
 
     return
 
-end subroutine GetElementFraction
+end subroutine GetElementFractionISO
