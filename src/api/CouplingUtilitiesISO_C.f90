@@ -671,3 +671,24 @@ subroutine GetSUBLSiteMolISO(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOu
     return
 
 end subroutine GetSUBLSiteMolISO
+
+subroutine GetSolnPhaseMolISO(cSolnOut, lcSolnOut, dSolnMolOut, INFO) &
+    bind(C, name="TCAPI_getSolnPhaseMol")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dSolnMolOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+
+    call GetSolnPhaseMol(fSolnOut, dSolnMolOut, INFO)
+
+    return
+
+end subroutine GetSolnPhaseMolISO
