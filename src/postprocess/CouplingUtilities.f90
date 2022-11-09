@@ -656,7 +656,7 @@ subroutine GetMolesPhase(mMolesPhase)
   USE ModuleThermo, ONLY: nElements, dMolesPhase
   implicit none
 
-  real(8), intent(out), dimension(nElements)     :: mMolesPhase
+  real(8), intent(out), dimension(nElements) :: mMolesPhase
 
   mMolesPhase = dMolesPhase
 
