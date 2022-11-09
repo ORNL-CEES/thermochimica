@@ -23,7 +23,7 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -Wno-c-binding-type -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++11
 
 UNAME_S := $(shell uname -s)
@@ -52,7 +52,7 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
-SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
+SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz api
 EXE_DIR     = $(SRC_DIR)/exec
 TST_DIR     = test
 LIB_DIR     = lib
