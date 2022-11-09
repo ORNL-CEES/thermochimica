@@ -39,22 +39,24 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputMolSpecies(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dMolesOut, INFO)
+subroutine GetOutputMolSpecies(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dMolesOut, INFO) &
+    bind(C, name="TCAPI_getOutputMolSpecies")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, k
     real(8),       intent(out)   :: dMolFractionOut, dMolesOut
-    character(30), intent(inout) :: cSpeciesOut
-    integer                      :: lcSpeciesOut
-    character(30)                :: cTemp, cSearch
+    character(kind=c_char,len=1), target, intent(in) :: cSpeciesOut(*)
+    integer(c_size_t), intent(in), value             :: lcSpeciesOut
+    character(kind=c_char,len=lcSpeciesOut), pointer :: cSearch
+    integer                      :: i, k
+    character(30)                :: cTemp
 
-    cSearch = cSpeciesOut(1:min(30,lcSpeciesOut))
-    cSearch = TRIM(cSearch)
+    call c_f_pointer(cptr=c_loc(cSpeciesOut), fptr=cSearch)
 
     ! Initialize variables:
     INFO            = 0
@@ -63,7 +65,6 @@ subroutine GetOutputMolSpecies(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dMole
     k=0
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
-       ! Remove trailing blanks:
         LOOP_SPECIES: do i = 1, nSpecies
 
            ! Remove leading blanks:

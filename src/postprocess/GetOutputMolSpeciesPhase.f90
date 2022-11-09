@@ -39,25 +39,26 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputMolSpeciesPhase(cPhase, lcPhase, cSpecies, lcSpecies, dMolFractionOut, INFO)
+subroutine GetOutputMolSpeciesPhase(cPhase, lcPhase, cSpecies, lcSpecies, dMolFractionOut, INFO) &
+    bind(C, name="TCAPI_getOutputMolSpeciesPhase")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    integer                      :: i, j, k, iPhaseInd
-    real(8),       intent(out)   :: dMolFractionOut
-    character(*),  intent(in)    :: cPhase, cSpecies
-    integer                      :: lcPhase, lcSpecies
-    character(30)                :: cTempPhase, cTempSpecies, cSearchPhase, cSearchSpecies
+    integer, intent(out)   :: INFO
+    real(8), intent(out)   :: dMolFractionOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cSpecies(*)
+    integer(c_size_t), intent(in), value             :: lcPhase, lcSpecies
+    character(kind=c_char,len=lcPhase), pointer      :: cSearchPhase
+    character(kind=c_char,len=lcSpecies), pointer    :: cSearchSpecies
+    integer                :: i, j, k, iPhaseInd
+    character(30)          :: cTempPhase, cTempSpecies
 
-    cSearchPhase = cPhase!TRIM(cPhase(1:min(30,lcPhase)))
-    cSearchSpecies = cSpecies!TRIM(cSpecies(1:min(30,lcSpecies)))
-
-    cSearchPhase = TRIM(cSearchPhase(1:min(30,lcPhase)))
-    cSearchSpecies = TRIM(cSearchSpecies(1:min(30,lcSpecies)))
+    call c_f_pointer(cptr=c_loc(cPhase), fptr=cSearchPhase)
+    call c_f_pointer(cptr=c_loc(cSpecies), fptr=cSearchSpecies)
 
     ! Initialize variables:
     INFO            = 0

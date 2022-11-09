@@ -39,26 +39,26 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO)
+subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
+    bind(C, name="TCAPI_getElementMolesInPhase")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, j, k, iPhaseInd
     real(8),       intent(out)   :: dMolesOut
-    character(*), intent(in)     :: cPhase
-    character(*),  intent(in)    :: cElement
-    integer, intent(in)          :: lcPhase, lcElement
-    character(30)                :: cTempPhase, cTempElement, cSearchPhase, cSearchElement
+    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cElement(*)
+    integer(c_size_t), intent(in), value             :: lcPhase, lcElement
+    character(kind=c_char,len=lcPhase), pointer      :: fPhase
+    character(kind=c_char,len=lcElement), pointer    :: fElement
+    integer                      :: i, j, k, iPhaseInd
+    character(30)                :: cTempPhase, cTempElement
 
-    cSearchPhase = cPhase !TRIM(cPhase(1:min(30,lcPhase)))
-    cSearchPhase = TRIM(cSearchPhase(1:min(30,lcPhase)))
-    cSearchElement = cElement! TRIM(cElement(1:min(3,lcElement)))
-    cSearchElement = TRIM(cSearchElement(1:min(3,lcElement)))
-
+    call c_f_pointer(cptr=c_loc(cPhase), fptr=fPhase)
+    call c_f_pointer(cptr=c_loc(cElement), fptr=fElement)
 
     ! Initialize variables:
     INFO            = 0
@@ -67,16 +67,16 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
 
     LOOP_Elements: do i = 1, nElements
         cTempElement = ADJUSTL(cElementName(i))
-        if (cTempElement == cSearchElement) then
+        if (cTempElement == fElement) then
             k = i
             exit LOOP_Elements
         end if
     end do LOOP_Elements
 
     if (k == 0) then
-       ! This element was not found.  Report an error:
-       INFO = 1
-       return
+        ! This element was not found.  Report an error:
+        INFO = 1
+        return
     end if
 
     ! Only proceed if Thermochimica solved successfully:
@@ -89,7 +89,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
             cTempPhase = ADJUSTL(cSolnPhaseName(iPhaseInd))
 
             ! Loop through species in this phase:
-            if (cTempPhase == cSearchPhase) then
+            if (cTempPhase == fPhase) then
                 ! Solution phase found.  Now look for species.
                 LOOP_Species: do j = nSpeciesPhase(iPhaseInd-1) + 1, nSpeciesPhase(iPhaseInd)
                     dMolesOut = dMolesOut + dMolesSpecies(j) * dStoichSpecies(j,k)
@@ -104,7 +104,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
             LOOP_Stoich: do i = 1, nConPhases
                 iPhaseInd = iAssemblage(i)
                 cTempPhase = ADJUSTL(cSpeciesName(iPhaseInd))
-                if (cTempPhase == cSearchPhase) then
+                if (cTempPhase == fPhase) then
                     dMolesOut = dMolesPhase(i) * dStoichSpecies(iPhaseInd,k)
                     exit LOOP_Stoich
                 end if

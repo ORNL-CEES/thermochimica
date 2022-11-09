@@ -41,24 +41,26 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO)
+subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, dMolFractionOut, dChemPotSpecies, INFO) &
+    bind(C, name="TCAPI_getOutputSolnSpecies")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, j, k
     real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
-    character(*),  intent(in)    :: cSolnOut, cSpeciesOut
-    integer,       intent(in)    :: lcSolnOut, lcSpeciesOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*), cSpeciesOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut, lcSpeciesOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+    character(kind=c_char,len=lcSpeciesOut), pointer :: fSpeciesOut
+    integer                      :: i, j, k
     character(30)                :: cTemp
 
-    character(15)                :: cSolnOutLen, cSpeciesOutLen
-
-    cSolnOutLen    = cSolnOut(1:min(15,lcSolnOut))
-    cSpeciesOutLen = cSpeciesOut(1:min(15,lcSpeciesOut))
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+    call c_f_pointer(cptr=c_loc(cSpeciesOut), fptr=fSpeciesOut)
 
     ! Initialize variables:
     INFO            = 0
@@ -68,17 +70,13 @@ subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
 
-        ! Remove trailing blanks:
-        cSolnOutLen    = TRIM(cSolnOutLen)
-        cSpeciesOutLen = TRIM(cSpeciesOutLen)
-
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
         j = 0
         LOOP_SOLN: do i = 1, nSolnPhases
             k = -iAssemblage(nElements - i + 1)
 
-            if (cSolnOutLen == cSolnPhaseName(k)) then
+            if (fSolnOut == cSolnPhaseName(k)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = k
                 exit LOOP_SOLN
@@ -96,7 +94,7 @@ subroutine GetOutputSolnSpecies(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOut, 
                 cTemp = ADJUSTL(cSpeciesName(i))
 
                 ! Loop through species in this phase:
-                if (cTemp == cSpeciesOutLen) then
+                if (cTemp == fSpeciesOut) then
                     ! Solution species found.  Record index and exit loop.
                     k = i
                     exit LOOP_SPECIES

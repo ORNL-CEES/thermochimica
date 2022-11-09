@@ -51,23 +51,24 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
+subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO) &
+    bind(C, name="TCAPI_getOutputSiteFraction")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, j, k
-    integer                      :: iSublatticeOut, iConstituentOut
     real(8),       intent(out)   :: dSiteFractionOut
-    character(*),  intent(in)    :: cSolnOut
-    integer                      :: lcSolnOut
-    character(15)                :: cTemp
+    integer                      :: iSublatticeOut, iConstituentOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+    integer                      :: i, j, k
 
-    cTemp = cSolnOut(1:min(15,lcSolnOut))
-!    cTemp = cSolnOut(1:min(15,len(cSolnOut)))
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
 
     ! Initialize variables:
     INFO             = 0
@@ -75,10 +76,6 @@ subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstitue
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
-
-        ! Remove trailing blanks:
-        ! cSolnOut    = TRIM(cSolnOut)
-        ! cTemp    = TRIM(cTemp)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
@@ -89,8 +86,7 @@ subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstitue
             k = -iAssemblage(nElements - i + 1)
 
             ! write(*,*) 'c ', cTemp, len(cTemp), ' = ', cSolnPhaseName(k)
-            ! if (cSolnOut == cSolnPhaseName(k)) then
-            if (cTemp == cSolnPhaseName(k)) then
+            if (fSolnOut == cSolnPhaseName(k)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = k
 
@@ -116,8 +112,8 @@ subroutine GetOutputSiteFraction(cSolnOut, lcSolnOut, iSublatticeOut, iConstitue
             ! Make sure that the sublattice index requested is within the range
             ! of the actual phase:
             if ((iSublatticeOut > i).OR.(iSublatticeOut < 1)) then
-               INFO = 2
-               return
+                INFO = 2
+                return
             end if
 
             ! Return the site fration of this constituent:

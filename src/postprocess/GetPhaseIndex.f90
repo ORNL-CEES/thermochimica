@@ -36,31 +36,30 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetPhaseIndex(cPhaseName, lcPhaseName, iIndexOut, INFO)
+subroutine GetPhaseIndex(cPhaseName, lcPhaseName, iIndexOut, INFO) &
+    bind(C, name="TCAPI_getPhaseIndex")
 
     USE ModuleThermo
     USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,       intent(out)   :: INFO
-    integer                      :: i, k
     integer,       intent(out)   :: iIndexOut
-    character(*),  intent(in)    :: cPhaseName
-    integer                      :: lcPhaseName
-    character(25)                :: cTemp, cTempPhase
-    cTemp = cPhaseName(1:min(25,lcPhaseName))
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: cTemp
+    integer                      :: i, k
+    character(25)                :: cTempPhase
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=cTemp)
 
     ! Initialize variables:
     INFO          = 0
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
-
-        ! Remove trailing blanks:
-        ! cSolnOut    = TRIM(cSolnOut)
-        cTemp    = TRIM(cTemp)
-        cTemp    = ADJUSTL(cTemp)
 
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
