@@ -439,3 +439,12 @@ subroutine GetElementFractionISO(iAtom, dFrac) &
     return
 
 end subroutine GetElementFractionISO
+
+subroutine PrintStateISO() &
+    bind(C, name="TCAPI_printState")
+
+    implicit none
+ 
+    call PrintState
+ 
+ end subroutine PrintState
