@@ -1,23 +1,24 @@
 
-subroutine GetMqmqaMolesPairs(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) &
-    bind(C, name="TCAPI_getMqmqaMolesPairs")
+subroutine GetMqmqaMolesPairs(cPhase, dMolesPairsOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
+    character(*),  intent(in)                :: cPhase
     integer,       intent(out)               :: INFO
+    integer                                  :: i, j
     real(8),       intent(out)               :: dMolesPairsOut
-    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
-    integer(c_size_t), intent(in), value             :: lcPhaseName
-    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+    character(25)                            :: cSearchPhase
     character(30), dimension(:), allocatable :: cPair
     real(8), dimension(:), allocatable       :: dPair
-    integer                                  :: i, j
+    ! integer,  intent(in)                     :: lcPhase
 
-    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+    ! It seems that a single string argument works only without length supplied,
+    ! but if there are multiple strings, they require lengths.
+    cSearchPhase = cPhase
+    ! cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
 
     ! Initialize variables:
     INFO            = 0
@@ -26,11 +27,14 @@ subroutine GetMqmqaMolesPairs(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) &
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
 
+        ! Remove trailing blanks:
+        cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
+
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
         j = 0
         LOOP_SOLN: do i = 1, nSolnPhasesSys
-            if (fPhaseName == cSolnPhaseName(i)) then
+            if (cSearchPhase == cSolnPhaseName(i)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = i
                 exit LOOP_SOLN
@@ -46,8 +50,8 @@ subroutine GetMqmqaMolesPairs(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) &
             call CalculateCompositionSUBG(j,dMolesPairsOut,.FALSE.,cPair,dPair)
             deallocate(cPair,dPair)
         else
-            ! This solution phase was not found.  Report an error:
-            INFO = 1
+           ! This solution phase was not found.  Report an error:
+           INFO = 1
         end if IF_SOLN
 
     else
@@ -60,29 +64,29 @@ subroutine GetMqmqaMolesPairs(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) &
 end subroutine GetMqmqaMolesPairs
 
 
-subroutine GetMqmqaPairMolFraction(cPhaseName, lcPhaseName, cPairIn, lcPairIn, dMolesPairOut, INFO) &
-    bind(C, name="TCAPI_getMqmqaPairMolFraction")
+subroutine GetMqmqaPairMolFraction(cPhase, lcPhase, cPairIn, lcPairIn, dMolesPairOut, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
+    character(*),  intent(in)                :: cPhase, cPairIn
     integer,       intent(out)               :: INFO
-    real(8),       intent(out)               :: dMolesPairOut
-    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*), cPairIn(*)
-    integer(c_size_t), intent(in), value             :: lcPhaseName, lcPairIn
-    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
-    character(kind=c_char,len=lcPairIn), pointer     :: fPairIn
     integer                                  :: i, j ,k
+    real(8),       intent(out)               :: dMolesPairOut
     real(8)                                  :: dMolesPairs
+    character(25)                            :: cSearchPhase, cSearchPair
     character(30), dimension(:), allocatable :: cPair
     real(8), dimension(:), allocatable       :: dPair
+    integer,  intent(in)                     :: lcPhase, lcPairIn
 
-
-    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
-    call c_f_pointer(cptr=c_loc(cPairIn), fptr=fPairIn)
+    ! It seems that a single string argument works only without length supplied,
+    ! but if there are multiple strings, they require lengths.
+    cSearchPhase = cPhase
+    cSearchPair  = cPairIn
+    cSearchPhase = TRIM(cSearchPhase(1:min(30,lcPhase)))
+    cSearchPair = TRIM(cSearchPair(1:min(30,lcPairIn)))
 
     ! Initialize variables:
     INFO            = 0
@@ -91,11 +95,15 @@ subroutine GetMqmqaPairMolFraction(cPhaseName, lcPhaseName, cPairIn, lcPairIn, d
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
 
+        ! Remove trailing blanks:
+        cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
+        cSearchPair  = TRIM(ADJUSTL(cSearchPair))
+
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
         j = 0
         LOOP_SOLN: do i = 1, nSolnPhasesSys
-            if (fPhaseName == cSolnPhaseName(i)) then
+            if (cSearchPhase == cSolnPhaseName(i)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = i
                 exit LOOP_SOLN
@@ -112,7 +120,7 @@ subroutine GetMqmqaPairMolFraction(cPhaseName, lcPhaseName, cPairIn, lcPairIn, d
             ! Find selected pair
             INFO = 2
             LOOP_pairs: do k = 1, nPairsSRO(iPhaseSublattice(j),1)
-                if (fPairIn == cPair(k)) then
+                if (cSearchPair == cPair(k)) then
                     INFO = 0
                     dMolesPairOut = dPair(k)
                     exit LOOP_pairs
@@ -120,8 +128,8 @@ subroutine GetMqmqaPairMolFraction(cPhaseName, lcPhaseName, cPairIn, lcPairIn, d
             end do LOOP_pairs
             deallocate(cPair,dPair)
         else
-            ! This solution phase was not found.  Report an error:
-            INFO = 1
+           ! This solution phase was not found.  Report an error:
+           INFO = 1
         end if IF_SOLN
 
     else
@@ -133,22 +141,23 @@ subroutine GetMqmqaPairMolFraction(cPhaseName, lcPhaseName, cPairIn, lcPairIn, d
 
 end subroutine GetMqmqaPairMolFraction
 
-subroutine GetMqmqaNumberPairsQuads(cPhaseName,lcPhaseName, nPairs, nQuads, INFO) &
-    bind(C, name="TCAPI_getMqmqaNumberPairsQuads")
+subroutine GetMqmqaNumberPairsQuads(cPhase, nPairs, nQuads, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
+    character(*),  intent(in)                :: cPhase
     integer,       intent(out)               :: INFO, nPairs, nQuads
-    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
-    integer(c_size_t), intent(in), value             :: lcPhaseName
-    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
     integer                                  :: i, j
+    character(25)                            :: cSearchPhase
+    ! integer,  intent(in)                     :: lcPhase
 
-    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+    ! GetMqmqaNumberPairsQuads was given a mismatched number of arguments between Fortran and C
+    ! The last argument in C is the string length.
+    cSearchPhase = cPhase
+    ! cSearchPhase = TRIM(cSearchPhase(1:min(30,lcPhase)))
 
     ! Initialize variables:
     INFO            = 0
@@ -158,11 +167,14 @@ subroutine GetMqmqaNumberPairsQuads(cPhaseName,lcPhaseName, nPairs, nQuads, INFO
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
 
+        ! Remove trailing blanks:
+        cSearchPhase = TRIM(ADJUSTL(cSearchPhase))
+
         ! Loop through stable soluton phases to find the one corresponding to the
         ! solution phase being requested:
         j = 0
         LOOP_SOLN: do i = 1, nSolnPhasesSys
-            if (fPhaseName == cSolnPhaseName(i)) then
+            if (cSearchPhase == cSolnPhaseName(i)) then
                 ! Solution phase found.  Record integer index and exit loop.
                 j = i
                 exit LOOP_SOLN
@@ -176,8 +188,8 @@ subroutine GetMqmqaNumberPairsQuads(cPhaseName,lcPhaseName, nPairs, nQuads, INFO
             nPairs = nPairsSRO(iPhaseSublattice(j),1)
             nQuads = nSpeciesPhase(j) - nSpeciesPhase(j - 1)
         else
-            ! This solution phase was not found.  Report an error:
-            INFO = 1
+           ! This solution phase was not found.  Report an error:
+           INFO = 1
         end if IF_SOLN
 
     else

@@ -692,3 +692,69 @@ subroutine GetSolnPhaseMolISO(cSolnOut, lcSolnOut, dSolnMolOut, INFO) &
     return
 
 end subroutine GetSolnPhaseMolISO
+
+subroutine GetMqmqaMolesPairsISO(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) &
+    bind(C, name="TCAPI_getMqmqaMolesPairs")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)               :: INFO
+    real(8),       intent(out)               :: dMolesPairsOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+
+    call GetMqmqaMolesPairs(fPhaseName, dMolesPairsOut, INFO)    
+
+    return
+
+end subroutine GetMqmqaMolesPairsISO
+
+
+subroutine GetMqmqaPairMolFractionISO(cPhaseName, lcPhaseName, cPairIn, lcPairIn, dMolesPairOut, INFO) &
+    bind(C, name="TCAPI_getMqmqaPairMolFraction")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)               :: INFO
+    real(8),       intent(out)               :: dMolesPairOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*), cPairIn(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName, lcPairIn
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+    character(kind=c_char,len=lcPairIn), pointer     :: fPairIn
+
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+    call c_f_pointer(cptr=c_loc(cPairIn), fptr=fPairIn)
+
+    call GetMqmqaPairMolFraction(fPhaseName, lcPhaseName, fPairIn, lcPairIn, dMolesPairOut, INFO)
+
+    return
+
+end subroutine GetMqmqaPairMolFractionISO
+
+subroutine GetMqmqaNumberPairsQuadsISO(cPhaseName,lcPhaseName, nPairs, nQuads, INFO) &
+    bind(C, name="TCAPI_getMqmqaNumberPairsQuads")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)               :: INFO, nPairs, nQuads
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+
+    call GetMqmqaNumberPairsQuads(fPhaseName, nPairs, nQuads, INFO)
+
+    return
+
+end subroutine GetMqmqaNumberPairsQuadsISO
