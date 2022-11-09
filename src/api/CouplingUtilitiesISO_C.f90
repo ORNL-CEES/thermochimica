@@ -494,3 +494,24 @@ subroutine GetElementMolesInPhaseISO(cElement, lcElement, cPhase, lcPhase, dMole
     return
 
 end subroutine GetElementMolesInPhaseISO
+
+subroutine GetOutputChemPotISO(cElementNameRequest, lcElementNameRequest, dElementChemPot, INFO) &
+    bind(C, name="TCAPI_getOutputChemPot")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,      intent(out)   :: INFO
+    real(8),      intent(out)   :: dElementChemPot
+    character(kind=c_char,len=1), target, intent(in)         :: cElementNameRequest(*)
+    integer(c_size_t), intent(in), value                     :: lcElementNameRequest
+    character(kind=c_char,len=lcElementNameRequest), pointer :: fElementNameRequest
+
+    call c_f_pointer(cptr=c_loc(cElementNameRequest), fptr=fElementNameRequest)
+
+    call GetOutputChemPot(fElementNameRequest, dElementChemPot, INFO)
+
+    return
+
+end subroutine GetOutputChemPotISO

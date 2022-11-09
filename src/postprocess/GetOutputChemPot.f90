@@ -37,23 +37,19 @@
 !-------------------------------------------------------------------------------
 
 
-subroutine GetOutputChemPot(cElementNameRequest, lcElementNameRequest, dElementChemPot, INFO) &
-    bind(C, name="TCAPI_getOutputChemPot")
+subroutine GetOutputChemPot(cElementNameRequest, dElementChemPot, INFO)
 
     USE ModuleThermo
     USE ModuleThermoIO
-    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
     integer,      intent(out)   :: INFO
-    real(8),      intent(out)   :: dElementChemPot
-    character(kind=c_char,len=1), target, intent(in)         :: cElementNameRequest(*)
-    integer(c_size_t), intent(in), value                     :: lcElementNameRequest
-    character(kind=c_char,len=lcElementNameRequest), pointer :: cElementNameUse
     integer                     :: i, j
+    real(8),      intent(out)   :: dElementChemPot
+    character(*), intent(in)    :: cElementNameRequest
+    character(3)                :: cElementNameUse
 
-    call c_f_pointer(cptr=c_loc(cElementNameRequest), fptr=cElementNameUse)
 
     ! Initialize variables:
     INFO            = 0
@@ -61,6 +57,10 @@ subroutine GetOutputChemPot(cElementNameRequest, lcElementNameRequest, dElementC
 
     ! Only proceed if Thermochimica solved successfully:
     if (INFOThermo == 0) then
+
+        ! Remove trailing blanks:
+        cElementNameUse = cElementNameRequest
+        cElementNameUse = TRIM(cElementNameUse)
 
         ! Loop through elements to find the one corresponding to the element
         ! being requested:
