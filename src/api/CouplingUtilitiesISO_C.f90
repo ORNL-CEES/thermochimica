@@ -449,7 +449,7 @@ subroutine PrintStateISO() &
  
 end subroutine PrintStateISO
 
-subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
+subroutine GetElementMoleFractionInPhaseISO(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
     bind(C, name="TCAPI_getElementMoleFractionInPhase")
 
     USE,INTRINSIC :: ISO_C_BINDING
@@ -473,4 +473,4 @@ subroutine GetElementMoleFractionInPhase(cElement, lcElement, cPhase, lcPhase, d
 
     return
 
-end subroutine GetElementMoleFractionInPhase
+end subroutine GetElementMoleFractionInPhaseISO
