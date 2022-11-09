@@ -562,3 +562,27 @@ subroutine GetOutputMolSpeciesPhaseISO(cPhase, lcPhase, cSpecies, lcSpecies, dMo
     return
 
 end subroutine GetOutputMolSpeciesPhaseISO
+
+subroutine GetOutputSiteFractionISO(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO) &
+    bind(C, name="TCAPI_getOutputSiteFraction")
+
+    USE ModuleThermo
+    USE ModuleThermoIO
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)   :: INFO
+    real(8),       intent(out)   :: dSiteFractionOut
+    integer                      :: iSublatticeOut, iConstituentOut
+    character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
+    integer(c_size_t), intent(in), value             :: lcSolnOut
+    character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
+
+    call c_f_pointer(cptr=c_loc(cSolnOut), fptr=fSolnOut)
+
+    call GetOutputSiteFraction(fSolnOut, lcSolnOut, iSublatticeOut, iConstituentOut, dSiteFractionOut, INFO)
+
+    return
+
+end subroutine GetOutputSiteFractionISO
