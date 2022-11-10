@@ -35,7 +35,7 @@ subroutine SetUnitTemperature(cUnitTemperature)
 
   implicit none
 
-  character(15), intent(in)::  cUnitTemperature
+  character(*), intent(in)::  cUnitTemperature
   character(15) :: cUnitTemperatureLen
 
   cUnitTemperatureLen = cUnitTemperature(1:min(15,len(cUnitTemperature)))
@@ -51,7 +51,7 @@ subroutine SetUnitPressure(cUnitPressure)
 
   implicit none
 
-  character(15), intent(in)::  cUnitPressure
+  character(*), intent(in)::  cUnitPressure
   character(15) :: cUnitPressureLen
 
   cUnitPressureLen = cUnitPressure(1:min(15,len(cUnitPressure)))
@@ -67,7 +67,7 @@ subroutine SetUnitMass(cUnitMass)
 
   implicit none
 
-  character(15), intent(in)::  cUnitMass
+  character(*), intent(in)::  cUnitMass
   character(15) :: cUnitMassLen
 
   cUnitMassLen = cUnitMass(1:min(15,len(cUnitMass)))
