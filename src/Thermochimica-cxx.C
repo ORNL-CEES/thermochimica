@@ -4,7 +4,7 @@
 #include <map>
 #include "Thermochimica.h"
 
-namespace Thermocimica
+namespace Thermochimica
 {
 
   void setThermoFilename(const std::string &filename)
