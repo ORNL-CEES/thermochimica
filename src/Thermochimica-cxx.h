@@ -48,8 +48,8 @@ namespace Thermochimica
   std::pair<double, int>
   getMqmqaMolesPairs(const std::string &phaseName);
   std::pair<double, int>
-  GetMqmqaPairMolFraction(const char *phaseName, const char *pairName, double *molesPairs, int *info);
+  getMqmqaPairMolFraction(const std::string &phaseName, const std::string &pairName);
   std::tuple<int, int, int>
-  GetMqmqaNumberPairsQuads(const std::string &phaseName);
+  getMqmqaNumberPairsQuads(const std::string &phaseName);
 
 }
