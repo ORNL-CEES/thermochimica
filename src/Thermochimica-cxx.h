@@ -4,7 +4,7 @@
 
 #include "checkUnits.h"
 
-namespace Thermocimica
+namespace Thermochimica
 {
 
   void setThermoFilename(const std::string &filename);
