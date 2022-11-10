@@ -7,6 +7,7 @@
 namespace Thermochimica
 {
 
+  void thermochimica();
   void setThermoFilename(const std::string &filename);
   void setUnitTemperature(const std::string &tunit);
   void setUnitPressure(const std::string &punit);
@@ -18,6 +19,8 @@ namespace Thermochimica
   void setElementMass(int element, double mass);
   int checkInfoThermo();
   void parseThermoFile();
+  void setPrintResultsMode(int mode);
+  void printResults();
 
   std::pair<double, int>
   getOutputChemPot(const std::string &elementName);

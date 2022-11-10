@@ -7,6 +7,21 @@
 namespace Thermochimica
 {
 
+  void thermochimica()
+  {
+    TCAPI_thermochimica();
+  }
+
+  void setPrintResultsMode(int mode)
+  {
+    TCAPI_setPrintResultsMode(&mode);
+  }
+
+  void printResults()
+  {
+    TCAPI_printResults();
+  }
+
   void setThermoFilename(const std::string &filename)
   {
     TCAPI_setThermoFilename(filename.c_str(), filename.length());
