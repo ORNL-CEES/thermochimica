@@ -62,7 +62,7 @@ program TestThermo64
     ! Check results:
     if (INFOThermo == 0) then
         ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS(dGibbsEnergySys - (-5.24838E+05))/((-5.24838E+05))) < 1D-3) then
+        if ((DABS((dGibbsEnergySys - (-5.24838E+05))/(-5.24838E+05))) < 1D-3) then
             do i = 1, nSolnPhases
                 j = -iAssemblage(nElements + 1 - i)
                 if (cSolnPhaseName(j) == 'BCC_A2') then
