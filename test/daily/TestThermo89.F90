@@ -1,8 +1,8 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo88.F90
-    !> \brief   SUBM mismatch coefficients and charges.
+    !> \file    TestThermo89.F90
+    !> \brief   SUBM worst case scenario.
     !> \author  M.H.A. Piro, M. Poschmann
     !
     ! DISCLAIMER
@@ -20,12 +20,11 @@
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !!  results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2.
-    !!  Two constituents on both sublattices are tested.
+    !!  results a SUBM phase where everything and the kitchen sink is thrown in.
     !
     !-------------------------------------------------------------------------------------------------------------
 
-program TestThermo88
+program TestThermo89
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -47,16 +46,16 @@ program TestThermo88
     dPressure             = 1.0D0
     dElementMass          = 0D0
 
-    dElementMass(3)       = 3D0                              ! Li
-    dElementMass(11)      = 0D0                              ! Na
-    dElementMass(17)      = 0D0                              ! Cl
-    dElementMass(9)       = 5D0                              ! F
-    dElementMass(26)      = 0D0                              ! Fe
-    dElementMass(8)       = 1D0                              ! O
-    dElementMass(19)      = 0D0                              ! K
-    dElementMass(40)      = 1D0                              ! Zr
+    dElementMass(3)       = 1D0                              ! Li
+    dElementMass(11)      = 2D0                              ! Na
+    dElementMass(17)      = 2D0                              ! Cl
+    dElementMass(9)       = 12D0                             ! F
+    dElementMass(26)      = 3D0                              ! Fe
+    dElementMass(8)       = 11D0                             ! O
+    dElementMass(19)      = 4D0                              ! K
+    dElementMass(40)      = 5D0                              ! Zr
 
-    gibbscheck = -1.90265D05
+    gibbscheck = -7.61628D05
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -76,16 +75,16 @@ program TestThermo88
 
     if (s1pass) then
         ! The test passed:
-        print *, 'TestThermo88: PASS'
+        print *, 'TestThermo89: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestThermo88: FAIL <---'
+        print *, 'TestThermo89: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestThermo88
+end program TestThermo89
