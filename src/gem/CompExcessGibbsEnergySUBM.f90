@@ -54,7 +54,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
 
     integer :: i, j, k, l, n
     integer :: a, b, c, x, xx, order, iGroup1, iGroup2, iGroupTemp
-    integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
+    integer :: iSolnIndex, iSPI, nConstituents, nSub1, nSub2, nA2X2
     integer :: iFirst, iLast, iStartCon, iEndCon, iSub, iOffset
     logical :: lIsException
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
@@ -83,11 +83,11 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     if (allocated(dgdc)) deallocate(dgdc)
     if (allocated(dMolDerivatives)) deallocate(dMolDerivatives)
     if (allocated(dSumY)) deallocate(dSumY)
-    nPhaseElements = nSub1 + nSub2
-    allocate(dXi(nPhaseElements),dYi(nPhaseElements),dNi(nPhaseElements))
-    allocate(lAsymmetric1(nPhaseElements))
-    allocate(lAsymmetric2(nPhaseElements))
-    allocate(dgdc(nPhaseElements))
+    nConstituents = nSub1 + nSub2
+    allocate(dXi(nConstituents),dYi(nConstituents),dNi(nConstituents))
+    allocate(lAsymmetric1(nConstituents))
+    allocate(lAsymmetric2(nConstituents))
+    allocate(dgdc(nConstituents))
     allocate(dMolDerivatives(nA2X2))
     allocate(dSumY(2))
 
