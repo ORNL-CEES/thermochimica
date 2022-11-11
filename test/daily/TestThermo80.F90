@@ -67,7 +67,7 @@ program TestThermo80
 
     ! Check results:
     if (INFOThermo == 0) then
-        if ((DABS(dGibbsEnergySys - (gibbscheck))/(gibbscheck) < 1D-3)) then
+        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
             s1pass = .TRUE.
         end if
     end if
