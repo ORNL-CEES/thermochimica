@@ -61,7 +61,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     real(8) :: dSum1, dSum2, dSumMF, q, p, ea, eb, ec, ex, yc, dYcfac
     real(8) :: gref, gideal, gex, natom, dMol, lc1, lc2, dMolAtoms, gexTemp, dgexTemp, grefTemp
     real(8) :: dXi1, dXi2, dXiDen
-    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives, dSumY
+    real(8), allocatable, dimension(:) :: dXi, dYi, dNi, dgdc, dMolDerivatives, dSumY, dSumMFdx
 
     ! Only proceed if the correct phase type is selected:
     if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBM')) return
@@ -83,6 +83,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     if (allocated(dgdc)) deallocate(dgdc)
     if (allocated(dMolDerivatives)) deallocate(dMolDerivatives)
     if (allocated(dSumY)) deallocate(dSumY)
+    if (allocated(dSumMFdx)) deallocate(dSumMFdx)
     nConstituents = nSub1 + nSub2
     allocate(dXi(nConstituents),dYi(nConstituents),dNi(nConstituents))
     allocate(lAsymmetric1(nConstituents))
@@ -90,6 +91,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     allocate(dgdc(nConstituents))
     allocate(dMolDerivatives(nA2X2))
     allocate(dSumY(2))
+    allocate(dSumMFdx(nConstituents))
 
     ! Initialize variables:
     dSiteFraction(iSPI,1:2,1:nMaxConstituentSys) = 0D0
@@ -137,12 +139,25 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     ! Model enforces random mixing: no ordering allowed!
     ! Must set X_a,x = X_a * X_x
     dSumMF = 0D0
+    dSumMFdx = 0D0
     do i = iFirst, iLast
         k = i + 1 - iFirst
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
-        dMolFraction(i) = dXi(a) * dXi(x) * dSublatticeCharge(iSPI,1,a) / dConstituentCoefficients(iSPI,k,2)
+
+        lc1 = dConstituentCoefficients(iSPI,k,1)
+        lc2 = dConstituentCoefficients(iSPI,k,2)
+
+        dMolFraction(i) = dXi(a) * dXi(x) * dSublatticeCharge(iSPI,1,a) / lc2
         dSumMF = dSumMF + dMolFraction(i)
+        dSumMFdx(a) = dSumMFdx(a) + dXi(x) * dSublatticeCharge(iSPI,1,a) / lc2 / dSum1
+        dSumMFdx(x) = dSumMFdx(x) + dXi(a) * dSublatticeCharge(iSPI,1,a) / lc2 / dSum2
+        do j = 1, nSub1
+            dSumMFdx(j) = dSumMFdx(j) - dXi(a) * dXi(x) * dSublatticeCharge(iSPI,1,a) / lc2 / dSum1
+        end do
+        do j = nSub1 + 1, nConstituents
+            dSumMFdx(j) = dSumMFdx(j) - dXi(a) * dXi(x) * dSublatticeCharge(iSPI,1,a) / lc2 / dSum2
+        end do
     end do
 
     ! Ensure mole fractions sum to 1
@@ -424,29 +439,33 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         a = iConstituentSublattice(iSPI,1,k)
         x = iConstituentSublattice(iSPI,2,k) + nSub1
 
-        natom = (dConstituentCoefficients(iSPI,k,1) + dConstituentCoefficients(iSPI,k,2)) / dMol + dMolDerivatives(k) * dMolAtoms
+        lc1 = dConstituentCoefficients(iSPI,k,1)
+        lc2 = dConstituentCoefficients(iSPI,k,2)
 
-        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom &
-        * dSublatticeCharge(iSPI,1,a) / dConstituentCoefficients(iSPI,k,2)
+        natom = (lc1 + lc2) / dMol + dMolDerivatives(k) * dMolAtoms
 
+        natom = natom - (dMolAtoms / dMol) * (dSumMFdx(a)*lc1 + dSumMFdx(x)*lc2) / dSumMF**2
+        natom = natom * dSumMF
+
+        dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom
         ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
             if (j == a) then
-                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,1) * dgdc(j) / dSumMF
+                dChemicalPotential(i) = dChemicalPotential(i) + lc1 * dgdc(j)
             end if
         end do
 
         do j = 1, nSub2
             l = nSub1 + j
             if (l == x) then
-                dChemicalPotential(i) = dChemicalPotential(i) + dConstituentCoefficients(iSPI,k,2) * dgdc(l) / dSumMF
+                dChemicalPotential(i) = dChemicalPotential(i) + lc2 * dgdc(l)
             end if
         end do
     end do
 
     ! Deallocate allocatable arrays:
     deallocate(dXi,dYi,dNi,lAsymmetric1,lAsymmetric2)
-    deallocate(dgdc,dMolDerivatives)
+    deallocate(dgdc,dMolDerivatives,dSumMFdx)
 
     return
 
