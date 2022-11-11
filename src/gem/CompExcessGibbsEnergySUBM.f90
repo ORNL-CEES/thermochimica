@@ -228,15 +228,15 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     ! Calculate entropy derivatives on first sublattice
     do i = 1, nSub1
         gideal = gideal + p * dXi(i) * DLOG(dXi(i))
-        dgdc(i) = dgdc(i) + p * (1 - dXi(i)) * DLOG(dXi(i))
+        dgdc(i) = dgdc(i) + p * (1 - dXi(i)) * DLOG(dXi(i)) / dSumMF
         do j = 1, nSub1
             if (.NOT. (i == j)) then
-                dgdc(i) = dgdc(i) - p * dXi(j) * DLOG(dXi(j))
+                dgdc(i) = dgdc(i) - p * dXi(j) * DLOG(dXi(j)) / dSumMF
             end if
         end do
         do j = 1, nSub2
             l = nSub1 + j
-            dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - q) * dXi(l) * DLOG(dXi(l))
+            dgdc(i) = dgdc(i) + (dSublatticeCharge(iSPI,1,i) - q) * dXi(l) * DLOG(dXi(l)) / dSumMF
         end do
     end do
 
@@ -244,15 +244,15 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
     do i = 1, nSub2
         k = nSub1 + i
         gideal = gideal + q * dXi(k) * DLOG(dXi(k))
-        dgdc(k) = dgdc(k) + q * (1 - dXi(k)) * DLOG(dXi(k))
+        dgdc(k) = dgdc(k) + q * (1 - dXi(k)) * DLOG(dXi(k)) / dSumMF
         do j = 1, nSub2
             l = nSub1 + j
-            if (.NOT. (i == j)) then 
-                dgdc(k) = dgdc(k) - q * dXi(l) * DLOG(dXi(l))
+            if (.NOT. (i == j)) then
+                dgdc(k) = dgdc(k) - q * dXi(l) * DLOG(dXi(l)) / dSumMF
             end if
         end do
         do j = 1, nSub1
-            dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - p) * dXi(j) * DLOG(dXi(j))
+            dgdc(k) = dgdc(k) + (dSublatticeCharge(iSPI,2,i) - p) * dXi(j) * DLOG(dXi(j)) / dSumMF
         end do
     end do
 
@@ -448,6 +448,7 @@ subroutine CompExcessGibbsEnergySUBM(iSolnIndex)
         natom = natom * dSumMF
 
         dChemicalPotential(i) = dChemicalPotential(i) + (gideal + gref + gex) * natom
+
         ! Calculate entropic contributions from derivatives
         do j = 1, nSub1
             if (j == a) then
