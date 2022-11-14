@@ -110,7 +110,7 @@ namespace Thermochimica
     return {elements, species};
   }
 
-  std::vector<double>  getMolesPhase()
+  std::vector<double> getMolesPhase()
   {
     auto [elements, species] = getReinitDataSizes();
     std::vector<double> molesPhase(elements);

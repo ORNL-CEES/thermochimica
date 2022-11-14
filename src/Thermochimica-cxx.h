@@ -29,7 +29,7 @@ namespace Thermochimica
   // re-initialization-related functions
   void saveReinitData();
   std::pair<int, int> getReinitDataSizes();
-  double getMolesPhase();
+  std::vector<double> getMolesPhase();
   std::vector<int> getAssemblage();
   void setReinitRequested(bool requested);
   void resetReinit();
