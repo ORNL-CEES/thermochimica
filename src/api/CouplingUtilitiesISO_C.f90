@@ -428,6 +428,49 @@ subroutine getReinitDataSizesISO(mElements, mSpecies) &
 
 end subroutine getReinitDataSizesISO
 
+subroutine getReinitDataISO(mAssemblage,mMolesPhase,mElementPotential, &
+    mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable) &
+    bind(C, name="TCAPI_getReinitData")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    
+    USE ModuleThermo, ONLY: nElements, nSpecies
+    implicit none
+
+    integer, intent(out)                           :: mReinitAvailable
+    integer, intent(out), dimension(nElements)     :: mAssemblage
+    real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
+    real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
+    integer, intent(out), dimension(0:168)         :: mElementsUsed
+
+    call getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
+            mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
+
+    return
+
+end subroutine getReinitDataISO
+
+subroutine setReinitDataISO(mElements,mSpecies,mAssemblage,mMolesPhase, &
+    mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed) &
+    bind(C, name="TCAPI_setReinitData")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    
+    implicit none
+
+    integer, intent(in)                            :: mElements, mSpecies
+    integer, intent(in), dimension(mElements)      :: mAssemblage
+    real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
+    real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
+    integer, intent(in), dimension(0:168)          :: mElementsUsed
+
+    call setReinitData(mElements,mSpecies,mAssemblage,mMolesPhase, &
+              mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
+
+    return
+
+end subroutine setReinitDataISO
+
 subroutine GetMolesPhaseISO(mMolesPhase) &
     bind(C, name="TCAPI_getMolesPhase")
 

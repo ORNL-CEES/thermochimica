@@ -68,4 +68,18 @@ namespace Thermochimica
   std::pair<double, int>
   getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
+  // Reinitialization data
+  struct reinitData {
+    std::vector<int> assemblage;
+    std::vector<double> molesPhase;
+    std::vector<double> elementPotential;
+    std::vector<double> chemicalPotential;
+    std::vector<double> moleFraction;
+    std::vector<int> elementsUsed;
+    bool reinitAvailable;
+  };
+
+  reinitData getReinitData();
+  void setReinitData(reinitData data);
+
 }

@@ -591,7 +591,7 @@ subroutine getReinitDataSizes(mElements,mSpecies)
 
 end subroutine getReinitDataSizes
 
-subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
+subroutine getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
               mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
   USE ModuleReinit
   USE ModuleThermoIO
@@ -620,9 +620,9 @@ subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
 
   return
 
-end subroutine reinitDataTcToMoose
+end subroutine getReinitData
 
-subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
+subroutine setReinitData(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
   USE ModuleReinit
   USE ModuleThermoIO
@@ -650,7 +650,7 @@ subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
 
   return
 
-end subroutine reinitDataTcFromMoose
+end subroutine setReinitData
 
 subroutine GetMolesPhase(mMolesPhase)
   USE ModuleThermo, ONLY: nElements, dMolesPhase

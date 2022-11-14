@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "Thermochimica.h"
+#include "Thermochimica-cxx.h"
 
 namespace Thermochimica
 {
@@ -290,6 +291,27 @@ namespace Thermochimica
     int info;
     TCAPI_getMqmqaConstituentFraction(phaseName.c_str(), phaseName.length(), &sublattice, constituent.c_str(), constituent.length(), &moleFraction, &info);
     return {moleFraction, info};
+  }
+
+  reinitData getReinitData()
+  {
+    reinitData data;
+    int available;
+    TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
+
+    data.reinitAvailable = false;
+    if (available > 0)
+    {
+      data.reinitAvailable = true;
+    }
+
+    return data;
+  }
+
+  void setReinitData(reinitData data)
+  {
+    auto [elements, species] = getReinitDataSizes();
+    TCAPI_setReinitData(&elements,&species,data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
   }
 
 }
