@@ -162,7 +162,8 @@ subroutine SetElementMassISO(iAtom, dMass) &
 
     implicit none
 
-    integer, intent(in)::  iAtom
+    USE,INTRINSIC :: ISO_C_BINDING
+    integer(c_int), intent(in)::  iAtom
     real(8), intent(in)::  dMass
     
     call SetElementMass(iAtom, dMass)
