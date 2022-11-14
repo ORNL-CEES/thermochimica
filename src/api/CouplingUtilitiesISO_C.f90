@@ -74,6 +74,8 @@ end subroutine SetUnitMassISO
 subroutine SetStandardUnitsISO() &
     bind(C, name="TCAPI_setStandardUnits")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call SetStandardUnits
@@ -84,6 +86,8 @@ end subroutine SetStandardUnitsISO
 
 subroutine SetModelicaUnitsISO() &
     bind(C, name="TCAPI_setModelicaUnits")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -119,6 +123,8 @@ end subroutine SetUnitsISO
 subroutine SetTemperaturePressureISO(dTemp, dPress) &
     bind(C, name="TCAPI_setTemperaturePressure")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     real(8), intent(in)::  dTemp
@@ -133,6 +139,8 @@ end subroutine SetTemperaturePressureISO
 subroutine SetPrintResultsModeISO(Pinfo) &
     bind(C, name="TCAPI_setPrintResultsMode")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     integer Pinfo
@@ -145,6 +153,8 @@ end subroutine SetPrintResultsModeISO
 
 subroutine PresetElementMassISO(iAtom, dMass) &
     bind(C, name="TCAPI_presetElementMass")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -160,9 +170,9 @@ end subroutine PresetElementMassISO
 subroutine SetElementMassISO(iAtom, dMass) &
     bind(C, name="TCAPI_setElementMass")
 
-    implicit none
-
     USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
     integer(c_int), intent(in)::  iAtom
     real(8), intent(in)::  dMass
     
@@ -174,6 +184,8 @@ end subroutine SetElementMassISO
 
 subroutine GetElementMassISO(iAtom, dMass) &
     bind(C, name="TCAPI_getElementMass")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -189,6 +201,8 @@ end subroutine GetElementMassISO
 subroutine CheckINFOThermoISO(dbginfo) &
     bind(C, name="TCAPI_checkInfoThermo")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     integer, intent(out)::  dbginfo
@@ -202,6 +216,8 @@ end subroutine CheckINFOThermoISO
 subroutine ResetINFOThermoISO() &
     bind(C, name="TCAPI_resetInfoThermo")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call ResetINFOThermo
@@ -212,6 +228,8 @@ end subroutine ResetINFOThermoISO
 
 subroutine ResetThermoISO() &
     bind(C, name="TCAPI_resetThermo")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -224,6 +242,8 @@ end subroutine ResetThermoISO
 subroutine ResetThermoAllISO() &
     bind(C, name="TCAPI_resetThermoAll")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call ResetThermoAll
@@ -234,6 +254,8 @@ end subroutine ResetThermoAllISO
 
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -246,6 +268,8 @@ end subroutine ThermoDebugISO
 subroutine PrintResultsISO() &
     bind(C, name="TCAPI_printResults")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call PrintResults
@@ -256,6 +280,8 @@ end subroutine PrintResultsISO
 
 subroutine SaveReinitDataISO() &
     bind(C, name="TCAPI_saveReinitData")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -268,6 +294,8 @@ end subroutine SaveReinitDataISO
 subroutine ResetReinitISO() &
     bind(C, name="TCAPI_resetReinit")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call ResetReinit
@@ -278,6 +306,8 @@ end subroutine ResetReinitISO
 
 subroutine SolPhaseParseISO(iElem, dMolSum) &
     bind(C, name="TCAPI_solPhaseParse")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
@@ -292,6 +322,8 @@ end subroutine SolPhaseParseISO
 subroutine SSParseCSDataFileISO() &
     bind(C, name="TCAPI_sSParseCSDataFile")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call SSParseCSDataFile
@@ -303,6 +335,8 @@ end subroutine SSParseCSDataFileISO
 subroutine ThermochimicaISO() &
     bind(C, name="TCAPI_thermochimica")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     call Thermochimica()
@@ -313,6 +347,8 @@ end subroutine ThermochimicaISO
 
 subroutine getMolFractionISO(i, value, ierr) &
     bind(C, name="TCAPI_getMolFraction")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     USE ModuleThermo
     implicit none
@@ -329,6 +365,8 @@ end subroutine getMolFractionISO
 subroutine getChemicalPotentialISO(i, value, ierr) &
     bind(C, name="TCAPI_getChemicalPotential")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     USE ModuleThermo
     implicit none
 
@@ -343,6 +381,8 @@ end subroutine getChemicalPotentialISO
 
 subroutine getElementPotentialISO(i, value, ierr) &
     bind(C, name="TCAPI_getElementPotential")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -361,6 +401,8 @@ end subroutine getElementPotentialISO
 subroutine SetReinitRequestedISO(iRequested) &
     bind(C, name="TCAPI_setReinitRequested")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     integer, intent(in)::  iRequested
@@ -374,6 +416,8 @@ end subroutine SetReinitRequestedISO
 subroutine getReinitDataSizesISO(mElements, mSpecies) &
     bind(C, name="TCAPI_getReinitDataSizes")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     integer, intent(out) :: mElements, mSpecies
@@ -386,6 +430,8 @@ end subroutine getReinitDataSizesISO
 
 subroutine GetMolesPhaseISO(mMolesPhase) &
     bind(C, name="TCAPI_getMolesPhase")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     USE ModuleThermo, ONLY: nElements
 
@@ -402,6 +448,8 @@ end subroutine GetMolesPhaseISO
 subroutine GetAssemblageISO(mAssemblage) &
     bind(C, name="TCAPI_getAssemblage")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     USE ModuleThermo, ONLY: nElements
     implicit none
 
@@ -415,6 +463,8 @@ end subroutine GetAssemblageISO
 
 subroutine GetAllElementPotentialISO(mElementPotential) &
     bind(C, name="TCAPI_getAllElementPotential")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     USE ModuleThermo, ONLY: nElements
     implicit none
@@ -430,6 +480,8 @@ end subroutine GetAllElementPotentialISO
 subroutine GetElementFractionISO(iAtom, dFrac) &
     bind(C, name="TCAPI_getElementFraction")
 
+    USE,INTRINSIC :: ISO_C_BINDING
+
     implicit none
 
     integer, intent(in) ::  iAtom
@@ -443,6 +495,8 @@ end subroutine GetElementFractionISO
 
 subroutine PrintStateISO() &
     bind(C, name="TCAPI_printState")
+
+    USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
  
