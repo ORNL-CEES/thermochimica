@@ -64,4 +64,5 @@ extern "C"
   void TCAPI_getMqmqaMolesPairs(const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaPairMolFraction(const char *, std::size_t, const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaNumberPairsQuads(const char *, std::size_t, int *, int *, int *);
+  void TCAPI_getMqmqaConstituentFraction(const char *, std::size_t, int *, const char *, std::size_t, double *, int *);
 }

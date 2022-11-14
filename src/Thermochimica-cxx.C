@@ -290,4 +290,13 @@ namespace Thermochimica
     return {nPairs, nQuads, info};
   }
 
+  std::pair<double, int>
+  getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent)
+  {
+    double moleFraction;
+    int info;
+    TCAPI_getMqmqaConstituentFraction(phaseName.c_str(), phaseName.length(), &sublattice, constituent.c_str(), constituent.length(), &moleFraction, &info);
+    return {moleFraction, info};
+  }
+
 }

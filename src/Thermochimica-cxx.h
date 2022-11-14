@@ -65,5 +65,7 @@ namespace Thermochimica
   getMqmqaPairMolFraction(const std::string &phaseName, const std::string &pairName);
   std::tuple<int, int, int>
   getMqmqaNumberPairsQuads(const std::string &phaseName);
+  std::pair<double, int>
+  getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
 }

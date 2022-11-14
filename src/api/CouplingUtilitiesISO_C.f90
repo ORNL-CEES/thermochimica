@@ -753,3 +753,27 @@ subroutine GetMqmqaNumberPairsQuadsISO(cPhaseName,lcPhaseName, nPairs, nQuads, I
     return
 
 end subroutine GetMqmqaNumberPairsQuadsISO
+
+subroutine GetMqmqaConstituentFractionISO(cPhase,lcPhase,iSublattice,cConstituent,lcConstituent,dConstituentFractionOut,INFO) &
+    bind(C, name="TCAPI_getMqmqaConstituentFraction")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer,       intent(out)               :: INFO
+    integer,       intent(in)                :: iSublattice
+    real(8),       intent(out)               :: dConstituentFractionOut
+    character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cConstituent(*)
+    integer(c_size_t), intent(in), value             :: lcPhase,   lcConstituent
+    character(kind=c_char,len=lcPhase),       pointer  :: fPhase
+    character(kind=c_char,len=lcConstituent), pointer  :: fConstituent
+
+    call c_f_pointer(cptr=c_loc(cPhase),       fptr=fPhase)
+    call c_f_pointer(cptr=c_loc(cConstituent), fptr=fConstituent)
+
+    call GetMqmqaConstituentFraction(fPhase, iSublattice, fConstituent, dConstituentFractionOut, INFO)
+
+    return
+
+end subroutine GetMqmqaConstituentFractionISO
