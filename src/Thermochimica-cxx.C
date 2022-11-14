@@ -119,13 +119,9 @@ namespace Thermochimica
 
   std::vector<int> getAssemblage()
   {
-    std::pair<int, int> p = getReinitDataSizes();
-    int assemblageArray[p.first];
-
-    TCAPI_getAssemblage(assemblageArray);
-
-    std::vector<int> assemblage(assemblageArray, assemblageArray + sizeof assemblageArray / sizeof assemblageArray[0]);
-
+    auto [elements, species] = getReinitDataSizes();
+    std::vector<int> assemblage(elements);
+    TCAPI_getAssemblage(assemblage.data());
     return assemblage;
   }
 
@@ -142,8 +138,8 @@ namespace Thermochimica
 
   std::vector<double> getAllElementPotential()
   {
-    auto [size, idbg] = getReinitDataSizes();
-    std::vector<double> potential(size);
+    auto [elements, species] = getReinitDataSizes();
+    std::vector<double> potential(elements);
     TCAPI_getAllElementPotential(potential.data());
     return potential;
   }
