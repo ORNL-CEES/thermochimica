@@ -2,6 +2,7 @@
 #include <math.h>
 #include <cstring>
 #include <map>
+#include <vector>
 #include "Thermochimica.h"
 
 namespace Thermochimica
@@ -95,6 +96,71 @@ namespace Thermochimica
   {
     TCAPI_resetThermoAll();
   }
+
+  // re-initialization-related functions
+  void saveReinitData()
+  {
+    TCAPI_saveReinitData();
+  }
+
+  std::pair<int, int> getReinitDataSizes()
+  {
+    int elements, species;
+    TCAPI_getReinitDataSizes(&elements, &species);
+    return {elements, species};
+  }
+
+  double getMolesPhase()
+  {
+    double molesPhase;
+    TCAPI_getMolesPhase(&molesPhase);
+    return molesPhase;
+  }
+
+  std::vector<int> getAssemblage()
+  {
+    std::pair<int, int> p = getReinitDataSizes();
+    int assemblageArray[p.first];
+
+    TCAPI_getAssemblage(assemblageArray);
+
+    std::vector<int> assemblage(assemblageArray, assemblageArray + sizeof assemblageArray / sizeof assemblageArray[0]);
+
+    return assemblage;
+  }
+
+  void setReinitRequested(bool requested)
+  {
+    int req = (requested) ? req = 1 : 0;
+    TCAPI_setReinitRequested(&req);
+  }
+
+  void resetReinit()
+  {
+    TCAPI_resetReinit();
+  }
+
+  std::vector<double> getAllElementPotential()
+  {
+    std::pair<int, int> p = getReinitDataSizes();
+    double potentialArray[p.first];
+
+    TCAPI_getAllElementPotential(potentialArray);
+
+    std::vector<double> potential(potentialArray, potentialArray + sizeof potentialArray / sizeof potentialArray[0]);
+
+    return potential;
+  }
+
+  double getElementFraction(int atomicNumber)
+  {
+    double fraction;
+    TCAPI_getElementFraction(&atomicNumber, &fraction);
+
+    return fraction;
+  }
+
+  // Data extraction APIs
 
   std::pair<double, int>
   getOutputChemPot(const std::string &elementName)

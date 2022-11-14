@@ -1,6 +1,7 @@
 #include <utility>
 #include <tuple>
 #include <string>
+#include <vector>
 
 // #include "checkUnits.h"
 
@@ -24,6 +25,16 @@ namespace Thermochimica
   void resetInfoThermo();
   void resetThermo();
   void resetThermoAll();
+
+  // re-initialization-related functions
+  void saveReinitData();
+  std::pair<int, int> getReinitDataSizes();
+  double getMolesPhase();
+  std::vector<int> getAssemblage();
+  void setReinitRequested(bool requested);
+  void resetReinit();
+  std::vector<double> getAllElementPotential();
+  double getElementFraction(int atomicNumber);
 
   std::pair<double, int>
   getOutputChemPot(const std::string &elementName);
