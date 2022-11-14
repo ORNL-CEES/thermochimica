@@ -303,7 +303,6 @@ namespace Thermochimica
     data.elementPotential.resize(elements);
     data.chemicalPotential.resize(species);
     data.moleFraction.resize(species);
-    data.elementsUsed.resize(data.nPeriodicTable);
 
     TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
 

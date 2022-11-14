@@ -77,7 +77,7 @@ namespace Thermochimica
     std::vector<double> moleFraction;
     // Set elements used size here to match Thermochimica
     int nPeriodicTable = 169;
-    std::vector<int> elementsUsed;
+    std::vector<int> elementsUsed = std::vector<int>(nPeriodicTable);
     bool reinitAvailable;
   };
 
