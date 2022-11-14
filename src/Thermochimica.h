@@ -68,6 +68,6 @@ extern "C"
 
   // MOOSE reinit functions
   void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *);
-  void TCAPI_setReinitData(int *, int *, int *, double *, double *, double *, double *, int *);
+  void TCAPI_setReinitData(const int *, const int *, const int *, const double *, const double *, const double *, const double *, const int *);
 
 }

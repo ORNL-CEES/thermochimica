@@ -82,6 +82,6 @@ namespace Thermochimica
   };
 
   reinitData getReinitData();
-  void setReinitData(reinitData data);
+  void setReinitData(const reinitData &data);
 
 }

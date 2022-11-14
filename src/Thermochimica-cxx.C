@@ -315,7 +315,7 @@ namespace Thermochimica
     return data;
   }
 
-  void setReinitData(reinitData data)
+  void setReinitData(const reinitData &data)
   {
     auto [elements, species] = getReinitDataSizes();
     TCAPI_setReinitData(&elements, &species, data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
