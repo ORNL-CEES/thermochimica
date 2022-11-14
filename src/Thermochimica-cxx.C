@@ -142,13 +142,9 @@ namespace Thermochimica
 
   std::vector<double> getAllElementPotential()
   {
-    std::pair<int, int> p = getReinitDataSizes();
-    double potentialArray[p.first];
-
-    TCAPI_getAllElementPotential(potentialArray);
-
-    std::vector<double> potential(potentialArray, potentialArray + sizeof potentialArray / sizeof potentialArray[0]);
-
+    auto [size, idbg] = getReinitDataSizes();
+    std::vector<double> potential(size);
+    TCAPI_getAllElementPotential(potential.data());
     return potential;
   }
 
