@@ -172,7 +172,8 @@ subroutine SetElementMassISO(iAtom, dMass) &
 
 end subroutine SetElementMassISO
 
-subroutine GetElementMassISO(iAtom, dMass)
+subroutine GetElementMassISO(iAtom, dMass) &
+    bind(C, name="TCAPI_getElementMass")
 
     implicit none
 
