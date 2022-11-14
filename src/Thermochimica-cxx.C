@@ -306,7 +306,7 @@ namespace Thermochimica
 
     TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
 
-    data.reinitAvailable = (available > 0) ? true : false;
+    data.reinitAvailable = available > 0;
 
     return data;
   }
