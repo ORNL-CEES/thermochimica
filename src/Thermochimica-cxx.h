@@ -75,6 +75,8 @@ namespace Thermochimica
     std::vector<double> elementPotential;
     std::vector<double> chemicalPotential;
     std::vector<double> moleFraction;
+    // Set elements used size here to match Thermochimica
+    int nPeriodicTable = 169;
     std::vector<int> elementsUsed;
     bool reinitAvailable;
   };
