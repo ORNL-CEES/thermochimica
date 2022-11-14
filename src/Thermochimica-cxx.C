@@ -129,7 +129,7 @@ namespace Thermochimica
 
   void setReinitRequested(bool requested)
   {
-    int req = (requested) ? req = 1 : 0;
+    int req = (requested) ? 1 : 0;
     TCAPI_setReinitRequested(&req);
   }
 
@@ -306,11 +306,7 @@ namespace Thermochimica
 
     TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
 
-    data.reinitAvailable = false;
-    if (available > 0)
-    {
-      data.reinitAvailable = true;
-    }
+    data.reinitAvailable = (available > 0) ? true : false;
 
     return data;
   }
