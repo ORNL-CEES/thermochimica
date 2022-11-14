@@ -110,10 +110,11 @@ namespace Thermochimica
     return {elements, species};
   }
 
-  double getMolesPhase()
+  std::vector<double>  getMolesPhase()
   {
-    double molesPhase;
-    TCAPI_getMolesPhase(&molesPhase);
+    auto [elements, species] = getReinitDataSizes();
+    std::vector<double> molesPhase(elements);
+    TCAPI_getAllElementPotential(molesPhase.data());
     return molesPhase;
   }
 
