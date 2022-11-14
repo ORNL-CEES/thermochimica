@@ -297,6 +297,14 @@ namespace Thermochimica
   {
     reinitData data;
     int available;
+    auto [elements, species] = getReinitDataSizes();
+    data.assemblage.resize(elements);
+    data.molesPhase.resize(elements);
+    data.elementPotential.resize(elements);
+    data.chemicalPotential.resize(species);
+    data.moleFraction.resize(species);
+    data.elementsUsed.resize(elements);
+
     TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
 
     data.reinitAvailable = false;
@@ -311,7 +319,7 @@ namespace Thermochimica
   void setReinitData(reinitData data)
   {
     auto [elements, species] = getReinitDataSizes();
-    TCAPI_setReinitData(&elements,&species,data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
+    TCAPI_setReinitData(&elements, &species, data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
   }
 
 }
