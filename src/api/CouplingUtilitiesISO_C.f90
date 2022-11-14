@@ -876,3 +876,32 @@ subroutine GetMqmqaConstituentFractionISO(cPhase,lcPhase,iSublattice,cConstituen
     return
 
 end subroutine GetMqmqaConstituentFractionISO
+
+subroutine SetHeatCapacityEnthalpyEntropyRequestedISO(iRequested) &
+    bind(C, name="TCAPI_setHeatCapacityEnthalpyEntropyRequested")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer, intent(in)::  iRequested
+
+    call SetHeatCapacityEnthalpyEntropyRequested(iRequested)
+
+    return
+
+end subroutine SetHeatCapacityEnthalpyEntropyRequestedISO
+
+subroutine GetHeatCapacityEnthalpyEntropyISO(dHeatCapacityOut, dEnthalpyOut, dEntropyOut) &
+    bind(C, name="TCAPI_getHeatCapacityEnthalpyEntropy")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+    real(8), intent(out):: dHeatCapacityOut, dEnthalpyOut, dEntropyOut
+
+    call GetHeatCapacityEnthalpyEntropy(dHeatCapacityOut, dEnthalpyOut, dEntropyOut)
+
+    return
+
+end subroutine GetHeatCapacityEnthalpyEntropyISO

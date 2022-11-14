@@ -617,7 +617,6 @@ subroutine getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
     mReinitAvailable = 0
   end if
 
-
   return
 
 end subroutine getReinitData
@@ -739,3 +738,34 @@ subroutine GetElementFraction(iAtom, dFrac)
   return
 
 end subroutine GetElementFraction
+
+subroutine SetHeatCapacityEnthalpyEntropyRequested(iRequested)
+  ! Toggles whether heat capacity, entropy, and enthalpy calculation is requested
+  USE ModuleThermoIO, ONLY: lHeatCapacityEntropyEnthalpy
+
+  implicit none
+
+  ! passing bool/logical was sketchy so just going with an int here
+  integer, intent(in)::  iRequested
+  if (iRequested == 0) then
+    lHeatCapacityEntropyEnthalpy = .FALSE.
+  else
+    lHeatCapacityEntropyEnthalpy = .TRUE.
+  end if
+
+  return
+
+end subroutine SetHeatCapacityEnthalpyEntropyRequested
+
+subroutine GetHeatCapacityEnthalpyEntropy(dHeatCapacityOut, dEnthalpyOut, dEntropyOut)
+  USE ModuleThermoIO, ONLY: dHeatCapacity, dEnthalpy, dEntropy
+
+  implicit none
+  real(8), intent(out):: dHeatCapacityOut, dEnthalpyOut, dEntropyOut
+
+  dHeatCapacityOut = dHeatCapacity
+  dEnthalpyOut     = dEnthalpy
+  dEntropyOut      = dEntropy
+
+  return
+end subroutine GetHeatCapacityEnthalpyEntropy

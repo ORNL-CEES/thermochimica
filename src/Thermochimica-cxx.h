@@ -84,4 +84,8 @@ namespace Thermochimica
   reinitData getReinitData();
   void setReinitData(const reinitData &data);
 
+  // Heat capacity, enthalpy, and entropy
+  void setHeatCapacityEnthalpyEntropyRequested(bool requested);
+  std::tuple<double, double, double> getHeatCapacityEnthalpyEntropy();
+
 }

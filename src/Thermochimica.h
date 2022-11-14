@@ -70,4 +70,8 @@ extern "C"
   void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *);
   void TCAPI_setReinitData(const int *, const int *, const int *, const double *, const double *, const double *, const double *, const int *);
 
+  // Heat capacity, enthalpy, and entropy
+  void TCAPI_setHeatCapacityEnthalpyEntropyRequested(int *);
+  void TCAPI_getHeatCapacityEnthalpyEntropy(double *, double *, double *);
+
 }

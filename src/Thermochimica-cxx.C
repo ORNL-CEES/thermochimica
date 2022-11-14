@@ -317,4 +317,17 @@ namespace Thermochimica
     TCAPI_setReinitData(&elements, &species, data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
   }
 
+  void setHeatCapacityEnthalpyEntropyRequested(bool requested)
+  {
+    int req = (requested) ? 1 : 0;
+    TCAPI_setHeatCapacityEnthalpyEntropyRequested(&req);
+  }
+
+  std::tuple<double, double, double> getHeatCapacityEnthalpyEntropy()
+  {
+    double heatCapacity, enthalpy, entropy;
+    TCAPI_getHeatCapacityEnthalpyEntropy(&heatCapacity, &enthalpy, &entropy);
+    return {heatCapacity, enthalpy, entropy};
+  }
+
 }
