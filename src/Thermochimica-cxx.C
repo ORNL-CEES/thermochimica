@@ -81,6 +81,21 @@ namespace Thermochimica
     TCAPI_printResults();
   }
 
+  void resetInfoThermo()
+  {
+    TCAPI_resetInfoThermo();
+  }
+
+  void resetThermo()
+  {
+    TCAPI_resetThermo();
+  }
+
+  void resetThermoAll()
+  {
+    TCAPI_resetThermoAll();
+  }
+
   std::pair<double, int>
   getOutputChemPot(const std::string &elementName)
   {

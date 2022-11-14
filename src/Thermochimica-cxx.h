@@ -21,6 +21,9 @@ namespace Thermochimica
   void parseThermoFile();
   void setPrintResultsMode(int mode);
   void printResults();
+  void resetInfoThermo();
+  void resetThermo();
+  void resetThermoAll();
 
   std::pair<double, int>
   getOutputChemPot(const std::string &elementName);
