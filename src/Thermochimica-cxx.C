@@ -12,16 +12,6 @@ namespace Thermochimica
     TCAPI_thermochimica();
   }
 
-  void setPrintResultsMode(int mode)
-  {
-    TCAPI_setPrintResultsMode(&mode);
-  }
-
-  void printResults()
-  {
-    TCAPI_printResults();
-  }
-
   void setThermoFilename(const std::string &filename)
   {
     TCAPI_setThermoFilename(filename.c_str(), filename.length());
@@ -79,6 +69,16 @@ namespace Thermochimica
   void parseThermoFile()
   {
     TCAPI_sSParseCSDataFile();
+  }
+
+  void setPrintResultsMode(int mode)
+  {
+    TCAPI_setPrintResultsMode(&mode);
+  }
+
+  void printResults()
+  {
+    TCAPI_printResults();
   }
 
   std::pair<double, int>
