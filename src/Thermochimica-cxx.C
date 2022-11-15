@@ -115,7 +115,7 @@ namespace Thermochimica
   {
     auto [elements, species] = getReinitDataSizes();
     std::vector<double> molesPhase(elements);
-    TCAPI_getAllElementPotential(molesPhase.data());
+    TCAPI_getMolesPhase(molesPhase.data());
     return molesPhase;
   }
 
