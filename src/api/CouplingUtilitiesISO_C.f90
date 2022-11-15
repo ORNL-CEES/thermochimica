@@ -127,8 +127,7 @@ subroutine SetTemperaturePressureISO(dTemp, dPress) &
 
     implicit none
 
-    real(8), intent(in)::  dTemp
-    real(8), intent(in)::  dPress
+    real(C_DOUBLE), intent(in) :: dTemp, dPress
 
     call SetTemperaturePressure(dTemp, dPress)
 
@@ -143,7 +142,7 @@ subroutine SetPrintResultsModeISO(Pinfo) &
 
     implicit none
 
-    integer Pinfo
+    integer(C_INT), intent(out) :: Pinfo
 
     call SetPrintResultsMode(Pinfo)
 
@@ -158,8 +157,8 @@ subroutine PresetElementMassISO(iAtom, dMass) &
 
     implicit none
 
-    integer, intent(in)::  iAtom
-    real(8), intent(in)::  dMass
+    integer(C_INT), intent(in) :: iAtom
+    real(C_DOUBLE), intent(in) :: dMass
 
     call PresetElementMass(iAtom, dMass)
 
@@ -173,8 +172,8 @@ subroutine SetElementMassISO(iAtom, dMass) &
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
-    integer(c_int), intent(in)::  iAtom
-    real(8), intent(in)::  dMass
+    integer(C_INT), intent(in) :: iAtom
+    real(C_DOUBLE), intent(in) :: dMass
     
     call SetElementMass(iAtom, dMass)
 
@@ -189,8 +188,8 @@ subroutine GetElementMassISO(iAtom, dMass) &
 
     implicit none
 
-    integer, intent(in)::  iAtom
-    real(8), intent(out)::  dMass
+    integer(C_INT), intent(in)  :: iAtom
+    real(C_DOUBLE), intent(out) :: dMass
 
     call GetElementMass(iAtom, dMass)
 
@@ -205,7 +204,7 @@ subroutine CheckINFOThermoISO(dbginfo) &
 
     implicit none
 
-    integer, intent(out)::  dbginfo
+    integer(C_INT), intent(out) :: dbginfo
 
     call CheckINFOThermo(dbginfo)
 
@@ -311,8 +310,8 @@ subroutine SolPhaseParseISO(iElem, dMolSum) &
 
     implicit none
 
-    integer, intent(in):: iElem
-    real(8), intent(out):: dMolSum
+    integer(C_INT), intent(in)  :: iElem
+    real(C_DOUBLE), intent(out) :: dMolSum
     
     call SolPhaseParse(iElem, dMolSum)
 
@@ -353,9 +352,9 @@ subroutine getMolFractionISO(i, value, ierr) &
     USE ModuleThermo
     implicit none
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+    integer(C_INT), intent(in)  ::  i
+    integer(C_INT), intent(out) :: ierr
+    real(C_DOUBLE), intent(out) :: value
 
     call getMolFraction(i, value, ierr)
 
@@ -370,9 +369,9 @@ subroutine getChemicalPotentialISO(i, value, ierr) &
     USE ModuleThermo
     implicit none
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+    integer(C_INT), intent(in)  ::  i
+    integer(C_INT), intent(out) :: ierr
+    real(C_DOUBLE), intent(out) :: value
 
     call getChemicalPotential(i, value, ierr)
 
@@ -388,9 +387,9 @@ subroutine getElementPotentialISO(i, value, ierr) &
     USE ModuleThermo
     implicit none
 
-    integer, intent(in)::  i
-    integer, intent(out):: ierr
-    real(8), intent(out):: value
+    integer(C_INT), intent(in)  ::  i
+    integer(C_INT), intent(out) :: ierr
+    real(C_DOUBLE), intent(out) :: value
 
     call getElementPotential(i, value, ierr)
 
@@ -405,7 +404,7 @@ subroutine SetReinitRequestedISO(iRequested) &
 
     implicit none
 
-    integer, intent(in)::  iRequested
+    integer(C_INT), intent(in) :: iRequested
 
     call SetReinitRequested(iRequested)
 
@@ -420,7 +419,7 @@ subroutine getReinitDataSizesISO(mElements, mSpecies) &
 
     implicit none
 
-    integer, intent(out) :: mElements, mSpecies
+    integer(C_INT), intent(out) :: mElements, mSpecies
 
     call getReinitDataSizes(mElements,mSpecies)
 
@@ -437,11 +436,11 @@ subroutine getReinitDataISO(mAssemblage,mMolesPhase,mElementPotential, &
     USE ModuleThermo, ONLY: nElements, nSpecies
     implicit none
 
-    integer, intent(out)                           :: mReinitAvailable
-    integer, intent(out), dimension(nElements)     :: mAssemblage
-    real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
-    real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
-    integer, intent(out), dimension(0:168)         :: mElementsUsed
+    integer(C_INT), intent(out)                           :: mReinitAvailable
+    integer(C_INT), intent(out), dimension(nElements)     :: mAssemblage
+    real(C_DOUBLE), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
+    real(C_DOUBLE), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
+    integer(C_INT), intent(out), dimension(0:168)         :: mElementsUsed
 
     call getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
             mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
@@ -458,11 +457,11 @@ subroutine setReinitDataISO(mElements,mSpecies,mAssemblage,mMolesPhase, &
     
     implicit none
 
-    integer, intent(in)                            :: mElements, mSpecies
-    integer, intent(in), dimension(mElements)      :: mAssemblage
-    real(8), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
-    real(8), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
-    integer, intent(in), dimension(0:168)          :: mElementsUsed
+    integer(C_INT), intent(in)                            :: mElements, mSpecies
+    integer(C_INT), intent(in), dimension(mElements)      :: mAssemblage
+    real(C_DOUBLE), intent(in), dimension(mElements)      :: mMolesPhase, mElementPotential
+    real(C_DOUBLE), intent(in), dimension(mSpecies)       :: mChemicalPotential, mMolFraction
+    integer(C_INT), intent(in), dimension(0:168)          :: mElementsUsed
 
     call setReinitData(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
@@ -480,7 +479,7 @@ subroutine GetMolesPhaseISO(mMolesPhase) &
 
     implicit none
 
-    real(8), intent(out), dimension(nElements) :: mMolesPhase
+    real(C_DOUBLE), intent(out), dimension(nElements) :: mMolesPhase
 
     call GetMolesPhase(mMolesPhase)
 
@@ -496,7 +495,7 @@ subroutine GetAssemblageISO(mAssemblage) &
     USE ModuleThermo, ONLY: nElements
     implicit none
 
-    integer, intent(out), dimension(nElements)     :: mAssemblage
+    integer(C_INT), intent(out), dimension(nElements) :: mAssemblage
 
     call GetAssemblage(mAssemblage)
 
@@ -512,7 +511,7 @@ subroutine GetAllElementPotentialISO(mElementPotential) &
     USE ModuleThermo, ONLY: nElements
     implicit none
 
-    real(8), intent(out), dimension(nElements)     :: mElementPotential
+    real(C_DOUBLE), intent(out), dimension(nElements) :: mElementPotential
 
     call GetAllElementPotential(mElementPotential)
 
@@ -527,8 +526,8 @@ subroutine GetElementFractionISO(iAtom, dFrac) &
 
     implicit none
 
-    integer, intent(in) ::  iAtom
-    real(8), intent(out)::  dFrac
+    integer(C_INT), intent(in)  ::  iAtom
+    real(C_DOUBLE), intent(out) ::  dFrac
 
     call GetElementFraction(iAtom, dFrac)
 
@@ -554,8 +553,8 @@ subroutine GetElementMoleFractionInPhaseISO(cElement, lcElement, cPhase, lcPhase
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dMolesOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolesOut
     character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cElement(*)
     integer(c_size_t), intent(in), value             :: lcPhase, lcElement
     character(kind=c_char,len=lcPhase), pointer      :: fPhase
@@ -577,8 +576,8 @@ subroutine GetElementMolesInPhaseISO(cElement, lcElement, cPhase, lcPhase, dMole
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dMolesOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolesOut
     character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cElement(*)
     integer(c_size_t), intent(in), value             :: lcPhase, lcElement
     character(kind=c_char,len=lcPhase), pointer      :: fPhase
@@ -600,8 +599,8 @@ subroutine GetOutputChemPotISO(cElementNameRequest, lcElementNameRequest, dEleme
 
     implicit none
 
-    integer,      intent(out)   :: INFO
-    real(8),      intent(out)   :: dElementChemPot
+    integer(C_INT),      intent(out)                         :: INFO
+    real(C_DOUBLE),      intent(out)                         :: dElementChemPot
     character(kind=c_char,len=1), target, intent(in)         :: cElementNameRequest(*)
     integer(c_size_t), intent(in), value                     :: lcElementNameRequest
     character(kind=c_char,len=lcElementNameRequest), pointer :: fElementNameRequest
@@ -621,8 +620,8 @@ subroutine GetOutputMolSpeciesISO(cSpeciesOut, lcSpeciesOut, dMolFractionOut, dM
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dMolFractionOut, dMolesOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolFractionOut, dMolesOut
     character(kind=c_char,len=1), target, intent(in) :: cSpeciesOut(*)
     integer(c_size_t), intent(in), value             :: lcSpeciesOut
     character(kind=c_char,len=lcSpeciesOut), pointer :: fSpeciesOut
@@ -642,8 +641,8 @@ subroutine GetOutputMolSpeciesPhaseISO(cPhase, lcPhase, cSpecies, lcSpecies, dMo
 
     implicit none
 
-    integer, intent(out)   :: INFO
-    real(8), intent(out)   :: dMolFractionOut
+    integer(C_INT), intent(out)                      :: INFO
+    real(C_DOUBLE), intent(out)                      :: dMolFractionOut
     character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cSpecies(*)
     integer(c_size_t), intent(in), value             :: lcPhase, lcSpecies
     character(kind=c_char,len=lcPhase), pointer      :: fPhase
@@ -665,9 +664,8 @@ subroutine GetOutputSiteFractionISO(cSolnOut, lcSolnOut, iSublatticeOut, iConsti
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dSiteFractionOut
-    integer                      :: iSublatticeOut, iConstituentOut
+    integer(C_INT),       intent(out)   :: INFO, iSublatticeOut, iConstituentOut
+    real(C_DOUBLE),       intent(out)   :: dSiteFractionOut
     character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
     integer(c_size_t), intent(in), value             :: lcSolnOut
     character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
@@ -687,8 +685,8 @@ subroutine GetOutputSolnSpeciesISO(cSolnOut, lcSolnOut, cSpeciesOut, lcSpeciesOu
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dMolFractionOut, dChemPotSpecies
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolFractionOut, dChemPotSpecies
     character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*), cSpeciesOut(*)
     integer(c_size_t), intent(in), value             :: lcSolnOut, lcSpeciesOut
     character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
@@ -710,8 +708,7 @@ subroutine GetPhaseIndexISO(cPhaseName, lcPhaseName, iIndexOut, INFO) &
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    integer,       intent(out)   :: iIndexOut
+    integer(C_INT),       intent(out)                :: INFO, iIndexOut
     character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
     integer(c_size_t), intent(in), value             :: lcPhaseName
     character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
@@ -731,8 +728,8 @@ subroutine GetPureConPhaseMolISO(cPureConOut, lcPureConOut, dPureConMolOut, INFO
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dPureConMolOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dPureConMolOut
     character(kind=c_char,len=1), target, intent(in) :: cPureConOut(*)
     integer(c_size_t), intent(in), value             :: lcPureConOut
     character(kind=c_char,len=lcPureConOut), pointer :: fPureConOut
@@ -752,9 +749,8 @@ subroutine GetSUBLSiteMolISO(cSolnOut, lcSolnOut, iSublatticeOut, iConstituentOu
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dSiteMolOut
-    integer                      :: iSublatticeOut, iConstituentOut
+    integer(C_INT),       intent(out)                :: INFO, iSublatticeOut, iConstituentOut
+    real(C_DOUBLE),       intent(out)                :: dSiteMolOut
     character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
     integer(c_size_t), intent(in), value             :: lcSolnOut
     character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
@@ -774,8 +770,8 @@ subroutine GetSolnPhaseMolISO(cSolnOut, lcSolnOut, dSolnMolOut, INFO) &
 
     implicit none
 
-    integer,       intent(out)   :: INFO
-    real(8),       intent(out)   :: dSolnMolOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dSolnMolOut
     character(kind=c_char,len=1), target, intent(in) :: cSolnOut(*)
     integer(c_size_t), intent(in), value             :: lcSolnOut
     character(kind=c_char,len=lcSolnOut), pointer    :: fSolnOut
@@ -795,8 +791,8 @@ subroutine GetMqmqaMolesPairsISO(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) 
 
     implicit none
 
-    integer,       intent(out)               :: INFO
-    real(8),       intent(out)               :: dMolesPairsOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolesPairsOut
     character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
     integer(c_size_t), intent(in), value             :: lcPhaseName
     character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
@@ -816,8 +812,8 @@ subroutine GetMqmqaPairMolFractionISO(cPhaseName, lcPhaseName, cPairIn, lcPairIn
 
     implicit none
 
-    integer,       intent(out)               :: INFO
-    real(8),       intent(out)               :: dMolesPairOut
+    integer(C_INT),       intent(out)                :: INFO
+    real(C_DOUBLE),       intent(out)                :: dMolesPairOut
     character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*), cPairIn(*)
     integer(c_size_t), intent(in), value             :: lcPhaseName, lcPairIn
     character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
@@ -840,7 +836,7 @@ subroutine GetMqmqaNumberPairsQuadsISO(cPhaseName,lcPhaseName, nPairs, nQuads, I
 
     implicit none
 
-    integer,       intent(out)               :: INFO, nPairs, nQuads
+    integer(C_INT),       intent(out)                :: INFO, nPairs, nQuads
     character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
     integer(c_size_t), intent(in), value             :: lcPhaseName
     character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
@@ -860,9 +856,9 @@ subroutine GetMqmqaConstituentFractionISO(cPhase,lcPhase,iSublattice,cConstituen
 
     implicit none
 
-    integer,       intent(out)               :: INFO
-    integer,       intent(in)                :: iSublattice
-    real(8),       intent(out)               :: dConstituentFractionOut
+    integer(C_INT), intent(out)                      :: INFO
+    integer(C_INT), intent(in)                       :: iSublattice
+    real(C_DOUBLE), intent(out)                      :: dConstituentFractionOut
     character(kind=c_char,len=1), target, intent(in) :: cPhase(*), cConstituent(*)
     integer(c_size_t), intent(in), value             :: lcPhase,   lcConstituent
     character(kind=c_char,len=lcPhase),       pointer  :: fPhase
@@ -884,7 +880,7 @@ subroutine SetHeatCapacityEnthalpyEntropyRequestedISO(iRequested) &
 
     implicit none
 
-    integer, intent(in)::  iRequested
+    integer(C_INT), intent(in)::  iRequested
 
     call SetHeatCapacityEnthalpyEntropyRequested(iRequested)
 
@@ -898,7 +894,7 @@ subroutine GetHeatCapacityEnthalpyEntropyISO(dHeatCapacityOut, dEnthalpyOut, dEn
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
-    real(8), intent(out):: dHeatCapacityOut, dEnthalpyOut, dEntropyOut
+    real(C_DOUBLE), intent(out):: dHeatCapacityOut, dEnthalpyOut, dEntropyOut
 
     call GetHeatCapacityEnthalpyEntropy(dHeatCapacityOut, dEnthalpyOut, dEntropyOut)
 

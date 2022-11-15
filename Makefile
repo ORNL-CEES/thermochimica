@@ -23,7 +23,7 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -Wno-c-binding-type -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
