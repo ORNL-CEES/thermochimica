@@ -171,7 +171,7 @@ namespace Thermochimica
     double moleFrac, chemPot;
     int info;
     TCAPI_getOutputSolnSpecies(phaseName.c_str(), phaseName.length(), speciesName.c_str(), speciesName.length(), &moleFrac, &chemPot, &info);
-    return {moleFrac, chemPot, info};
+    return std::tuple<double, double, int>{moleFrac, chemPot, info};
   }
 
   std::tuple<double, double, int>
@@ -180,7 +180,7 @@ namespace Thermochimica
     double moleFrac, moles;
     int info;
     TCAPI_getOutputMolSpecies(speciesName.c_str(), speciesName.length(), &moleFrac, &moles, &info);
-    return {moleFrac, moles, info};
+    return std::tuple<double, double, int>{moleFrac, moles, info};
   }
 
   std::pair<double, int>
@@ -281,7 +281,7 @@ namespace Thermochimica
     int nQuads;
     int info;
     TCAPI_getMqmqaNumberPairsQuads(phaseName.c_str(), phaseName.length(), &nPairs, &nQuads, &info);
-    return {nPairs, nQuads, info};
+    return std::tuple<int, int, int>{nPairs, nQuads, info};
   }
 
   std::pair<double, int>
@@ -327,7 +327,7 @@ namespace Thermochimica
   {
     double heatCapacity, enthalpy, entropy;
     TCAPI_getHeatCapacityEnthalpyEntropy(&heatCapacity, &enthalpy, &entropy);
-    return {heatCapacity, enthalpy, entropy};
+    return std::tuple<double, double, double>{heatCapacity, enthalpy, entropy};
   }
 
 }
