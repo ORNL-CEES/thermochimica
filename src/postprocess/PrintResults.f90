@@ -283,7 +283,7 @@ subroutine PrintResultsSolnPhase
 
         ! Check if this phase is represented by the Compound Energy Formalism:
         IF_SUBL: if ((csolnPhaseType(l) == 'SUBL') .OR. (csolnPhaseType(l) == 'SUBLM') .OR. &
-        (csolnPhaseType(l) == 'SUBI')) then
+        (csolnPhaseType(l) == 'SUBI') .OR. (csolnPhaseType(l) == 'SUBM')) then
 
             ! Store the index # of the charged phase:
             iChargedPhaseID = iPhaseSublattice(l)

@@ -126,7 +126,7 @@ subroutine ParseCSDataBlock
         ! Count sublattice phases
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
              (cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ').OR. &
-             (cSolnPhaseTypeCS(i) == 'SUBI')) then
+             (cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) then
              nCountSublatticeCS = nCountSublatticeCS + 1
              iPhaseSublatticeCS(i) = nCountSublatticeCS
         end if
@@ -196,20 +196,26 @@ subroutine ParseCSDataBlock
             iPhaseCS(j) = i
 
             if ((cSolnPhaseTypeCS(i) == 'SUBG') .OR. (cSolnPhaseTypeCS(i) == 'SUBQ')) then
-              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
-              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+                ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+                call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
 
-              ! Get pair stoichiometry in terms of constituents
-              read (1,*,IOSTAT = INFO) dConstituentCoefficientsCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:5)
+                ! Get pair stoichiometry in terms of constituents
+                read (1,*,IOSTAT = INFO) dConstituentCoefficientsCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:5)
 
-              if (cSolnPhaseTypeCS(i) == 'SUBQ') then
-                  ! Read zeta (FNN/SNN ratio)
-                  ! In SUBQ zeta can differ for each FNN pair
-                  read (1,*,IOSTAT = INFO) dZetaSpeciesCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1))
-              end if
+                if (cSolnPhaseTypeCS(i) == 'SUBQ') then
+                    ! Read zeta (FNN/SNN ratio)
+                    ! In SUBQ zeta can differ for each FNN pair
+                    read (1,*,IOSTAT = INFO) dZetaSpeciesCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1))
+                end if
+            else if (cSolnPhaseTypeCS(i) == 'SUBM') then
+                ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+                call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+
+                ! Get pair stoichiometry in terms of constituents
+                read (1,*,IOSTAT = INFO) dConstituentCoefficientsCS(nCountSublatticeCS,j - nSpeciesPhaseCS(i-1),1:2)
             else
-              ! The following subroutine parses the Gibbs energy equations (entries 3-5):
-              call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
+                ! The following subroutine parses the Gibbs energy equations (entries 3-5):
+                call ParseCSDataBlockGibbs(i,j,iCounterGibbsEqn)
             endif
 
             ! Mole/equivalent fraction conversion and group number:
@@ -246,6 +252,9 @@ subroutine ParseCSDataBlock
             ! Ionic Liquid Model:
             case ('SUBI')
                 call ParseCSDataBlockSUBI(i)
+            ! Two-sublattice Model:
+            case ('SUBM')
+                call ParseCSDataBlockSUBM(i)
             case default
                 ! The solution phase type is not supported. Report an error.
                 INFO = 17
