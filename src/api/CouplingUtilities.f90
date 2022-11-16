@@ -1,33 +1,16 @@
-subroutine SetThermoFileName(cFileName,lcFileName)
+subroutine SetThermoFileName(cFileName)
 
   USE ModuleThermoIO, ONLY: cThermoFileName
 
   implicit none
 
   character(*), intent(in)::  cFileName
-  integer, intent(in) :: lcFileName
-  character(120) :: cFileNameLen
 
-  cFileNameLen = cFileName!(1:min(120,lcFileName))
-  cThermoFileName       = trim(cFileNameLen(1:lcFileName))
+  cThermoFileName = cFileName
 
   return
 
 end subroutine SetThermoFileName
-
-subroutine SetThermoFileNameFortran(cFileName)
-
-  USE ModuleThermoIO, ONLY: cThermoFileName
-
-  implicit none
-
-  character(*), intent(in)::  cFileName
-
-  cThermoFileName       = cFileName
-
-  return
-
-end subroutine SetThermoFileNameFortran
 
 subroutine SetUnitTemperature(cUnitTemperature)
 
@@ -364,7 +347,7 @@ end subroutine APpmInBToMolInVol
 
 subroutine SSInitiateZRHD
 
-  call SetThermoFileNameFortran('ZRHD_MHP.dat')
+  call SetThermoFileName('ZRHD_MHP.dat')
   call SetUnits('K','atm','moles')
 
   return
@@ -373,7 +356,7 @@ end subroutine SSInitiateZRHD
 
 subroutine SSInitiateUO2PX
 
-  call SetThermoFileNameFortran('DBV6_TMB_modified.dat')
+  call SetThermoFileName('DBV6_TMB_modified.dat')
   call SetUnits('K','atm','moles')
 
   return
