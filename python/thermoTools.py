@@ -20,9 +20,9 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
         inputFile.write(f'data file         = {datafile}\n')
-        inputFile.write(f'temperature unit  = {tunit}\n')
-        inputFile.write(f'pressure unit     = {punit}\n')
-        inputFile.write(f'mass unit         = {munit}\n')
+        inputFile.write(f'temperature unit  = \'{tunit}\'\n')
+        inputFile.write(f'pressure unit     = \'{punit}\'\n')
+        inputFile.write(f'mass unit         = \'{munit}\'\n')
         # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
         # Toggle for running properties requiring derivatives: enthalpy, entropy, heat capacity
@@ -74,11 +74,11 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         # List of elements (by number)
         for i in range(nElements):
             inputFile.write(f'mass(' + str(atomic_number_map.index(elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
-        inputFile.write(f'temperature unit  = {tunit}\n')
-        inputFile.write(f'pressure unit     = {punit}\n')
+        inputFile.write(f'temperature unit  = \'{tunit}\'\n')
+        inputFile.write(f'pressure unit     = \'{punit}\'\n')
+        inputFile.write(f'mass unit         = \'{munit}\'\n')
         # Toggles whether loops over temperature and pressure are nested (false) or simultaneous (true)
         inputFile.write(f'step together     = {".TRUE." if stepTogether else ".FALSE."}\n')
-        inputFile.write(f'mass unit         = {munit}\n')
         inputFile.write(f'data file         = {datafile}\n')
         # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
