@@ -12,8 +12,14 @@ Each GUI is documented below. Installation instructions are available in the mai
 ```
 These scripts (except for `plotGUI.sh`) build Thermochimica before launching the selected GUI, so may take a few seconds to start when used for the first time or after changes to the source code.
 
-# `thermoGUI`
+`thermoGUI`, `phaseDiagramGUI`, and `pseudoBinaryPhaseDiagramGUI` begin by opening a database selection window. In this interface, all files with extension `.dat` (case insensitive), are presented. `plotGUI` opens a similar window, but `.json` files are displayed and the default directory is `outputs`. The user can select one of the available databases by clicking on it, or use the `Browse` button to change directories. The default directory is `data`. Selecting a file will open a calculation window. The details of these windows will be described in the corresponding sections below. Multiple calculation windows of a given type can be active at a time.
 
+![Database selection window](/doc/images/databaseSelection.png)
+
+# `thermoGUI`
+The default `thermoGUI` calculation window opened when the database `Kaye_NobleMetals.dat` is selected is shown below.
+
+![Default `thermoGUI` calculation window](/doc/images/thermoGUI-default.png)
 
 # `plotGUI`
 
