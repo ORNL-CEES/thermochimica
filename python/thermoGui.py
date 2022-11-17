@@ -148,7 +148,7 @@ class CalculationWindow:
                     except:
                         pass
 
-                    xs = np.array([np.linspace(masses1[i],masses2[i],nxstep) for i in range(self.nElements)]).T
+                    xs = np.array([np.linspace(masses1[i],masses2[i],nxstep+1) for i in range(self.nElements)]).T
                     calcList = []
                     for x in xs:
                         calc = [temperature,pressure]
