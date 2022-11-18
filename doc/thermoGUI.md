@@ -12,7 +12,7 @@ When a calculation is run (by pressing `Run`), the results are displayed in an o
 
 There are two checkboxes towards the bottom of the `thermoGUI` calculation window, `Save JSON` and `Calculate heat capacity, entropy, and enthalpy`. When `Save JSON` is selected, a JSON database containing all calculation outputs will be generated and placed in the `outputs` directory. The default name for this file is `thermoout.json`, but a different name can be entered by using the `Set name` button. Note the extension `.json` will be appended automatically to the entered name. Selecting `Calculate heat capacity, entropy, and enthalpy` requests Thermochimica to compute these values, which will be both appended to the text output and included in the exported JSON database, if selected.
 
-## Loops over Temperature and Pressure
+## Loops over temperature and pressure
 If the radio buttons under `Temperature range:` or `Pressure range:` are set to `Enabled`, additional input boxes are revealed, as shown below.
 
 ![`thermoGUI` window with temperature loop input.](/doc/images/thermoGUI-tloop.png)
