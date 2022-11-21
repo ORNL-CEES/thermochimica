@@ -58,7 +58,7 @@ For both y-axes, the following settings are available:
 - `Show Legend`: selects whether series on this axis are included in the plot legend
 
 The following settings are available to configure exported figures:
-- `Export Filename`: name of exported figure, which will be saved to the `outputs` directory (note that the extension corresponding to the format selected in `Export Format` will be appended)
+- `Export Filename`: name of exported figure (default is `plot`), which will be saved to the `outputs` directory (note that the extension corresponding to the format selected in `Export Format` will be appended)
 - `Export Format`: image file format may be selected from the following:
     - `png`: portable network graphic
     - `pdf`: portable document format
@@ -66,3 +66,9 @@ The following settings are available to configure exported figures:
     - `eps`: encapsulated postscript
     - `svg`: scalable vector graphic
 - `Export DPI`: set resolution in dots per inch (default is 300)
+
+## Saving a plot
+Press `Export Plot` to save the current figure to the location specified using `Export Filename` in the settings menu.
+
+## Exporting a plot script
+Pressing `Export Plot Script` will save a `python` script to `python/generatedPlotScript.py`. This script can be used to regenerate the current figure (including updates if the JSON database is updated), as well as to customize the setup of that figure.
