@@ -221,9 +221,9 @@ class CalculationWindow:
         #                              [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
         #                   sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
         #                   sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-        tempLayout     = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
+        tempLayout     = [sg.Column([[sg.Text('Minimum Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
+                          sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
         presLayout     = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')]
         densityLayout  = [sg.Column([[sg.Text('Initial grid density')],[sg.Input(key='-grid_density-',size=(8,1))]],vertical_alignment='t')]
@@ -258,8 +258,8 @@ class RefineWindow:
         xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-        tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+        tempRefLayout = [sg.Column([[sg.Text('Minimum Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+                         sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
         refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
         self.sgw = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
