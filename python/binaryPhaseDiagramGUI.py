@@ -643,7 +643,7 @@ class SaveDataWindow:
             try:
                 tempName = str(values['-saveName-'])
                 if not tempName == '':
-                    self.parent.saveDataName = tempName
+                    self.parent.calculation.saveDataName = tempName
             except:
                 pass
             saveData = SaveData(self.parent.calculation.ts,
@@ -656,7 +656,7 @@ class SaveDataWindow:
                                 self.parent.calculation.x1data,
                                 self.parent.calculation.mint,
                                 self.parent.calculation.maxt)
-            with open(self.parent.calculation.saveDataName+'.pkl','wb') as outp:
+            with open('outputs/'+self.parent.calculation.saveDataName+'.pkl','wb') as outp:
                 pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
             self.close()
 
@@ -676,7 +676,7 @@ class LoadDataWindow:
                 )
             ],
         ]
-        self.folder = os.getcwd()
+        self.folder = os.getcwd() + '/outputs'
         try:
             file_list = os.listdir(self.folder)
         except:
@@ -716,7 +716,6 @@ class LoadDataWindow:
             fnames = sorted(fnames, key=str.lower)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            newData = []
             filename = values["-FILE LIST-"][0]
             datafile = os.path.join(self.folder, filename)
             with open(datafile, 'rb') as inp:
