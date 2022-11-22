@@ -29,6 +29,7 @@ test/doc/
 *.0
 *.lai
 *.csv
+*.pkl
 # ignore vscode cache
 .vscode/
 # some of these will occasionally require manual override
