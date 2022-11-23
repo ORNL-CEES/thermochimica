@@ -102,8 +102,39 @@ An example dialogue window for the Pd - Ru phase diagram with automatically gene
 ![`phaseDiagramGUI` example remove label](/doc/images/phaseDiagramGUI-example-removelabel.png)
 
 ## `Plot Settings`
+When `Plot Settings` is pressed, the following settings window is opened.
+
+![`phaseDiagramGUI` plot settings window](/doc/images/phaseDiagramGUI-plotsettings.png)
+
+A few plot options are available:
+- `Marker Style`: 
+    - `Lines`: display only lines connecting data points
+    - `Points`: display only closed circles (•) at data points
+    - `Both`: display both lines and closed circles
+- `Plot Colors`:
+    - `Colorful`: the color for the outline of each two-phase region is determined by taking equal intervals in the `rainbow` colorspace
+    - `Black`: all lines are set to black
+- `Experimental Data Colors`:
+    - `Colorful`: the color for each loaded experimental data series is determined by taking equal intervals in the `rainbow` colorspace
+    - `Black`: all loaded experimental data series are set to black
+- `Show`:
+    - `Experimental Data`: toggles whether loaded experimental data is displayed
+    - `Loaded Diagram`: toggles whether a loaded phase diagram is displayed
+
+`Auto-Label Settings` presents two toggles for the [`Auto Label`](#auto-label) feature, which determine whether single-phase regions and two-phase regions given labels when using `Auto Label`. Note that these only apply to subsequent uses of `Auto Label` and will not alter existing labels.
+
+The following settings are available to configure exported figures:
+- `Export Filename`: name of exported figure (default is `thermochimicaPhaseDiagram`), which will be saved to the `outputs` directory (note that the extension corresponding to the format selected in `Export Format` will be appended)
+- `Export Format`: image file format may be selected from the following:
+    - `png`: portable network graphic
+    - `pdf`: portable document format
+    - `ps`: postscript image
+    - `eps`: encapsulated postscript
+    - `svg`: scalable vector graphic
+- `Export DPI`: set resolution in dots per inch (default is 300)
 
 ## `Export Plot`
+Press `Export Plot` to save the current phase diagram to the location specified using `Export Filename` in the settings menu.
 
 ## `Inspect`
 

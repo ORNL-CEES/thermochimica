@@ -54,7 +54,7 @@ For both y-axes, the following settings are available:
     - `Both`: display both lines and closed circles
 - `Plot Colors`:
     - `Colorful`: the color for each series is determined by taking equal intervals in the `rainbow` colorspace
-    - `Black`: all lines are set to black
+    - `Black`: all lines/points are set to black
 - `Show Legend`: selects whether series on this axis are included in the plot legend
 
 The following settings are available to configure exported figures:
