@@ -547,6 +547,8 @@ class InspectWindow:
             [sg.Input(key='-xfilterlow-',size=(thermoToolsGUI.inputSize,1)),sg.Input(key='-xfilterhi-',size=(thermoToolsGUI.inputSize,1))],
             [sg.Text('Contains Phases:')],
             [sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter2-')],
+            [sg.Text('Active/Suppressed Statues:')],
+            [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
             [sg.Button('Apply Filter')]
         ]
         self.data = [[i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'] for i in range(len(self.parent.calculation.ts))]
@@ -602,10 +604,17 @@ class InspectWindow:
                 pass
             self.data = []
             for i in range(len(self.parent.calculation.ts)):
-                if tlo <= self.parent.calculation.ts[i] and thi >= self.parent.calculation.ts[i] and ((xlo <= self.parent.calculation.x1[i] and xhi >= self.parent.calculation.x1[i]) or (xlo <= self.parent.calculation.x2[i] and xhi >= self.parent.calculation.x2[i])):
-                    if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.calculation.p1[i] or values['-pfilter1-'] == self.parent.calculation.p2[i]):
-                        if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.calculation.p1[i] or values['-pfilter2-'] == self.parent.calculation.p2[i]):
-                            self.data.append([i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'])
+                # Check temperature
+                tfilt = tlo <= self.parent.calculation.ts[i] and thi >= self.parent.calculation.ts[i]
+                # Check concentration
+                xfilt = (xlo <= self.parent.calculation.x1[i] and xhi >= self.parent.calculation.x1[i]) or (xlo <= self.parent.calculation.x2[i] and xhi >= self.parent.calculation.x2[i])
+                # Check phases present
+                pfilt = (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.calculation.p1[i] or values['-pfilter1-'] == self.parent.calculation.p2[i]) and (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.calculation.p1[i] or values['-pfilter2-'] == self.parent.calculation.p2[i])
+                # Check active/suppressed status
+                afilt = (values['-activefilter-'] == '') or ((values['-activefilter-'] == 'Suppressed') == self.parent.calculation.suppressed[self.parent.calculation.pointIndex[i]])
+                # If all filters pass, add to display list
+                if tfilt and xfilt and pfilt and afilt:
+                    self.data.append([i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'])
             self.sgw['-dataList-'].update(self.data)
 
 class SaveData(object):
