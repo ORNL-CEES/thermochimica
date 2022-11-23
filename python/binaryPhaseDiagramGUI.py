@@ -547,7 +547,7 @@ class InspectWindow:
             [sg.Input(key='-xfilterlow-',size=(thermoToolsGUI.inputSize,1)),sg.Input(key='-xfilterhi-',size=(thermoToolsGUI.inputSize,1))],
             [sg.Text('Contains Phases:')],
             [sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter2-')],
-            [sg.Text('Active/Suppressed Statues:')],
+            [sg.Text('Active/Suppressed Status:')],
             [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
             [sg.Button('Apply Filter')]
         ]
