@@ -137,6 +137,26 @@ The following settings are available to configure exported figures:
 Press `Export Plot` to save the current phase diagram to the location specified using `Export Filename` in the settings menu.
 
 ## `Inspect`
+The `Inspect` feature allows a user to examine the underlying equilibrium calculations used to construct the phase diagram. This can be useful for debugging purposes, and also allows spurious calculations to be suppressed from a phase diagram. An example of the inspection window corresponding to the Pd - Ru phase diagram is shown below.
+
+![`phaseDiagramGUI` `Inspect` window example for Pd - Ru system](/doc/images/phaseDiagramGUI-example-inspect.png)
+
+The column on the left-hand side lists all equilibrium calculations used in the phase diagram. These are listed with an index, followed by the temperature and concentrations of `Element 2` in the two phases present. When selected, information and options for a calculation are displayed on the right-hand side of the `Inspect` window.
+
+Under `Calculation Details`, the temperature and concentrations of the two elements are displayed, followed by the calculated compositions of the two phases determined to be present at equilibrium, and the Gibbs energy and total number of Gibbs energy minimization (GEM) iterations required for the calculation. For each calculation, it is the calculated compositions `Phase 1` and `Phase 2` that appear on the phase diagram.
+
+The `Toggle Active/Suppressed Status` button sets whether the calculation is included in the phase diagram. The current status is indicated above this button (`Active` in the example figure above). By default, all calculations are set to `Active`.
+
+Below `Filter Points` there are options for filtering the points listed in the left-hand column. This can be useful for locating a calculation of interest. The boxes below `Temperature Range` and `<Element 2> Concentration Range` (`Ru Concentration Range` in the example) are used to set a region of the phase diagram to consider. Note that the concentration used to determine inclusion is the location of the plotted points (i.e. `Phase 1` or `Phase 2` under `Calculation Details`), rather than the total concentration for the calculation (i.e. `Moles of <Element 2>` under `Calculation Details`).
+
+There are two dropdowns below `Contains Phases`, and the various phases present in the phase diagram may be selected from these. Zero, one, or two phases may be selected. If two phases are selected, **both** phases must be present for a calculation to be listed.
+
+There is also a dropdown to filter by active or suppressed status. When this menu is empty, points with either are shown.
+
+An example of filtered data is shown below.
+
+![`phaseDiagramGUI` `Inspect` window example with filter for Pd - Ru system](/doc/images/phaseDiagramGUI-example-inspect-filtered.png)
+
 
 ## Overlaying Diagrams
 
