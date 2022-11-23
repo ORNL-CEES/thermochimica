@@ -69,6 +69,8 @@ After calling `Auto Smoothen`, this issue is resolved as shown below.
 
 ![`phaseDiagramGUI` example phase diagram with resolved two-phase regions](/doc/images/mo-ru-phaseDiagram-resolved.png)
 
+This detection of overlapping regions is done by using heuristic analysis of the spacing between consecutive points on a phase boundary line. This analysis fails if phase boundaries are sparsely populated, which is why it is not performed until `Auto Smoothen` is called.
+
 ## Labels
 Labels of phase regions can be added and removed manually, as well as automatically generated.
 
