@@ -159,6 +159,19 @@ An example of filtered data is shown below.
 
 
 ## Overlaying Diagrams
+Once a phase diagram has been created, the data corresponding to that diagram can be saved by pressing `Export Diagram Data`. A dialogue window (shown below) will open to ask for a name for the file to which the data will be saved. The default name is `savedDiagram`. The extension is `pkl`, as the saved file is a [`pickle`](https://docs.python.org/3/library/pickle.html). The file will be saved to the `outputs` directory.
+
+![`phaseDiagramGUI` `Export Diagram Data` window](/doc/images/phaseDiagramGUI-exportdiagramdata.png)
+
+A diagram saved by this method can be loaded with the `Load Diagram` button. This opens a file selection window (opened by default in the `outputs` directory) that lists all `pkl` files. When a file is selected, the diagram saved in that file will be added as an overlay to the current phase diagram.
+
+For example, consider a case in which the example Pd - Ru phase diagram was saved after the initial diagram setup to a file `pd-ru-example.pkl`. The `Load Diagram` window will appear as the below.
+
+![`phaseDiagramGUI` example `Load Diagram` window](/doc/images/phaseDiagramGUI-example-loaddata.png)
+
+Once `Auto Refine` and `Auto Smoothen` have been applied to the current phase diagram (as described in [Diagram Refinement](#diagram-refinement)), the resulting phase diagram with overlay will look like the figure below.
+
+![`phaseDiagramGUI` example diagram with overlay](/doc/images/pd-ru-phaseDiagram-overlay.png)
 
 ## Experimental Data
 
