@@ -3,6 +3,7 @@ This interface is used to generate **binary** phase diagrams. It includes the fo
 - [set up](#calculation-setup), 
 - [refinement](#diagram-refinement), 
 - [labelling](#labels),
+- [undo](#undo),
 - [plot settings](#plot-settings),
 - [figure export](#export-plot),
 - [data inspection](#inspect),
@@ -100,6 +101,9 @@ When there are labels on the current phase diagram, pressing `Remove Label` open
 An example dialogue window for the Pd - Ru phase diagram with automatically generated labels is shown below.
 
 ![`phaseDiagramGUI` example remove label](/doc/images/phaseDiagramGUI-example-removelabel.png)
+
+## `Undo`
+The most recent `Refine`, `Auto Refine`, `Auto Smoothen`, `Label`, `Auto Label`, or `Remove Label` operation can be undone by pressing `Undo`. Note that only one level of history is stored at this time, so subsequent `Undo` operations are not possible.
 
 ## `Plot Settings`
 When `Plot Settings` is pressed, the following settings window is opened.
