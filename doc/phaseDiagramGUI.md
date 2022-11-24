@@ -185,4 +185,12 @@ An example of the Pd - Ru phase diagram with two (fictitious) settings of experi
 ![`phaseDiagramGUI` example diagram with experiment](/doc/images/pd-ru-phaseDiagram-experiment.png)
 
 ## Macros
+While a phase diagram is being generated, refined, and labelled, the button and settings used are automatically logged to a macro, i.e. a collection of commands. By pressing `Export Macro`, the logged commands can be saved to a file. This file will be placed in the `python` directory, and is actually a full-fledged python script, which means it can be run outside of the `phaseDiagramGUI` environment. Macros can also be edited to add or remove commands as necessary. This makes them an effective way to 'save' your work when using the `phaseDiagramGUI`.
 
+Pressing `Macro Settings` opens a window (shown below) with a file browser and a field for entering `Macro File Save Name`. The file browser and file selection column are used to select a previously-saved macro. This selection is confirmed by pressing `Select Macro`. The `Macro File Save Name` input box is used to set the file name for the macro saved when `Export Macro` is pressed in the main `phaseDiagramGUI` window. This setting is confirmed by pressing `Set Save Name`. Note that the file will always have extension `py`, and the default name is `macroPhaseDiagram`.
+
+![`phaseDiagramGUI` example `Macro Settings` window](/doc/images/phaseDiagramGUI-example-macrosettings.png)
+
+When `Run Macro` is pressed, the macro selected in the `Macro Settings` window is run. Further `Refine`, `Label`, etc., operations will be applied to the diagram generated.
+
+`Clear Macro` can be used to erase the commands in the currect macro log.
