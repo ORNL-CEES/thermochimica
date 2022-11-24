@@ -174,5 +174,15 @@ Once `Auto Refine` and `Auto Smoothen` have been applied to the current phase di
 ![`phaseDiagramGUI` example diagram with overlay](/doc/images/pd-ru-phaseDiagram-overlay.png)
 
 ## Experimental Data
+Experimental data points may be added to the phase diagram for the purposes of comparing the computed diagram to experimental data. Experimental data is expected in a simple two-column CSV format, with concentration of `Element 2` in the first column, and temperature in the second column. [An example CSV file is available here](/doc/examples/pd-ru-example_experiment1.csv).
+
+When the `Add Data` button is pressed, a file selection window is opened, which lists `csv` files. An example file selection window is shown below. As with the other file selection windows, `Browse` can be pressed to change directory. In the file selection column, multiple files can be selected simultaneously using `Ctrl` or `Shift` + click. When `Add Data` is pressed, the data in the selected files will be added to the phase diagram.
+
+![`phaseDiagramGUI` example `Add Data` window](/doc/images/phaseDiagramGUI-example-experimental.png)
+
+An example of the Pd - Ru phase diagram with two (fictitious) settings of experimental data added is shown below.
+
+![`phaseDiagramGUI` example diagram with experiment](/doc/images/pd-ru-phaseDiagram-experiment.png)
 
 ## Macros
+
