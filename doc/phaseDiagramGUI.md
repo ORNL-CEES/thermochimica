@@ -11,6 +11,12 @@ This interface is used to generate **binary** phase diagrams. It includes the fo
 - [comparison with experimental data](#experimental-data), and
 - [generation and use of macros](#macros).
 
+It can be launched by using the following command:
+
+```bash
+./scripts/phaseDiagramGUI.sh
+```
+
 The `phaseDiagramGUI` window is shown below.
 
 ![`phaseDiagramGUI` default window](/doc/images/phaseDiagramGUI-default.png)

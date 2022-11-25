@@ -1,4 +1,10 @@
 # `plotGUI`
+The `plotGUI` is used to make figures displaying data calculated by Thermochimica and stored in a JSON database. It can be launched by using the following command:
+
+```bash
+./scripts/plotGUI.sh
+```
+
 The `plotGUI` default window is shown below.
 
 ![`plotGUI` default window](/doc/images/plotGUI-default.png)

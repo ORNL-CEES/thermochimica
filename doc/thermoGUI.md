@@ -1,4 +1,10 @@
 # `thermoGUI`
+`thermoGUI` is used to run equilibrium calculations using Thermochimica.  It can be launched by using the following command:
+
+```bash
+./scripts/thermoGUI.sh
+```
+
 ## Simple calculations
 The default `thermoGUI` calculation window opened when the database `Kaye_NobleMetals.dat` is selected is shown below.
 
