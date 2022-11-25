@@ -17,3 +17,6 @@ Setup otherwides proceeds as described in the [`phaseDiagramGUI`](/doc/phaseDiag
 An example NaCl - AlCl<sub>3</sub> pseudo-binary phase diagram is shown below. The [NaCl-AlCl3.dat](/data/NaCl-AlCl3.dat) database was used.
 
 ![Example NaCl - AlCl<sub>3</sub> generated using `pseudoBinaryPhaseDiagramGUI`](/doc/images/nacl-alcl3-phaseDiagram.png)
+
+## `Plot Settings`
+The default exported figure name is `thermochimicaPseudoBinaryPhaseDiagram`.
