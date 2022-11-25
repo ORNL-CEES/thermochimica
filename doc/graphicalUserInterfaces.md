@@ -2,9 +2,9 @@
 While the primary purpose of Thermochimica is to be used within multi-physics applications, stand-alone calculations are also supported. Four GUIs are provided to assist with setting up, running, and plotting data from stand-alone Thermochimica calculations. These are: 
 
 - [`thermoGUI`](/doc/thermoGUI.md), which performs simple calculations or loops over calculations, 
-- [`plotGUI`](/doc/plotGUI), which can generate plots of many parameters calculated by Thermochimica
-- [`phaseDiagramGUI`](/doc/phaseDiagramGUI), which creates binary phase diagrams, and
-- [`pseudoBinaryPhaseDiagramGUI`](/doc/pseudoBinaryPhaseDiagramGUI), which creates phase diagrams in which the endpoints are compounds rather than individual elements.
+- [`plotGUI`](/doc/plotGUI.md), which can generate plots of many parameters calculated by Thermochimica
+- [`phaseDiagramGUI`](/doc/phaseDiagramGUI.md), which creates binary phase diagrams, and
+- [`pseudoBinaryPhaseDiagramGUI`](/doc/pseudoBinaryPhaseDiagramGUI.md), which creates phase diagrams in which the endpoints are compounds rather than individual elements.
 
 Each GUI is documented below. Installation instructions are available in the main [Thermochimica readme](/README.md#method-3-guis). A shell script to start each GUI is available in the `scripts` directory. From the root Thermochimica directory, simply run (for example):
 ```bash
