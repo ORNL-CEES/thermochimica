@@ -12,7 +12,7 @@ This interface is used to create phase diagrams in which the endmembers are comp
 ## Calculation Setup
 Endmember compounds are configured using the `Composition 1` and `Composition 2` columns. These function in the same manner as composition entry in [`thermoGUI`](/doc/thermoGUI.md). In the `pseudoBinaryPhaseDiagramGUI`, the number of initial steps along the temperature and composition axes can be specified separately, and both have a default value of 10.
 
-Setup otherwides proceeds as described in the [`phaseDiagramGUI` documentation](/doc/phaseDiagramGUI.md#calculation_setup).
+Setup otherwides proceeds as described in the [`phaseDiagramGUI`](/doc/phaseDiagramGUI.md#calculation_setup) documentation.
 
 An example NaCl - AlCl<sub>3</sub> pseudo-binary phase diagram is shown below. The [NaCl-AlCl3.dat](/data/NaCl-AlCl3.dat) database was used.
 
