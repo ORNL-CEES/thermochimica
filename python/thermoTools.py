@@ -129,7 +129,9 @@ def RunInputScript(filename,checkOutput=False,jsonName=None,thermochimica_path =
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False,directory='outputs/'):
+    # Prepend filename with directory
+    datafile = f'{directory}{datafile}'
     # Do plot setup
     x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2)
 
