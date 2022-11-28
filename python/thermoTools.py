@@ -108,10 +108,10 @@ def RunRunCalculationList(filename,checkOutput=False,jsonName=None,thermochimica
     if checkOutput:
         thermoOut = subprocess.check_output([f'{thermochimica_path}/bin/RunCalculationList',filename]).decode("utf-8")
     else:
-        subprocess.run(['./bin/RunCalculationList',filename])
+        subprocess.run([f'{thermochimica_path}/bin/RunCalculationList',filename])
     if jsonName:
         try:
-            shutil.copy2('outputs/thermoout.json', f'outputs/{jsonName}')
+            shutil.copy2(f'{thermochimica_path}/outputs/thermoout.json', f'{thermochimica_path}/outputs/{jsonName}')
         except:
             pass
     return thermoOut
@@ -121,10 +121,10 @@ def RunInputScript(filename,checkOutput=False,jsonName=None,thermochimica_path =
     if checkOutput:
         thermoOut = subprocess.check_output([f'{thermochimica_path}/bin/InputScriptMode',filename]).decode("utf-8")
     else:
-        subprocess.run(['./bin/InputScriptMode',filename])
+        subprocess.run([f'{thermochimica_path}/bin/InputScriptMode',filename])
     if jsonName:
         try:
-            shutil.copy2('outputs/thermoout.json', f'outputs/{jsonName}')
+            shutil.copy2(f'{thermochimica_path}/outputs/thermoout.json', f'{thermochimica_path}/outputs/{jsonName}')
         except:
             pass
     return thermoOut
