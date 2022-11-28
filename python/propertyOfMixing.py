@@ -37,7 +37,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
-    thermoTools.RunRunCalculationList(inputFileName)
+    thermoTools.RunRunCalculationList(inputFileName,thermochimica_path = thermochimica_path)
 
     # Process output
     f = open(thermochimica_path+'/outputs/thermoout.json',)
@@ -66,7 +66,7 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
-    thermoTools.RunRunCalculationList(inputFileName)
+    thermoTools.RunRunCalculationList(inputFileName,thermochimica_path = thermochimica_path)
 
     # Process output
     f = open(thermochimica_path+'/outputs/thermoout.json',)
