@@ -35,21 +35,14 @@ class CalculationWindow:
             self.close()
         elif event =='Run':
             cancelRun = False
-            ntstep = 10
+            grid_density = 10
             try:
-                tempstep = int(values['-ntstep-'])
+                tempstep = int(values['-grid_density-'])
                 if tempstep >= 0:
-                    ntstep = tempstep
+                    grid_density = tempstep
             except:
                 pass
-            nxstep = 10
-            try:
-                tempstep = int(values['-nxstep-'])
-                if tempstep >= 0:
-                    nxstep = tempstep
-            except:
-                pass
-            if (float(ntstep) * float(nxstep)) > 50000:
+            if grid_density > 200:
                 cancelRun = True
                 confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
                 confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
@@ -71,20 +64,6 @@ class CalculationWindow:
                 pass
             tunit = values['-tunit-']
             punit = values['-punit-']
-            xlo = 0
-            try:
-                templo = float(values['-xlo-'])
-                if 0 <= templo <= 1:
-                    xlo = templo
-            except:
-                pass
-            xhi = 1
-            try:
-                temphi = float(values['-xhi-'])
-                if 0 <= temphi <= 1:
-                    xhi = temphi
-            except:
-                pass
             tlo = 300
             try:
                 templo = float(values['-temperature-'])
@@ -121,9 +100,8 @@ class CalculationWindow:
                         break
                 errorWindow.close()
                 return
-            munit = values['-munit-']
             if not cancelRun:
-                self.calculation.run(ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit)
+                self.calculation.run(grid_density,grid_density,pressure,tunit,punit,0,1,tlo,thi,el1,el2,'moles')
                 self.calculation.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Auto Refine').Update(disabled = False)
@@ -135,7 +113,7 @@ class CalculationWindow:
                 self.sgw.Element('Inspect').Update(disabled = False)
                 self.sgw.Element('Export Diagram Data').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
-                self.macro.append(f'macroPD.run({ntstep},{nxstep},{pressure},"{tunit}","{punit}",{xlo},{xhi},{tlo},{thi},"{el1}","{el2}","{munit}")')
+                self.macro.append(f'macroPD.run({grid_density},{grid_density},{pressure},"{tunit}","{punit}",{0},{1},{tlo},{thi},"{el1}","{el2}","moles")')
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -239,38 +217,39 @@ class CalculationWindow:
     def makeLayout(self):
         elSelectLayout = [sg.Column([[sg.Text('Element 1')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[0],key='-el1-')]],vertical_alignment='t'),
                           sg.Column([[sg.Text('Element 2')],[sg.Combo(self.elements[:self.nElements],default_value=self.elements[1],key='-el2-')]],vertical_alignment='t')]
-        xLayout        = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(thermoToolsGUI.inputSize,1))],
-                                     [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
+        # xLayout        = [sg.Column([[sg.Text('Start Element 2 Concentration')],[sg.Input(key='-xlo-',size=(thermoToolsGUI.inputSize,1))],
+        #                              [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
+        #                   sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+        #                   sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
         tempLayout     = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstep-',size=(8,1))]],vertical_alignment='t')]
+                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
         presLayout     = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')]
-        self.layout = [elSelectLayout,xLayout,tempLayout,presLayout,[
-            sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Exit(size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Auto Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Auto Smoothen', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Inspect', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Run Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Add Label', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Auto Label', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Remove Label', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Load Diagram', size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Export Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
-            sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Export Diagram Data', disabled = True, size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
-            ]]
+        densityLayout  = [sg.Column([[sg.Text('Initial grid density')],[sg.Input(key='-grid_density-',size=(8,1))]],vertical_alignment='t')]
+        buttonLayout   = [
+                            sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Exit(size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+                            sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Auto Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Auto Smoothen', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Inspect', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Run Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+                            sg.Column([[sg.Button('Add Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Auto Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Remove Label', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Load Diagram', size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Export Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
+                            sg.Column([[sg.Button('Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Export Plot', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Plot Settings', size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Export Diagram Data', disabled = True, size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
+                         ]
+        self.layout = [elSelectLayout,tempLayout,presLayout,densityLayout,buttonLayout]
 
 class RefineWindow:
     def __init__(self, parent):
@@ -436,7 +415,8 @@ class RemoveWindow:
                     if values['-removeLabel'+str(i)+'-']:
                         del self.parent.calculation.labels[i]
                         self.parent.macro.append(f'del macroPD.labels[{i}]')
-                except:
+                except KeyError:
+                    # If a new label was created since this window was opened, this will occur
                     continue
             if len(self.parent.calculation.labels) == 0:
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
@@ -664,7 +644,7 @@ class SaveDataWindow:
             try:
                 tempName = str(values['-saveName-'])
                 if not tempName == '':
-                    self.parent.saveDataName = tempName
+                    self.parent.calculation.saveDataName = tempName
             except:
                 pass
             saveData = SaveData(self.parent.calculation.ts,
@@ -677,7 +657,7 @@ class SaveDataWindow:
                                 self.parent.calculation.x1data,
                                 self.parent.calculation.mint,
                                 self.parent.calculation.maxt)
-            with open(self.parent.calculation.saveDataName+'.pkl','wb') as outp:
+            with open('outputs/'+self.parent.calculation.saveDataName+'.pkl','wb') as outp:
                 pickle.dump(saveData, outp, pickle.HIGHEST_PROTOCOL)
             self.close()
 
@@ -697,7 +677,7 @@ class LoadDataWindow:
                 )
             ],
         ]
-        self.folder = os.getcwd()
+        self.folder = os.getcwd() + '/outputs'
         try:
             file_list = os.listdir(self.folder)
         except:
@@ -737,7 +717,6 @@ class LoadDataWindow:
             fnames = sorted(fnames, key=str.lower)
             self.sgw["-FILE LIST-"].update(fnames)
         elif event == "-FILE LIST-":  # A file was chosen from the listbox
-            newData = []
             filename = values["-FILE LIST-"][0]
             datafile = os.path.join(self.folder, filename)
             with open(datafile, 'rb') as inp:

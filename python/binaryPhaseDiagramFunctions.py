@@ -544,7 +544,7 @@ class diagram:
                         matchind = np.argmin(match[:,0])
                         k = int(match[matchind,1])
                         inds = [i for i, l in enumerate(self.loadedDiagram.b) if l == k]
-                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j]-self.tshift,match[matchind,3]]-self.tshift,'k-')
+                        ax.plot([0,match[matchind,2]],[self.loadedDiagram.x0data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
                         if match[matchind,3] == np.min(np.array(self.loadedDiagram.ts)[inds]):
                             bEdgeLine[k][0] = True
                         if match[matchind,3] == np.max(np.array(self.loadedDiagram.ts)[inds]):
