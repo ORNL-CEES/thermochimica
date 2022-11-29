@@ -24,7 +24,7 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
-CCFLAGS     = -std=gnu++11
+CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -52,7 +52,7 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
-SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
+SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz api
 EXE_DIR     = $(SRC_DIR)/exec
 TST_DIR     = test
 LIB_DIR     = lib
@@ -62,7 +62,7 @@ SHARED_DIR  = $(SRC_DIR)
 SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
-VPATH				= $(SHARED_DIR)
+VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
 modfiles := $(shell find src -name "Module*.f90")
@@ -88,11 +88,11 @@ SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 ## =================
 ## C interface library:
 ## =================
-C_SRC       = Thermochimica-c.c
-C_OBJ       = $(C_SRC:.c=.o)
+C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
+C_OBJ       = $(C_SRC:.C=.o) 
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
-C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
+C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -157,6 +157,9 @@ $(SHARED_LIB): $(SHARED_LNK)
 	$(AR) rcs $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 $(C_LIB): $(C_LNK)
