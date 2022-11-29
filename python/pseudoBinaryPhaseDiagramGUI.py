@@ -457,9 +457,13 @@ class RemoveWindow:
             self.parent.sgw.Element('Undo').Update(disabled = False)
             tempLength = len(self.parent.calculation.labels)
             for i in reversed(range(tempLength)):
-                if values['-removeLabel'+str(i)+'-']:
-                    del self.parent.calculation.labels[i]
-                    self.parent.macro.append(f'del macroPD.labels[{i}]')
+                try:
+                    if values['-removeLabel'+str(i)+'-']:
+                        del self.parent.calculation.labels[i]
+                        self.parent.macro.append(f'del macroPD.labels[{i}]')
+                except KeyError:
+                    # If a new label was created since this window was opened, this will occur
+                    continue
             if len(self.parent.calculation.labels) == 0:
                 self.parent.sgw.Element('Remove Label').Update(disabled = True)
             self.parent.calculation.makePlot()

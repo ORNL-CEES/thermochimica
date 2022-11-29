@@ -20,9 +20,9 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
         inputFile.write(f'data file         = {datafile}\n')
-        inputFile.write(f'temperature unit  = {tunit}\n')
-        inputFile.write(f'pressure unit     = {punit}\n')
-        inputFile.write(f'mass unit         = {munit}\n')
+        inputFile.write(f'temperature unit  = \'{tunit}\'\n')
+        inputFile.write(f'pressure unit     = \'{punit}\'\n')
+        inputFile.write(f'mass unit         = \'{munit}\'\n')
         # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
         # Toggle for running properties requiring derivatives: enthalpy, entropy, heat capacity
@@ -74,11 +74,11 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         # List of elements (by number)
         for i in range(nElements):
             inputFile.write(f'mass(' + str(atomic_number_map.index(elements[i])+1) + ')           = ' + str(masses[i]) + '\n')
-        inputFile.write(f'temperature unit  = {tunit}\n')
-        inputFile.write(f'pressure unit     = {punit}\n')
+        inputFile.write(f'temperature unit  = \'{tunit}\'\n')
+        inputFile.write(f'pressure unit     = \'{punit}\'\n')
+        inputFile.write(f'mass unit         = \'{munit}\'\n')
         # Toggles whether loops over temperature and pressure are nested (false) or simultaneous (true)
         inputFile.write(f'step together     = {".TRUE." if stepTogether else ".FALSE."}\n')
-        inputFile.write(f'mass unit         = {munit}\n')
         inputFile.write(f'data file         = {datafile}\n')
         # 0: no output, 1: condensed output, 2: standard output
         inputFile.write(f'print mode        = {printMode}\n')
@@ -103,33 +103,35 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         if minSpecies:
             inputFile.write(f'min species       = {minSpecies}\n')
 
-def RunRunCalculationList(filename,checkOutput=False,jsonName=None):
+def RunRunCalculationList(filename,checkOutput=False,jsonName=None,thermochimica_path = '.'):
     thermoOut = None
     if checkOutput:
-        thermoOut = subprocess.check_output(['./bin/RunCalculationList',filename]).decode("utf-8")
+        thermoOut = subprocess.check_output([f'{thermochimica_path}/bin/RunCalculationList',filename]).decode("utf-8")
     else:
-        subprocess.run(['./bin/RunCalculationList',filename])
+        subprocess.run([f'{thermochimica_path}/bin/RunCalculationList',filename])
     if jsonName:
         try:
-            shutil.copy2('outputs/thermoout.json', f'{jsonName}')
+            shutil.copy2(f'{thermochimica_path}/outputs/thermoout.json', f'{thermochimica_path}/outputs/{jsonName}')
         except:
             pass
     return thermoOut
 
-def RunInputScript(filename,checkOutput=False,jsonName=None):
+def RunInputScript(filename,checkOutput=False,jsonName=None,thermochimica_path = '.'):
     thermoOut = None
     if checkOutput:
-        thermoOut = subprocess.check_output(['./bin/InputScriptMode',filename]).decode("utf-8")
+        thermoOut = subprocess.check_output([f'{thermochimica_path}/bin/InputScriptMode',filename]).decode("utf-8")
     else:
-        subprocess.run(['./bin/InputScriptMode',filename])
+        subprocess.run([f'{thermochimica_path}/bin/InputScriptMode',filename])
     if jsonName:
         try:
-            shutil.copy2('outputs/thermoout.json', f'{jsonName}')
+            shutil.copy2(f'{thermochimica_path}/outputs/thermoout.json', f'{thermochimica_path}/outputs/{jsonName}')
         except:
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False,directory='outputs/'):
+    # Prepend filename with directory
+    datafile = f'{directory}{datafile}'
     # Do plot setup
     x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2)
 

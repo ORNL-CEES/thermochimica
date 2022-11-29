@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompThermoData.f90
     !> \brief   Compute thermodynamic data
@@ -93,7 +93,7 @@
     ! dGibbsCoeffSpeciesTemp  A double real array containing the coefficients of Gibbs energy equations
     !                        of species in the database.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompThermoData
@@ -148,16 +148,15 @@ subroutine CompThermoData
         if (l > 0) then
             if ((cSolnPhaseTypeCS(n) == 'SUBL').OR.(cSolnPhaseTypeCS(n) == 'SUBLM').OR. &
                  (cSolnPhaseTypeCS(n) == 'SUBG').OR.(cSolnPhaseTypeCS(n) == 'SUBQ').OR. &
-                 (cSolnPhaseTypeCS(n) == 'SUBI')) then
+                 (cSolnPhaseTypeCS(n) == 'SUBI').OR.(cSolnPhaseTypeCS(n) == 'SUBM')) then
                 nTempSublattice = nTempSublattice + 1
             end if
         end if
 
+        jj = 0
+        iSublPhaseIndex = iPhaseSublatticeCS(n)
         if ((cSolnPhaseTypeCS(n) == 'SUBG') .OR. (cSolnPhaseTypeCS(n) == 'SUBQ')) then
-            iSublPhaseIndex = iPhaseSublatticeCS(n)
-            iFirst = nSpeciesPhaseCS(n - 1) + 1
             dChemicalPotentialTemp = 0D0
-            jj = 0
             LOOP_SROPairs: do i = iFirst, iFirst - 1 + nPairsSROCS(iSublPhaseIndex,1)
                 l = 0
                 ! Loop through the Gibbs energy equations to figure out which one to use:
@@ -386,6 +385,12 @@ subroutine CompThermoData
                         * dTemperature**dGibbsCoeffSpeciesTemp(13,l2)
                 end if
 
+                if ((cSolnPhaseTypeCS(n) == 'SUBM')) then
+                    jj = jj + 1
+                    dConstituentCoefficients(nTempSublattice,jj,1:2) = &
+                                    dConstituentCoefficientsCS(iSublPhaseIndex,i - iFirst + 1,1:2)
+                end if
+                
                 ! If there are multiple Standard Gibbs Energy equations, check which one to use in the
                 ! case of repeated temperature ranges. The rule appears to be to use the greater (less
                 ! negative) energy for pure condensed phases, but just the first expression listed for
@@ -587,7 +592,7 @@ subroutine CompThermoData
 
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM') &
         .OR.(cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ' ) &
-        .OR.(cSolnPhaseTypeCS(i) == 'SUBI')) nCounter = nCounter + 1
+        .OR.(cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) nCounter = nCounter + 1
 
         LOOP_Param: do j = nParamPhaseCS(i-1) + 1, nParamPhaseCS(i)
 
@@ -601,7 +606,7 @@ subroutine CompThermoData
 
                 select case (cSolnPhaseTypeCS(i))
                     case ('QKTO', 'RKMP', 'RKMPM')
-
+                        ! Compute excess term coefficients
                         do k = 1, 6
                             dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
                         end do
@@ -618,7 +623,6 @@ subroutine CompThermoData
                         end if
 
                     case ('SUBG','SUBQ')
-
                         ! Must remove unused constituents from iRegularParam
                         iSublPhaseIndex = iPhaseSublatticeCS(i)
                         nRemove = 0
@@ -652,7 +656,7 @@ subroutine CompThermoData
                         dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
                     case ('SUBL', 'SUBLM')
-
+                        ! Compute excess term coefficients
                         do k = 1, 6
                             dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
                         end do
@@ -720,6 +724,33 @@ subroutine CompThermoData
                         end do LOOP_SUBL_Check
 
                         iSUBLParamData(n,1) = nMixSets
+
+                    case ('SUBM')
+                        ! Must remove unused constituents from iRegularParam
+                        iSublPhaseIndex = iPhaseSublatticeCS(i)
+                        nRemove = 0
+                        iRemove = 0
+                        do k = nSublatticePhaseCS(iSublPhaseIndex), 1, -1
+                            do l = nConstituentSublatticeCS(iSublPhaseIndex,k), 1, -1
+                                if (iConstituentPass(iSublPhaseIndex,k,l) <= 0) then
+                                    nRemove = nRemove + 1
+                                    iRemove(nRemove) = l + ((k - 1) * nConstituentSublatticeCS(iSublPhaseIndex,1))
+                                end if
+                            end do
+                        end do
+
+                        do k = 1, nRemove
+                            do l = 2, iRegularParam(n,1) + 1
+                                if (iRegularParam(n,l) > iRemove(k)) then
+                                    iRegularParam(n,l) = iRegularParam(n,l) - 1
+                                end if
+                            end do
+                        end do
+
+                        do k = 1, 6
+                            dExcessGibbsParam(n) = dExcessGibbsParam(n) + dRegularParamCS(j,k) * dGibbsCoeff(k)
+                        end do
+                        dExcessGibbsParam(n) = dExcessGibbsParam(n) * dTemp
 
                     case ('SUBI')
                         ! Populating iSUBIMixType from parsed CS data

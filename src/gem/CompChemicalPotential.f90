@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompChemicalPotential.f90
     !> \brief   Compute the chemical potentials of all solution phase constituents.
@@ -42,7 +42,7 @@
     ! nSpeciesPhase                     An integer vector representing the index of the last species in a
     !                                   particular solution phase.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompChemicalPotential(lCompEverything)
