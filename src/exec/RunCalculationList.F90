@@ -12,7 +12,7 @@ program RunCalculationList
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
-    character(1024) :: cLineInit
+    character(1024) :: cLineInit, cThermoFileNameTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
 
@@ -175,13 +175,14 @@ program RunCalculationList
           lMassUnit = .TRUE.
         case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
           'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
-          read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
+          read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
           if (INFO /= 0) then
             INFOThermo = 54
             write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
             print *,  trim(cErrMsg)
             return
           endif
+          cThermoFileName = cThermoFileNameTemp
           lData = .TRUE.
         case ('print_mode','Print_mode','Print_Mode',&
           'print mode','Print mode','Print Mode')

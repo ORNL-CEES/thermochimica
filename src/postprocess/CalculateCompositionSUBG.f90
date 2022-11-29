@@ -164,6 +164,7 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
 
     ! Use most abundant element in phase to normalize
     dMax = 0D0
+    iMax = 1
     do i = 1, nElements
         dSumElementQuads = 0D0
         do k = 1, nPairsSRO(iSPI,2)
@@ -184,7 +185,12 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         dSumElementPairs = dSumElementPairs + dStoichPairs(iSPI,m,iMax)*dNij(i,j)
     end do
 
-    dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
+    ! Only set dMolesPairs if this phase is in the stable assemblage
+    dMolesPairs = 0D0
+    do i = 1, nElements
+        if (-iAssemblage(i) == iSolnIndex) dMolesPairs = dSum*dSumElementQuads/dSumElementPairs
+    end do
+
     if (lPrint) print *
     if ((dMolesPairs >= 999.95).OR.(dMolesPairs <= 1D-1)) then
         if (lPrint) print '(A4,ES10.4,A15)', '    ', dMolesPairs, ' Moles of pairs'
@@ -199,7 +205,6 @@ subroutine CalculateCompositionSUBG(iSolnIndex,dMolesPairs,lPrint,cPair,dPair)
         cPair(m) = ADJUSTL(cPairName(iSPI,m))
         dPair(m) = dXij(i,j)
     end do
-
 
     nMax = 0
     if (lPrint) then
