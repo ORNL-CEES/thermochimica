@@ -59,7 +59,7 @@ program TestThermo65
     p3pass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-4.48928D4))/(-4.48928D4) < 1D-3) then
+        if (DABS((dGibbsEnergySys - (-4.48928D4))/(-4.48928D4)) < 1D-3) then
             do i = 1, nSolnPhases
                 j = nElements + 1 - i
                 k = -iAssemblage(j)

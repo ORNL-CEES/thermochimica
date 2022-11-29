@@ -37,10 +37,10 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
-    thermoTools.RunRunCalculationList(inputFileName)
+    thermoTools.RunRunCalculationList(inputFileName,thermochimica_path = thermochimica_path)
 
     # Process output
-    f = open(thermochimica_path+'/outputs/thermoout.json',)
+    f = open(f'{thermochimica_path}/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()
@@ -66,10 +66,10 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
     thermoTools.WriteRunCalculationList(inputFileName,database,elements,calcList,tunit=tunit,punit=punit,munit=munit,printMode=0,heatCapacity=heatCapacity,excludePhasesExcept=[phase])
 
     # Run calculation
-    thermoTools.RunRunCalculationList(inputFileName)
+    thermoTools.RunRunCalculationList(inputFileName,thermochimica_path = thermochimica_path)
 
     # Process output
-    f = open(thermochimica_path+'/outputs/thermoout.json',)
+    f = open(f'{thermochimica_path}/outputs/thermoout.json',)
     try:
         data = json.load(f)
         f.close()
@@ -87,8 +87,8 @@ def propertyOfMixing(property, phase, temperature, endpoints, mixtures, database
         data[str(i)][f'{property} of mixing'] = prop
 
     # Save data
-    with open('outputs/thermoout.json', 'w') as outfile:
+    with open(f'{thermochimica_path}/outputs/thermoout.json', 'w') as outfile:
         json.dump(data, outfile, indent=4)
-    shutil.copy2('outputs/thermoout.json', f'outputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json')
+    shutil.copy2(f'{thermochimica_path}/outputs/thermoout.json',f'{thermochimica_path}/outputs/{property.replace(" ","_")}OfMixing-{phase}-{temperature}{tunit}.json')
 
     return mixtureProp
