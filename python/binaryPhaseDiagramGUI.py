@@ -221,9 +221,9 @@ class CalculationWindow:
         #                              [sg.Text('Concentration unit')],[sg.Combo(['mole fraction'],default_value='mole fraction',key='-munit-')]],vertical_alignment='t'),
         #                   sg.Column([[sg.Text('End Element 2 Concentration')],[sg.Input(key='-xhi-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
         #                   sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],vertical_alignment='t')]
-        tempLayout     = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
+        tempLayout     = [sg.Column([[sg.Text('Minimum Temperature')],[sg.Input(key='-temperature-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Temperature unit')],[sg.Combo(['K', 'C', 'F'],default_value='K',key='-tunit-')]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
+                          sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
         presLayout     = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')]
         densityLayout  = [sg.Column([[sg.Text('Initial grid density')],[sg.Input(key='-grid_density-',size=(8,1))]],vertical_alignment='t')]
@@ -258,8 +258,8 @@ class RefineWindow:
         xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-        tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+        tempRefLayout = [sg.Column([[sg.Text('Minimum Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
+                         sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
                          sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
         refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
         self.sgw = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
@@ -548,6 +548,8 @@ class InspectWindow:
             [sg.Input(key='-xfilterlow-',size=(thermoToolsGUI.inputSize,1)),sg.Input(key='-xfilterhi-',size=(thermoToolsGUI.inputSize,1))],
             [sg.Text('Contains Phases:')],
             [sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter2-')],
+            [sg.Text('Active/Suppressed Status:')],
+            [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
             [sg.Button('Apply Filter')]
         ]
         self.data = [[i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'] for i in range(len(self.parent.calculation.ts))]
@@ -603,10 +605,17 @@ class InspectWindow:
                 pass
             self.data = []
             for i in range(len(self.parent.calculation.ts)):
-                if tlo <= self.parent.calculation.ts[i] and thi >= self.parent.calculation.ts[i] and ((xlo <= self.parent.calculation.x1[i] and xhi >= self.parent.calculation.x1[i]) or (xlo <= self.parent.calculation.x2[i] and xhi >= self.parent.calculation.x2[i])):
-                    if (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.calculation.p1[i] or values['-pfilter1-'] == self.parent.calculation.p2[i]):
-                        if (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.calculation.p1[i] or values['-pfilter2-'] == self.parent.calculation.p2[i]):
-                            self.data.append([i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'])
+                # Check temperature
+                tfilt = tlo <= self.parent.calculation.ts[i] and thi >= self.parent.calculation.ts[i]
+                # Check concentration
+                xfilt = (xlo <= self.parent.calculation.x1[i] and xhi >= self.parent.calculation.x1[i]) or (xlo <= self.parent.calculation.x2[i] and xhi >= self.parent.calculation.x2[i])
+                # Check phases present
+                pfilt = (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.calculation.p1[i] or values['-pfilter1-'] == self.parent.calculation.p2[i]) and (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.calculation.p1[i] or values['-pfilter2-'] == self.parent.calculation.p2[i])
+                # Check active/suppressed status
+                afilt = (values['-activefilter-'] == '') or ((values['-activefilter-'] == 'Suppressed') == self.parent.calculation.suppressed[self.parent.calculation.pointIndex[i]])
+                # If all filters pass, add to display list
+                if tfilt and xfilt and pfilt and afilt:
+                    self.data.append([i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'])
             self.sgw['-dataList-'].update(self.data)
 
 class SaveData(object):

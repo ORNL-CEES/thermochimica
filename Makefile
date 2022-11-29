@@ -57,7 +57,6 @@ EXE_DIR     = $(SRC_DIR)/exec
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
-WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
 SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
@@ -112,15 +111,6 @@ DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
 DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
-
-## =============
-## WEEKLY TESTS:
-## =============
-WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.F90))
-WTEST_OBJ   = $(WTEST_SRC:.F90=.o)
-WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ))
-WTST_OBJ    = $(basename $(WTEST_SRC))
-WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 ## =======
 ## COMPILE
@@ -191,7 +181,6 @@ veryclean: clean cleandoc cleanexternal
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
 
-
 ## =======
 ## INSTALL
 ## =======
@@ -236,18 +225,10 @@ dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
 $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-## ============
-## WEEKLY TESTS
-## ============
-weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN)
-
-$(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
-	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
-
 ## ===========
-## BOTH TESTS:
+## ALL TESTS:
 ## ===========
-test: all dailytest weeklytest
+test: all dailytest
 
 ## ===========
 ## DEBUG:
@@ -255,4 +236,4 @@ test: all dailytest weeklytest
 setdebug:
 	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
-debug: setdebug all dailytest weeklytest
+debug: setdebug all dailytest

@@ -2,7 +2,7 @@
 bin/
 obj/
 lib/
-# ignore doc subdirectories except the pre-compiled manual
+# ignore doc subdirectories
 doc/html/
 doc/latex/
 doc/test/
@@ -28,6 +28,10 @@ test/doc/
 *.so
 *.0
 *.lai
+*.csv
+*.pkl
+# ignore vscode cache
+.vscode/
 # some of these will occasionally require manual override
 data/
 test/
