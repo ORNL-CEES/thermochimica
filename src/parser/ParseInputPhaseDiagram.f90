@@ -39,7 +39,7 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
   integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lX!, lMass
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
-  character(1024)             :: cLineInit
+  character(1024)             :: cLineInit, cThermoFileNameTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dPress, dXlo, dXhi, dDeltaT, dDeltaX
   integer, intent(out)        :: iEl1, iEl2
 
@@ -255,13 +255,14 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
         lMassUnit = .TRUE.
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
-        read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
+        read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
         if (INFO /= 0) then
           INFOThermo = 44
           write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         endif
+        cThermoFileName = cThermoFileNameTemp
         lData = .TRUE.
       case ('print_mode','Print_mode','Print_Mode',&
         'print mode','Print mode','Print Mode')

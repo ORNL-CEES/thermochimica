@@ -7,13 +7,16 @@ program ParseDataOnly
 
     integer :: i, j
     logical :: lMisc
+    character(1024) :: cThermoFileNameTemp
 
     if (COMMAND_ARGUMENT_COUNT() < 1) then
         print *, 'One command-line argument (filename) required.'
         call EXIT(1)
     endif
 
-    call GET_COMMAND_ARGUMENT(1,cThermoFileName)
+    call GET_COMMAND_ARGUMENT(1,cThermoFileNameTemp)
+
+    cThermoFileName = cThermoFileNameTemp
 
     call ParseCSDataFile(cThermoFileName)
 

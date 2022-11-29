@@ -11,7 +11,7 @@ subroutine SetThermoFileNameISO(cFileName, lcFileName) &
 
     call c_f_pointer(cptr=c_loc(cFileName), fptr=fFileName)
     
-    call SetThermoFileName(fFileName,lcFileName)
+    call SetThermoFileName(fFileName)
 
     return
 

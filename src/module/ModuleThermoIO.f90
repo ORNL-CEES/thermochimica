@@ -56,7 +56,7 @@ module ModuleThermoIO
     real(8),       dimension(0:168)          :: dElementMass
     logical,       dimension(0:118)          :: lPreset = .FALSE.
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
-    character(120)                           :: cThermoFileName
+    character(:), allocatable                :: cThermoFileName
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
     integer                                  :: nPhasesExcluded = 0, nPhasesExcludedExcept = 0
