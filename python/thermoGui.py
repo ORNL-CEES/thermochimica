@@ -219,24 +219,23 @@ class CalculationWindow:
                         ],vertical_alignment='t'),
                         sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))]],key='-xstepcol-',visible=False,vertical_alignment='t')]
         if (self.nElements < 8):
-            self.layout = [tempLayout,
-                          presLayout,
-                          [sg.Column(elem1Layout,vertical_alignment='t'),
-                           sg.Column(elem2Layout,key='-composition2-',visible=False,vertical_alignment='t')],
-                          massLayout,
-                          [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
-                          [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
-                          [sg.Button('Run'), sg.Exit()]]
+            elementsLayout = [
+                              sg.Column(elem1Layout,vertical_alignment='t'),
+                              sg.Column(elem2Layout,key='-composition2-',visible=False,vertical_alignment='t')
+                             ]
         else:
-            self.layout = [tempLayout,
-                          presLayout,
-                          [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
-                           sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='-composition2-',visible=False)],
-                          massLayout,
-                          [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
-                          [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
-                          [sg.Checkbox('Use fuzzy stoichiometry',key='-fuzzy-')],
-                          [sg.Button('Run'), sg.Exit()]]
+            elementsLayout = [
+                              sg.Column(elem1Layout,vertical_alignment='t',scrollable = True, vertical_scroll_only = True, expand_y = True),
+                              sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='-composition2-',visible=False)
+                             ]
+        self.layout = [tempLayout,
+                        presLayout,
+                        elementsLayout,
+                        massLayout,
+                        [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
+                        [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
+                        [sg.Checkbox('Use fuzzy stoichiometry',key='-fuzzy-')],
+                        [sg.Button('Run'), sg.Exit()]]
 
 class ResultWindow:
     def __init__(self, layout):
