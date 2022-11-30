@@ -1,49 +1,16 @@
-subroutine SetThermoFileName(cFileName,lcFileName)
+subroutine SetThermoFileName(cFileName)
 
   USE ModuleThermoIO, ONLY: cThermoFileName
 
   implicit none
 
   character(*), intent(in)::  cFileName
-  integer, intent(in) :: lcFileName
-  character(120) :: cFileNameLen
 
-  cFileNameLen = cFileName!(1:min(120,lcFileName))
-  cThermoFileName       = trim(cFileNameLen(1:lcFileName))
+  cThermoFileName = cFileName
 
   return
 
 end subroutine SetThermoFileName
-
-subroutine SetThermoFileNameBISON(cFileName)
-
-  USE ModuleThermoIO, ONLY: cThermoFileName
-
-  implicit none
-
-  character(120), intent(in)::  cFileName
-  character(120) :: cFileNameLen
-
-  cFileNameLen = cFileName(1:120)
-  cThermoFileName       = trim(cFileNameLen)
-
-  return
-
-end subroutine SetThermoFileNameBISON
-
-subroutine SetThermoFileNameFortran(cFileName)
-
-  USE ModuleThermoIO, ONLY: cThermoFileName
-
-  implicit none
-
-  character(*), intent(in)::  cFileName
-
-  cThermoFileName       = cFileName
-
-  return
-
-end subroutine SetThermoFileNameFortran
 
 subroutine SetUnitTemperature(cUnitTemperature)
 
@@ -51,7 +18,7 @@ subroutine SetUnitTemperature(cUnitTemperature)
 
   implicit none
 
-  character(15), intent(in)::  cUnitTemperature
+  character(*), intent(in)::  cUnitTemperature
   character(15) :: cUnitTemperatureLen
 
   cUnitTemperatureLen = cUnitTemperature(1:min(15,len(cUnitTemperature)))
@@ -67,7 +34,7 @@ subroutine SetUnitPressure(cUnitPressure)
 
   implicit none
 
-  character(15), intent(in)::  cUnitPressure
+  character(*), intent(in)::  cUnitPressure
   character(15) :: cUnitPressureLen
 
   cUnitPressureLen = cUnitPressure(1:min(15,len(cUnitPressure)))
@@ -83,7 +50,7 @@ subroutine SetUnitMass(cUnitMass)
 
   implicit none
 
-  character(15), intent(in)::  cUnitMass
+  character(*), intent(in)::  cUnitMass
   character(15) :: cUnitMassLen
 
   cUnitMassLen = cUnitMass(1:min(15,len(cUnitMass)))
@@ -380,7 +347,7 @@ end subroutine APpmInBToMolInVol
 
 subroutine SSInitiateZRHD
 
-  call SetThermoFileNameFortran('ZRHD_MHP.dat')
+  call SetThermoFileName('ZRHD_MHP.dat')
   call SetUnits('K','atm','moles')
 
   return
@@ -389,7 +356,7 @@ end subroutine SSInitiateZRHD
 
 subroutine SSInitiateUO2PX
 
-  call SetThermoFileNameFortran('DBV6_TMB_modified.dat')
+  call SetThermoFileName('DBV6_TMB_modified.dat')
   call SetUnits('K','atm','moles')
 
   return
@@ -598,7 +565,7 @@ subroutine getReinitDataSizes(mElements,mSpecies)
   USE ModuleThermo, ONLY: nElements, nSpecies
   implicit none
 
-  integer, intent(out)                           :: mElements, mSpecies
+  integer, intent(out) :: mElements, mSpecies
 
   mElements = nElements
   mSpecies = nSpecies
@@ -607,7 +574,7 @@ subroutine getReinitDataSizes(mElements,mSpecies)
 
 end subroutine getReinitDataSizes
 
-subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
+subroutine getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
               mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
   USE ModuleReinit
   USE ModuleThermoIO
@@ -633,12 +600,11 @@ subroutine reinitDataTcToMoose(mAssemblage,mMolesPhase,mElementPotential, &
     mReinitAvailable = 0
   end if
 
-
   return
 
-end subroutine reinitDataTcToMoose
+end subroutine getReinitData
 
-subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
+subroutine setReinitData(mElements,mSpecies,mAssemblage,mMolesPhase, &
               mElementPotential,mChemicalPotential,mMolFraction,mElementsUsed)
   USE ModuleReinit
   USE ModuleThermoIO
@@ -666,13 +632,13 @@ subroutine reinitDataTcFromMoose(mElements,mSpecies,mAssemblage,mMolesPhase, &
 
   return
 
-end subroutine reinitDataTcFromMoose
+end subroutine setReinitData
 
 subroutine GetMolesPhase(mMolesPhase)
   USE ModuleThermo, ONLY: nElements, dMolesPhase
   implicit none
 
-  real(8), intent(out), dimension(nElements)     :: mMolesPhase
+  real(8), intent(out), dimension(nElements) :: mMolesPhase
 
   mMolesPhase = dMolesPhase
 
@@ -755,3 +721,34 @@ subroutine GetElementFraction(iAtom, dFrac)
   return
 
 end subroutine GetElementFraction
+
+subroutine SetHeatCapacityEnthalpyEntropyRequested(iRequested)
+  ! Toggles whether heat capacity, entropy, and enthalpy calculation is requested
+  USE ModuleThermoIO, ONLY: lHeatCapacityEntropyEnthalpy
+
+  implicit none
+
+  ! passing bool/logical was sketchy so just going with an int here
+  integer, intent(in)::  iRequested
+  if (iRequested == 0) then
+    lHeatCapacityEntropyEnthalpy = .FALSE.
+  else
+    lHeatCapacityEntropyEnthalpy = .TRUE.
+  end if
+
+  return
+
+end subroutine SetHeatCapacityEnthalpyEntropyRequested
+
+subroutine GetHeatCapacityEnthalpyEntropy(dHeatCapacityOut, dEnthalpyOut, dEntropyOut)
+  USE ModuleThermoIO, ONLY: dHeatCapacity, dEnthalpy, dEntropy
+
+  implicit none
+  real(8), intent(out):: dHeatCapacityOut, dEnthalpyOut, dEntropyOut
+
+  dHeatCapacityOut = dHeatCapacity
+  dEnthalpyOut     = dEnthalpy
+  dEntropyOut      = dEntropy
+
+  return
+end subroutine GetHeatCapacityEnthalpyEntropy

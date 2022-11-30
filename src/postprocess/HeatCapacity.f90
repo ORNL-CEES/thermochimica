@@ -32,7 +32,7 @@ subroutine HeatCapacity
     nMaxHeatCapAttempt = 5
 
     lReinitRequested = .FALSE.
-    if(lReinitRequested) call SaveReinitData
+    if (lReinitRequested) call SaveReinitData
 
     lHeatCapacityCurrent = .TRUE.
 

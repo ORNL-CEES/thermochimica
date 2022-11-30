@@ -63,7 +63,6 @@ subroutine GetMqmqaMolesPairs(cPhase, dMolesPairsOut, INFO)
 
 end subroutine GetMqmqaMolesPairs
 
-
 subroutine GetMqmqaPairMolFraction(cPhase, lcPhase, cPairIn, lcPairIn, dMolesPairOut, INFO)
 
     USE ModuleThermo
@@ -200,3 +199,135 @@ subroutine GetMqmqaNumberPairsQuads(cPhase, nPairs, nQuads, INFO)
     return
 
 end subroutine GetMqmqaNumberPairsQuads
+
+subroutine GetMqmqaConstituentFraction(cPhase, iSublattice, cConstituent, dConstituentFractionOut, INFO)
+
+    USE ModuleThermo
+    USE ModuleThermoIO
+
+    implicit none
+
+    character(*),  intent(in)  :: cPhase, cConstituent
+    character(25)              :: cPhaseSearch, cConstituentSearch
+    integer,       intent(in)  :: iSublattice
+    integer,       intent(out) :: INFO
+    integer                    :: i, j, k, l
+    integer                    :: iSolnIndex, iConIndex, iSPI
+    integer                    :: iFirst, iLast, nSub
+    real(8),       intent(out) :: dConstituentFractionOut
+    real(8)                    :: dConstituentFraction, dSum, dZa, dZb, dZx, dZy
+
+    ! Initialize output variables:
+    INFO                    = 0
+    dConstituentFractionOut = 0D0
+
+    ! There are only 2 sublattices in MQMQA, index cannot be otherwise
+    if (.NOT. ((iSublattice == 1) .OR. (iSublattice == 2))) then
+        INFO = 3
+        return
+    end if
+
+    ! Only proceed if Thermochimica solved successfully:
+    if (INFOThermo == 0) then
+
+        ! Remove trailing blanks:
+        cPhaseSearch       = TRIM(ADJUSTL(cPhase))
+        cConstituentSearch = TRIM(ADJUSTL(cConstituent))
+
+        ! Loop through stable soluton phases to find the one corresponding to the
+        ! solution phase being requested:
+        iSolnIndex = 0
+        LOOP_SOLN: do i = 1, nSolnPhasesSys
+            if (cPhaseSearch == cSolnPhaseName(i)) then
+                ! Solution phase found.  Record integer index and exit loop.
+                iSolnIndex = i
+                exit LOOP_SOLN
+            end if
+        end do LOOP_SOLN
+
+        ! Check to make sure that the solution phase was found:
+        if (iSolnIndex > 0) then
+            ! Only proceed if the correct phase type is selected:
+            if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ')) then
+                INFO = 2
+                return
+            end if
+        else
+            ! This solution phase was not found.  Report an error:
+            INFO = 1
+            return
+        end if
+        
+        iSPI = iPhaseSublattice(iSolnIndex)
+        nSub = nConstituentSublattice(iSPI,iSublattice)
+
+        ! Look for requested constituent
+        iConIndex = 0
+        LOOP_CON: do i = 1, nSub
+            if (cConstituentSearch == cConstituentNameSUB(iSPI,iSublattice,i)) then
+                ! Solution phase found.  Record integer index and exit loop.
+                iConIndex = i
+                exit LOOP_CON
+            end if
+        end do LOOP_CON
+
+        ! Check to make sure that the constituent was found:
+        if (iConIndex <= 0) then
+            ! This constituent phase was not found.  Report an error:
+            INFO = 4
+            return
+        end if
+
+        ! Define temporary variables for sake of convenience:
+        iFirst = nSpeciesPhase(iSolnIndex-1) + 1
+        iLast  = nSpeciesPhase(iSolnIndex)
+
+        dSum = 0D0
+        dConstituentFraction = 0D0
+        if (iSublattice == 1) then
+            ! Cations:
+            do i = 1, nSub
+                do k = 1, nPairsSRO(iSPI,2)
+                    l = iFirst + k - 1
+                    dZa = dCoordinationNumber(iSPI,k,1)
+                    dZb = dCoordinationNumber(iSPI,k,2)
+                    if (i == iPairID(iSPI,k,1))  then
+                        dSum = dSum + (dMolFraction(l) / dZa)
+                        if (i == iConIndex) dConstituentFraction = dConstituentFraction + (dMolFraction(l) / dZa)
+                    end if
+                    if (i == iPairID(iSPI,k,2))  then
+                        dSum = dSum + (dMolFraction(l) / dZb)
+                        if (i == iConIndex) dConstituentFraction = dConstituentFraction + (dMolFraction(l) / dZb)
+                    end if
+                end do
+            end do
+        else if (iSublattice == 2) then
+            ! Anions:
+            do i = 1, nSub
+                j = i + nConstituentSublattice(iSPI,iSublattice)
+                do k = 1, nPairsSRO(iSPI,2)
+                    l = iFirst + k - 1
+                    dZx = dCoordinationNumber(iSPI,k,3)
+                    dZy = dCoordinationNumber(iSPI,k,4)
+                    if (j == iPairID(iSPI,k,3))  then
+                        dSum = dSum + (dMolFraction(l) / dZx)
+                        if (i == iConIndex) dConstituentFraction = dConstituentFraction + (dMolFraction(l) / dZx)
+                    end if
+                    if (j == iPairID(iSPI,k,4))  then
+                        dSum = dSum + (dMolFraction(l) / dZy)
+                        if (i == iConIndex) dConstituentFraction = dConstituentFraction + (dMolFraction(l) / dZy)
+                    end if
+                end do
+            end do
+        end if
+
+        dConstituentFractionOut = dConstituentFraction / dSum
+
+    else
+        ! Record an error with INFO if INFOThermo /= 0.
+        INFO = -1
+    end if
+
+    return
+
+end subroutine GetMqmqaConstituentFraction

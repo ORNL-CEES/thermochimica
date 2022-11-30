@@ -994,8 +994,11 @@ class diagram:
         self.backup.loaded = self.loaded
         self.backup.saveDataName = self.saveDataName
     def exportPlot(self):
+        # Make sure there is an open plot to save
+        if not plt.fignum_exists(self.currentPlot.number):
+            self.makePlot()
         try:
-            self.currentPlot.savefig(f'{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
+            self.currentPlot.savefig(f'outputs/{self.exportFileName}.{self.exportFormat}', format=self.exportFormat, dpi=self.exportDPI)
             return 0
         except:
             return 1

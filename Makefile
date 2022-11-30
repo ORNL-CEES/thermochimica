@@ -24,7 +24,7 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
-CCFLAGS     = -std=gnu++11
+CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -52,17 +52,16 @@ TEX_DIR     = $(DOC_DIR)/latex
 BIN_DIR     = bin
 OBJ_DIR     = obj
 SRC_DIR     = src
-SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz
+SRC_SDR     = debug gem module parser postprocess reinit reset setup ctz api
 EXE_DIR     = $(SRC_DIR)/exec
 TST_DIR     = test
 LIB_DIR     = lib
 DTST_DIR    = $(TST_DIR)/daily
-WTST_DIR    = $(TST_DIR)/weekly
 SHARED_DIR  = $(SRC_DIR)
 SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
-VPATH				= $(SHARED_DIR)
+VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
 modfiles := $(shell find src -name "Module*.f90")
@@ -88,11 +87,11 @@ SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 ## =================
 ## C interface library:
 ## =================
-C_SRC       = Thermochimica-c.c
-C_OBJ       = $(C_SRC:.c=.o)
+C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
+C_OBJ       = $(C_SRC:.C=.o) 
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
-C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
+C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -112,15 +111,6 @@ DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
 DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
-
-## =============
-## WEEKLY TESTS:
-## =============
-WTEST_SRC   = $(notdir $(wildcard $(WTST_DIR)/*.F90))
-WTEST_OBJ   = $(WTEST_SRC:.F90=.o)
-WTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(WTEST_OBJ))
-WTST_OBJ    = $(basename $(WTEST_SRC))
-WTST_BIN    = $(addprefix $(BIN_DIR)/,$(WTST_OBJ))
 
 ## =======
 ## COMPILE
@@ -159,6 +149,9 @@ $(SHARED_LIB): $(SHARED_LNK)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C
+	$(CC) $(CCFLAGS) -c $< -o $@
+
 $(C_LIB): $(C_LNK)
 	$(AR) rcs $@ $^
 
@@ -187,7 +180,6 @@ veryclean: clean cleandoc cleanexternal
 	rm -fr $(OBJ_DIR)/*
 	rm -fr $(BIN_DIR)/*
 	rm -f *.mod
-
 
 ## =======
 ## INSTALL
@@ -233,18 +225,10 @@ dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
 $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-## ============
-## WEEKLY TESTS
-## ============
-weeklytest: $(WTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(WTST_BIN)
-
-$(OBJ_DIR)/%.o: $(WTST_DIR)/%.F90
-	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
-
 ## ===========
-## BOTH TESTS:
+## ALL TESTS:
 ## ===========
-test: all dailytest weeklytest
+test: all dailytest
 
 ## ===========
 ## DEBUG:
@@ -252,4 +236,4 @@ test: all dailytest weeklytest
 setdebug:
 	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
-debug: setdebug all dailytest weeklytest
+debug: setdebug all dailytest

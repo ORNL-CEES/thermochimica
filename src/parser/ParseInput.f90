@@ -52,7 +52,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   integer                     :: iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
-  character(1024)             :: cLineInit
+  character(1024)             :: cLineInit, cThermoFileNameTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
 
   ! Initialize INFO
@@ -235,13 +235,14 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         lMassUnit = .TRUE.
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
-        read(cValue,'(A)',IOSTAT = INFO) cThermoFileName
+        read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
         if (INFO /= 0) then
           INFOThermo = 54
           write (cErrMsg, '(A35,I10)') 'Cannot read data filename on line: ', iCounter
           print *,  trim(cErrMsg)
           return
         end if
+        cThermoFileName = cThermoFileNameTemp
         lData = .TRUE.
       case ('print_mode','Print_mode','Print_Mode',&
         'print mode','Print mode','Print Mode')
