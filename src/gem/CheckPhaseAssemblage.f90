@@ -180,8 +180,13 @@ subroutine CheckPhaseAssemblage
     iterHistory(1:nElements,iterGlobal) = iAssemblage(1:nElements)
 
     ! If the system has become stagnant and is very far from convergence, revert the system:
-    if ((iterGlobal - iterLast > 50).AND.(dGEMFunctionNorm > 1D3).AND. &
-        (dGEMFunctionNorm/dGEMFunctionNormLast > 0.99D0).AND.(dGEMFunctionNormLast - dGEMFunctionNorm < 5D0)) call RevertSystem(2)
+    if ((iterGlobal - iterLast > 50).AND.(dGEMFunctionNorm > 1D3)) then
+        if (dGEMFunctionNormLast == 0) then
+            call RevertSystem(2)
+        else if ((dGEMFunctionNorm/dGEMFunctionNormLast > 0.99D0).AND.(dGEMFunctionNormLast - dGEMFunctionNorm < 5D0)) then 
+            call RevertSystem(2)
+        end if
+    end if
 
     ! If the system has become stagnant and the direction vector has been signficandly dampened, revert:
     if ((MAXVAL(DABS(dUpdateVar)) > 1D15).AND.(iterGlobal - iterLast >= 150)) lRevertSystem = .TRUE.
