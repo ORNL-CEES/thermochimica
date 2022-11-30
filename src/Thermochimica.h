@@ -74,4 +74,9 @@ extern "C"
   void TCAPI_setHeatCapacityEnthalpyEntropyRequested(int *);
   void TCAPI_getHeatCapacityEnthalpyEntropy(double *, double *, double *);
 
+  // Fuzzy stoichiometry
+  void TCAPI_setFuzzyStoich(bool *);
+  void TCAPI_setFuzzyMagnitude(double *);
+  void TCAPI_setGibbsMinCheck(bool *);
+
 }

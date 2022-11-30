@@ -901,3 +901,43 @@ subroutine GetHeatCapacityEnthalpyEntropyISO(dHeatCapacityOut, dEnthalpyOut, dEn
     return
 
 end subroutine GetHeatCapacityEnthalpyEntropyISO
+
+
+subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
+    bind(C, name="TCAPI_setFuzzyStoich")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+  
+    implicit none
+    logical(C_BOOL), intent(in) :: lFuzzyStoichIn
+  
+    call SetFuzzyStoich(lFuzzyStoichIn)
+  
+    return
+  end subroutine SetFuzzyStoichISO
+  
+  subroutine SetFuzzyMagnitudeISO(dFuzzMagIn) &
+    bind(C, name="TCAPI_setFuzzyMagnitude")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+  
+    implicit none
+    real(C_DOUBLE), intent(in) :: dFuzzMagIn
+  
+    call SetFuzzyMagnitude(dFuzzMagIn)
+  
+    return
+  end subroutine SetFuzzyMagnitudeISO
+  
+  subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
+    bind(C, name="TCAPI_setGibbsMinCheck")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+  
+    implicit none
+    logical(C_BOOL), intent(in) :: lGibbsMinCheckIn
+  
+    call SetGibbsMinCheck(lGibbsMinCheckIn)
+  
+    return
+  end subroutine SetGibbsMinCheckISO
