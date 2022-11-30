@@ -28,6 +28,8 @@ The input boxes labelled `Minimum Temperature` and `Maximum Temperature` are use
 
 The `Initial grid density` input box is used to select the number of points along each axis used to populate the phase diagram. As explained in the [Diagram Refinement](#diagram-refinement) section, the phase diagram can be progressively improved from the initial calculation, and therefore it is not important to modify this setting from its default value of 10.
 
+As in [`thermoGUI`](/doc/thermoGUI.md), the `Use fuzzy stoichiometry` option is available. This setting is typically **not recommended** for binary phase diagrams.
+
 Once `Run` is pressed, the settings described above will be loaded, the initial phase diagram produced, and most features will be unlocked. From this point forward, all further operations will be applied to this diagram, with the settings selected at this time. The only exception is the `Run` button itself, which will close any active diagrams and start fresh with the current settings.
 
 An example configuration for the Pd - Ru phase diagram using the [`Kaye_NobleMetals.dat`](/data/Kaye_NobleMetals.dat) database is shown below, followed by the resulting initial phase diagram.
