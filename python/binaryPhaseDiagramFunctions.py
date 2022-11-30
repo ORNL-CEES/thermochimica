@@ -75,7 +75,8 @@ class diagram:
         self.loaded = False
         self.showLoaded = True
         self.saveDataName = 'savedDiagram'
-    def run(self,ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit):
+        self.fuzzy = False
+    def run(self,ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit,fuzzy=False):
         self.pressure = pressure
         self.tunit = tunit
         self.punit = punit
@@ -98,6 +99,8 @@ class diagram:
         # Initially reverse shift (opposite at plot)
         self.mint = tlo + self.tshift
         self.maxt = thi + self.tshift
+        # Get fuzzy stoichiometry setting
+        self.fuzzy = fuzzy
         self.labels = []
         self.resRef = 7
         self.resSmooth = 7
@@ -640,18 +643,21 @@ class diagram:
                 xstep = (float(xhi)-float(xlo))/float(nxstep)
             else:
                 xstep = 0
-            inputFile.write('x          = ' + str(xlo) + ':' + str(xhi) + ':' + str(xstep) + '\n')
+            inputFile.write(f'x                 = {xlo}:{xhi}:{xstep}\n')
             if float(ntstep) > 0:
                 tstep = (float(thi)-float(tlo))/float(ntstep)
             else:
                 tstep = 0
-            inputFile.write('temperature          = ' + str(tlo) + ':' + str(thi) + ':' + str(tstep) + '\n')
-            inputFile.write('pressure          = ' + str(self.pressure) + '\n')
-            inputFile.write('temperature unit         = ' + self.tunit + '\n')
-            inputFile.write('pressure unit          = ' + self.punit + '\n')
-            inputFile.write('mass unit          = \'' + self.munit + '\'\n')
-            inputFile.write('iEl         = ' + str(thermoTools.atomic_number_map.index(self.el1)+1) + ' ' + str(thermoTools.atomic_number_map.index(self.el2)+1) + '\n')
-            inputFile.write('data file         = ' + self.datafile + '\n')
+            inputFile.write(f'temperature       = {tlo}:{thi}:{tstep}\n')
+            inputFile.write(f'pressure          = {self.pressure}\n')
+            inputFile.write(f'temperature unit  = \'{self.tunit}\'\n')
+            inputFile.write(f'pressure unit     = \'{self.punit}\'\n')
+            inputFile.write(f'mass unit         = \'{self.munit}\'\n')
+            inputFile.write(f'iEl               = {thermoTools.atomic_number_map.index(self.el1)+1} {thermoTools.atomic_number_map.index(self.el2)+1}\n')
+            inputFile.write(f'data file         = {self.datafile}\n')
+            # Fuzzy stoichiometry settings
+            inputFile.write(f'fuzzy             = {".TRUE." if self.fuzzy else ".FALSE."}\n')
+            inputFile.write(f'gibbs min         = {".TRUE." if self.fuzzy else ".FALSE."}\n')
     def addLabel(self,xlab,tlab):
         self.writeInputFile(xlab,xlab,0,tlab,tlab,0)
         subprocess.run(['./bin/PhaseDiagramDataGen',self.inputFileName])
@@ -802,7 +808,7 @@ class diagram:
                 for i in range(len(xs)):
                     calc = [ys[i],self.pressure,1-xs[i],xs[i]]
                     calcList.append(calc)
-                thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
+                thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
                 print('Thermochimica calculation initiated.')
                 thermoTools.RunRunCalculationList(self.inputFileName)
                 print('Thermochimica calculation finished.')
@@ -848,7 +854,7 @@ class diagram:
             for i in range(len(xs)):
                 calc = [ys[i],self.pressure,1-xs[i],xs[i]]
                 calcList.append(calc)
-            thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
+            thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
             print('Thermochimica calculation initiated.')
             thermoTools.RunRunCalculationList(self.inputFileName)
             print('Thermochimica calculation finished.')
@@ -887,7 +893,7 @@ class diagram:
                 for i in range(len(xs)):
                     calc = [ys[i],self.pressure,1-xs[i],xs[i]]
                     calcList.append(calc)
-                thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
+                thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
                 print('Thermochimica calculation initiated.')
                 thermoTools.RunRunCalculationList(self.inputFileName)
                 print('Thermochimica calculation finished.')

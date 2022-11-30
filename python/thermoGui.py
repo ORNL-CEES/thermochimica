@@ -155,10 +155,10 @@ class CalculationWindow:
                         calc.extend(x)
                         calcList.append(calc)
 
-                    thermoTools.WriteRunCalculationList(filename,self.datafile,self.elements,calcList,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"])
+                    thermoTools.WriteRunCalculationList(filename,self.datafile,self.elements,calcList,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],fuzzyStoichiometry=values["-fuzzy-"],gibbsMinCheck=values["-fuzzy-"])
                     thermoOut = thermoTools.RunRunCalculationList(filename,checkOutput=True,jsonName=jsonName)
                 else:
-                    thermoTools.WriteInputScript(filename,self.datafile,self.elements,temperature,tend,ntstep,pressure,pend,npstep,masses1,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],stepTogether=values["-pent-"])
+                    thermoTools.WriteInputScript(filename,self.datafile,self.elements,temperature,tend,ntstep,pressure,pend,npstep,masses1,tunit=tunit,punit=punit,munit=munit,heatCapacity=values["-cp_h_s-"],writeJson=values["-json-"],stepTogether=values["-pent-"],fuzzyStoichiometry=values["-fuzzy-"],gibbsMinCheck=values["-fuzzy-"])
                     thermoOut = thermoTools.RunInputScript(filename,checkOutput=True,jsonName=jsonName)
                 nLines = thermoOut.count('\n')
                 if (nLines < 5000):
@@ -235,6 +235,7 @@ class CalculationWindow:
                           massLayout,
                           [sg.Checkbox('Save JSON',key='-json-'), sg.Button('Set name')],
                           [sg.Checkbox('Calculate heat capacity, entropy, and enthalpy',key='-cp_h_s-')],
+                          [sg.Checkbox('Use fuzzy stoichiometry',key='-fuzzy-')],
                           [sg.Button('Run'), sg.Exit()]]
 
 class ResultWindow:

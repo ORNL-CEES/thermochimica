@@ -143,8 +143,8 @@ class CalculationWindow:
                 maxt = thi + tshift
                 punit = values['-punit-']
                 munit = values['-munit-']
-                self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift)
-                self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},{massLabels},\'{munit}\',{tshift})')
+                self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift,fuzzy=values["-fuzzy-"])
+                self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},{massLabels},\'{munit}\',{tshift},fuzzy={values["-fuzzy-"]})')
                 self.calculation.runCalc(0,1,nxstep,tlo,thi,ntstep)
                 self.macro.append(f'macroPD.runCalc(0,1,{nxstep},{tlo},{thi},{ntstep})')
                 self.calculation.processPhaseDiagramData()
@@ -262,6 +262,7 @@ class CalculationWindow:
                        [sg.Text('# of steps')],[sg.Input(key='-nxstep-',size=(8,1))],
                        [sg.Text('Mass unit')],
                        [sg.Combo(['moles'],default_value='moles',key='-munit-')],
+                       [sg.Checkbox('Use fuzzy stoichiometry',key='-fuzzy-')],
                        [
             sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],

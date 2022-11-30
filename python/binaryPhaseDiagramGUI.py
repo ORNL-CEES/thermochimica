@@ -101,7 +101,7 @@ class CalculationWindow:
                 errorWindow.close()
                 return
             if not cancelRun:
-                self.calculation.run(grid_density,grid_density,pressure,tunit,punit,0,1,tlo,thi,el1,el2,'moles')
+                self.calculation.run(grid_density,grid_density,pressure,tunit,punit,0,1,tlo,thi,el1,el2,'moles',fuzzy=values["-fuzzy-"])
                 self.calculation.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
                 self.sgw.Element('Auto Refine').Update(disabled = False)
@@ -113,7 +113,7 @@ class CalculationWindow:
                 self.sgw.Element('Inspect').Update(disabled = False)
                 self.sgw.Element('Export Diagram Data').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
-                self.macro.append(f'macroPD.run({grid_density},{grid_density},{pressure},"{tunit}","{punit}",{0},{1},{tlo},{thi},"{el1}","{el2}","moles")')
+                self.macro.append(f'macroPD.run({grid_density},{grid_density},{pressure},"{tunit}","{punit}",{0},{1},{tlo},{thi},"{el1}","{el2}","moles",fuzzy={values["-fuzzy-"]})')
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -226,7 +226,8 @@ class CalculationWindow:
                           sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperature-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t')]
         presLayout     = [sg.Column([[sg.Text('Pressure')],[sg.Input(key='-pressure-',size=(thermoToolsGUI.inputSize,1))],
                                      [sg.Text('Pressure unit')],[sg.Combo(['atm', 'Pa', 'bar'],default_value='atm',key='-punit-')]],vertical_alignment='t')]
-        densityLayout  = [sg.Column([[sg.Text('Initial grid density')],[sg.Input(key='-grid_density-',size=(8,1))]],vertical_alignment='t')]
+        densityLayout  = [sg.Column([[sg.Text('Initial grid density')],[sg.Input(key='-grid_density-',size=(8,1))],
+                                     [sg.Checkbox('Use fuzzy stoichiometry',key='-fuzzy-')]],vertical_alignment='t')]
         buttonLayout   = [
                             sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
                                     [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
