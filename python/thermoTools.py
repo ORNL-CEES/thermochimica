@@ -129,11 +129,11 @@ def RunInputScript(filename,checkOutput=False,jsonName=None,thermochimica_path =
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False,directory='outputs/'):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False,directory='outputs/',sort=True):
     # Prepend filename with directory
     datafile = f'{directory}{datafile}'
     # Do plot setup
-    x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2)
+    x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2,sort=sort)
 
     # Start figure
     fig = plt.figure()
@@ -202,7 +202,7 @@ def selectData(yen,ykey,leg,yen2=None,ykey2=None,leg2=None):
 
     return yused, legend, yused2, legend2
 
-def plotDataSetup(datafile,xkey,yused,yused2=None):
+def plotDataSetup(datafile,xkey,yused,yused2=None,sort=True):
     # Init axes
     x = []
     y = [[] for _ in range(len(yused))]
@@ -244,6 +244,15 @@ def plotDataSetup(datafile,xkey,yused,yused2=None):
             # do nothing
             continue
     
+    # Sort data unless asked not to
+    if sort:
+        sortOrder = [i for i,_ in sorted(enumerate(x),key=lambda s:s[1])]
+        x = [x[i] for i in sortOrder]
+        y = [[y[yi][i] for i in sortOrder] for yi in range(len(yused))]
+        if yused2:
+            y2 = [[y2[yi][i] for i in sortOrder] for yi in range(len(yused2))]
+
+
     # Set axis labels based on tags
     if xkey == 'iteration':
         xlab = 'Iteration'
