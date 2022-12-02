@@ -129,11 +129,15 @@ def RunInputScript(filename,checkOutput=False,jsonName=None,thermochimica_path =
             pass
     return thermoOut
 
-def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,interactive=False,directory='outputs/',sort=True):
+def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor='colorful',plotColor2='colorful',plotMarker='.-',plotMarker2='*--',xlog=False,ylog=False,ylog2=False,xinv=False,xinvScale=1,interactive=False,directory='outputs/',sort=True):
     # Prepend filename with directory
     datafile = f'{directory}{datafile}'
     # Do plot setup
     x,y,y2,xlab,ylab,ylab2 = plotDataSetup(datafile,xkey,yused,yused2=yused2,sort=sort)
+
+    # If inverted x-axis requested, calculate new x values
+    if xinv:
+        x = [xinvScale/v for v in x]
 
     # Start figure
     fig = plt.figure()
@@ -154,7 +158,12 @@ def makePlot(datafile,xkey,yused,legend=None,yused2=None,legend2=None,plotColor=
             lns = lns + ax.plot(x,y[yi],plotMarker,c=c,label=legend[yi])
         else:
             ax.plot(x,y[yi],plotMarker,c=c)
+
+    # Set x-axis label
     ax.set_xlabel(xlab)
+    if xinv:
+        ax.set_xlabel(f'{xinvScale}/{xlab}')
+    
     if xlog:
         ax.set_xscale('log')
     ax.set_ylabel(ylab)
