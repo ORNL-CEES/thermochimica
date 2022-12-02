@@ -17,11 +17,16 @@ class PlotWindow:
         self.showLeg2 = True
         self.xkey = []
         self.xlog = False
+        self.xinv = False
+        self.xinvScale = 1
         self.ylog = False
         self.ylog2 = False
         self.readDatabase()
         optionsLayout = [
-                          [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],[sg.Checkbox('Log scale',key='-xlog-')],
+                          [sg.Text('x-axis')],[sg.Combo(['iteration', 'temperature', 'pressure'], default_value='iteration', key='-xaxis-')],
+                          [sg.Radio('Linear scale',    'xscale',default=True, key='-xlin-')],
+                          [sg.Radio('Log scale',       'xscale',default=False,key='-xlog-')],
+                          [sg.Radio('Inverted scale: ','xscale',default=False,key='-xinv-'), sg.Input(key='-xinvScale-',size=(thermoToolsGUI.inputSize,1))],
                           [sg.Text('y-axis')],[sg.Combo(['temperature', 'pressure', 'moles', 'mole fraction', 'chemical potential', 'driving force', 'vapor pressure',
                            'moles of element in phase', 'mole fraction of phase by element', 'mole fraction of element by phase','mole fraction of endmembers',
                            'moles of elements', 'element potential', 'integral Gibbs energy', 'functional norm', 'GEM iterations', '# phases', 'heat capacity','enthalpy','entropy'],
@@ -67,19 +72,28 @@ class PlotWindow:
             self.close()
         elif event == '-yaxis-':
             self.ykey = []
-            self.yen = []
-            self.leg = []
+            self.yen  = []
+            self.leg  = []
             self.set_y_axis(values['-yaxis-'],self.ykey,self.yen,self.leg,self.yWindow)
         elif event == '-yaxis2-':
             self.ykey2 = []
-            self.yen2 = []
-            self.leg2 = []
+            self.yen2  = []
+            self.leg2  = []
             self.set_y_axis(values['-yaxis2-'],self.ykey2,self.yen2,self.leg2,self.yWindow2,offset=500)
         elif event == 'Plot':
-            self.xkey  = values['-xaxis-']
-            self.xlog  = values['-xlog-']
-            self.ylog  = values['-ylog-']
-            self.ylog2 = values['-ylog2-']
+            self.xkey      = values['-xaxis-']
+            self.xlog      = values['-xlog-']
+            self.xinv      = values['-xinv-']
+            self.xinvScale = 1
+            # Make sure xinvScale is a positive number
+            try:
+                xinvScale  = float(values['-xinvScale-'])
+                if xinvScale > 0:
+                    self.xinvScale = xinvScale
+            except:
+                pass
+            self.ylog      = values['-ylog-']
+            self.ylog2     = values['-ylog2-']
             self.makePlot()
         elif event == 'Export Plot Script':
             self.exportPlotScript()
@@ -322,7 +336,7 @@ class PlotWindow:
         if not self.showLeg2:
             legend2 = None
         # Call plotter
-        self.currentPlot = thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,interactive=True)
+        self.currentPlot = thermoTools.makePlot(self.datafile,self.xkey,yused,legend=legend,yused2=yused2,legend2=legend2,plotColor=self.plotColor,plotColor2=self.plotColor2,plotMarker=self.plotMarker,plotMarker2=self.plotMarker2,xlog=self.xlog,ylog=self.ylog,ylog2=self.ylog2,xinv=self.xinv,xinvScale=self.xinvScale,interactive=True,directory='')
         
         self.figureList.append(self.currentPlot)
 
