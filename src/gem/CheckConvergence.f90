@@ -112,7 +112,7 @@ subroutine CheckConvergence
     implicit none
 
     integer :: i, j, k, l, c, iMaxDrivingForce
-    real(8) :: dResidual, dMaxDrivingForce
+    real(8) :: dResidual, dMaxDrivingForce, dTempGibbs, dMassNorm, dNormComponent
     logical :: lCompEverything, lPhaseChange
 
 
@@ -185,6 +185,35 @@ subroutine CheckConvergence
             return
         end if
     end do LOOP_TEST8
+
+    dTempGibbs = 0D0
+    do i = 1, nElements
+        dTempGibbs = dTempGibbs + dElementPotential(i)*dMolesElement(i)*dTemperature*dIdealConstant
+    end do
+    if (lDebugMode) print *, "Current Gibbs ", dTempGibbs, " minimum was ", dMinGibbs
+    if (dTempGibbs < dMinGibbs .AND. dGEMFunctionNorm < 5D-2) then
+        dMassNorm = 0D0
+        do j = 1, nElements
+            dNormComponent = dMolesElement(j)
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements - i + 1)       ! Absolute solution phase index
+                ! Compute the stoichiometry of this solution phase:
+                call CompStoichSolnPhase(k)
+                dNormComponent = dNormComponent - dEffStoichSolnPhase(k,j) * dMolesPhase(nElements - i + 1)
+            end do
+            do i = 1,nConPhases
+                dNormComponent = dNormComponent - dMolesPhase(i) * dStoichSpecies(iAssemblage(i),j)
+            end do
+            dMassNorm = dMassNorm + (dNormComponent)**(2)
+        end do
+        dMassNorm = dMassNorm**(0.5)
+        if (dMassNorm < 1D-6) then
+            if (lDebugMode) print *, "New Gibbs minimum"
+            dMinGibbs = dTempGibbs
+        end if
+    elseif (ABS((dTempGibbs-dMinGibbs)/dMinGibbs) > 1D-6) then
+        if (lGibbsMinCheck) return
+    end if
 
     ! CONVERGENCE TEST SHORTCUT
     ! -----------------------------------------------------------------------------------

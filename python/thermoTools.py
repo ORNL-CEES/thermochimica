@@ -15,7 +15,7 @@ atomic_number_map = [
     'Sg','Bh','Hs','Mt','Ds','Rg','Cn','Nh','Fl','Mc','Lv','Ts', 'Og'
 ]
 
-def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,excludePhases=None,excludePhasesExcept=None):
+def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,excludePhases=None,excludePhasesExcept=None,fuzzyStoichiometry=False,fuzzyMagnitude=-1,gibbsMinCheck=False):
     nElements = len(elements)
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -43,19 +43,25 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
         inputFile.write(f'iEl               = {" ".join([str(atomic_number_map.index(elem)+1) for elem in elements])}\n')
         # Discard phases by name from database
         if excludePhases:
-            inputFile.write(f'number excluded = {len(excludePhases)}\n')
-            inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+            inputFile.write(f'number excluded   = {len(excludePhases)}\n')
+            inputFile.write(f'phases excluded   = {" ".join(excludePhases)}\n')
         # Discard all phases except these
         if excludePhasesExcept:
             inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
             inputFile.write(f'phases excluded except = {" ".join(excludePhasesExcept)}\n')
+        # Fuzzy stoichiometry settings
+        inputFile.write(f'fuzzy             = {".TRUE." if fuzzyStoichiometry else ".FALSE."}\n')
+        if (fuzzyStoichiometry and (fuzzyMagnitude >= 0)):
+            inputFile.write(f'fuzzy magnitude   = {fuzzyMagnitude}\n')
+        inputFile.write(f'gibbs min         = {".TRUE." if gibbsMinCheck else ".FALSE."}\n')
+
         # Number of calculations to be run in list
         inputFile.write(f'nCalc             = {len(calcList)}\n')
         # Write calculations list
         for calc in calcList:
             inputFile.write(f'{calc[0]} {calc[1]} {" ".join([str(calc[i]) for i in range(2,len(calc))])}\n')
 
-def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,npstep,masses,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,stepTogether=False,excludePhases=None,excludePhasesExcept=None):
+def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,npstep,masses,tunit='K',punit='atm',munit='moles',printMode=2,heatCapacity=False,writeJson=True,debugMode=False,reinitialization=False,minSpecies=None,stepTogether=False,excludePhases=None,excludePhasesExcept=None,fuzzyStoichiometry=False,fuzzyMagnitude=-1,gibbsMinCheck=False):
     nElements = len(elements)
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
@@ -92,8 +98,8 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         inputFile.write(f'reinitialization  = {".TRUE." if reinitialization else ".FALSE."}\n')
         # Discard phases by name from database
         if excludePhases:
-            inputFile.write(f'number excluded = {len(excludePhases)}\n')
-            inputFile.write(f'phases excluded = {" ".join(excludePhases)}\n')
+            inputFile.write(f'number excluded   = {len(excludePhases)}\n')
+            inputFile.write(f'phases excluded   = {" ".join(excludePhases)}\n')
         # Discard all phases except these
         if excludePhasesExcept:
             inputFile.write(f'number excluded except = {len(excludePhasesExcept)}\n')
@@ -102,6 +108,11 @@ def WriteInputScript(filename,datafile,elements,tstart,tend,ntstep,pstart,pend,n
         # Preserve Thermochimica default unless set
         if minSpecies:
             inputFile.write(f'min species       = {minSpecies}\n')
+        # Fuzzy stoichiometry settings
+        inputFile.write(f'fuzzy             = {".TRUE." if fuzzyStoichiometry else ".FALSE."}\n')
+        if (fuzzyStoichiometry and (fuzzyMagnitude >= 0)):
+            inputFile.write(f'fuzzy magnitude   = {fuzzyMagnitude}\n')
+        inputFile.write(f'gibbs min         = {".TRUE." if gibbsMinCheck else ".FALSE."}\n')
 
 def RunRunCalculationList(filename,checkOutput=False,jsonName=None,thermochimica_path = '.'):
     thermoOut = None

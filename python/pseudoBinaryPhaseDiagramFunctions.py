@@ -53,7 +53,8 @@ class diagram:
         self.experimentColor = 'bland'
         self.showExperiment = True
         self.showExperimentLegend = True
-    def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift):
+        self.fuzzy = False
+    def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift,fuzzy=False):
         self.mint = mint
         self.maxt = maxt
         self.pressure = pressure
@@ -69,6 +70,8 @@ class diagram:
         self.punit = punit
         self.munit = munit
         self.tshift = tshift
+        # Get fuzzy stoichiometry setting
+        self.fuzzy = fuzzy
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
@@ -84,7 +87,7 @@ class diagram:
                 calc = [t+toff,self.pressure]
                 calc.extend([x[i] for i in range(self.nElementsUsed)])
                 calcList.append(calc)
-        thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0)
+        thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
         print('Thermochimica calculation initiated.')
         thermoTools.RunRunCalculationList(self.inputFileName)
         print('Thermochimica calculation finished.')

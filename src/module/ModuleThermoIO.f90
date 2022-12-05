@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file        ModuleThermoIO.f90
     !> \brief       Fortran module for input/output of Thermochimica
@@ -41,7 +41,7 @@
     !!                              - 2: advanced output, similar to FactSage with additional data.
     !
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 module ModuleThermoIO
@@ -52,13 +52,14 @@ module ModuleThermoIO
 
     ! INPUT VARIABLES:
     integer                                  :: iCounter, iPrintResultsMode, nMinSpeciesPerPhase = 2
-    real(8)                                  :: dTemperature, dPressure
+    real(8)                                  :: dTemperature, dPressure, dFuzzMag = 1D-12
     real(8),       dimension(0:168)          :: dElementMass
     logical,       dimension(0:118)          :: lPreset = .FALSE.
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(:), allocatable                :: cThermoFileName
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
+    logical                                  :: lFuzzyStoich = .FALSE., lGibbsMinCheck = .FALSE.
     integer                                  :: nPhasesExcluded = 0, nPhasesExcludedExcept = 0
     character(25), dimension(1000)           :: cPhasesExcluded = '', cPhasesExcludedExcept = ''
 

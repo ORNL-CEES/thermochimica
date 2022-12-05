@@ -330,4 +330,20 @@ namespace Thermochimica
     return std::make_tuple(heatCapacity, enthalpy, entropy);
   }
 
+  // Fuzzy stoichiometry
+  void setFuzzyStoich(bool requested)
+  {
+    TCAPI_setFuzzyStoich(&requested);
+  }
+
+  void setFuzzyMagnitude(double magnitude)
+  {
+    TCAPI_setFuzzyMagnitude(&magnitude);
+  }
+
+  void setGibbsMinCheck(bool requested)
+  {
+    TCAPI_setGibbsMinCheck(&requested);
+  }
+
 }

@@ -752,3 +752,36 @@ subroutine GetHeatCapacityEnthalpyEntropy(dHeatCapacityOut, dEnthalpyOut, dEntro
 
   return
 end subroutine GetHeatCapacityEnthalpyEntropy
+
+subroutine SetFuzzyStoich(lFuzzyStoichIn)
+  USE ModuleThermoIO, ONLY: lFuzzyStoich
+
+  implicit none
+  logical, intent(in) :: lFuzzyStoichIn
+
+  lFuzzyStoich = lFuzzyStoichIn
+
+  return
+end subroutine SetFuzzyStoich
+
+subroutine SetFuzzyMagnitude(dFuzzMagIn)
+  USE ModuleThermoIO, ONLY: dFuzzMag
+
+  implicit none
+  real(8), intent(in) :: dFuzzMagIn
+
+  dFuzzMag = dFuzzMagIn
+
+  return
+end subroutine SetFuzzyMagnitude
+
+subroutine SetGibbsMinCheck(lGibbsMinCheckIn)
+  USE ModuleThermoIO, ONLY: lGibbsMinCheck
+
+  implicit none
+  logical, intent(in) :: lGibbsMinCheckIn
+
+  lGibbsMinCheck = lGibbsMinCheckIn
+
+  return
+end subroutine SetGibbsMinCheck

@@ -180,6 +180,7 @@ subroutine InitGEMSolver
     dPartialExcessGibbs     = 0D0
     dPartialExcessGibbsLast = 0D0
     dDrivingForceSoln       = 0D0
+    dMinGibbs               = 1D200
     lCompEverything         = .FALSE.
     lConverged              = .FALSE.
     lRevertSystem           = .FALSE.

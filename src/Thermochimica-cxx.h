@@ -88,4 +88,9 @@ namespace Thermochimica
   void setHeatCapacityEnthalpyEntropyRequested(bool requested);
   std::tuple<double, double, double> getHeatCapacityEnthalpyEntropy();
 
+  // Fuzzy stoichiometry
+  void setFuzzyStoich(bool requested);
+  void setFuzzyMagnitude(double magnitude);
+  void setGibbsMinCheck(bool requested);
+
 }

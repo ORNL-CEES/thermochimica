@@ -300,6 +300,33 @@ subroutine ParseInput3PhaseDiagram(cInputFileName,dTemp,dX1lo,dX1hi,dDeltaX1,dX2
           print *,  trim(cErrMsg)
           return
         endif
+      case ('fuzzy','fuzzy stoichiometry','fuzzystoichiometry','fuzzy_stoichiometry',&
+        'Fuzzy','Fuzzy Stoichiometry','FuzzyStoichiometry','Fuzzy_Stoichiometry')
+        read(cValue,*,IOSTAT = INFO) lFuzzyStoich
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A47,I10)') 'Cannot read fuzzy stoichiometry mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('fuzzy mag','fuzzy magnitude','fuzzymagnitude','fuzzy_magnitude',&
+        'Fuzzy Mag','Fuzzy Magnitude','FuzzyMagnitude','Fuzzy_Magnitude')
+        read(cValue,*,IOSTAT = INFO) dFuzzMag
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A52,I10)') 'Cannot read fuzzy stoichiometry magnitude on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+      case ('gibbs', 'gibbs min', 'gibbs minimum', 'gibbs_minimum', 'gibbsmin',&
+        'Gibbs', 'Gibbs Min', 'Gibbs Minimum', 'Gibbs_Minimum', 'GibbsMin')
+        read(cValue,*,IOSTAT = INFO) lGibbsMinCheck
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A46,I10)') 'Cannot read Gibbs energy check mode on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
       case default
         write (cErrMsg, '(A34,I10)') 'Input tag not recognized on line: ', iCounter
         print *,  trim(cErrMsg)
