@@ -50,7 +50,7 @@ class diagram:
         self.munit = 'moles'
         self.tshift = 0
         self.gapLimit = np.Inf
-        self.resRef = 7
+        self.resRef = 4
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.normalizeX = False
         self.figureList = []
@@ -103,10 +103,15 @@ class diagram:
         self.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
         self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
     def refinery(self):
-        # self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
-        # self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
-        autoRefine(self,self.resRef**2,self.plane,useDiagramEdges=False)
+        self.refineLimit(0,self.resRef**2)
+        self.refineLimit(1,self.resRef**2)
+        autoRefine(self,self.resRef**2,self.plane,useDiagramEdges=False,maxIts=1)
         self.resRef += 1
+    def refineLimit(self,x,res):
+        if x == 0:
+            self.runCalc(1e-5,1e-5,1,self.mint,self.maxt,res)
+        if x == 1:
+            self.runCalc(1-1e-5,1-1e-5,1,self.mint,self.maxt,res)
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)

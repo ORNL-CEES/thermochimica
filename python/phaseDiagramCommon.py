@@ -225,9 +225,9 @@ def phaseBoundaries(calc):
             if loc:
                 calc.b[inds[i]] = len(calc.boundaries)-1
 
-def autoRefine(calc,res,endpoints,useDiagramEdges=True):
+def autoRefine(calc,res,endpoints,useDiagramEdges=True,maxIts=4):
     nIt = 0
-    while nIt < 4:
+    while nIt < maxIts:
         nIt = nIt + 1
         maxArea = 0
         phaseBoundaries(calc)
