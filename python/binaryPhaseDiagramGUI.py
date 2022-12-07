@@ -553,7 +553,7 @@ class InspectWindow:
             [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
             [sg.Button('Apply Filter')]
         ]
-        self.data = [[i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'] for i in range(len(self.parent.calculation.ts))]
+        self.data = [[i, f'{point.t:6.2f} K {point.phaseConcentrations[0]:4.3f} {point.phaseConcentrations[1]:4.3f}'] for i,point in enumerate(self.parent.calculation.pdPoints)]
         self.sgw = sg.Window('Data inspection',
             [[sg.Pane([
                 sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
@@ -574,15 +574,16 @@ class InspectWindow:
         if event == sg.WIN_CLOSED or event == 'Exit':
             self.close()
         elif event == '-dataList-':
-            self.index = self.parent.calculation.pointIndex[values['-dataList-'][0][0]]
-            self.sgw['-details-'].update(self.parent.calculation.pointDetails[self.index])
+            self.index = values['-dataList-'][0][0]
+            self.point = self.parent.calculation.pdPoints[self.index]
+            self.sgw['-details-'].update(self.point.details)
             self.sgw['Toggle Active/Suppressed Status'].update(disabled = False)
-            self.sgw['-status-'].update(f'{"Suppressed" if self.parent.calculation.suppressed[self.index] else "Active"}')
+            self.sgw['-status-'].update(f'{"Suppressed" if self.point.suppressed else "Active"}')
         elif event == 'Toggle Active/Suppressed Status':
             if self.index >= 0:
-                self.parent.calculation.suppressed[self.index] = not(self.parent.calculation.suppressed[self.index])
+                self.point.suppressed = not(self.point.suppressed)
                 self.parent.macro.append(f'macroPD.suppressed[{self.index}] = not(macroPD.suppressed[{self.index}])')
-                self.sgw['-status-'].update(f'{"Suppressed" if self.parent.calculation.suppressed[self.index] else "Active"}')
+                self.sgw['-status-'].update(f'{"Suppressed" if self.point.suppressed else "Active"}')
         elif event == 'Apply Filter':
             tlo = -np.Inf
             thi  = np.Inf
@@ -605,18 +606,18 @@ class InspectWindow:
             except:
                 pass
             self.data = []
-            for i in range(len(self.parent.calculation.ts)):
+            for i,p in enumerate(self.parent.calculation.pdPoints):
                 # Check temperature
-                tfilt = tlo <= self.parent.calculation.ts[i] and thi >= self.parent.calculation.ts[i]
+                tfilt = tlo <= p.t and thi >= p.t
                 # Check concentration
-                xfilt = (xlo <= self.parent.calculation.x1[i] and xhi >= self.parent.calculation.x1[i]) or (xlo <= self.parent.calculation.x2[i] and xhi >= self.parent.calculation.x2[i])
+                xfilt = (xlo <= p.phaseConcentrations[0] and xhi >= p.phaseConcentrations[0]) or (xlo <= p.phaseConcentrations[1] and xhi >= p.phaseConcentrations[1])
                 # Check phases present
-                pfilt = (values['-pfilter1-'] == '' or values['-pfilter1-'] == self.parent.calculation.p1[i] or values['-pfilter1-'] == self.parent.calculation.p2[i]) and (values['-pfilter2-'] == '' or values['-pfilter2-'] == self.parent.calculation.p1[i] or values['-pfilter2-'] == self.parent.calculation.p2[i])
+                pfilt = (values['-pfilter1-'] == '' or values['-pfilter1-'] == p.phases[0] or values['-pfilter1-'] == p.phases[1]) and (values['-pfilter2-'] == '' or values['-pfilter2-'] == p.phases[0] or values['-pfilter2-'] == p.phases[1])
                 # Check active/suppressed status
-                afilt = (values['-activefilter-'] == '') or ((values['-activefilter-'] == 'Suppressed') == self.parent.calculation.suppressed[self.parent.calculation.pointIndex[i]])
+                afilt = (values['-activefilter-'] == '') or ((values['-activefilter-'] == 'Suppressed') == p.suppressed)
                 # If all filters pass, add to display list
                 if tfilt and xfilt and pfilt and afilt:
-                    self.data.append([i, f'{self.parent.calculation.ts[i]:6.2f} K {self.parent.calculation.x1[i]:4.3f} {self.parent.calculation.x2[i]:4.3f}'])
+                    self.data.append([i, f'{p.t:6.2f} K {p.phaseConcentrations[0]:4.3f} {p.phaseConcentrations[1]:4.3f}'])
             self.sgw['-dataList-'].update(self.data)
 
 class SaveData(object):

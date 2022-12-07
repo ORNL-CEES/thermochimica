@@ -26,11 +26,7 @@ class diagram:
         self.interactivePlot = interactivePlot
         self.mint = 1e5
         self.maxt = 0
-        self.ts = np.empty([0])
-        self.x1 = np.empty([0])
-        self.x2 = np.empty([0])
-        self.p1 = []
-        self.p2 = []
+        self.pdPoints = []
         self.el1 = ''
         self.el2 = ''
         self.tunit = 'K'
@@ -68,9 +64,6 @@ class diagram:
         self.experimentNames = []
         self.experimentColor = 'bland'
         self.showExperiment = True
-        self.pointDetails = []
-        self.pointIndex = np.empty([0])
-        self.suppressed = []
         self.loadedDiagram = []
         self.loaded = False
         self.showLoaded = True
@@ -84,11 +77,7 @@ class diagram:
         self.el1 = el1
         self.el2 = el2
         self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-        self.ts = np.empty([0])
-        self.x1 = np.empty([0])
-        self.x2 = np.empty([0])
-        self.p1 = []
-        self.p2 = []
+        self.pdPoints = []
         self.x0data = [[],[],[]]
         self.x1data = [[],[],[]]
         # Check temperature unit for shift
@@ -107,9 +96,6 @@ class diagram:
         self.gapLimit = (self.maxt - self.mint) / 2
         self.experimentalData = []
         self.experimentNames = []
-        self.pointDetails = []
-        self.pointIndex = np.empty([0])
-        self.suppressed = []
         self.loadedDiagram = []
         self.loaded = False
         self.saveDataName = 'savedDiagram'
@@ -138,10 +124,7 @@ class diagram:
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
-        ts = self.ts.tolist()
-        x1 = self.x1.tolist()
-        x2 = self.x2.tolist()
-        pointIndex = self.pointIndex.tolist()
+        elem = [self.el1,self.el2]
         for i in list(data.keys()):
             try:
                 self.mint = min(self.mint,data[i]['temperature'])
@@ -154,7 +137,7 @@ class diagram:
                     if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                         nPhases += 1
             if nPhases == 2:
-                ts.append(data[i]['temperature'])
+                t = data[i]['temperature']
                 boundPhases = []
                 boundComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
@@ -162,13 +145,12 @@ class diagram:
                         if (data[i][phaseType][phaseName]['moles'] > phaseIncludeTol):
                             boundPhases.append(phaseName)
                             boundComps.append(data[i][phaseType][phaseName]['elements'][self.el2]['mole fraction of phase by element'])
-                x1.append(boundComps[0])
-                x2.append(boundComps[1])
-                pointIndex.append(len(pointIndex))
-                self.p1.append(boundPhases[0])
-                self.p2.append(boundPhases[1])
-                self.pointDetails.append(f'Temperature = {data[i]["temperature"]:6.2f}\nMoles of {self.el1} = {data[i]["elements"][self.el1]["moles"]:9.8f}\nMoles of {self.el2} = {data[i]["elements"][self.el2]["moles"]:9.8f}\nPhase 1 = {boundPhases[0]} at {boundComps[0]:5.4f} moles {self.el2}\nPhase 2 = {boundPhases[1]} at {boundComps[1]:5.4f} moles {self.el2}\nIntegral Gibbs Energy = {data[i]["integral Gibbs energy"]:.2f}\nNumber of GEM iterations = {data[i]["GEM iterations"]}')
-                self.suppressed.append(False)
+                x = [boundComps[0],boundComps[1]]
+                p = [boundPhases[0],boundPhases[1]]
+                conc = [data[i]["elements"][self.el1]["moles"],data[i]["elements"][self.el2]["moles"]]
+                en = data[i]["integral Gibbs energy"]
+                it = data[i]["GEM iterations"]
+                self.pdPoints.append(pdPoint(elem,t,conc,p,x,en,it))
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:
@@ -196,17 +178,7 @@ class diagram:
                     self.x1data[2][pindex] = max(self.x1data[2][pindex],data[i]['temperature'])
 
         # Sort data here instead of repeatedly later
-        self.ts = np.array(ts)
-        self.x1 = np.array(x1)
-        self.x2 = np.array(x2)
-        self.pointIndex = np.array(pointIndex)
-        sindex  = np.argsort(self.ts)
-        self.ts = self.ts[sindex]
-        self.x1 = self.x1[sindex]
-        self.x2 = self.x2[sindex]
-        self.pointIndex = self.pointIndex[sindex]
-        self.p1 = [self.p1[i] for i in sindex]
-        self.p2 = [self.p2[i] for i in sindex]
+        self.pdPoints.sort(key=lambda x: x.t)
 
         if len(self.x0data[1]) > 1:
             x0sort = [i[0] for i in sorted(enumerate(self.x0data[1]), key=lambda x:x[1])]
@@ -237,24 +209,24 @@ class diagram:
         self.boundaries = []
         self.phases = []
         self.b = []
-        for i in range(len(self.p1)):
+        for point in self.pdPoints:
             # If a miscibility gap label has been used unnecessarily, remove it
-            if self.p1[i].find('#') > 0:
-                if not(self.p1[i][0:self.p1[i].find('#')] == self.p2[i]):
-                    self.p1[i] = self.p1[i][0:self.p1[i].find('#')]
-            if self.p2[i].find('#') > 0:
-                if not(self.p2[i][0:self.p2[i].find('#')] == self.p1[i]):
-                    self.p2[i] = self.p2[i][0:self.p2[i].find('#')]
+            if point.phases[0].find('#') > 0:
+                if not(point.phases[0][0:point.phases[0].find('#')] == point.phases[1]):
+                    point.phases[0] = point.phases[0][0:point.phases[0].find('#')]
+            if point.phases[1].find('#') > 0:
+                if not(point.phases[1][0:point.phases[1].find('#')] == point.phases[0]):
+                    point.phases[1] = point.phases[1][0:point.phases[1].find('#')]
             repeat = False
-            if self.suppressed[self.pointIndex[i]]:
+            if point.suppressed:
                 self.b.append(-1)
             else:
                 for j in range(len(self.boundaries)):
-                    if (self.boundaries[j][0] == self.p1[i]) and (self.boundaries[j][1] == self.p2[i]):
+                    if (self.boundaries[j][0] == point.phases[0]) and (self.boundaries[j][1] == point.phases[1]):
                         self.b.append(j)
                         repeat = True
                 if not(repeat):
-                    self.boundaries.append([self.p1[i],self.p2[i]])
+                    self.boundaries.append([point.phases[0],point.phases[1]])
                     self.b.append(len(self.boundaries)-1)
 
         for i in range(len(self.boundaries)):
@@ -270,14 +242,14 @@ class diagram:
             if not(repeat2 or self.boundaries[i][1].find('#') > 0):
                 self.phases.append(self.boundaries[i][1])
 
-        self.congruentFound = [False for i in range(len(self.phases))]
+        self.congruentFound = [False for _ in range(len(self.phases))]
         for j in range(len(self.boundaries)):
             inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
+            ttt = [self.pdPoints[i].t for i in inds]
+            x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
+            x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
             if x1t[0] > x2t[0]:
                 dir = True
             else:
@@ -287,9 +259,9 @@ class diagram:
                 if (x1t[i] > x2t[i]) != dir:
                     # for miscibility gap, just flip them
                     if self.boundaries[j][0].find('#') > 0 or self.boundaries[j][1].find('#') > 0:
-                        temp = self.x1[inds[i]]
-                        self.x1[inds[i]] = self.x2[inds[i]]
-                        self.x2[inds[i]] = temp
+                        temp = self.pdPoints[inds[i]].phaseConcentrations[0]
+                        self.pdPoints[inds[i]].phaseConcentrations[0] = self.pdPoints[inds[i]].phaseConcentrations[1]
+                        self.pdPoints[inds[i]].phaseConcentrations[1] = temp
                     else:
                         extraBound.append(i)
             if len(extraBound):
@@ -303,9 +275,9 @@ class diagram:
             inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
+            ttt = [self.pdPoints[i].t for i in inds]
+            x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
+            x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
             loc = False
             firstLoc = True
             for i in range(1,len(ttt)):
@@ -454,9 +426,9 @@ class diagram:
             inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
+            ttt = np.array([self.pdPoints[i].t for i in inds])
+            x1t = np.array([self.pdPoints[i].phaseConcentrations[0] for i in inds])
+            x2t = np.array([self.pdPoints[i].phaseConcentrations[1] for i in inds])
             ax.plot(x1t,ttt-self.tshift,self.plotMarker,c=c)
             ax.plot(x2t[::-1],ttt[::-1]-self.tshift,self.plotMarker,c=c)
             minj = np.argmin(ttt)
@@ -722,17 +694,15 @@ class diagram:
                 inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
+                ttt = [self.pdPoints[i].t for i in inds]
+                x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
+                x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
                 for i in range(len(inds)):
                     polygonPoints.append([x1t[i],ttt[i]])
                 for i in reversed(range(len(inds))):
                     polygonPoints.append([x2t[i],ttt[i]])
                 phaseOutline = Polygon(polygonPoints).buffer(0)
                 self.outline = self.outline.buffer(0) - phaseOutline
-                minj = np.argmin(ttt)
-                maxj = np.argmax(ttt)
                 for i in range(len(self.phases)):
                     if self.boundaries[j][0] == self.phases[i]:
                         phasePolyPoints[i].append(polygonPoints[:len(inds)])
@@ -829,9 +799,9 @@ class diagram:
             inds = [i for i, k in enumerate(self.b) if k == j]
             if len(inds) < 2:
                 continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
+            ttt = [self.pdPoints[i].t for i in inds]
+            x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
+            x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
             tbound = max(self.mint,ttt[0]-tres*3)
             for k in np.arange(tbound,max(self.mint,ttt[0]-tres/3),tres/3):
                 ys.append(k)
@@ -872,9 +842,9 @@ class diagram:
                 inds = [i for i, k in enumerate(self.b) if k == j]
                 if len(inds) < 2:
                     continue
-                ttt = self.ts[inds]
-                x1t = self.x1[inds]
-                x2t = self.x2[inds]
+                ttt = [self.pdPoints[i].t for i in inds]
+                x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
+                x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
                 for i in range(len(ttt)-1):
                     gap = np.sqrt(((ttt[i]-ttt[i+1])/(self.maxt-self.mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
                     maxGap = max(gap,maxGap)
@@ -962,11 +932,7 @@ class diagram:
         self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
-        self.backup.ts = copy.deepcopy(self.ts)
-        self.backup.x1 = copy.deepcopy(self.x1)
-        self.backup.x2 = copy.deepcopy(self.x2)
-        self.backup.p1 = copy.deepcopy(self.p1)
-        self.backup.p2 = copy.deepcopy(self.p2)
+        self.backup.pdPoints = copy.deepcopy(self.pdPoints)
         self.backup.x0data = copy.deepcopy(self.x0data)
         self.backup.x1data = copy.deepcopy(self.x1data)
         self.backup.labels = copy.deepcopy(self.labels)
@@ -993,9 +959,6 @@ class diagram:
         self.backup.experimentalData = self.experimentalData
         self.backup.experimentNames = self.experimentNames
         self.backup.experimentColor = self.experimentColor
-        self.backup.pointDetails = self.pointDetails
-        self.backup.pointIndex = self.pointIndex
-        self.backup.suppressed = self.suppressed
         self.backup.loadedDiagram = self.loadedDiagram
         self.backup.loaded = self.loaded
         self.backup.saveDataName = self.saveDataName
@@ -1020,3 +983,18 @@ class diagram:
                 newData.append(newrow)
         self.experimentalData.append(np.array(newData))
         self.experimentNames.append(expName)
+
+class pdPoint:
+    def __init__(self,elements,temperature,concentration,phases,phaseConcentrations,energy,iterations):
+        self.t = temperature
+        self.runConcentration = concentration
+        self.phaseConcentrations = phaseConcentrations
+        self.phases = phases
+        self.details = f'Temperature = {temperature:6.2f}\n'
+        for elem,conc in zip(elements,self.runConcentration):
+            self.details = self.details + f'Moles of {elem} = {conc:9.8f}\n'
+        for phase,conc in zip(self.phases,self.phaseConcentrations):
+            self.details = self.details + f'{phase} at {conc:5.4f}\n'
+        self.details = self.details + f'Integral Gibbs Energy = {energy:.2f}\n'
+        self.details = self.details + f'Number of GEM iterations = {iterations}'
+        self.suppressed = False
