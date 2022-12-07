@@ -12,3 +12,4 @@ class pdPoint:
         self.details = self.details + f'Integral Gibbs Energy = {energy:.2f}\n'
         self.details = self.details + f'Number of GEM iterations = {iterations}'
         self.suppressed = False
+

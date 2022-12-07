@@ -6,7 +6,7 @@ import scipy.optimize
 from itertools import cycle
 import csv
 import thermoTools
-from phaseDiagramCommonFunctions import *
+from phaseDiagramCommon import *
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2

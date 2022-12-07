@@ -16,7 +16,7 @@ from functools import reduce
 import operator
 import csv
 import thermoTools
-from phaseDiagramCommonFunctions import *
+from phaseDiagramCommon import *
 
 phaseIncludeTol = 1e-8
 
