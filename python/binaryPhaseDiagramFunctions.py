@@ -24,6 +24,7 @@ class diagram:
         self.pdPoints = []
         self.el1 = ''
         self.el2 = ''
+        self.elementsUsed = []
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
@@ -71,6 +72,7 @@ class diagram:
         self.munit = munit
         self.el1 = el1
         self.el2 = el2
+        self.elementsUsed = [el1,el2]
         self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
         self.pdPoints = []
         self.x0data = [[],[],[]]
@@ -102,7 +104,7 @@ class diagram:
     def refinery(self):
         self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
         self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
-        autoRefine(self,self.resRef**2)
+        autoRefine(self,self.resRef**2,np.array([[1,0],[0,1]]))
         self.resRef += 1
     def autoSmooth(self):
         self.autoRefine2Phase(self.resSmooth**2)
@@ -616,6 +618,7 @@ class diagram:
         self.backup.plotColor = self.plotColor
         self.backup.el1 = self.el1
         self.backup.el2 = self.el2
+        self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit

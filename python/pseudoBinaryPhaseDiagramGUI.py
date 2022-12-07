@@ -146,12 +146,13 @@ class CalculationWindow:
                 munit = values['-munit-']
                 self.calculation.initRun(pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift,fuzzy=values["-fuzzy-"])
                 self.macro.append(f'macroPD.initRun({pressure},\'{tunit}\',\'{punit}\',{plane},{sum1},{sum2},{mint},{maxt},{elementsUsed},{massLabels},\'{munit}\',{tshift},fuzzy={values["-fuzzy-"]})')
-                self.calculation.runCalc(0,1,nxstep,tlo,thi,ntstep)
-                self.macro.append(f'macroPD.runCalc(0,1,{nxstep},{tlo},{thi},{ntstep})')
+                self.calculation.run(0,1,nxstep,tlo,thi,ntstep)
+                self.macro.append(f'macroPD.run(0,1,{nxstep},{tlo},{thi},{ntstep})')
                 self.calculation.processPhaseDiagramData()
                 self.macro.append(f'macroPD.processPhaseDiagramData()')
                 self.calculation.makePlot()
                 self.sgw.Element('Refine').Update(disabled = False)
+                self.sgw.Element('Auto Refine').Update(disabled = False)
                 self.sgw.Element('Add Label').Update(disabled = False)
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
@@ -160,6 +161,11 @@ class CalculationWindow:
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
+        elif event =='Auto Refine':
+            self.calculation.makeBackup()
+            self.calculation.refinery()
+            self.calculation.makePlot()
+            self.macro.append('macroPD.makeBackup()')
         elif event =='Add Label':
             labelWindow = LabelWindow(self)
             self.children.append(labelWindow)

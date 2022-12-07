@@ -225,29 +225,30 @@ def phaseBoundaries(calc):
             if loc:
                 calc.b[inds[i]] = len(calc.boundaries)-1
 
-def autoRefine(calc,res):
+def autoRefine(calc,res,endpoints,useDiagramEdges=True):
     nIt = 0
     while nIt < 4:
         nIt = nIt + 1
         maxArea = 0
         phaseBoundaries(calc)
 
-        phasePolyPoints = [[] for i in range(len(calc.phases))]
+        phasePolyPoints = [[] for _ in range(len(calc.phases))]
 
-        for j in range(len(calc.x0data[1])):
-            try:
-                i = calc.phases.index(calc.x0data[0][j])
-                phasePolyPoints[i].append([[0,calc.x0data[1][j]]])
-                phasePolyPoints[i].append([[0,calc.x0data[2][j]]])
-            except:
-                continue
-        for j in range(len(calc.x1data[1])):
-            try:
-                i = calc.phases.index(calc.x1data[0][j])
-                phasePolyPoints[i].append([[1,calc.x1data[1][j]]])
-                phasePolyPoints[i].append([[1,calc.x1data[2][j]]])
-            except:
-                continue
+        if useDiagramEdges:
+            for j in range(len(calc.x0data[1])):
+                try:
+                    i = calc.phases.index(calc.x0data[0][j])
+                    phasePolyPoints[i].append([[0,calc.x0data[1][j]]])
+                    phasePolyPoints[i].append([[0,calc.x0data[2][j]]])
+                except:
+                    continue
+            for j in range(len(calc.x1data[1])):
+                try:
+                    i = calc.phases.index(calc.x1data[0][j])
+                    phasePolyPoints[i].append([[1,calc.x1data[1][j]]])
+                    phasePolyPoints[i].append([[1,calc.x1data[2][j]]])
+                except:
+                    continue
 
         # plot 2-phase region boundaries
         for j in range(len(calc.boundaries)):
@@ -337,9 +338,11 @@ def autoRefine(calc,res):
         if len(xs) > 0:
             calcList = []
             for i in range(len(xs)):
-                calcItem = [ys[i],calc.pressure,1-xs[i],xs[i]]
+                concentration = endpoints[0]*(1-xs[i]) + endpoints[1]*xs[i]
+                calcItem = [ys[i],calc.pressure]
+                calcItem.extend(concentration)
                 calcList.append(calcItem)
-            thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,[calc.el1,calc.el2],calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
+            thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,calc.elementsUsed,calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
             print('Thermochimica calculation initiated.')
             thermoTools.RunRunCalculationList(calc.inputFileName)
             print('Thermochimica calculation finished.')

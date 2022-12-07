@@ -7,6 +7,8 @@ from itertools import cycle
 import csv
 import thermoTools
 from phaseDiagramCommon import *
+from shapely.geometry import Polygon
+from shapely.geometry import MultiPolygon
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
@@ -36,6 +38,7 @@ class diagram:
         self.pressure = 1
         self.pdPoints = []
         self.labels = []
+        self.outline = MultiPolygon([])
         self.elementsUsed = []
         self.nElementsUsed = 0
         self.massLabels = ['','']
@@ -46,6 +49,8 @@ class diagram:
         self.punit = 'atm'
         self.munit = 'moles'
         self.tshift = 0
+        self.gapLimit = np.Inf
+        self.resRef = 7
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.normalizeX = False
         self.figureList = []
@@ -71,6 +76,8 @@ class diagram:
         self.punit = punit
         self.munit = munit
         self.tshift = tshift
+        self.gapLimit = np.Inf
+        self.resRef = 7
         # Get fuzzy stoichiometry setting
         self.fuzzy = fuzzy
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
@@ -92,6 +99,14 @@ class diagram:
         print('Thermochimica calculation initiated.')
         thermoTools.RunRunCalculationList(self.inputFileName)
         print('Thermochimica calculation finished.')
+    def run(self,xlo,xhi,nxstep,tlo,thi,ntstep):
+        self.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
+        self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
+    def refinery(self):
+        # self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
+        # self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
+        autoRefine(self,self.resRef**2,self.plane,useDiagramEdges=False)
+        self.resRef += 1
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
