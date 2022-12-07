@@ -33,7 +33,7 @@ class diagram:
         self.mint = 1e5
         self.maxt = 0
         self.pressure = 1
-        self.points = []
+        self.pdPoints = []
         self.labels = []
         self.elementsUsed = []
         self.nElementsUsed = 0
@@ -58,7 +58,7 @@ class diagram:
         self.mint = mint
         self.maxt = maxt
         self.pressure = pressure
-        self.points = []
+        self.pdPoints = []
         self.labels = []
         self.elementsUsed = elementsUsed
         self.nElementsUsed = len(elementsUsed)
@@ -124,7 +124,12 @@ class diagram:
                 crossNorms = [np.linalg.norm(np.cross(phaseCompositions[k] - self.plane[0],self.plane[1] - phaseCompositions[k])) for k in range(nPhases)]
                 if max(crossNorms) < phaseIncludeTol:
                     boundComps = [np.linalg.norm(phaseCompositions[k] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for k in range(nPhases)]
-                    self.points.append([[data[i]['temperature'],boundComps[0],boundPhases],[data[i]['temperature'],boundComps[1],boundPhases]])
+                    x = [boundComps[0],boundComps[1]]
+                    p = [boundPhases[0],boundPhases[1]]
+                    conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
+                    en = data[i]["integral Gibbs energy"]
+                    it = data[i]["GEM iterations"]
+                    self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,p,x,en,it))
                     continue
             if nPhases == self.nElementsUsed:
                 allPhases = []
@@ -156,17 +161,11 @@ class diagram:
                     for test in range(self.nElementsUsed - 1):
                         intTest = intTest and (0 <= intersect[test]) and (intersect[test] <= 1)
                     if intTest:
-                        # if intSum == 1:
-                        #     # If we are on the far boundary, the first phase is not included
-                        #     omitPhase.remove(omitPhase[0])
-                        # for k in range(self.nElementsUsed - 2):
-                        #     # Check all the other boundaries
-                        #     if intersect[k+1] == 0:
-                        #         # If none of this is used, it is not included
-                        #         omitPhase.remove(omitPhase[k+1])
-                        # self.points.append([data[i]['temperature'],intersect[0],omitPhase])
-                        temppoints.append([data[i]['temperature'],intersect[0],allPhases])
-                self.points.append(temppoints)
+                        conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
+                        en = data[i]["integral Gibbs energy"]
+                        it = data[i]["GEM iterations"]
+                        temppoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,allPhases,phaseComps,en,it))
+                self.pdPoints.append(temppoints)
             elif nPhases > 1 and False:
                 boundPhases = []
                 skipPoint = False
@@ -191,17 +190,20 @@ class diagram:
                     if self.elementsUsed[e] in data[i]['elements'].keys():
                         tempComp[e] = data[i]['elements'][self.elementsUsed[e]]['moles']
                 boundComps = np.linalg.norm(tempComp-self.plane[0])/np.linalg.norm(self.plane[1]-self.plane[0])
-                self.points.append([data[i]['temperature'],boundComps,boundPhases])
+                conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
+                en = data[i]["integral Gibbs energy"]
+                it = data[i]["GEM iterations"]
+                self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,boundPhases,boundComps,en,it))
     def makePlot(self):
         boundaries = []
         b = []
-        for point in self.points:
+        for point in self.pdPoints:
             repeat = False
             for j in range(len(boundaries)):
                 thisMatch = True
-                if not (len(point[0][2]) == len(boundaries[j])):
+                if not (len(point.phases) == len(boundaries[j])):
                     continue
-                for phase in point[0][2]:
+                for phase in point.phases:
                     if not (phase in boundaries[j]):
                         thisMatch = False
                         break
@@ -210,14 +212,14 @@ class diagram:
                     repeat = True
             if not(repeat):
                 b.append(len(boundaries))
-                boundaries.append(point[0][2])
+                boundaries.append(point.phases)
 
         for j in range(len(boundaries)):
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            temppoints1 =[self.points[i][0][1] for i in inds]
-            temppoints2 =[self.points[i][1][1] for i in inds]
+            temppoints1 =[self.pdPoints[i].phaseConcentrations[0] for i in inds]
+            temppoints2 =[self.pdPoints[i].phaseConcentrations[1] for i in inds]
             if temppoints1[0] > temppoints2[0]:
                 dir = True
             else:
@@ -248,9 +250,9 @@ class diagram:
             if len(inds) < 2:
                 continue
             plotPoints = np.empty([0,2])
-            temppoints = np.array([[self.points[i][0][1],self.points[i][0][0]] for i in inds])
+            temppoints = np.array([[self.pdPoints[i].phaseConcentrations[0],self.pdPoints[i].t] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
-            temppoints = np.array([[self.points[i][1][1],self.points[i][1][0]] for i in inds])
+            temppoints = np.array([[self.pdPoints[i].phaseConcentrations[1],self.pdPoints[i].t] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
             if self.normalizeX:
                 plotX = plotPoints[:,0]
@@ -336,7 +338,7 @@ class diagram:
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI
-        self.backup.points = copy.deepcopy(self.points)
+        self.backup.pdPoints = copy.deepcopy(self.pdPoints)
         self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
         self.backup.nElementsUsed = self.nElementsUsed
         self.backup.massLabels = copy.deepcopy(self.massLabels)
@@ -375,3 +377,18 @@ class diagram:
                 newData.append(newrow)
         self.experimentalData.append(np.array(newData))
         self.experimentNames.append(expName)
+
+class pdPoint:
+    def __init__(self,elements,temperature,concentration,phases,phaseConcentrations,energy,iterations):
+        self.t = temperature
+        self.runConcentration = concentration
+        self.phaseConcentrations = phaseConcentrations
+        self.phases = phases
+        self.details = f'Temperature = {temperature:6.2f}\n'
+        for elem,conc in zip(elements,self.runConcentration):
+            self.details = self.details + f'Moles of {elem} = {conc:9.8f}\n'
+        for phase,conc in zip(self.phases,self.phaseConcentrations):
+            self.details = self.details + f'{phase} at {conc:5.4f}\n'
+        self.details = self.details + f'Integral Gibbs Energy = {energy:.2f}\n'
+        self.details = self.details + f'Number of GEM iterations = {iterations}'
+        self.suppressed = False
