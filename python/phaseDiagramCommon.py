@@ -226,127 +226,127 @@ def phaseBoundaries(calc):
                 calc.b[inds[i]] = len(calc.boundaries)-1
 
 def autoRefine(calc,res):
-        nIt = 0
-        while nIt < 4:
-            nIt = nIt + 1
-            maxArea = 0
-            phaseBoundaries(calc)
+    nIt = 0
+    while nIt < 4:
+        nIt = nIt + 1
+        maxArea = 0
+        phaseBoundaries(calc)
 
-            phasePolyPoints = [[] for i in range(len(calc.phases))]
+        phasePolyPoints = [[] for i in range(len(calc.phases))]
 
-            for j in range(len(calc.x0data[1])):
-                try:
-                    i = calc.phases.index(calc.x0data[0][j])
-                    phasePolyPoints[i].append([[0,calc.x0data[1][j]]])
-                    phasePolyPoints[i].append([[0,calc.x0data[2][j]]])
-                except:
-                    continue
-            for j in range(len(calc.x1data[1])):
-                try:
-                    i = calc.phases.index(calc.x1data[0][j])
-                    phasePolyPoints[i].append([[1,calc.x1data[1][j]]])
-                    phasePolyPoints[i].append([[1,calc.x1data[2][j]]])
-                except:
-                    continue
-
-            # plot 2-phase region boundaries
-            for j in range(len(calc.boundaries)):
-                polygonPoints = []
-                inds = [i for i, k in enumerate(calc.b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = [calc.pdPoints[i].t for i in inds]
-                x1t = [calc.pdPoints[i].phaseConcentrations[0] for i in inds]
-                x2t = [calc.pdPoints[i].phaseConcentrations[1] for i in inds]
-                for i in range(len(inds)):
-                    polygonPoints.append([x1t[i],ttt[i]])
-                for i in reversed(range(len(inds))):
-                    polygonPoints.append([x2t[i],ttt[i]])
-                phaseOutline = Polygon(polygonPoints).buffer(0)
-                calc.outline = calc.outline.buffer(0) - phaseOutline
-                for i in range(len(calc.phases)):
-                    if calc.boundaries[j][0] == calc.phases[i]:
-                        phasePolyPoints[i].append(polygonPoints[:len(inds)])
-                    if calc.boundaries[j][1] == calc.phases[i]:
-                        phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-
-            for i in range(len(calc.phases)):
-                if calc.congruentFound[i]:
-                    print(f'Warning: congruent phase transformation found, auto refine will skip {calc.phases[i]}')
-                    continue
-                segcenters = []
-                if len(phasePolyPoints[i]) < 2:
-                    continue
-                for j in range(len(phasePolyPoints[i])):
-                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-                sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
-                sortedPolyPoints = []
-                for j in range(len(phasePolyPoints[i])):
-                    k = segcenters.index(sortcenters[j])
-                    if sortcenters[j][1] > sortcenters[j-1][1]:
-                        for l in range(len(phasePolyPoints[i][k])):
-                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                    else:
-                        for l in reversed(range(len(phasePolyPoints[i][k]))):
-                            sortedPolyPoints.append(phasePolyPoints[i][k][l])
-                if len(sortedPolyPoints) > 2:
-                    phaseOutline = Polygon(sortedPolyPoints).buffer(0)
-                    try:
-                        calc.outline = calc.outline - phaseOutline
-                    except:
-                        pass
-
-            xs = []
-            ys = []
-            subres = int(np.ceil(np.sqrt(res)))
+        for j in range(len(calc.x0data[1])):
             try:
-                oxlo, otlo, oxhi, othi = calc.outline.bounds
+                i = calc.phases.index(calc.x0data[0][j])
+                phasePolyPoints[i].append([[0,calc.x0data[1][j]]])
+                phasePolyPoints[i].append([[0,calc.x0data[2][j]]])
             except:
                 continue
-            xindices = np.linspace(oxlo, oxhi, subres)
-            yindices = np.linspace(otlo, othi, subres)
-            horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
-            vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
-            # If the outline contains non-polygon shapes (like lines) it will be a GeometryCollection instead
-            # and we need to remove those non-polygon shapes so it can be a MultiPolygon again
-            if isinstance(calc.outline,GeometryCollection):
-                calc.outline = MultiPolygon([shape for shape in list(calc.outline.geoms) if isinstance(shape,Polygon)])
-            for splitter in vertical_splitters:
-                try:
-                    calc.outline = MultiPolygon(split(calc.outline, splitter))
-                except:
-                    continue
-            for splitter in horizontal_splitters:
-                try:
-                    calc.outline = MultiPolygon(split(calc.outline, splitter))
-                except:
-                    continue
-            for tempOutline in list(calc.outline.geoms):
-                if (tempOutline.area / (calc.maxt-calc.mint)) < (1 / (10*res**2)):
-                    continue
-                maxArea = max(tempOutline.area / (calc.maxt-calc.mint),maxArea)
-                pxlo, ptlo, pxhi, pthi = tempOutline.bounds
-                xstep = (pxhi - pxlo) / subres / 10
-                ystep = (pthi - ptlo) / subres / 10
-                xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
-                xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
-                ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
-                ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+        for j in range(len(calc.x1data[1])):
+            try:
+                i = calc.phases.index(calc.x1data[0][j])
+                phasePolyPoints[i].append([[1,calc.x1data[1][j]]])
+                phasePolyPoints[i].append([[1,calc.x1data[2][j]]])
+            except:
+                continue
 
-            if len(xs) > 0:
-                calcList = []
-                for i in range(len(xs)):
-                    calcItem = [ys[i],calc.pressure,1-xs[i],xs[i]]
-                    calcList.append(calcItem)
-                thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,[calc.el1,calc.el2],calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
-                print('Thermochimica calculation initiated.')
-                thermoTools.RunRunCalculationList(calc.inputFileName)
-                print('Thermochimica calculation finished.')
-                calc.processPhaseDiagramData()
+        # plot 2-phase region boundaries
+        for j in range(len(calc.boundaries)):
+            polygonPoints = []
+            inds = [i for i, k in enumerate(calc.b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = [calc.pdPoints[i].t for i in inds]
+            x1t = [calc.pdPoints[i].phaseConcentrations[0] for i in inds]
+            x2t = [calc.pdPoints[i].phaseConcentrations[1] for i in inds]
+            for i in range(len(inds)):
+                polygonPoints.append([x1t[i],ttt[i]])
+            for i in reversed(range(len(inds))):
+                polygonPoints.append([x2t[i],ttt[i]])
+            phaseOutline = Polygon(polygonPoints).buffer(0)
+            calc.outline = calc.outline.buffer(0) - phaseOutline
+            for i in range(len(calc.phases)):
+                if calc.boundaries[j][0] == calc.phases[i]:
+                    phasePolyPoints[i].append(polygonPoints[:len(inds)])
+                if calc.boundaries[j][1] == calc.phases[i]:
+                    phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
 
-            # Test the minimum subgrid region area to see if converged
-            if maxArea < 1 / (10*res**2):
-                break
-            elif any(calc.congruentFound):
-                break
+        for i in range(len(calc.phases)):
+            if calc.congruentFound[i]:
+                print(f'Warning: congruent phase transformation found, auto refine will skip {calc.phases[i]}')
+                continue
+            segcenters = []
+            if len(phasePolyPoints[i]) < 2:
+                continue
+            for j in range(len(phasePolyPoints[i])):
+                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+            sortcenters = sorted(segcenters, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360)
+            sortedPolyPoints = []
+            for j in range(len(phasePolyPoints[i])):
+                k = segcenters.index(sortcenters[j])
+                if sortcenters[j][1] > sortcenters[j-1][1]:
+                    for l in range(len(phasePolyPoints[i][k])):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+                else:
+                    for l in reversed(range(len(phasePolyPoints[i][k]))):
+                        sortedPolyPoints.append(phasePolyPoints[i][k][l])
+            if len(sortedPolyPoints) > 2:
+                phaseOutline = Polygon(sortedPolyPoints).buffer(0)
+                try:
+                    calc.outline = calc.outline - phaseOutline
+                except:
+                    pass
+
+        xs = []
+        ys = []
+        subres = int(np.ceil(np.sqrt(res)))
+        try:
+            oxlo, otlo, oxhi, othi = calc.outline.bounds
+        except:
+            continue
+        xindices = np.linspace(oxlo, oxhi, subres)
+        yindices = np.linspace(otlo, othi, subres)
+        horizontal_splitters = [LineString([(x, yindices[0]), (x, yindices[-1])]) for x in xindices]
+        vertical_splitters = [LineString([(xindices[0], y), (xindices[-1], y)]) for y in yindices]
+        # If the outline contains non-polygon shapes (like lines) it will be a GeometryCollection instead
+        # and we need to remove those non-polygon shapes so it can be a MultiPolygon again
+        if isinstance(calc.outline,GeometryCollection):
+            calc.outline = MultiPolygon([shape for shape in list(calc.outline.geoms) if isinstance(shape,Polygon)])
+        for splitter in vertical_splitters:
+            try:
+                calc.outline = MultiPolygon(split(calc.outline, splitter))
+            except:
+                continue
+        for splitter in horizontal_splitters:
+            try:
+                calc.outline = MultiPolygon(split(calc.outline, splitter))
+            except:
+                continue
+        for tempOutline in list(calc.outline.geoms):
+            if (tempOutline.area / (calc.maxt-calc.mint)) < (1 / (10*res**2)):
+                continue
+            maxArea = max(tempOutline.area / (calc.maxt-calc.mint),maxArea)
+            pxlo, ptlo, pxhi, pthi = tempOutline.bounds
+            xstep = (pxhi - pxlo) / subres / 10
+            ystep = (pthi - ptlo) / subres / 10
+            xs.extend(np.linspace(pxlo + xstep, pxhi - xstep, subres))
+            xs.extend(np.linspace(pxhi - xstep, pxlo + xstep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+            ys.extend(np.linspace(pthi - ystep, ptlo + ystep, subres))
+
+        if len(xs) > 0:
+            calcList = []
+            for i in range(len(xs)):
+                calcItem = [ys[i],calc.pressure,1-xs[i],xs[i]]
+                calcList.append(calcItem)
+            thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,[calc.el1,calc.el2],calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
+            print('Thermochimica calculation initiated.')
+            thermoTools.RunRunCalculationList(calc.inputFileName)
+            print('Thermochimica calculation finished.')
+            calc.processPhaseDiagramData()
+
+        # Test the minimum subgrid region area to see if converged
+        if maxArea < 1 / (10*res**2):
+            break
+        elif any(calc.congruentFound):
+            break
