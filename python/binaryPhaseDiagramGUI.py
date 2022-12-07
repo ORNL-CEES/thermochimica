@@ -5,8 +5,8 @@ import sys
 import pickle
 import copy
 import matplotlib.pyplot as plt
-import numpy as np
 import thermoToolsGUI
+from phaseDiagramCommon import *
 
 class CalculationWindow:
     def __init__(self, parent, datafile, nElements, elements, active):
@@ -103,16 +103,7 @@ class CalculationWindow:
             if not cancelRun:
                 self.calculation.run(grid_density,grid_density,pressure,tunit,punit,0,1,tlo,thi,el1,el2,'moles',fuzzy=values["-fuzzy-"])
                 self.calculation.makePlot()
-                self.sgw.Element('Refine').Update(disabled = False)
-                self.sgw.Element('Auto Refine').Update(disabled = False)
-                self.sgw.Element('Auto Smoothen').Update(disabled = False)
-                self.sgw.Element('Add Label').Update(disabled = False)
-                self.sgw.Element('Auto Label').Update(disabled = False)
-                self.sgw.Element('Plot').Update(disabled = False)
-                self.sgw.Element('Undo').Update(disabled = False)
-                self.sgw.Element('Inspect').Update(disabled = False)
-                self.sgw.Element('Export Diagram Data').Update(disabled = False)
-                self.sgw.Element('Export Plot').Update(disabled = False)
+                enableButtons(self)
                 self.macro.append(f'macroPD.run({grid_density},{grid_density},{pressure},"{tunit}","{punit}",{0},{1},{tlo},{thi},"{el1}","{el2}","moles",fuzzy={values["-fuzzy-"]})')
         elif event =='Refine':
             refineWindow = RefineWindow(self)
@@ -171,12 +162,7 @@ class CalculationWindow:
             self.macro.append('macroPD = macroPD.backup')
             self.macro.append('macroPD.backup = backup')
             self.calculation.makePlot()
-            self.sgw.Element('Refine').Update(disabled = False)
-            self.sgw.Element('Auto Refine').Update(disabled = False)
-            self.sgw.Element('Auto Smoothen').Update(disabled = False)
-            self.sgw.Element('Add Label').Update(disabled = False)
-            self.sgw.Element('Auto Label').Update(disabled = False)
-            self.sgw.Element('Plot').Update(disabled = False)
+            enableButtons(self)
             if len(self.calculation.labels) > 0:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Add Data':
@@ -185,7 +171,7 @@ class CalculationWindow:
             self.children.append(addDataWindow)
         elif event =='Inspect':
             self.calculation.makeBackup()
-            inspectWindow = InspectWindow(self)
+            inspectWindow = InspectWindow(self,endMember2=self.calculation.el2,phases=self.calculation.phases,windowList=windowList)
             self.children.append(inspectWindow)
         elif event =='Export Diagram Data':
             saveDataWindow = SaveDataWindow(self)
@@ -205,12 +191,7 @@ class CalculationWindow:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
         elif event =='Run Macro':
-            if 'macroPhaseDiagram' in sys.modules:
-                del sys.modules['macroPhaseDiagram']
-            import macroPhaseDiagram
-            self.calculation = macroPhaseDiagram.macroPD
-            self.calculation.active = True
-            self.calculation.interactivePlot = True
+            runMacro(self)
         elif event =='Macro Settings':
             macroSettingsWindow = thermoToolsGUI.PhaseDiagramMacroSettingsWindow(self,windowList)
             self.children.append(macroSettingsWindow)
@@ -528,97 +509,6 @@ class SettingsWindow:
                 pass
             self.parent.calculation.makePlot()
             self.close()
-
-class InspectWindow:
-    def __init__(self,parent):
-        self.parent = parent
-        windowList.append(self)
-        dataColumn = [
-            [sg.Text('Data Points')],
-            [sg.Listbox(values=[], enable_events=True, size=(30, 50), key='-dataList-')]
-        ]
-        outputColumn = [
-            [sg.Text('Calculation Details')],
-            [sg.Multiline(key='-details-', size=(50,10), no_scrollbar=True)],
-            [sg.Text(key = '-status-')],
-            [sg.Button('Toggle Active/Suppressed Status', disabled = True)],
-            [sg.Text('Filter points', font='underline')],
-            [sg.Text('Temperature Range:')],
-            [sg.Input(key='-tfilterlow-',size=(thermoToolsGUI.inputSize,1)),sg.Input(key='-tfilterhi-',size=(thermoToolsGUI.inputSize,1))],
-            [sg.Text(f'{self.parent.calculation.el2} Concentration Range:')],
-            [sg.Input(key='-xfilterlow-',size=(thermoToolsGUI.inputSize,1)),sg.Input(key='-xfilterhi-',size=(thermoToolsGUI.inputSize,1))],
-            [sg.Text('Contains Phases:')],
-            [sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter1-'),sg.Combo(['']+self.parent.calculation.phases, key = '-pfilter2-')],
-            [sg.Text('Active/Suppressed Status:')],
-            [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
-            [sg.Button('Apply Filter')]
-        ]
-        self.data = [[i, f'{point.t:6.2f} K {point.phaseConcentrations[0]:4.3f} {point.phaseConcentrations[1]:4.3f}'] for i,point in enumerate(self.parent.calculation.pdPoints)]
-        self.sgw = sg.Window('Data inspection',
-            [[sg.Pane([
-                sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
-                sg.Column(outputColumn, element_justification='c', expand_x=True, expand_y=True)
-            ], orientation='h', k='-PANE-')]],
-            location = [0,0], finalize=True)
-        self.sgw['-dataList-'].update(self.data)
-        self.children = []
-        self.index = -1
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Exit':
-            self.close()
-        elif event == '-dataList-':
-            self.index = values['-dataList-'][0][0]
-            self.point = self.parent.calculation.pdPoints[self.index]
-            self.sgw['-details-'].update(self.point.details)
-            self.sgw['Toggle Active/Suppressed Status'].update(disabled = False)
-            self.sgw['-status-'].update(f'{"Suppressed" if self.point.suppressed else "Active"}')
-        elif event == 'Toggle Active/Suppressed Status':
-            if self.index >= 0:
-                self.point.suppressed = not(self.point.suppressed)
-                self.parent.macro.append(f'macroPD.suppressed[{self.index}] = not(macroPD.suppressed[{self.index}])')
-                self.sgw['-status-'].update(f'{"Suppressed" if self.point.suppressed else "Active"}')
-        elif event == 'Apply Filter':
-            tlo = -np.Inf
-            thi  = np.Inf
-            xlo = -np.Inf
-            xhi  = np.Inf
-            try:
-                tlo = float(values['-tfilterlow-'])
-            except:
-                pass
-            try:
-                thi = float(values['-tfilterhi-'])
-            except:
-                pass
-            try:
-                xlo = float(values['-xfilterlow-'])
-            except:
-                pass
-            try:
-                xhi = float(values['-xfilterhi-'])
-            except:
-                pass
-            self.data = []
-            for i,p in enumerate(self.parent.calculation.pdPoints):
-                # Check temperature
-                tfilt = tlo <= p.t and thi >= p.t
-                # Check concentration
-                xfilt = (xlo <= p.phaseConcentrations[0] and xhi >= p.phaseConcentrations[0]) or (xlo <= p.phaseConcentrations[1] and xhi >= p.phaseConcentrations[1])
-                # Check phases present
-                pfilt = (values['-pfilter1-'] == '' or values['-pfilter1-'] == p.phases[0] or values['-pfilter1-'] == p.phases[1]) and (values['-pfilter2-'] == '' or values['-pfilter2-'] == p.phases[0] or values['-pfilter2-'] == p.phases[1])
-                # Check active/suppressed status
-                afilt = (values['-activefilter-'] == '') or ((values['-activefilter-'] == 'Suppressed') == p.suppressed)
-                # If all filters pass, add to display list
-                if tfilt and xfilt and pfilt and afilt:
-                    self.data.append([i, f'{p.t:6.2f} K {p.phaseConcentrations[0]:4.3f} {p.phaseConcentrations[1]:4.3f}'])
-            self.sgw['-dataList-'].update(self.data)
 
 class SaveData(object):
     def __init__(self,pdPoints,boundaries,phases,b,x0data,x1data,mint,maxt):

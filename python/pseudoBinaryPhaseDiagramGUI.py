@@ -5,6 +5,7 @@ import os
 import sys
 import copy
 import thermoToolsGUI
+from phaseDiagramCommon import *
 
 # For boundaries of phase regions where both sides have (# phases) < (# elements), only plot points within phaseFractionTol of the boundary
 phaseFractionTol = 1e-2
@@ -155,7 +156,7 @@ class CalculationWindow:
                 self.sgw.Element('Plot').Update(disabled = False)
                 self.sgw.Element('Export Plot').Update(disabled = False)
                 self.sgw.Element('Undo').Update(disabled = False)
-                self.sgw.Element('Add Data').Update(disabled = False)
+                self.sgw.Element('Inspect').Update(disabled = False)
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -198,8 +199,13 @@ class CalculationWindow:
             self.sgw.Element('Add Label').Update(disabled = False)
             self.sgw.Element('Plot').Update(disabled = False)
             self.sgw.Element('Export Plot').Update(disabled = False)
+            self.sgw.Element('Inspect').Update(disabled = False)
             if len(self.calculation.labels) > 0:
                 self.sgw.Element('Remove Label').Update(disabled = False)
+        elif event =='Inspect':
+            self.calculation.makeBackup()
+            inspectWindow = InspectWindow(self,endMember2=self.calculation.massLabels[1],phases=[],windowList=windowList)
+            self.children.append(inspectWindow)
         elif event =='Clear Macro':
             self.macro = []
         elif event =='Export Macro':
@@ -212,18 +218,7 @@ class CalculationWindow:
                     f.write(f'{command}\n')
                 f.write('macroPD.makePlot()\n')
         elif event =='Run Macro':
-            if 'macroPhaseDiagram' in sys.modules:
-                del sys.modules['macroPhaseDiagram']
-            import macroPhaseDiagram
-            self.calculation = macroPhaseDiagram.macroPD
-            self.calculation.active = True
-            self.calculation.interactivePlot = True
-            self.sgw.Element('Refine').Update(disabled = False)
-            self.sgw.Element('Add Label').Update(disabled = False)
-            self.sgw.Element('Plot').Update(disabled = False)
-            self.sgw.Element('Export Plot').Update(disabled = False)
-            self.sgw.Element('Undo').Update(disabled = False)
-            self.sgw.Element('Add Data').Update(disabled = False)
+            runMacro(self)
         elif event =='Add Data':
             self.calculation.makeBackup()
             addDataWindow = thermoToolsGUI.PhaseDiagramAddDataWindow(self,windowList)
@@ -267,7 +262,7 @@ class CalculationWindow:
             sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Exit(size = thermoToolsGUI.buttonSize)],
-                       [sg.Button('Add Data', disabled = True, size = thermoToolsGUI.buttonSize)],
+                       [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]
                       ],vertical_alignment='t'),
             sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
