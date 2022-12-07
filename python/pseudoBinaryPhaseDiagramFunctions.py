@@ -152,7 +152,7 @@ class diagram:
                     it = data[i]["GEM iterations"]
                     self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,p,x,en,it))
                     continue
-            if nPhases == self.nElementsUsed:
+            if nPhases == self.nElementsUsed and False:
                 allPhases = []
                 phaseComps = []
                 for phaseType in ['solution phases','pure condensed phases']:
@@ -216,10 +216,12 @@ class diagram:
                 it = data[i]["GEM iterations"]
                 self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,boundPhases,boundComps,en,it))
     def makePlot(self):
+        phaseBoundaries(self)
         boundaries = []
         b = []
         activePoints = []
         for point in self.pdPoints:
+            # Check if suppressed
             if point.suppressed:
                 continue
             activePoints.append(point)
