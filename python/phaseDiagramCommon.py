@@ -117,11 +117,9 @@ def runMacro(calc):
     calc.calculation = macroPhaseDiagram.macroPD
     calc.calculation.active = True
     calc.calculation.interactivePlot = True
-    print(calc.sgw)
     enableButtons(calc)
     
 def enableButtons(calc):
-    print(calc.sgw)
     calc.sgw.Element('Refine').Update(disabled = False)
     calc.sgw.Element('Auto Refine').Update(disabled = False)
     calc.sgw.Element('Auto Smoothen').Update(disabled = False)
