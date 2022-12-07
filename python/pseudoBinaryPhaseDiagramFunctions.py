@@ -198,7 +198,11 @@ class diagram:
     def makePlot(self):
         boundaries = []
         b = []
+        activePoints = []
         for point in self.pdPoints:
+            if point.suppressed:
+                continue
+            activePoints.append(point)
             repeat = False
             for j in range(len(boundaries)):
                 thisMatch = True
@@ -219,8 +223,8 @@ class diagram:
             inds = [i for i, k in enumerate(b) if k == j]
             if len(inds) < 2:
                 continue
-            temppoints1 =[self.pdPoints[i].phaseConcentrations[0] for i in inds]
-            temppoints2 =[self.pdPoints[i].phaseConcentrations[1] for i in inds]
+            temppoints1 =[activePoints[i].phaseConcentrations[0] for i in inds]
+            temppoints2 =[activePoints[i].phaseConcentrations[1] for i in inds]
             if temppoints1[0] > temppoints2[0]:
                 dir = True
             else:
@@ -251,9 +255,9 @@ class diagram:
             if len(inds) < 2:
                 continue
             plotPoints = np.empty([0,2])
-            temppoints = np.array([[self.pdPoints[i].phaseConcentrations[0],self.pdPoints[i].t] for i in inds])
+            temppoints = np.array([[activePoints[i].phaseConcentrations[0],activePoints[i].t] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
-            temppoints = np.array([[self.pdPoints[i].phaseConcentrations[1],self.pdPoints[i].t] for i in inds])
+            temppoints = np.array([[activePoints[i].phaseConcentrations[1],activePoints[i].t] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
             if self.normalizeX:
                 plotX = plotPoints[:,0]
