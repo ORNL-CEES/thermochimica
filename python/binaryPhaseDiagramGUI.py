@@ -621,10 +621,8 @@ class InspectWindow:
             self.sgw['-dataList-'].update(self.data)
 
 class SaveData(object):
-    def __init__(self,ts,x1,x2,boundaries,phases,b,x0data,x1data,mint,maxt):
-        self.ts = ts
-        self.x1 = x1
-        self.x2 = x2
+    def __init__(self,pdPoints,boundaries,phases,b,x0data,x1data,mint,maxt):
+        self.pdPoints = pdPoints
         self.boundaries = boundaries
         self.phases = phases
         self.b = b
@@ -658,9 +656,7 @@ class SaveDataWindow:
                     self.parent.calculation.saveDataName = tempName
             except:
                 pass
-            saveData = SaveData(self.parent.calculation.ts,
-                                self.parent.calculation.x1,
-                                self.parent.calculation.x2,
+            saveData = SaveData(self.parent.calculation.pdPoints,
                                 self.parent.calculation.boundaries,
                                 self.parent.calculation.phases,
                                 self.parent.calculation.b,
