@@ -349,22 +349,27 @@ class diagram:
                             continue
                         bind = diagram.boundaries[k].index(diagram.x0data[0][j])
                         if bind == 0:
-                            minj = np.argmin(np.array(diagram.x1)[inds])
-                            length = (0 - np.array(diagram.x1)[inds][minj])**2 + (diagram.x0data[1][j] - np.array(diagram.ts)[inds][minj])**2
-                            match.append([length,k,np.array(diagram.x1)[inds][minj],np.array(diagram.ts)[inds][minj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[0] for i in inds])
+                            minj = np.argmin(x)
+                            length = (0 - x[minj])**2 + (diagram.x0data[1][j] - t[minj])**2
+                            match.append([length,k,x[minj],t[minj]])
                         elif bind == 1:
-                            minj = np.argmin(np.array(diagram.x2)[inds])
-                            length = (0 - np.array(diagram.x2)[inds][minj])**2 + (diagram.x0data[1][j] - np.array(diagram.ts)[inds][minj])**2
-                            match.append([length,k,np.array(diagram.x2)[inds][minj],np.array(diagram.ts)[inds][minj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[1] for i in inds])
+                            minj = np.argmin(x)
+                            length = (0 - x[minj])**2 + (diagram.x0data[1][j] - t[minj])**2
+                            match.append([length,k,x[minj],t[minj]])
                 if len(match) > 0:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(diagram.b) if l == k]
+                    t = np.array([diagram.pdPoints[i].t for i in inds])
                     ax.plot([0,match[matchind,2]],[diagram.x0data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
-                    if match[matchind,3] == np.min(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.min(t):
                         bEdgeLine[k][0] = True
-                    if match[matchind,3] == np.max(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.max(t):
                         bEdgeLine[k][1] = True
             if j < len(diagram.x0data[1]) - 1:
                 # ax.plot(0,diagram.x0data[2][j],'k^')
@@ -376,22 +381,27 @@ class diagram:
                             continue
                         bind = diagram.boundaries[k].index(diagram.x0data[0][j])
                         if bind == 0:
-                            minj = np.argmin(np.array(diagram.x1)[inds])
-                            length = (0 - np.array(diagram.x1)[inds][minj])**2 + (diagram.x0data[2][j] - np.array(diagram.ts)[inds][minj])**2
-                            match.append([length,k,np.array(diagram.x1)[inds][minj],np.array(diagram.ts)[inds][minj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[0] for i in inds])
+                            minj = np.argmin(x)
+                            length = (0 - x[minj])**2 + (diagram.x0data[2][j] - t[minj])**2
+                            match.append([length,k,x[minj],t[minj]])
                         elif bind == 1:
-                            minj = np.argmin(np.array(diagram.x2)[inds])
-                            length = (0 - np.array(diagram.x2)[inds][minj])**2 + (diagram.x0data[2][j] - np.array(diagram.ts)[inds][minj])**2
-                            match.append([length,k,np.array(diagram.x2)[inds][minj],np.array(diagram.ts)[inds][minj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[1] for i in inds])
+                            minj = np.argmin(x)
+                            length = (0 - x[minj])**2 + (diagram.x0data[2][j] - t[minj])**2
+                            match.append([length,k,x[minj],t[minj]])
                 if len(match) > 0:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(diagram.b) if l == k]
+                    t = np.array([diagram.pdPoints[i].t for i in inds])
                     ax.plot([0,match[matchind,2]],[diagram.x0data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
-                    if match[matchind,3] == np.min(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.min(t):
                         bEdgeLine[k][0] = True
-                    if match[matchind,3] == np.max(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.max(t):
                         bEdgeLine[k][1] = True
         for j in range(len(diagram.x1data[1])):
             if not diagram.x1data[0][j] in diagram.phases:
@@ -407,22 +417,27 @@ class diagram:
                             continue
                         bind = diagram.boundaries[k].index(diagram.x1data[0][j])
                         if bind == 0:
-                            maxj = np.argmax(np.array(diagram.x1)[inds])
-                            length = (1 - np.array(diagram.x1)[inds][maxj])**2 + (diagram.x1data[1][j] - np.array(diagram.ts)[inds][maxj])**2
-                            match.append([length,k,np.array(diagram.x1)[inds][maxj],np.array(diagram.ts)[inds][maxj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[0] for i in inds])
+                            maxj = np.argmax(x)
+                            length = (1 - x[maxj])**2 + (diagram.x1data[1][j] - t[maxj])**2
+                            match.append([length,k,x[maxj],t[maxj]])
                         elif bind == 1:
-                            maxj = np.argmax(np.array(diagram.x2)[inds])
-                            length = (1 - np.array(diagram.x2)[inds][maxj])**2 + (diagram.x1data[1][j] - np.array(diagram.ts)[inds][maxj])**2
-                            match.append([length,k,np.array(diagram.x2)[inds][maxj],np.array(diagram.ts)[inds][maxj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[1] for i in inds])
+                            maxj = np.argmax(x)
+                            length = (1 - x[maxj])**2 + (diagram.x1data[1][j] - t[maxj])**2
+                            match.append([length,k,x[maxj],t[maxj]])
                 if len(match) > 0:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(diagram.b) if l == k]
+                    t = np.array([diagram.pdPoints[i].t for i in inds])
                     ax.plot([1,match[matchind,2]],[diagram.x1data[1][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
-                    if match[matchind,3] == np.min(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.min(t):
                         bEdgeLine[k][0] = True
-                    if match[matchind,3] == np.max(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.max(t):
                         bEdgeLine[k][1] = True
             if j < len(diagram.x1data[1]) - 1:
                 # ax.plot(1,diagram.x1data[2][j],'k^')
@@ -434,22 +449,27 @@ class diagram:
                             continue
                         bind = diagram.boundaries[k].index(diagram.x1data[0][j])
                         if bind == 0:
-                            maxj = np.argmax(np.array(diagram.x1)[inds])
-                            length = (1 - np.array(diagram.x1)[inds][maxj])**2 + (diagram.x1data[2][j] - np.array(diagram.ts)[inds][maxj])**2
-                            match.append([length,k,np.array(diagram.x1)[inds][maxj],np.array(diagram.ts)[inds][maxj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[0] for i in inds])
+                            maxj = np.argmax(x)
+                            length = (1 - x[maxj])**2 + (diagram.x1data[2][j] - x[maxj])**2
+                            match.append([length,k,x[maxj],t[maxj]])
                         elif bind == 1:
-                            maxj = np.argmax(np.array(diagram.x2)[inds])
-                            length = (1 - np.array(diagram.x2)[inds][maxj])**2 + (diagram.x1data[2][j] - np.array(diagram.ts)[inds][maxj])**2
-                            match.append([length,k,np.array(diagram.x2)[inds][maxj],np.array(diagram.ts)[inds][maxj]])
+                            t = np.array([diagram.pdPoints[i].t for i in inds])
+                            x = np.array([diagram.pdPoints[i].phaseConcentrations[1] for i in inds])
+                            maxj = np.argmax(x)
+                            length = (1 - x[maxj])**2 + (diagram.x1data[2][j] - t[maxj])**2
+                            match.append([length,k,x[maxj],t[maxj]])
                 if len(match) > 0:
                     match = np.array(match)
                     matchind = np.argmin(match[:,0])
                     k = int(match[matchind,1])
                     inds = [i for i, l in enumerate(diagram.b) if l == k]
+                    t = np.array([diagram.pdPoints[i].t for i in inds])
                     ax.plot([1,match[matchind,2]],[diagram.x1data[2][j]-self.tshift,match[matchind,3]-self.tshift],'k-')
-                    if match[matchind,3] == np.min(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.min(t):
                         bEdgeLine[k][0] = True
-                    if match[matchind,3] == np.max(np.array(diagram.ts)[inds]):
+                    if match[matchind,3] == np.max(t):
                         bEdgeLine[k][1] = True
 
         # plot 2-phase region boundaries
