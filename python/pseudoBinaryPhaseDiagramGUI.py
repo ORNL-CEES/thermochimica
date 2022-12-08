@@ -151,13 +151,7 @@ class CalculationWindow:
                 self.calculation.processPhaseDiagramData()
                 self.macro.append(f'macroPD.processPhaseDiagramData()')
                 self.calculation.makePlot()
-                self.sgw.Element('Refine').Update(disabled = False)
-                self.sgw.Element('Auto Refine').Update(disabled = False)
-                self.sgw.Element('Add Label').Update(disabled = False)
-                self.sgw.Element('Plot').Update(disabled = False)
-                self.sgw.Element('Export Plot').Update(disabled = False)
-                self.sgw.Element('Undo').Update(disabled = False)
-                self.sgw.Element('Inspect').Update(disabled = False)
+                enableButtons(self)
         elif event =='Refine':
             refineWindow = RefineWindow(self)
             self.children.append(refineWindow)
@@ -166,6 +160,13 @@ class CalculationWindow:
             self.calculation.refinery()
             self.calculation.makePlot()
             self.macro.append('macroPD.makeBackup()')
+        elif event =='Auto Smoothen':
+            self.calculation.makeBackup()
+            self.sgw.Element('Undo').Update(disabled = False)
+            self.calculation.autoSmooth()
+            self.calculation.makePlot()
+            self.macro.append('macroPD.makeBackup()')
+            self.macro.append('macroPD.autoSmooth()')
         elif event =='Add Label':
             labelWindow = LabelWindow(self)
             self.children.append(labelWindow)
@@ -201,11 +202,7 @@ class CalculationWindow:
             self.macro.append('macroPD = macroPD.backup')
             self.macro.append('macroPD.backup = backup')
             self.calculation.makePlot()
-            self.sgw.Element('Refine').Update(disabled = False)
-            self.sgw.Element('Add Label').Update(disabled = False)
-            self.sgw.Element('Plot').Update(disabled = False)
-            self.sgw.Element('Export Plot').Update(disabled = False)
-            self.sgw.Element('Inspect').Update(disabled = False)
+            enableButtons(self)
             if len(self.calculation.labels) > 0:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Inspect':

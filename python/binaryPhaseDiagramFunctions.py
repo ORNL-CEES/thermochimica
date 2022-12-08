@@ -107,7 +107,7 @@ class diagram:
         autoRefine(self,self.resRef**2,np.array([[1,0],[0,1]]))
         self.resRef += 1
     def autoSmooth(self):
-        self.autoRefine2Phase(self.resSmooth**2)
+        autoRefine2Phase(self,self.resSmooth**2,np.array([[1,0],[0,1]]))
         self.resSmooth += 1
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
@@ -463,90 +463,6 @@ class diagram:
                     nit += 1
                     self.writeInputFile(0.999,1,2,self.x1data[2][i]-self.tshift,self.x1data[1][i+1]-self.tshift,4)
                     self.runCalc()
-    def autoRefine2Phase(self,res):
-        phaseBoundaries(self)
-        # Expand two-phase regions
-        tres = (self.maxt-self.mint)/res
-        xs = []
-        ys = []
-        for j in range(len(self.boundaries)):
-            inds = [i for i, k in enumerate(self.b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = [self.pdPoints[i].t for i in inds]
-            x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
-            x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
-            tbound = max(self.mint,ttt[0]-tres*3)
-            for k in np.arange(tbound,max(self.mint,ttt[0]-tres/3),tres/3):
-                ys.append(k)
-                xs.append((x1t[0] + x2t[0])/2)
-                ys.append(k)
-                xs.append((0.99*x1t[0] + 0.01*x2t[0]))
-                ys.append(k)
-                xs.append((0.01*x1t[0] + 0.99*x2t[0]))
-            tbound = min(self.maxt,ttt[-1]+tres*3)
-            for k in np.arange(min(self.maxt,ttt[-1]+tres/3),tbound,tres/3):
-                ys.append(k)
-                xs.append((x1t[-1] + x2t[-1])/2)
-                ys.append(k)
-                xs.append((0.99*x1t[-1] + 0.01*x2t[-1]))
-                ys.append(k)
-                xs.append((0.01*x1t[-1] + 0.99*x2t[-1]))
-
-        if len(xs) > 0:
-            calcList = []
-            for i in range(len(xs)):
-                calc = [ys[i],self.pressure,1-xs[i],xs[i]]
-                calcList.append(calc)
-            thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
-            print('Thermochimica calculation initiated.')
-            thermoTools.RunRunCalculationList(self.inputFileName)
-            print('Thermochimica calculation finished.')
-            self.processPhaseDiagramData()
-
-        nIt = 0
-        while nIt < 4:
-            nIt = nIt + 1
-            maxGap = 0
-            phaseBoundaries(self)
-            # Refine two-phase region density
-            xs = []
-            ys = []
-            for j in range(len(self.boundaries)):
-                inds = [i for i, k in enumerate(self.b) if k == j]
-                if len(inds) < 2:
-                    continue
-                ttt = [self.pdPoints[i].t for i in inds]
-                x1t = [self.pdPoints[i].phaseConcentrations[0] for i in inds]
-                x2t = [self.pdPoints[i].phaseConcentrations[1] for i in inds]
-                for i in range(len(ttt)-1):
-                    gap = np.sqrt(((ttt[i]-ttt[i+1])/(self.maxt-self.mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
-                    maxGap = max(gap,maxGap)
-                    if gap > 1/res:
-                        step = tres*((ttt[i+1] - ttt[i])/(self.maxt - self.mint))/gap
-                        try:
-                            for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
-                                ys.append(k)
-                                progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
-                                xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
-                        except:
-                            continue
-
-            if len(xs) > 0:
-                calcList = []
-                for i in range(len(xs)):
-                    calc = [ys[i],self.pressure,1-xs[i],xs[i]]
-                    calcList.append(calc)
-                thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,[self.el1,self.el2],calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
-                print('Thermochimica calculation initiated.')
-                thermoTools.RunRunCalculationList(self.inputFileName)
-                print('Thermochimica calculation finished.')
-                self.processPhaseDiagramData()
-
-            # Test the minimum difference between points to see if converged
-            if maxGap <= 1/res:
-                break
-        self.gapLimit = 3*tres
     def autoLabel(self):
         phaseBoundaries(self)
 

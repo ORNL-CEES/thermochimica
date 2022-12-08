@@ -51,7 +51,8 @@ class diagram:
         self.munit = 'moles'
         self.tshift = 0
         self.gapLimit = np.Inf
-        self.resRef = 4
+        self.resRef = 7
+        self.resSmooth = 7
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.normalizeX = False
         self.figureList = []
@@ -79,6 +80,7 @@ class diagram:
         self.tshift = tshift
         self.gapLimit = np.Inf
         self.resRef = 7
+        self.resSmooth = 7
         # Get fuzzy stoichiometry setting
         self.fuzzy = fuzzy
     def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
@@ -108,6 +110,9 @@ class diagram:
         self.refineLimit(1,self.resRef**2)
         autoRefine(self,self.resRef**2,self.plane,useDiagramEdges=False,maxIts=1)
         self.resRef += 1
+    def autoSmooth(self):
+        autoRefine2Phase(self,self.resSmooth**2,self.plane)
+        self.resSmooth += 1
     def refineLimit(self,x,res):
         if x == 0:
             c = 1e-4

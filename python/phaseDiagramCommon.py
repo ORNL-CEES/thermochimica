@@ -353,3 +353,92 @@ def autoRefine(calc,res,endpoints,useDiagramEdges=True,maxIts=4):
             break
         elif any(calc.congruentFound):
             break
+
+def autoRefine2Phase(calc,res,endpoints,maxIts=4):
+    phaseBoundaries(calc)
+    # Expand two-phase regions
+    tres = (calc.maxt-calc.mint)/res
+    xs = []
+    ys = []
+    for j in range(len(calc.boundaries)):
+        inds = [i for i, k in enumerate(calc.b) if k == j]
+        if len(inds) < 2:
+            continue
+        ttt = [calc.pdPoints[i].t for i in inds]
+        x1t = [calc.pdPoints[i].phaseConcentrations[0] for i in inds]
+        x2t = [calc.pdPoints[i].phaseConcentrations[1] for i in inds]
+        tbound = max(calc.mint,ttt[0]-tres*3)
+        for k in np.arange(tbound,max(calc.mint,ttt[0]-tres/3),tres/3):
+            ys.append(k)
+            xs.append((x1t[0] + x2t[0])/2)
+            ys.append(k)
+            xs.append((0.99*x1t[0] + 0.01*x2t[0]))
+            ys.append(k)
+            xs.append((0.01*x1t[0] + 0.99*x2t[0]))
+        tbound = min(calc.maxt,ttt[-1]+tres*3)
+        for k in np.arange(min(calc.maxt,ttt[-1]+tres/3),tbound,tres/3):
+            ys.append(k)
+            xs.append((x1t[-1] + x2t[-1])/2)
+            ys.append(k)
+            xs.append((0.99*x1t[-1] + 0.01*x2t[-1]))
+            ys.append(k)
+            xs.append((0.01*x1t[-1] + 0.99*x2t[-1]))
+
+    if len(xs) > 0:
+        calcList = []
+        for i in range(len(xs)):
+            concentration = endpoints[0]*(1-xs[i]) + endpoints[1]*xs[i]
+            calcItem = [ys[i],calc.pressure]
+            calcItem.extend(concentration)
+            calcList.append(calcItem)
+        thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,calc.elementsUsed,calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
+        print('Thermochimica calculation initiated.')
+        thermoTools.RunRunCalculationList(calc.inputFileName)
+        print('Thermochimica calculation finished.')
+        calc.processPhaseDiagramData()
+
+    nIt = 0
+    while nIt < maxIts:
+        nIt = nIt + 1
+        maxGap = 0
+        phaseBoundaries(calc)
+        # Refine two-phase region density
+        xs = []
+        ys = []
+        for j in range(len(calc.boundaries)):
+            inds = [i for i, k in enumerate(calc.b) if k == j]
+            if len(inds) < 2:
+                continue
+            ttt = [calc.pdPoints[i].t for i in inds]
+            x1t = [calc.pdPoints[i].phaseConcentrations[0] for i in inds]
+            x2t = [calc.pdPoints[i].phaseConcentrations[1] for i in inds]
+            for i in range(len(ttt)-1):
+                gap = np.sqrt(((ttt[i]-ttt[i+1])/(calc.maxt-calc.mint))**2+(x1t[i]-x1t[i+1])**2+(x2t[i]-x2t[i+1])**2)
+                maxGap = max(gap,maxGap)
+                if gap > 1/res:
+                    step = tres*((ttt[i+1] - ttt[i])/(calc.maxt - calc.mint))/gap
+                    try:
+                        for k in np.arange(ttt[i] + step,ttt[i+1]-step,step):
+                            ys.append(k)
+                            progk = (k - ttt[i]) / (ttt[i+1] - ttt[i])
+                            xs.append(progk * (x1t[i+1] + x2t[i+1]) / 2 + (1 - progk) * (x1t[i] +  x2t[i]) / 2)
+                    except:
+                        continue
+
+        if len(xs) > 0:
+            calcList = []
+            for i in range(len(xs)):
+                concentration = endpoints[0]*(1-xs[i]) + endpoints[1]*xs[i]
+                calcItem = [ys[i],calc.pressure]
+                calcItem.extend(concentration)
+                calcList.append(calcItem)
+            thermoTools.WriteRunCalculationList(calc.inputFileName,calc.datafile,calc.elementsUsed,calcList,tunit=calc.tunit,punit=calc.punit,munit=calc.munit,printMode=0,fuzzyStoichiometry=calc.fuzzy,gibbsMinCheck=calc.fuzzy)
+            print('Thermochimica calculation initiated.')
+            thermoTools.RunRunCalculationList(calc.inputFileName)
+            print('Thermochimica calculation finished.')
+            calc.processPhaseDiagramData()
+
+        # Test the minimum difference between points to see if converged
+        if maxGap <= 1/res:
+            break
+    calc.gapLimit = 3*tres
