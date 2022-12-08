@@ -56,6 +56,8 @@ class diagram:
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.normalizeX = False
         self.figureList = []
+        self.label1phase = False
+        self.label2phase = True
         self.experimentalData = []
         self.experimentNames = []
         self.experimentColor = 'bland'
@@ -373,6 +375,8 @@ class diagram:
             if (data['1']['pure condensed phases'][phaseName]['moles'] > phaseIncludeTol):
                 labelName.append(phaseName)
         self.labels.append([[xlab,tlab],'+'.join(labelName)])
+    def autoLabel(self):
+        autoLabel(self)
     def line_intersection(self, lines):
         l1 = np.array(self.plane)
         ls = np.array(lines)

@@ -53,7 +53,7 @@ class diagram:
         self.boundaries = []
         self.phases = []
         self.b = []
-        self.congruentFound = [False for i in range(len(self.phases))]
+        self.congruentFound = [False for _ in range(len(self.phases))]
         self.label1phase = True
         self.label2phase = True
         self.experimentalData = []
@@ -464,60 +464,7 @@ class diagram:
                     self.writeInputFile(0.999,1,2,self.x1data[2][i]-self.tshift,self.x1data[1][i+1]-self.tshift,4)
                     self.runCalc()
     def autoLabel(self):
-        phaseBoundaries(self)
-
-        phasePolyPoints = [[] for i in range(len(self.phases))]
-
-        for j in range(len(self.x0data[1])):
-            try:
-                i = self.phases.index(self.x0data[0][j])
-                phasePolyPoints[i].append([[0,self.x0data[1][j]]])
-                phasePolyPoints[i].append([[0,self.x0data[2][j]]])
-            except:
-                continue
-        for j in range(len(self.x1data[1])):
-            try:
-                i = self.phases.index(self.x1data[0][j])
-                phasePolyPoints[i].append([[1,self.x1data[1][j]]])
-                phasePolyPoints[i].append([[1,self.x1data[2][j]]])
-            except:
-                continue
-
-        # plot 2-phase region boundaries
-        for j in range(len(self.boundaries)):
-            polygonPoints = []
-            inds = [i for i, k in enumerate(self.b) if k == j]
-            if len(inds) < 2:
-                continue
-            ttt = self.ts[inds]
-            x1t = self.x1[inds]
-            x2t = self.x2[inds]
-            for i in range(len(inds)):
-                polygonPoints.append([x1t[i],ttt[i]])
-            for i in reversed(range(len(inds))):
-                polygonPoints.append([x2t[i],ttt[i]])
-            phaseOutline = Polygon(polygonPoints)#.buffer(0)
-            center = list(phaseOutline.centroid.coords)[0]
-            if self.label2phase:
-                self.labels.append([[center[0],center[1]-self.tshift],'+'.join(self.boundaries[j])])
-            for i in range(len(self.phases)):
-                if self.boundaries[j][0] == self.phases[i]:
-                    phasePolyPoints[i].append(polygonPoints[:len(inds)])
-                if self.boundaries[j][1] == self.phases[i]:
-                    phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
-
-        if self.label1phase:
-            for i in range(len(self.phases)):
-                if self.congruentFound[i]:
-                    print(f'Warning: congruent phase transformation found, auto label will skip {self.phases[i]}')
-                    continue
-                segcenters = []
-                if len(phasePolyPoints[i]) < 2:
-                    continue
-                for j in range(len(phasePolyPoints[i])):
-                    segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
-                center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
-                self.labels.append([[center[0],center[1]-self.tshift],self.phases[i]])
+        autoLabel(self)
     def makeBackup(self):
         self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint

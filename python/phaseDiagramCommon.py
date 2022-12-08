@@ -442,3 +442,59 @@ def autoRefine2Phase(calc,res,endpoints,maxIts=4):
         if maxGap <= 1/res:
             break
     calc.gapLimit = 3*tres
+
+def autoLabel(calc):
+    phaseBoundaries(calc)
+
+    phasePolyPoints = [[] for _ in range(len(calc.phases))]
+
+    if calc.label1phase:
+        for j in range(len(calc.x0data[1])):
+            try:
+                i = calc.phases.index(calc.x0data[0][j])
+                phasePolyPoints[i].append([[0,calc.x0data[1][j]]])
+                phasePolyPoints[i].append([[0,calc.x0data[2][j]]])
+            except:
+                continue
+        for j in range(len(calc.x1data[1])):
+            try:
+                i = calc.phases.index(calc.x1data[0][j])
+                phasePolyPoints[i].append([[1,calc.x1data[1][j]]])
+                phasePolyPoints[i].append([[1,calc.x1data[2][j]]])
+            except:
+                continue
+
+    # plot 2-phase region boundaries
+    for j in range(len(calc.boundaries)):
+        polygonPoints = []
+        inds = [i for i, k in enumerate(calc.b) if k == j]
+        if len(inds) < 2:
+            continue
+        ttt = np.array([calc.pdPoints[i].t for i in inds])
+        x1t = np.array([calc.pdPoints[i].phaseConcentrations[0] for i in inds])
+        x2t = np.array([calc.pdPoints[i].phaseConcentrations[1] for i in inds])
+        for i in range(len(inds)):
+            polygonPoints.append([x1t[i],ttt[i]])
+        for i in reversed(range(len(inds))):
+            polygonPoints.append([x2t[i],ttt[i]])
+        phaseOutline = Polygon(polygonPoints)#.buffer(0)
+        center = list(phaseOutline.centroid.coords)[0]
+        if calc.label2phase:
+            calc.labels.append([[center[0],center[1]-calc.tshift],'+'.join(calc.boundaries[j])])
+        for i in range(len(calc.phases)):
+            if calc.boundaries[j][0] == calc.phases[i]:
+                phasePolyPoints[i].append(polygonPoints[:len(inds)])
+            if calc.boundaries[j][1] == calc.phases[i]:
+                phasePolyPoints[i].append(list(reversed(polygonPoints))[:len(inds)])
+    if calc.label1phase:
+        for i in range(len(calc.phases)):
+            if calc.congruentFound[i]:
+                print(f'Warning: congruent phase transformation found, auto label will skip {calc.phases[i]}')
+                continue
+            segcenters = []
+            if len(phasePolyPoints[i]) < 2:
+                continue
+            for j in range(len(phasePolyPoints[i])):
+                segcenters.append(tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), phasePolyPoints[i][j]), [len(phasePolyPoints[i][j])] * 2)))
+            center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), segcenters), [len(segcenters)] * 2))
+            calc.labels.append([[center[0],center[1]-calc.tshift],calc.phases[i]])

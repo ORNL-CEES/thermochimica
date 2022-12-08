@@ -170,6 +170,13 @@ class CalculationWindow:
         elif event =='Add Label':
             labelWindow = LabelWindow(self)
             self.children.append(labelWindow)
+        elif event =='Auto Label':
+            self.calculation.makeBackup()
+            self.calculation.autoLabel()
+            self.calculation.makePlot()
+            self.sgw.Element('Remove Label').Update(disabled = False)
+            self.macro.append('macroPD.makeBackup()')
+            self.macro.append('macroPD.autoLabel()')
         elif event =='Remove Label':
             removeWindow = RemoveWindow(self)
             self.children.append(removeWindow)
