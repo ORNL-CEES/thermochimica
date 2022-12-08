@@ -63,6 +63,7 @@ class diagram:
         self.experimentColor = 'bland'
         self.showExperiment = True
         self.showExperimentLegend = True
+        self.showLoaded = False
         self.fuzzy = False
     def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift,fuzzy=False):
         self.mint = mint

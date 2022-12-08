@@ -303,6 +303,114 @@ class RemoveWindow:
             self.parent.calculation.makePlot()
             self.close()
 
+class SettingsWindow:
+    def __init__(self, parent, windowList, onePhaseLabelsDisabled = False):
+        self.parent = parent
+        windowList.append(self)
+        self.windowList = windowList
+        if self.parent.calculation.plotMarker == '-':
+            line  = True
+            point = False
+            both  = False
+        elif self.parent.calculation.plotMarker == '.':
+            line  = False
+            point = True
+            both  = False
+        else:
+            line  = False
+            point = False
+            both  = True
+        if self.parent.calculation.plotColor == 'colorful':
+            colorful = True
+            bland    = False
+        else:
+            colorful = False
+            bland    = True
+        if self.parent.calculation.experimentColor == 'colorful':
+            expcolorful = True
+            expbland    = False
+        else:
+            expcolorful = False
+            expbland    = True
+        settingsLayout = [[sg.Text('Marker Style:')],
+                          [sg.Radio('Lines', 'mstyle', default=line,  enable_events=True, key='-mline-')],
+                          [sg.Radio('Points','mstyle', default=point, enable_events=True, key='-mpoint-')],
+                          [sg.Radio('Both',  'mstyle', default=both,  enable_events=True, key='-mboth-')],
+                          [sg.Text('Plot Colors:')],
+                          [sg.Radio('Colorful', 'mcolor', default=colorful, enable_events=True, key='-mcolorful-')],
+                          [sg.Radio('Black',    'mcolor', default=bland,    enable_events=True, key='-mbland-')],
+                          [sg.Text('Experimental Data Colors:')],
+                          [sg.Radio('Colorful', 'mexpcolor', default=expcolorful, enable_events=True, key='-mexpcolorful-')],
+                          [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
+                          [sg.Text('Show:')],
+                          [sg.Checkbox('Experimental Data', default=self.parent.calculation.showExperiment, key='-showExperiment-'),
+                           sg.Checkbox('Loaded Diagram', default=self.parent.calculation.showLoaded, key='-showLoaded-')],
+                          [sg.Text('Auto-Label Settings:')],
+                          [sg.Checkbox('1-Phase Regions', default=self.parent.calculation.label1phase, key='-label1phase-', disabled=onePhaseLabelsDisabled),
+                           sg.Checkbox('2-Phase Regions', default=self.parent.calculation.label2phase, key='-label2phase-')],
+                          [sg.Text('Export Filename'),sg.Input(key='-filename-',size=(thermoToolsGUI.inputSize,1))],
+                          [sg.Text('Export Format'),sg.Combo(['png', 'pdf', 'ps', 'eps', 'svg'],default_value='png',key='-format-')],
+                          [sg.Text('Export DPI'),sg.Input(key='-dpi-',size=(thermoToolsGUI.inputSize,1))],
+                          [sg.Button('Accept')]]
+        self.sgw = sg.Window('Plot Settings', settingsLayout, location = [400,0], finalize=True)
+        self.children = []
+    def close(self):
+        # Log settings in macro before closing
+        self.parent.macro.append(f'macroPD.plotMarker = "{self.parent.calculation.plotMarker}"')
+        self.parent.macro.append(f'macroPD.plotColor = "{self.parent.calculation.plotColor}"')
+        self.parent.macro.append(f'macroPD.experimentColor = "{self.parent.calculation.experimentColor}"')
+        self.parent.macro.append(f'macroPD.showExperiment = {self.parent.calculation.showExperiment}')
+        self.parent.macro.append(f'macroPD.exportFileName = "{self.parent.calculation.exportFileName}"')
+        self.parent.macro.append(f'macroPD.exportFormat = "{self.parent.calculation.exportFormat}"')
+        self.parent.macro.append(f'macroPD.exportDPI = {self.parent.calculation.exportDPI}')
+        self.parent.macro.append(f'macroPD.showLoaded = {self.parent.calculation.showLoaded}')
+        self.parent.macro.append(f'macroPD.label1phase = {self.parent.calculation.label1phase}')
+        self.parent.macro.append(f'macroPD.label2phase = {self.parent.calculation.label2phase}')
+        for child in self.children:
+            child.close()
+        self.sgw.close()
+        if self in self.windowList:
+            self.windowList.remove(self)
+    def read(self):
+        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
+        if event == sg.WIN_CLOSED:
+            self.close()
+        elif event == '-mline-':
+            self.parent.calculation.plotMarker = '-'
+        elif event =='-mpoint-':
+            self.parent.calculation.plotMarker = '.'
+        elif event =='-mboth-':
+            self.parent.calculation.plotMarker = '.-'
+        elif event =='-mcolorful-':
+            self.parent.calculation.plotColor = 'colorful'
+        elif event =='-mbland-':
+            self.parent.calculation.plotColor = 'bland'
+        elif event =='-mexpcolorful-':
+            self.parent.calculation.experimentColor = 'colorful'
+        elif event =='-mexpbland-':
+            self.parent.calculation.experimentColor = 'bland'
+        elif event =='Accept':
+            self.parent.calculation.showExperiment = values['-showExperiment-']
+            self.parent.calculation.showLoaded = values['-showLoaded-']
+            self.parent.calculation.label1phase = values['-label1phase-']
+            self.parent.calculation.label2phase = values['-label2phase-']
+            try:
+                if str(values['-filename-']) != '':
+                    self.parent.calculation.exportFileName = str(values['-filename-'])
+            except:
+                pass
+            self.parent.calculation.exportFormat = values['-format-']
+            try:
+                tempDPI = int(values['-dpi-'])
+                if tempDPI > 0 > 10000:
+                    self.parent.calculation.exportDPI = int(values['-dpi-'])
+            except:
+                pass
+            self.parent.calculation.makePlot()
+            self.close()
+
+
+
 def runMacro(calc):
     if 'macroPhaseDiagram' in sys.modules:
         del sys.modules['macroPhaseDiagram']
