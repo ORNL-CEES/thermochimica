@@ -25,6 +25,7 @@ class diagram:
         self.el1 = ''
         self.el2 = ''
         self.elementsUsed = []
+        self.massLabels = ['','']
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
@@ -74,6 +75,7 @@ class diagram:
         self.el1 = el1
         self.el2 = el2
         self.elementsUsed = [el1,el2]
+        self.massLabels   = [el1,el2]
         self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
         self.pdPoints = []
         self.x0data = [[],[],[]]

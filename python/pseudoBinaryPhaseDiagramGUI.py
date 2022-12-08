@@ -168,7 +168,7 @@ class CalculationWindow:
             self.macro.append('macroPD.makeBackup()')
             self.macro.append('macroPD.autoSmooth()')
         elif event =='Add Label':
-            labelWindow = LabelWindow(self)
+            labelWindow = LabelWindow(self, windowList)
             self.children.append(labelWindow)
         elif event =='Auto Label':
             self.calculation.makeBackup()
@@ -291,46 +291,6 @@ class CalculationWindow:
                        [sg.Button('Export Diagram Data', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
             ]]
-
-class LabelWindow:
-    def __init__(self, parent):
-        self.parent = parent
-        xLabLayout  = [[sg.Text(f'{self.parent.calculation.massLabels[1].translate({ord(i):None for i in "{}_$"})} Concentration')],[sg.Input(key='-xlab-',size=(thermoToolsGUI.inputSize,1))]]
-        tLabLayout  = [[sg.Text('Temperature')],[sg.Input(key='-tlab-',size=(thermoToolsGUI.inputSize,1))]]
-        labelLayout = [xLabLayout,tLabLayout,[sg.Button('Add Label'), sg.Button('Cancel')]]
-        self.sgw = sg.Window('Add phase label', labelLayout, location = [400,0], finalize=True)
-        windowList.append(self)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Add Label':
-            try:
-                try:
-                    xlab = float(values['-xlab-'])
-                except ValueError:
-                    num, den = values['-xlab-'].split('/')
-                    xlab = float(num)/float(den)
-                tlab = float(values['-tlab-'])
-                if (0 <= xlab <= 1) and (295 <= tlab <= 6000):
-                    self.parent.calculation.makeBackup()
-                    self.parent.macro.append(f'macroPD.makeBackup()')
-                    self.parent.sgw.Element('Undo').Update(disabled = False)
-                    self.parent.calculation.addLabel(xlab,tlab)
-                    self.parent.macro.append(f'macroPD.addLabel({xlab},{tlab})')
-                    self.parent.calculation.processPhaseDiagramData()
-                    self.parent.macro.append(f'macroPD.processPhaseDiagramData()')
-                    self.parent.calculation.makePlot()
-                    self.parent.sgw.Element('Remove Label').Update(disabled = False)
-            except:
-                pass
 
 class RemoveWindow:
     def __init__(self, parent):
