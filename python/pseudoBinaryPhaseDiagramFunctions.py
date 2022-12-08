@@ -7,6 +7,7 @@ from itertools import cycle
 import csv
 import thermoTools
 from phaseDiagramCommon import *
+from shapely.geometry import Point
 from shapely.geometry import Polygon
 from shapely.geometry import MultiPolygon
 
@@ -109,14 +110,39 @@ class diagram:
         self.resRef += 1
     def refineLimit(self,x,res):
         if x == 0:
-            self.runCalc(1e-5,1e-5,1,self.mint,self.maxt,res)
-        if x == 1:
-            self.runCalc(1-1e-5,1-1e-5,1,self.mint,self.maxt,res)
+            c = 1e-4
+        elif x == 1:
+            c = 1-1e-4
+        else:
+            return
+        ts = np.linspace(self.mint+0.1,self.maxt-0.1,res)
+        calcList = []
+        for t in ts:
+            point = Point(c,t)
+            addPoint = False
+            for poly in self.outline.geoms:
+                if poly.contains(point):
+                    addPoint = True
+                    break
+            if addPoint:
+                calc = [t,self.pressure]
+                x = (1-c)*self.plane[0] + c*self.plane[1]
+                calc.extend(list(x))
+                calcList.append(calc)
+        thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
+        print('Thermochimica calculation initiated.')
+        thermoTools.RunRunCalculationList(self.inputFileName)
+        print('Thermochimica calculation finished.')
+        self.processPhaseDiagramData()
     def processPhaseDiagramData(self):
         f = open(self.outputFileName,)
         data = json.load(f)
         f.close()
-        if list(data.keys())[0] != '1':
+        try:
+            if list(data.keys())[0] != '1':
+                print('Output does not contain data series')
+                return
+        except IndexError:
             print('Output does not contain data series')
             return
         for i in list(data.keys()):
