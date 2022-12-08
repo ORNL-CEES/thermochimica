@@ -153,7 +153,7 @@ class CalculationWindow:
                 self.calculation.makePlot()
                 enableButtons(self)
         elif event =='Refine':
-            refineWindow = RefineWindow(self)
+            refineWindow = RefineWindow(self,windowList)
             self.children.append(refineWindow)
         elif event =='Auto Refine':
             self.calculation.makeBackup()
@@ -291,104 +291,6 @@ class CalculationWindow:
                        [sg.Button('Export Diagram Data', disabled = True, size = thermoToolsGUI.buttonSize)],
                        [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
             ]]
-
-class RefineWindow:
-    def __init__(self, parent):
-        self.parent = parent
-        xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                          sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-        tempRefLayout = [sg.Column([[sg.Text('Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                        sg.Column([[sg.Text('End Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                        sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
-        refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
-        self.sgw = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
-        windowList.append(self)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Refine':
-            cancelRun = False
-            ntstep = 10
-            try:
-                tempstep = int(values['-ntstepr-'])
-                if tempstep >= 0:
-                    ntstep = tempstep
-            except:
-                pass
-            nxstep = 10
-            try:
-                tempstep = int(values['-nxstepr-'])
-                if tempstep >= 0:
-                    nxstep = tempstep
-            except:
-                pass
-            if (float(ntstep) * float(nxstep)) > 50000:
-                cancelRun = True
-                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True)
-                while True:
-                    event, values = confirmWindow.read(timeout=thermoToolsGUI.timeout)
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Continue':
-                        cancelRun = False
-                        break
-                confirmWindow.close()
-            xlo = 0
-            try:
-                templo = float(values['-xlor-'])
-                if 0 <= templo <= 1:
-                    xlo = templo
-            except:
-                pass
-            xhi = 1
-            try:
-                temphi = float(values['-xhir-'])
-                if 0 <= temphi <= 1:
-                    xhi = temphi
-            except:
-                pass
-            tlo = 300
-            try:
-                templo = float(values['-temperaturer-'])
-                if 295 <= templo <= 6000:
-                    tlo = templo
-            except:
-                pass
-            thi = 1000
-            try:
-                temphi = float(values['-endtemperaturer-'])
-                if 295 <= temphi <= 6000:
-                    thi = temphi
-            except:
-                    pass
-
-            # refine x-coords are going to come in scaled to axis
-            xlo = xlo
-            xhi = xhi
-            if not self.parent.calculation.normalizeX:
-                if xlo > 0:
-                    xlo = 1/(1+((1-xlo)/xlo)*(self.parent.calculation.sum1/self.parent.calculation.sum2))
-                if xhi > 0:
-                    xhi = 1/(1+((1-xhi)/xhi)*(self.parent.calculation.sum1/self.parent.calculation.sum2))
-            if not cancelRun:
-                self.parent.calculation.makeBackup()
-                self.parent.macro.append(f'macroPD.makeBackup()')
-                self.parent.sgw.Element('Undo').Update(disabled = False)
-                self.parent.calculation.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
-                self.parent.macro.append(f'macroPD.runCalc({xlo},{xhi},{nxstep},{tlo},{thi},{ntstep})')
-                self.parent.calculation.processPhaseDiagramData()
-                self.parent.macro.append(f'macroPD.processPhaseDiagramData()')
-                self.parent.calculation.makePlot()
 
 class LabelWindow:
     def __init__(self, parent):

@@ -106,7 +106,7 @@ class CalculationWindow:
                 enableButtons(self)
                 self.macro.append(f'macroPD.run({grid_density},{grid_density},{pressure},"{tunit}","{punit}",{0},{1},{tlo},{thi},"{el1}","{el2}","moles",fuzzy={values["-fuzzy-"]})')
         elif event =='Refine':
-            refineWindow = RefineWindow(self)
+            refineWindow = RefineWindow(self,windowList)
             self.children.append(refineWindow)
         elif event =='Auto Refine':
             self.calculation.makeBackup()
@@ -232,95 +232,6 @@ class CalculationWindow:
                                     [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
                          ]
         self.layout = [elSelectLayout,tempLayout,presLayout,densityLayout,buttonLayout]
-
-class RefineWindow:
-    def __init__(self, parent):
-        self.parent = parent
-        windowList.append(self)
-        xRefLayout    = [sg.Column([[sg.Text('Start Concentration')],[sg.Input(key='-xlor-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('End Concentration')],[sg.Input(key='-xhir-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('# of steps')],[sg.Input(key='-nxstepr-',size=(8,1))]],vertical_alignment='t')]
-        tempRefLayout = [sg.Column([[sg.Text('Minimum Temperature')],[sg.Input(key='-temperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('Maximum Temperature')],[sg.Input(key='-endtemperaturer-',size=(thermoToolsGUI.inputSize,1))]],vertical_alignment='t'),
-                         sg.Column([[sg.Text('# of steps',key='-tsteplabel-')],[sg.Input(key='-ntstepr-',size=(8,1))]],vertical_alignment='t')]
-        refineLayout = [xRefLayout,tempRefLayout,[sg.Button('Refine'), sg.Button('Cancel')]]
-        self.sgw = sg.Window('Phase diagram refinement', refineLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        elif event =='Refine':
-            cancelRun = False
-            ntstep = 10
-            try:
-                tempstep = int(values['-ntstepr-'])
-                if tempstep >= 0:
-                    ntstep = tempstep
-            except:
-                pass
-            nxstep = 10
-            try:
-                tempstep = int(values['-nxstepr-'])
-                if tempstep >= 0:
-                    nxstep = tempstep
-            except:
-                pass
-            if (float(ntstep) * float(nxstep)) > 50000:
-                cancelRun = True
-                confirmLayout = [[sg.Text('The selected calculation is large and may take some time.')],[sg.Button('Continue'), sg.Button('Cancel')]]
-                confirmWindow = sg.Window('Large calculation confirmation', confirmLayout, location = [400,0], finalize=True, keep_on_top = True)
-                while True:
-                    event, values = confirmWindow.read(timeout=thermoToolsGUI.timeout)
-                    if event == sg.WIN_CLOSED or event == 'Cancel':
-                        break
-                    elif event == 'Continue':
-                        cancelRun = False
-                        break
-                confirmWindow.close()
-            xlo = 0
-            try:
-                templo = float(values['-xlor-'])
-                if 0 <= templo <= 1:
-                    xlo = templo
-            except:
-                pass
-            xhi = 1
-            try:
-                temphi = float(values['-xhir-'])
-                if 0 <= temphi <= 1:
-                    xhi = temphi
-            except:
-                pass
-            tlo = 300
-            try:
-                templo = float(values['-temperaturer-'])
-                if 295 <= templo <= 6000:
-                    tlo = templo
-            except:
-                pass
-            thi = 1000
-            try:
-                temphi = float(values['-endtemperaturer-'])
-                if 295 <= temphi <= 6000:
-                    thi = temphi
-            except:
-                    pass
-            if not cancelRun:
-                self.parent.calculation.makeBackup()
-                self.parent.sgw.Element('Undo').Update(disabled = False)
-                self.parent.calculation.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
-                self.parent.calculation.runCalc()
-                self.parent.calculation.makePlot()
-                self.parent.macro.append('macroPD.makeBackup()')
-                self.parent.macro.append(f'macroPD.writeInputFile({xlo},{xhi},{nxstep},{tlo},{thi},{ntstep})')
-                self.parent.macro.append('macroPD.runCalc()')
 
 class LabelWindow:
     def __init__(self, parent):

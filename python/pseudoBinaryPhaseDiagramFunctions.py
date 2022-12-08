@@ -54,7 +54,7 @@ class diagram:
         self.resRef = 7
         self.resSmooth = 7
         # I don't think anyone is going to change this scale, so consider this a debug setting
-        self.normalizeX = False
+        self.compoundScale = True
         self.figureList = []
         self.label1phase = False
         self.label2phase = True
@@ -85,7 +85,7 @@ class diagram:
         self.resSmooth = 7
         # Get fuzzy stoichiometry setting
         self.fuzzy = fuzzy
-    def runCalc(self,xlo,xhi,nxstep,tlo,thi,ntstep):
+    def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
         calcList = []
@@ -101,11 +101,14 @@ class diagram:
                 calc.extend([x[i] for i in range(self.nElementsUsed)])
                 calcList.append(calc)
         thermoTools.WriteRunCalculationList(self.inputFileName,self.datafile,self.elementsUsed,calcList,tunit=self.tunit,punit=self.punit,munit=self.munit,printMode=0,fuzzyStoichiometry=self.fuzzy,gibbsMinCheck=self.fuzzy)
+    def runCalc(self):
         print('Thermochimica calculation initiated.')
         thermoTools.RunRunCalculationList(self.inputFileName)
         print('Thermochimica calculation finished.')
+        self.processPhaseDiagramData()
     def run(self,xlo,xhi,nxstep,tlo,thi,ntstep):
-        self.runCalc(xlo,xhi,nxstep,tlo,thi,ntstep)
+        self.writeInputFile(xlo,xhi,nxstep,tlo,thi,ntstep)
+        self.runCalc()
         self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
     def refinery(self):
         self.refineLimit(0,self.resRef**2)
@@ -317,10 +320,10 @@ class diagram:
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()], axis=0)
             temppoints = np.array([[activePoints[i].phaseConcentrations[1],activePoints[i].t] for i in inds])
             plotPoints = np.append(plotPoints,temppoints[temppoints[:,1].argsort()][::-1], axis=0)
-            if self.normalizeX:
-                plotX = plotPoints[:,0]
-            else:
+            if self.compoundScale:
                 plotX = self.unscaleX(plotPoints[:,0])
+            else:
+                plotX = plotPoints[:,0]
             ax.plot(plotX,plotPoints[:,1]-self.tshift,self.plotMarker,c=c, label='_nolegend_')
 
         # Plot experimental data
@@ -353,11 +356,12 @@ class diagram:
     def addLabel(self,xlab,tlab):
         # label x-coords are going to come in scaled to axis
         xlabrun = xlab
-        if not self.normalizeX:
+        if self.compoundScale:
             if xlab > 0:
                 xlabrun = 1/(1+((1-xlab)/xlab)*(self.sum1/self.sum2))
 
-        self.runCalc(xlabrun,xlabrun,1,tlab,tlab,1)
+        self.writeInputFile(xlabrun,xlabrun,1,tlab,tlab,1)
+        self.runCalc()
         f = open(self.outputFileName,)
         data = json.load(f)
         f.close()
@@ -410,7 +414,7 @@ class diagram:
         self.backup.sum1 = self.sum1
         self.backup.sum2 = self.sum2
         self.backup.plane = copy.deepcopy(self.plane)
-        self.backup.normalizeX = self.normalizeX 
+        self.backup.compoundScale = self.compoundScale 
         self.backup.experimentalData = copy.deepcopy(self.experimentalData)
         self.backup.experimentNames = copy.deepcopy(self.experimentNames)
         self.backup.experimentColor = self.experimentColor 
