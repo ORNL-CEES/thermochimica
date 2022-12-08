@@ -132,7 +132,7 @@ class CalculationWindow:
             self.macro.append('macroPD.makeBackup()')
             self.macro.append('macroPD.autoLabel()')
         elif event =='Remove Label':
-            removeWindow = RemoveWindow(self)
+            removeWindow = RemoveWindow(self, windowList)
             self.children.append(removeWindow)
         elif event =='Plot':
             self.calculation.makePlot()
@@ -232,51 +232,6 @@ class CalculationWindow:
                                     [sg.Button('Clear Macro', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t')
                          ]
         self.layout = [elSelectLayout,tempLayout,presLayout,densityLayout,buttonLayout]
-
-class RemoveWindow:
-    def __init__(self, parent):
-        self.parent = parent
-        windowList.append(self)
-        headingsLayout = [[sg.Text('Label Text',   size = [55,1],justification='left'),
-                           sg.Text('Concentration',size = [15,1],justification='center'),
-                           sg.Text('Temperature',  size = [15,1],justification='center'),
-                           sg.Text('Remove Label?',size = [15,1])]]
-        labelListLayout = []
-        for i in range(len(self.parent.calculation.labels)):
-            labelListLayout.append([[sg.Text(self.parent.calculation.labels[i][1],size = [55,1],justification='left'),
-                                     sg.Text("{:.3f}".format(float(self.parent.calculation.labels[i][0][0])),size = [15,1],justification='center'),
-                                     sg.Text("{:.0f}".format(float(self.parent.calculation.labels[i][0][1])),size = [15,1],justification='center'),
-                                     sg.Checkbox('',key='-removeLabel'+str(i)+'-',pad=[[40,0],[0,0]])]])
-        removeLayout = [headingsLayout,labelListLayout,[sg.Button('Remove Label(s)'), sg.Button('Cancel')]]
-        self.sgw = sg.Window('Remove phase label', removeLayout, location = [400,0], finalize=True)
-        self.children = []
-    def close(self):
-        for child in self.children:
-            child.close()
-        self.sgw.close()
-        if self in windowList:
-            windowList.remove(self)
-    def read(self):
-        event, values = self.sgw.read(timeout=thermoToolsGUI.timeout)
-        if event == sg.WIN_CLOSED or event == 'Cancel':
-            self.close()
-        if event == 'Remove Label(s)':
-            self.parent.calculation.makeBackup()
-            self.parent.macro.append('macroPD.makeBackup()')
-            self.parent.sgw.Element('Undo').Update(disabled = False)
-            tempLength = len(self.parent.calculation.labels)
-            for i in reversed(range(tempLength)):
-                try:
-                    if values['-removeLabel'+str(i)+'-']:
-                        del self.parent.calculation.labels[i]
-                        self.parent.macro.append(f'del macroPD.labels[{i}]')
-                except KeyError:
-                    # If a new label was created since this window was opened, this will occur
-                    continue
-            if len(self.parent.calculation.labels) == 0:
-                self.parent.sgw.Element('Remove Label').Update(disabled = True)
-            self.parent.calculation.makePlot()
-            self.close()
 
 class SettingsWindow:
     def __init__(self, parent):
