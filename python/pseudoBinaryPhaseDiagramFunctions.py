@@ -215,6 +215,9 @@ class diagram:
                 en = data[i]["integral Gibbs energy"]
                 it = data[i]["GEM iterations"]
                 self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,boundPhases,boundComps,en,it))
+        
+        # Sort data here instead of repeatedly later
+        self.pdPoints.sort(key=lambda x: x.t)
     def makePlot(self):
         phaseBoundaries(self)
         boundaries = []
