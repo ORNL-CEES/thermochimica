@@ -113,7 +113,7 @@ namespace Thermochimica
 
   std::vector<double> getMolesPhase()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<double> molesPhase(elements);
     TCAPI_getMolesPhase(molesPhase.data());
     return molesPhase;
@@ -121,7 +121,7 @@ namespace Thermochimica
 
   std::vector<int> getAssemblage()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<int> assemblage(elements);
     TCAPI_getAssemblage(assemblage.data());
     return assemblage;
@@ -140,7 +140,7 @@ namespace Thermochimica
 
   std::vector<double> getAllElementPotential()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<double> potential(elements);
     TCAPI_getAllElementPotential(potential.data());
     return potential;
