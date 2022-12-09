@@ -92,6 +92,8 @@ class diagram:
         self.resSmooth = 4
         # Get fuzzy stoichiometry setting
         self.fuzzy = fuzzy
+        for fig in self.figureList:
+            plt.close(fig=fig)
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
         xs = np.array([np.linspace((1-xlo)*self.plane[0,i] + xlo*self.plane[1,i],(1-xhi)*self.plane[0,i] + xhi*self.plane[1,i],nxstep) for i in range(self.nElementsUsed)]).T
         temps = np.linspace(tlo,thi,ntstep)
