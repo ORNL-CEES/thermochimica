@@ -24,8 +24,12 @@ class pdPoint:
         self.details = f'Temperature = {temperature:6.2f}\n'
         for elem,conc in zip(elements,self.runConcentration):
             self.details = self.details + f'Moles of {elem} = {conc:9.8f}\n'
-        for phase,conc in zip(self.phases,self.phaseConcentrations):
-            self.details = self.details + f'{phase} at {conc:5.4f}\n'
+        # Use lever rule to calculate phase fractions
+        frac = []
+        frac.append(abs((phaseConcentrations[1]-concentration[1])/(phaseConcentrations[1]-phaseConcentrations[0])))
+        frac.append(1.0-frac[0])
+        for phase,conc,f in zip(self.phases,self.phaseConcentrations,frac):
+            self.details = self.details + f'{phase} at {conc:5.4f} {elements[1]}, {f:5.4f} moles\n'
         self.details = self.details + f'Integral Gibbs Energy = {energy:.2f}\n'
         self.details = self.details + f'Number of GEM iterations = {iterations}'
         self.suppressed = False
