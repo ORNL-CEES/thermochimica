@@ -56,6 +56,9 @@ class diagram:
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.compoundScale = True
         self.figureList = []
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         self.label1phase = False
         self.label2phase = True
         self.experimentalData = []
@@ -71,6 +74,9 @@ class diagram:
         self.pressure = pressure
         self.pdPoints = []
         self.labels = []
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         self.elementsUsed = elementsUsed
         self.nElementsUsed = len(elementsUsed)
         self.massLabels = massLabels

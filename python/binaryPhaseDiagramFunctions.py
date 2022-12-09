@@ -94,6 +94,9 @@ class diagram:
         self.resRef = 7
         self.resSmooth = 7
         self.gapLimit = (self.maxt - self.mint) / 2
+        self.boundaries = []
+        self.phases = []
+        self.b = []
         self.experimentalData = []
         self.experimentNames = []
         self.loadedDiagram = []

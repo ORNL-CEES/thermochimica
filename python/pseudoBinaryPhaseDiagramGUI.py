@@ -214,7 +214,7 @@ class CalculationWindow:
                 self.sgw.Element('Remove Label').Update(disabled = False)
         elif event =='Inspect':
             self.calculation.makeBackup()
-            inspectWindow = InspectWindow(self,endMember2=self.calculation.massLabels[1],phases=[],windowList=windowList)
+            inspectWindow = InspectWindow(self,endMember2=self.calculation.massLabels[1],phases=self.calculation.phases,windowList=windowList)
             self.children.append(inspectWindow)
         elif event =='Clear Macro':
             self.macro = []
