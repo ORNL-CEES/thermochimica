@@ -12,6 +12,9 @@ phaseFractionTol = 1e-2
 # Below this tolerance, set phase fraction = 0
 phaseIncludeTol = 1e-8
 
+# For writing subscripts
+SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
 class CalculationWindow:
     def __init__(self, parent, datafile, nElements, elements, active):
         self.parent = parent
@@ -109,16 +112,17 @@ class CalculationWindow:
                         massLabels[0] += elementsUsed[i]
                         if masses1[i] != 1:
                             if int(masses1[i]) == masses1[i]:
-                                massLabels[0] += f'$_{ {int(masses1[i])} }$'
+                                massLabels[0] += f'{int(masses1[i])}'
                             else:
-                                massLabels[0] += f'$_{ {masses1[i]} }$'
+                                massLabels[0] += f'{masses1[i]}'
                     if masses2[i] > 0:
                         massLabels[1] += elementsUsed[i]
                         if masses2[i] != 1:
                             if int(masses2[i]) == masses2[i]:
-                                massLabels[1] += f'$_{ {int(masses2[i])} }$'
+                                massLabels[1] += f'{int(masses2[i])}'
                             else:
-                                massLabels[1] += f'$_{ {masses2[i]} }$'
+                                massLabels[1] += f'{masses2[i]}'
+                massLabels = [l.translate(SUB) for l in massLabels]
                 sum1 = sum(masses1)
                 sum2 = sum(masses2)
                 if (sum1 == 0) or (sum2 == 0) or (min(masses1) < 0) or (min(masses2) < 0):

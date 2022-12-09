@@ -13,6 +13,8 @@ from functools import reduce
 import operator
 import thermoTools
 
+# Classes
+
 class pdPoint:
     def __init__(self,elements,temperature,concentration,phases,phaseConcentrations,energy,iterations):
         self.t = temperature
@@ -409,7 +411,7 @@ class SettingsWindow:
             self.parent.calculation.makePlot()
             self.close()
 
-
+# Functions
 
 def runMacro(calc):
     if 'macroPhaseDiagram' in sys.modules:
