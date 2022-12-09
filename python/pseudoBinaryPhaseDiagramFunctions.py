@@ -51,8 +51,8 @@ class diagram:
         self.munit = 'moles'
         self.tshift = 0
         self.gapLimit = np.Inf
-        self.resRef = 7
-        self.resSmooth = 7
+        self.resRef = 4
+        self.resSmooth = 4
         # I don't think anyone is going to change this scale, so consider this a debug setting
         self.compoundScale = True
         self.figureList = []
@@ -88,8 +88,8 @@ class diagram:
         self.munit = munit
         self.tshift = tshift
         self.gapLimit = np.Inf
-        self.resRef = 7
-        self.resSmooth = 7
+        self.resRef = 4
+        self.resSmooth = 4
         # Get fuzzy stoichiometry setting
         self.fuzzy = fuzzy
     def writeInputFile(self,xlo,xhi,nxstep,tlo,thi,ntstep):
@@ -193,7 +193,7 @@ class diagram:
                     conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
                     en = data[i]["integral Gibbs energy"]
                     it = data[i]["GEM iterations"]
-                    self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,p,x,en,it))
+                    self.pdPoints.append(pdPoint(self,self.massLabels,data[i]['temperature'],conc,p,x,en,it))
                     continue
             if nPhases == self.nElementsUsed and False:
                 allPhases = []
@@ -228,7 +228,7 @@ class diagram:
                         conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
                         en = data[i]["integral Gibbs energy"]
                         it = data[i]["GEM iterations"]
-                        temppoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,allPhases,phaseComps,en,it))
+                        temppoints.append(pdPoint(self,self.massLabels,data[i]['temperature'],conc,allPhases,phaseComps,en,it))
                 self.pdPoints.append(temppoints)
             elif nPhases > 1 and False:
                 boundPhases = []
@@ -257,7 +257,7 @@ class diagram:
                 conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
                 en = data[i]["integral Gibbs energy"]
                 it = data[i]["GEM iterations"]
-                self.pdPoints.append(pdPoint(self.massLabels,data[i]['temperature'],conc,boundPhases,boundComps,en,it))
+                self.pdPoints.append(pdPoint(self,self.massLabels,data[i]['temperature'],conc,boundPhases,boundComps,en,it))
         
         # Sort data here instead of repeatedly later
         self.pdPoints.sort(key=lambda x: x.t)

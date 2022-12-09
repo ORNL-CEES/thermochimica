@@ -153,7 +153,7 @@ class diagram:
                 conc = [data[i]["elements"][self.el1]["moles"],data[i]["elements"][self.el2]["moles"]]
                 en = data[i]["integral Gibbs energy"]
                 it = data[i]["GEM iterations"]
-                self.pdPoints.append(pdPoint(elem,t,conc,p,x,en,it))
+                self.pdPoints.append(pdPoint(self,elem,t,conc,p,x,en,it))
             elif nPhases == 1:
                 if not(self.el2 in list(data[i]['elements'].keys())):
                     for phaseType in ['solution phases','pure condensed phases']:

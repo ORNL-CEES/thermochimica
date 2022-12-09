@@ -16,19 +16,27 @@ import thermoTools
 # Classes
 
 class pdPoint:
-    def __init__(self,elements,temperature,concentration,phases,phaseConcentrations,energy,iterations):
+    def __init__(self,parent,elements,temperature,concentration,phases,phaseConcentrations,energy,iterations):
         self.t = temperature
         self.runConcentration = concentration
         self.phaseConcentrations = phaseConcentrations
         self.phases = phases
-        self.details = f'Temperature = {temperature:6.2f}\n'
-        for elem,conc in zip(elements,self.runConcentration):
-            self.details = self.details + f'Moles of {elem} = {conc:9.8f}\n'
+        # Correct scaling if necessary
+        if parent.compoundScale:
+            self.adjustedPhaseConcentrations = parent.unscaleX(phaseConcentrations)
+            c  = parent.unscaleX(concentration)
+            c[0] = 1-c[1]
+        else:
+            self.adjustedPhaseConcentrations = phaseConcentrations
+            c = concentration
         # Use lever rule to calculate phase fractions
         frac = []
-        frac.append(abs((phaseConcentrations[1]-concentration[1])/(phaseConcentrations[1]-phaseConcentrations[0])))
+        frac.append(abs((self.adjustedPhaseConcentrations[1]-c[1])/(self.adjustedPhaseConcentrations[1]-self.adjustedPhaseConcentrations[0])))
         frac.append(1.0-frac[0])
-        for phase,conc,f in zip(self.phases,self.phaseConcentrations,frac):
+        self.details = f'Temperature = {temperature:6.2f}\n'
+        for elem,conc in zip(elements,c):
+            self.details = self.details + f'Moles of {elem} = {conc:9.8f}\n'
+        for phase,conc,f in zip(self.phases,self.adjustedPhaseConcentrations,frac):
             self.details = self.details + f'{phase} at {conc:5.4f} {elements[1]}, {f:5.4f} moles\n'
         self.details = self.details + f'Integral Gibbs Energy = {energy:.2f}\n'
         self.details = self.details + f'Number of GEM iterations = {iterations}'
@@ -59,7 +67,7 @@ class InspectWindow:
             [sg.Combo(['','Active','Suppressed'], key = '-activefilter-')],
             [sg.Button('Apply Filter')]
         ]
-        self.data = [[i, f'{point.t:6.2f} K {point.phaseConcentrations[0]:4.3f} {point.phaseConcentrations[1]:4.3f}'] for i,point in enumerate(self.parent.calculation.pdPoints)]
+        self.data = [[i, f'{point.t:6.2f} K {point.adjustedPhaseConcentrations[0]:4.3f} {point.adjustedPhaseConcentrations[1]:4.3f}'] for i,point in enumerate(self.parent.calculation.pdPoints)]
         self.sgw = sg.Window('Data inspection',
             [[sg.Pane([
                 sg.Column(dataColumn, element_justification='l', expand_x=True, expand_y=True),
