@@ -5,9 +5,9 @@ This interface is used to create phase diagrams in which the endmembers are comp
 ./scripts/pseudoBinaryPhaseDiagramGUI.sh
 ```
 
- The calculation window, shown below, is similar to that used for the [`phaseDiagramGUI`](/doc/phaseDiagramGUI.md), except for the entry of the endmembers. The functions that have been implemented for this interface operate in the same way as for the `phaseDiagramGUI`, and users are directed to the documentation for that interface.
+The calculation window, shown below, is similar to that used for the [`phaseDiagramGUI`](/doc/phaseDiagramGUI.md), except for the entry of the endmembers. The functions that have been implemented for this interface operate in the same way as for the `phaseDiagramGUI`, and users are directed to the documentation for that interface.
 
- The `Use fuzzy stoichiometry` option is available. This setting is often helpful for pseudo-binary phase diagrams, which tend to involve under-determined systems. If the output phase diagram does not look reasonable without this setting (i.e. has overlapping phase regions), then try enabling it.
+The `Use fuzzy stoichiometry` option is available. This setting is often helpful for pseudo-binary phase diagrams, which tend to involve under-determined systems. If the output phase diagram does not look reasonable without this setting (i.e. has overlapping phase regions), then try enabling it.
 
 ![`pseudoBinaryPhaseDiagramGUI` default window](/doc/images/pseudoBinaryPhaseDiagramGUI-default.png)
 
