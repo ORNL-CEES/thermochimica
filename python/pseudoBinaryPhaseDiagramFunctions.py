@@ -403,12 +403,17 @@ class diagram:
         self.backup = diagram(self.datafile, False, self.interactivePlot)
         self.backup.mint = self.mint
         self.backup.maxt = self.maxt
+        self.backup.pdPoints = copy.deepcopy(self.pdPoints)
         self.backup.labels = copy.deepcopy(self.labels)
+        self.backup.outline = copy.deepcopy(self.outline)
         self.backup.pressure = self.pressure
         self.backup.inputFileName = self.inputFileName
         self.backup.outputFileName = self.outputFileName
         self.backup.plotMarker = self.plotMarker
         self.backup.plotColor = self.plotColor
+        self.backup.nElementsUsed = self.nElementsUsed
+        self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
+        self.backup.massLabels = copy.deepcopy(self.massLabels)
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
@@ -416,18 +421,20 @@ class diagram:
         self.backup.exportFormat = self.exportFormat
         self.backup.exportFileName = self.exportFileName
         self.backup.exportDPI = self.exportDPI
-        self.backup.pdPoints = copy.deepcopy(self.pdPoints)
-        self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
-        self.backup.nElementsUsed = self.nElementsUsed
-        self.backup.massLabels = copy.deepcopy(self.massLabels)
+        self.backup.resRef = self.resRef
+        self.backup.resSmooth = self.resSmooth
+        self.backup.gapLimit = self.gapLimit
         self.backup.sum1 = self.sum1
         self.backup.sum2 = self.sum2
         self.backup.plane = copy.deepcopy(self.plane)
-        self.backup.compoundScale = self.compoundScale 
+        self.backup.compoundScale = self.compoundScale
         self.backup.experimentalData = copy.deepcopy(self.experimentalData)
         self.backup.experimentNames = copy.deepcopy(self.experimentNames)
         self.backup.experimentColor = self.experimentColor 
-        self.backup.showExperiment = self.showExperiment 
+        self.backup.showExperiment = self.showExperiment
+        self.backup.boundaries = copy.deepcopy(self.boundaries)
+        self.backup.phases = copy.deepcopy(self.phases)
+        self.backup.b = copy.deepcopy(self.b)
     def exportPlot(self):
         # Make sure there is an open plot to save
         if not plt.fignum_exists(self.currentPlot.number):

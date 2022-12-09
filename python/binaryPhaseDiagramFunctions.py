@@ -488,6 +488,7 @@ class diagram:
         self.backup.el1 = self.el1
         self.backup.el2 = self.el2
         self.backup.elementsUsed = copy.deepcopy(self.elementsUsed)
+        self.backup.massLabels = copy.deepcopy(self.massLabels)
         self.backup.tunit = self.tunit
         self.backup.punit = self.punit
         self.backup.munit = self.munit
@@ -498,6 +499,7 @@ class diagram:
         self.backup.resRef = self.resRef
         self.backup.resSmooth = self.resSmooth
         self.backup.gapLimit = self.gapLimit
+        self.backup.compoundScale = self.compoundScale
         self.backup.label1phase = self.label1phase
         self.backup.label2phase = self.label2phase
         self.backup.experimentalData = self.experimentalData
