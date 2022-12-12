@@ -68,6 +68,7 @@ class diagram:
         self.showExperimentLegend = True
         self.showLoaded = False
         self.fuzzy = False
+        self.showGrid = False
     def initRun(self,pressure,tunit,punit,plane,sum1,sum2,mint,maxt,elementsUsed,massLabels,munit,tshift,fuzzy=False):
         self.mint = mint
         self.maxt = maxt
@@ -347,6 +348,14 @@ class diagram:
                 m = next(markerList)
                 ax.plot(self.experimentalData[e][:,0],self.experimentalData[e][:,1],m,c=c,label=self.experimentNames[e])
 
+        if self.showGrid:
+            try:
+                for poly in self.outline.geoms:
+                    ax.plot(*poly.exterior.xy,'k--')
+            except AttributeError:
+                # If it's not a MultiPolygon, don't worry about plotting it
+                pass
+
         ax.set_xlim(0,1)
         ax.set_ylim(self.mint-self.tshift,self.maxt-self.tshift)
         title = " $-$ ".join(self.massLabels)
@@ -435,6 +444,7 @@ class diagram:
         self.backup.boundaries = copy.deepcopy(self.boundaries)
         self.backup.phases = copy.deepcopy(self.phases)
         self.backup.b = copy.deepcopy(self.b)
+        self.backup.showGrid = self.showGrid
     def exportPlot(self):
         # Make sure there is an open plot to save
         if not plt.fignum_exists(self.currentPlot.number):

@@ -358,7 +358,8 @@ class SettingsWindow:
                           [sg.Radio('Black',    'mexpcolor', default=expbland,    enable_events=True, key='-mexpbland-')],
                           [sg.Text('Show:')],
                           [sg.Checkbox('Experimental Data', default=self.parent.calculation.showExperiment, key='-showExperiment-'),
-                           sg.Checkbox('Loaded Diagram', default=self.parent.calculation.showLoaded, key='-showLoaded-')],
+                           sg.Checkbox('Loaded Diagram', default=self.parent.calculation.showLoaded, key='-showLoaded-'),
+                           sg.Checkbox('Refinement Grid', default=self.parent.calculation.showGrid, key='-showGrid-')],
                           [sg.Text('Auto-Label Settings:')],
                           [sg.Checkbox('1-Phase Regions', default=self.parent.calculation.label1phase, key='-label1phase-', disabled=onePhaseLabelsDisabled),
                            sg.Checkbox('2-Phase Regions', default=self.parent.calculation.label2phase, key='-label2phase-')],
@@ -378,6 +379,7 @@ class SettingsWindow:
         self.parent.macro.append(f'macroPD.exportFormat = "{self.parent.calculation.exportFormat}"')
         self.parent.macro.append(f'macroPD.exportDPI = {self.parent.calculation.exportDPI}')
         self.parent.macro.append(f'macroPD.showLoaded = {self.parent.calculation.showLoaded}')
+        self.parent.macro.append(f'macroPD.showGrid = {self.parent.calculation.showGrid}')
         self.parent.macro.append(f'macroPD.label1phase = {self.parent.calculation.label1phase}')
         self.parent.macro.append(f'macroPD.label2phase = {self.parent.calculation.label2phase}')
         for child in self.children:
@@ -405,9 +407,10 @@ class SettingsWindow:
             self.parent.calculation.experimentColor = 'bland'
         elif event =='Accept':
             self.parent.calculation.showExperiment = values['-showExperiment-']
-            self.parent.calculation.showLoaded = values['-showLoaded-']
-            self.parent.calculation.label1phase = values['-label1phase-']
-            self.parent.calculation.label2phase = values['-label2phase-']
+            self.parent.calculation.showLoaded     = values['-showLoaded-']
+            self.parent.calculation.showGrid       = values['-showGrid-']
+            self.parent.calculation.label1phase    = values['-label1phase-']
+            self.parent.calculation.label2phase    = values['-label2phase-']
             try:
                 if str(values['-filename-']) != '':
                     self.parent.calculation.exportFileName = str(values['-filename-'])

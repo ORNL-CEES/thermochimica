@@ -67,6 +67,7 @@ class diagram:
         self.showLoaded = True
         self.saveDataName = 'savedDiagram'
         self.fuzzy = False
+        self.showGrid = False
     def run(self,ntstep,nxstep,pressure,tunit,punit,xlo,xhi,tlo,thi,el1,el2,munit,fuzzy=False):
         self.pressure = pressure
         self.tunit = tunit
@@ -245,6 +246,14 @@ class diagram:
         # Plot loaded phase diagram
         if self.loaded and self.showLoaded:
             self.plotLines(ax,diagram=self.loadedDiagram,linestyle='--',plotColor='black')
+
+        if self.showGrid:
+            try:
+                for poly in self.outline.geoms:
+                    ax.plot(*poly.exterior.xy,'k--')
+            except AttributeError:
+                # If it's not a MultiPolygon, don't worry about plotting it
+                pass
 
         plt.show()
         if self.interactivePlot:
@@ -508,6 +517,7 @@ class diagram:
         self.backup.loadedDiagram = self.loadedDiagram
         self.backup.loaded = self.loaded
         self.backup.saveDataName = self.saveDataName
+        self.backup.showGrid = self.showGrid
     def exportPlot(self):
         # Make sure there is an open plot to save
         if not plt.fignum_exists(self.currentPlot.number):
