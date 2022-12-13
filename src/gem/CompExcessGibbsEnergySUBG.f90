@@ -87,7 +87,6 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     real(8), allocatable, dimension(:,:) :: dXij, dNij, dXsij, dNsij
     ! X_ij/kl corresponds to dMolFraction
 
-
     ! Only proceed if the correct phase type is selected:
     if (.NOT. (cSolnPhaseType(iSolnIndex) == 'SUBG' .OR. cSolnPhaseType(iSolnIndex) == 'SUBQ')) return
 
