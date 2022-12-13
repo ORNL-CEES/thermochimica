@@ -236,4 +236,6 @@ test: all dailytest
 setdebug:
 	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
-debug: setdebug all dailytest
+debugtest: setdebug all
+
+debug: setdebug all
