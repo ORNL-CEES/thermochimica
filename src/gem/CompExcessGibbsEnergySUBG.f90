@@ -340,18 +340,18 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         if (dExcessGibbsParam(abxy) == 0D0) cycle LOOP_Param
 
         ! AB/XY parametrization
-        a = iRegularParam(abxy,2)              ! Index of A
-        b = iRegularParam(abxy,3)              ! Index of B
-        xx = iRegularParam(abxy,4)             ! Index of X, unadjusted
-        yy = iRegularParam(abxy,5)             ! Index of Y, unadjusted
-        x = xx - nSub1                         ! Index of X
-        y = yy - nSub1                         ! Index of Y
-        p = iRegularParam(abxy,6)              ! Exponent 1
-        q = iRegularParam(abxy,7)              ! Exponent 2
-        r = iRegularParam(abxy,8)              ! Exponent 3
-        s = iRegularParam(abxy,9)              ! Exponent 4
-        d = iRegularParam(abxy,10)             ! Index of ternary constituent on 1st sublattice
-        w = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice
+        a  = iRegularParam(abxy,2)              ! Index of A
+        b  = iRegularParam(abxy,3)              ! Index of B
+        xx = iRegularParam(abxy,4)              ! Index of X, unadjusted
+        yy = iRegularParam(abxy,5)              ! Index of Y, unadjusted
+        x  = xx - nSub1                         ! Index of X
+        y  = yy - nSub1                         ! Index of Y
+        p  = iRegularParam(abxy,6)              ! Exponent 1
+        q  = iRegularParam(abxy,7)              ! Exponent 2
+        r  = iRegularParam(abxy,8)              ! Exponent 3
+        s  = iRegularParam(abxy,9)              ! Exponent 4
+        d  = iRegularParam(abxy,10)             ! Index of ternary constituent on 1st sublattice
+        w  = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice
 
         if (x == y) then
             iBlock = (x - 1) * (nSub1 &
@@ -620,8 +620,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             cycle LOOP_Param
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
-            dGex = dExcessGibbsParam(abxy)
-            dDgexBase = 0D0
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + dGex
+            cycle LOOP_Param
         else
             INFOThermo = 42
         end if
