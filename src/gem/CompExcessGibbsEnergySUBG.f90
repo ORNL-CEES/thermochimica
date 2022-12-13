@@ -72,9 +72,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     implicit none
 
     integer :: i, j, k, l, m, ii, jj, kk ,ll, ka, la
-    integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, xx, yy
+    integer :: a, b, c, d, w, x, y, z, e, f, ijkl, abxy, ww, xx, yy
     integer :: iSolnIndex, iSPI, nPhaseElements, nSub1, nSub2, nA2X2
-    integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2
+    integer :: iFirst, iLast, nA, nX, iWeight, iBlock, iQuad, iQuad2, iTern
     integer :: ia, ix
     ! integer :: nAsymmetric1, nAsymmetric2
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
@@ -351,16 +351,15 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         r  = iRegularParam(abxy,8)              ! Exponent 3
         s  = iRegularParam(abxy,9)              ! Exponent 4
         d  = iRegularParam(abxy,10)             ! Index of ternary constituent on 1st sublattice
-        w  = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice
+        ww = iRegularParam(abxy,11)             ! Index of ternary constituent on 2nd sublattice, unadjusted
+        w  = ww - nSub1                         ! Index of ternary constituent on 2nd sublattice, unadjusted
 
         if (x == y) then
-            iBlock = (x - 1) * (nSub1 &
-                             * (nSub1 + 1) / 2)
+            iBlock = (x - 1) * (nSub1 * (nSub1 + 1) / 2)
         else if (x > y) then
             cycle LOOP_Param
         else
-            iBlock = (nSub2 + (x - 1) + ((y-2)*(y-1)/2)) &
-                   * (nSub1 * (nSub1 + 1) / 2)
+            iBlock = (nSub2 + (x - 1) + ((y-2)*(y-1)/2)) * (nSub1 * (nSub1 + 1) / 2)
         end if
         if (a == b) then
             iBlock = iBlock + a
@@ -620,7 +619,23 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             cycle LOOP_Param
         ! Reciprocal terms
         else if (cRegularParam(abxy) == 'R') then
-            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + dGex
+            dTernaryFactorG = 1D0
+            iTern = 0
+            if ((d > 0) .AND. (w > 0)) then
+                ! Find dd/ww quadruplet
+                iTern = (w - 1) * (nSub1 * (nSub1 + 1) / 2) + d
+                iTern = iTern + iFirst - 1
+                dTernaryFactorG = dTernaryFactorG * (dMolFraction(iTern)**p)
+                dTernaryFactorG = dTernaryFactorG / 2D0
+            end if
+            dGex = dMolFraction(iBlock) * dExcessGibbsParam(abxy) * dTernaryFactorG
+            dDgexBase = - p * dGex
+            dPartialExcessGibbs(iBlock) = dPartialExcessGibbs(iBlock) + dGex / dMolFraction(iBlock)
+            if (iTern > 0) dPartialExcessGibbs(iTern) = dPartialExcessGibbs(iTern) + p * dGex / dMolFraction(iTern)
+            do ijkl = 1, nPairsSRO(iSPI,2)
+                iQuad = ijkl + iFirst - 1
+                dPartialExcessGibbs(iQuad) = dPartialExcessGibbs(iQuad) + dDgexBase
+            end do
             cycle LOOP_Param
         else
             INFOThermo = 42
