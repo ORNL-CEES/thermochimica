@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    GetNewAssemblage.f90
     !> \brief   Determine the next phase assemblage to be considered in Leveling.
@@ -82,7 +82,7 @@
     ! dLevel                    The adjustment applied to the element potentials.
     ! dAtomFractionSpecies      Atomic fraction of a particular element (e.g., UO2: 0.333 U, 0.667 O).
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 subroutine GetNewAssemblage(iter)
 
@@ -159,7 +159,7 @@ subroutine GetNewAssemblage(iter)
         ! 2) SECOND CHECK: Verify that this phase assemblage has not been previously considered.
         call CheckLevelingIterHistory(iter,lPhasePass)
 
-        ! Cycle to the next phase if this assemblage has previsouly been considered:
+        ! Cycle to the next phase if this assemblage has previously been considered:
         if (.NOT.(lPhasePass)) cycle LOOP_NewAssemblage
 
         ! 3) THIRD CHECK: Verify that the phase assemblage produces real co-ordinates for the Gibbs Plane.
