@@ -46,6 +46,7 @@ class diagram:
         self.sum1 = 0
         self.sum2 = 0
         self.plane = np.array([0,0])
+        self.unitVec = []
         self.tunit = 'K'
         self.punit = 'atm'
         self.munit = 'moles'
@@ -84,6 +85,7 @@ class diagram:
         self.sum1 = sum1
         self.sum2 = sum2
         self.plane = np.array(plane)
+        self.unitVec = (self.plane[1] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0])
         self.tunit = tunit
         self.punit = punit
         self.munit = munit
@@ -188,9 +190,9 @@ class diagram:
                                 if self.elementsUsed[k] in data[i][phaseType][phaseName]['elements'].keys():
                                     phaseCompositions[iPhase,k] = data[i][phaseType][phaseName]['elements'][self.elementsUsed[k]]["mole fraction of phase by element"]
                             iPhase += 1
-                crossNorms = [np.linalg.norm(np.cross(phaseCompositions[k] - self.plane[0],self.plane[1] - phaseCompositions[k])) for k in range(nPhases)]
-                if max(crossNorms) < phaseIncludeTol:
-                    boundComps = [np.linalg.norm(phaseCompositions[k] - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for k in range(nPhases)]
+                distances = [np.linalg.norm((pc - self.plane[0]) - (np.dot((pc - self.plane[0]),self.unitVec) * self.unitVec)) for pc in phaseCompositions]
+                if max(distances) < phaseIncludeTol:
+                    boundComps = [np.linalg.norm(pc - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for pc in phaseCompositions]
                     x = [boundComps[0],boundComps[1]]
                     p = [boundPhases[0],boundPhases[1]]
                     conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
@@ -436,6 +438,7 @@ class diagram:
         self.backup.sum1 = self.sum1
         self.backup.sum2 = self.sum2
         self.backup.plane = copy.deepcopy(self.plane)
+        self.backup.unitVec = self.unitVec
         self.backup.compoundScale = self.compoundScale
         self.backup.experimentalData = copy.deepcopy(self.experimentalData)
         self.backup.experimentNames = copy.deepcopy(self.experimentNames)
