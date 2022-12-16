@@ -120,12 +120,18 @@ subroutine ParseCSDataBlockSUBG( i )
 
     ! Read in the charge of each constituent on the first sublattice.
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
+    do j = 1, nConstituentSublatticeCS(nCSCS,1)
+        dSublatticeChargeCS(nCSCS,1,j) = DABS(dSublatticeChargeCS(nCSCS,1,j))
+    end do
 
     ! Chemical groups on sublattice 1:
     read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,1,1:nConstituentSublatticeCS(nCSCS,1))
 
     ! Read in the charge of each constituent on the second sublattice.
     read (1,*,IOSTAT = INFO) dSublatticeChargeCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
+    do j = 1, nConstituentSublatticeCS(nCSCS,2)
+        dSublatticeChargeCS(nCSCS,2,j) = DABS(dSublatticeChargeCS(nCSCS,2,j))
+    end do
 
     ! Chemical groups on sublattice 2:
     read (1,*,IOSTAT = INFO) iChemicalGroupCS(nCSCS,2,1:nConstituentSublatticeCS(nCSCS,2))
