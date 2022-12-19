@@ -109,19 +109,27 @@ class CalculationWindow:
                 massLabels = ['','']
                 for i in range(nElementsUsed):
                     if masses1[i] > 0:
-                        massLabels[0] += elementsUsed[i]
-                        if masses1[i] != 1:
-                            if int(masses1[i]) == masses1[i]:
-                                massLabels[0] += f'{int(masses1[i])}'
+                        if masses1[i] == 1:
+                            massLabels[0] += f'{elementsUsed[i]}'
+                        else:
+                            if abs(int(masses1[i]) - masses1[i]) < phaseIncludeTol:
+                                if int(masses1[i]) > 0:
+                                    massLabels[0] += f'{elementsUsed[i]}'
+                                if int(masses1[i]) > 1:
+                                    massLabels[0] += f'{int(masses1[i])}'
                             else:
-                                massLabels[0] += f'{masses1[i]}'
+                                massLabels[0] += f'{elementsUsed[i]}{masses1[i]}'
                     if masses2[i] > 0:
-                        massLabels[1] += elementsUsed[i]
-                        if masses2[i] != 1:
-                            if int(masses2[i]) == masses2[i]:
-                                massLabels[1] += f'{int(masses2[i])}'
+                        if masses2[i] == 1:
+                            massLabels[1] += f'{elementsUsed[i]}'
+                        else:
+                            if abs(int(masses2[i]) - masses2[i]) < phaseIncludeTol:
+                                if int(masses2[i]) > 0:
+                                    massLabels[1] += f'{elementsUsed[i]}'
+                                if int(masses2[i]) > 1:
+                                    massLabels[1] += f'{int(masses2[i])}'
                             else:
-                                massLabels[1] += f'{masses2[i]}'
+                                massLabels[1] += f'{elementsUsed[i]}{masses2[i]}'
                 massLabels = [l.translate(SUB) for l in massLabels]
                 sum1 = sum(masses1)
                 sum2 = sum(masses2)
