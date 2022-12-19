@@ -67,8 +67,6 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     ! If iPhaseChange was the last one added, give the system a chance to converge:
     if ((iConPhaseLast == iAssemblage(iPhaseChange)).AND.(iterGlobal - iterLastCon < iterStep).AND.(.NOT. lConverged)) return
-    print *, 'rem con ', iAssemblage
-    print *, 'rem con ', dMolesPhase
 
     ! Remove the pure condensed phase corresponding to iPhaseChange:
     iConPhaseLast             = iAssemblage(iPhaseChange)
@@ -79,7 +77,6 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     dMolesPhase(nConPhases)   = 0D0
     nConPhases                = nConPhases - 1
     if (.NOT. lConverged) dMolesPhase = dMolesPhase * 0.95D0
-    print *, 'rem con ', iAssemblage
 
     ! Check that this phase change is acceptable:
     k = MAX(1, nConPhases)
