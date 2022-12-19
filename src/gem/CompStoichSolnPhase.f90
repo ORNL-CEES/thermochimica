@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompStoichSolnPhase.f90
     !> \brief   Compute the stoichiometry of a solution phase.
@@ -35,7 +35,7 @@
     ! iParticlesPerMole         The number of particles per mole of constituent.
     ! dStoichSpecies            The number of atoms of a particular element for a particular species.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompStoichSolnPhase(k)

@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CheckPhaseChange.f90
     !> \brief   Check whether a particular phase change is appropriate for further consideration.
@@ -39,7 +39,7 @@
     !> \param[out]  INFO        An integer scalar used to identify a successful exit or an error by the
     !!                           GEMNewton.f90 subroutine.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 subroutine CheckPhaseChange(lPhasePass,INFO)
 

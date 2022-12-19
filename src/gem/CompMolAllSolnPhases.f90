@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompMolAllSolnPhases.f90
     !> \brief   Compute the number of moles of all stable pure condensed and solution phases.
@@ -51,7 +51,7 @@
     ! dEffStoichSolnPhase       The effective stoichiometry of a solution phase
     ! dSumMolFractionSoln       Sum of all mole fractions within a solution phase.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 subroutine CompMolAllSolnPhases
 

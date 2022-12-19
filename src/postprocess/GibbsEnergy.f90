@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    GibbsEnergy.f90
     !> \brief   Calculates the Gibbs energy of a given input system.
@@ -31,7 +31,7 @@
     ! dMolFractionIn      A double real vector representing the mole fraction of each species in the system.
     ! dGibbsEnergySysOut  A double real scalar representing the integral Gibbs energy of the system. This is the output variable.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine GibbsEnergy(nConPhasesIn, nSolnPhasesIn, iAssemblageIn, dMolesPhaseIn, dMolFractionIn, dGibbsEnergySysOut)
