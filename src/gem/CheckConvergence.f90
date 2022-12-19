@@ -319,7 +319,7 @@ subroutine CheckConvergence
         if (lSolnPhases(i) .EQV. .TRUE.) cycle LOOP_TEST7
 
         ! Skip this phase if it is not the first "phase" of a phase containing a miscibility gap
-        ! (this will be handled in test #8):
+        ! (this will be handled in test #9):
         if (lMiscibility(i) .EQV. .TRUE.) cycle LOOP_TEST7
 
         ! Check if the driving force of this solution phase is less than the tolerance:
