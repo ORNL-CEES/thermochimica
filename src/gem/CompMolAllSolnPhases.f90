@@ -126,8 +126,9 @@ subroutine CompMolAllSolnPhases
     ! Update the estimated number of moles of each solution phase:
     LOOP_SolnPhases: do k = 1, nSolnPhases
         j = nElements - k + 1
-        dMolesPhase(j) = DMAX1(B(k),dTolerance(9))
-        dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
+        dMolesPhase(j) = B(k)
+        if (.NOT. lConverged) dMolesPhase(j) = DMAX1(dMolesPhase(j),dTolerance(9))
+        if (.NOT. lConverged) dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
         l = -iAssemblage(j)
         dTemp = 0D0
         do i = nSpeciesPhase(l-1) + 1, nSpeciesPhase(l)
@@ -138,8 +139,9 @@ subroutine CompMolAllSolnPhases
 
     do k = nSolnPhases + 1, nSolnPhases + nConPhases
         j = k - nSolnPhases
-        dMolesPhase(j) = DMAX1(B(k),dTolerance(9))
-        dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
+        dMolesPhase(j) = B(k)
+        if (.NOT. lConverged) dMolesPhase(j) = DMAX1(dMolesPhase(j),dTolerance(9))
+        if (.NOT. lConverged) dMolesPhase(j) = DMIN1(dMolesPhase(j),10D0*dTolerance(10))
     end do
 
     ! Deallocate memory:
