@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    CompFunctionNorm.f90
     !> \brief   Compute the functional norm for the line search.
@@ -35,7 +35,7 @@
     !                        the departure of chemical potentials of stable phases from the corresponding values
     !                        computed from the element potentials.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine CompFunctionNorm
@@ -54,15 +54,20 @@ subroutine CompFunctionNorm
 
     ! Compute the residuals of the mass balance equations for each element:
     do j = 1, nElements
+        print *, cElementName(j), dMolesElement(j)
         dNormComponent = dMolesElement(j)
         do i = 1, nSolnPhases
             k = -iAssemblage(nElements - i + 1)       ! Absolute solution phase index
             ! Compute the stoichiometry of this solution phase:
             call CompStoichSolnPhase(k)
             dNormComponent = dNormComponent - dEffStoichSolnPhase(k,j) * dMolesPhase(nElements - i + 1)
+            print *, cSolnPhaseName(k), dEffStoichSolnPhase(k,j), dMolesPhase(nElements - i + 1)
+            print *, cSolnPhaseName(k), dNormComponent
         end do
         do i = 1,nConPhases
             dNormComponent = dNormComponent - dMolesPhase(i) * dStoichSpecies(iAssemblage(i),j)
+            print *, cSpeciesName(iAssemblage(i)), dStoichSpecies(iAssemblage(i),j), dMolesPhase(i)
+            print *, cSpeciesName(iAssemblage(i)), dNormComponent
         end do
         dGEMFunctionNorm = dGEMFunctionNorm + (dNormComponent)**(2)
     end do

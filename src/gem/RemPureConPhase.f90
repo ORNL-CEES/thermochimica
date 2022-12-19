@@ -1,5 +1,5 @@
 
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
     !
     !> \file    RemPureConPhase.f90
     !> \brief   Remove a pure condensed phase from the system.
@@ -39,7 +39,7 @@
     !> \param[out]  lSwapLater      A logical scalar indicating whether this phase should be swapped later.
     !> \param[out]  lPhasePass      A logical scalar indicating whether the new phase assemblage has passed.
     !
-    !-------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------
 
 
 subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
@@ -66,7 +66,9 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     nConPhasesLast         = nConPhases
 
     ! If iPhaseChange was the last one added, give the system a chance to converge:
-    if ((iConPhaseLast == iAssemblage(iPhaseChange)).AND.(iterGlobal - iterLastCon < iterStep)) return
+    if ((iConPhaseLast == iAssemblage(iPhaseChange)).AND.(iterGlobal - iterLastCon < iterStep).AND.(.NOT. lConverged)) return
+    print *, 'rem con ', iAssemblage
+    print *, 'rem con ', dMolesPhase
 
     ! Remove the pure condensed phase corresponding to iPhaseChange:
     iConPhaseLast             = iAssemblage(iPhaseChange)
@@ -76,7 +78,8 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     dMolesPhase(iPhaseChange) = dMolesPhase(nConPhases)
     dMolesPhase(nConPhases)   = 0D0
     nConPhases                = nConPhases - 1
-    dMolesPhase               = dMolesPhase * 0.95D0
+    if (.NOT. lConverged) dMolesPhase = dMolesPhase * 0.95D0
+    print *, 'rem con ', iAssemblage
 
     ! Check that this phase change is acceptable:
     k = MAX(1, nConPhases)
