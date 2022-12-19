@@ -63,7 +63,6 @@ subroutine RandomizeStoichiometry
                     call RANDOM_NUMBER(rValue)
                     dStoichSpecies(i,j) = dStoichSpecies(i,j) + 2D0 * (rValue - 0.5D0) * dFuzzMag
                 end if
-                print *, cSpeciesName(i), dStoichSpecies(i,:)
             end do
         end do
     end do
