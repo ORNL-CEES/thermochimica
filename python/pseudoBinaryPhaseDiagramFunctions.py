@@ -191,14 +191,18 @@ class diagram:
                                     phaseCompositions[iPhase,k] = data[i][phaseType][phaseName]['elements'][self.elementsUsed[k]]["mole fraction of phase by element"]
                             iPhase += 1
                 distances = [np.linalg.norm((pc - self.plane[0]) - (np.dot((pc - self.plane[0]),self.unitVec) * self.unitVec)) for pc in phaseCompositions]
-                if max(distances) < phaseIncludeTol:
+                if max(distances) < 1e-2:
+                    t = data[i]['temperature']
                     boundComps = [np.linalg.norm(pc - self.plane[0])/np.linalg.norm(self.plane[1] - self.plane[0]) for pc in phaseCompositions]
                     x = [boundComps[0],boundComps[1]]
                     p = [boundPhases[0],boundPhases[1]]
                     conc = [data[i]["elements"][el]["moles"] for el in self.elementsUsed]
                     en = data[i]["integral Gibbs energy"]
                     it = data[i]["GEM iterations"]
-                    self.pdPoints.append(pdPoint(self,self.massLabels,data[i]['temperature'],conc,p,x,en,it))
+                    self.pdPoints.append(pdPoint(self,self.massLabels,t,conc,p,x,en,it))
+                    if max(distances) > phaseIncludeTol:
+                        # print(f'{t} {boundPhases} {max(distances)}')
+                        pass
                     continue
             if nPhases == self.nElementsUsed and False:
                 allPhases = []
