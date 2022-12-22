@@ -117,17 +117,8 @@ subroutine CompMolFraction(k)
 
     ! Compute the mole fraction depending on the type of solution phase:
     select case (cSolnPhaseType(k))
-
-        ! Leave this for now until I improve the estimator:
-
-        case ('QKTO','RKMP','RKMPM','SUBL','SUBLM','SUBG','SUBQ')
-
-            ! Perform subminimization:
-            call Subminimization(k,lPhasePass)
-
-        case default
-
-            ! The default case assumes an ideal solution phase.
+        case ('IDMX')
+            ! Ideal solution phase.
             dSum = 0D0
             do i = m, n
                 dTemp = 0D0
@@ -154,6 +145,10 @@ subroutine CompMolFraction(k)
                 dDrivingForceTemp = dDrivingForceTemp + dMolFraction(i)/dSum * &
                 (dStdGibbsEnergy(i) + DLOG(DMAX1(dMolFraction(i)/dSum, 1D-75)) - dTemp)
             end do
+
+        case default
+            ! All other phase models use subminimization:
+            call Subminimization(k,lPhasePass)
 
     end select
 
