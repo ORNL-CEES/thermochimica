@@ -105,6 +105,13 @@ class CalculationWindow:
                     if not self.elements[i] in elementsUsed:
                         del masses1[i]
                         del masses2[i]
+
+                # Check for and apply mass offset
+                if values['-massOffset-'] != '   ':
+                    elIndex = self.elements.index(values['-massOffset-'])
+                    masses1[elIndex] = masses1[elIndex] + 1e-9
+                    masses2[elIndex] = masses2[elIndex] + 1e-9
+
                 nElementsUsed = len(elementsUsed)
                 massLabels = ['','']
                 for i in range(nElementsUsed):
@@ -276,6 +283,13 @@ class CalculationWindow:
         else:
             elemLayout = [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
                           sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)]
+        offsetList = ['   ']
+        offsetList.extend(self.elements)
+        offsetListLayout = [
+                            [sg.Text('Mass Offset')],
+                            [sg.Combo(offsetList,default_value='   ',key='-massOffset-')]
+                           ]
+        elemLayout = elemLayout + [sg.Column(offsetListLayout,vertical_alignment='t')]
         self.layout = [tempLayout,
                        presLayout,
                        elemLayout,
