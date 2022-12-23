@@ -136,6 +136,9 @@ class CalculationWindow:
             self.children.append(removeWindow)
         elif event =='Plot':
             self.calculation.makePlot()
+        elif event == 'Close Plots':
+            for fig in self.calculation.figureList:
+                plt.close(fig=fig)
         elif event =='Export Plot':
             exportStatus = self.calculation.exportPlot()
             if exportStatus:
@@ -212,7 +215,7 @@ class CalculationWindow:
         buttonLayout   = [
                             sg.Column([[sg.Button('Run', size = thermoToolsGUI.buttonSize)],
                                     [sg.Button('Undo', disabled = True, size = thermoToolsGUI.buttonSize)],
-                                    [sg.Exit(size = thermoToolsGUI.buttonSize)],
+                                    [sg.Button('Close Plots', size = thermoToolsGUI.buttonSize)],
                                     [sg.Button('Add Data', size = thermoToolsGUI.buttonSize)],
                                     [sg.Button('Macro Settings', size = thermoToolsGUI.buttonSize)]],vertical_alignment='t'),
                             sg.Column([[sg.Button('Refine', disabled = True, size = thermoToolsGUI.buttonSize)],
