@@ -357,7 +357,8 @@ class diagram:
         if self.showGrid:
             try:
                 for poly in self.outline.geoms:
-                    ax.plot(*poly.exterior.xy,'k--')
+                    gridPlot = poly.exterior.xy
+                    ax.plot(gridPlot[0],[gy-self.tshift for gy in gridPlot[1]],'k--')
             except AttributeError:
                 # If it's not a MultiPolygon, don't worry about plotting it
                 pass
