@@ -17,6 +17,7 @@ namespace Thermochimica
   void setStandardUnits();
   void setModelicaUnits();
   void setTemperaturePressure(double temperature, double pressure);
+  void presetElementMass(int element, double mass);
   void setElementMass(int element, double mass);
   int checkInfoThermo();
   void parseThermoFile();
@@ -69,7 +70,8 @@ namespace Thermochimica
   getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
   // Reinitialization data
-  struct reinitData {
+  struct reinitData
+  {
     std::vector<int> assemblage;
     std::vector<double> molesPhase;
     std::vector<double> elementPotential;
