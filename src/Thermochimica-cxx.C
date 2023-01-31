@@ -56,6 +56,11 @@ namespace Thermochimica
     TCAPI_setTemperaturePressure(&temperature, &pressure);
   }
 
+  void presetElementMass(int element, double mass)
+  {
+    TCAPI_presetElementMass(&element, &mass);
+  }
+
   void setElementMass(int element, double mass)
   {
     TCAPI_setElementMass(&element, &mass);
