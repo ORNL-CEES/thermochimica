@@ -1,7 +1,7 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    PostProcess.f90
+    !> \file    PostProcessThermo.f90
     !> \brief   Perform post-processing of results.
     !> \author  M.H.A. Piro
     !> \date    January 14, 2013
@@ -28,7 +28,7 @@
     !-------------------------------------------------------------------------------------------------------------
 
 
-subroutine PostProcess
+subroutine PostProcessThermo
 
     USE ModuleThermo
     USE ModuleThermoIO
@@ -73,4 +73,4 @@ subroutine PostProcess
     dNormalizeInput = 1D0 / dNormalizeInput
     return
 
-end subroutine PostProcess
+end subroutine PostProcessThermo
