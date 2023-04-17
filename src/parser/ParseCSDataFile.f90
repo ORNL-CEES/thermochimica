@@ -117,9 +117,9 @@ subroutine ParseCSDataFile(cFileName)
     implicit none
 
     character(*)::  cFileName
-    character(120) :: cFileNameLen
+    character(1024) :: cFileNameLen
 
-    cFileNameLen = cFileName(1:min(120,len(cFileName)))
+    cFileNameLen = cFileName(1:min(1024,len(cFileName)))
 
 
     ! Initialize variables:
