@@ -14,7 +14,7 @@ subroutine RetryCalculationFirstPhase
         if (nSpeciesPhase(1) > 0) then
             INFOThermo = 0
             lReinitRequested = .TRUE.
-            call PostProcess
+            call PostProcessThermo
             nSolnPhases = 1
             call SaveReinitData
             if (lReinitAvailable) then
