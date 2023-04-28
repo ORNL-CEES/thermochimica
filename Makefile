@@ -23,7 +23,8 @@
 AR          = ar
 FC          = gfortran
 CC          = g++
-FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=zero -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FFPE_TRAPS  ?= zero
+FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
@@ -88,7 +89,7 @@ SHARED_LIB  = $(OBJ_DIR)/$(TC_LIB)
 ## C interface library:
 ## =================
 C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
-C_OBJ       = $(C_SRC:.C=.o) 
+C_OBJ       = $(C_SRC:.C=.o)
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
 C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
@@ -234,6 +235,6 @@ test: all dailytest
 ## DEBUG:
 ## ===========
 setdebug:
-	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=zero -D"DATA_DIRECTORY='$(DATA_DIR)'")
+	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
 debug: setdebug all dailytest
