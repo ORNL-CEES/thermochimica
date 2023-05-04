@@ -202,6 +202,33 @@ subroutine SetElementMass(iAtom, dMass)
 
 end subroutine SetElementMass
 
+subroutine GetNumberPhasesDatabase(iNumSolnPhases, iNumConPhases)
+
+  USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
+
+  implicit none
+
+  integer, intent(out):: iNumSolnPhases, iNumConPhases
+
+  iNumConPhases = nSpeciesCS - MAXVAL(nSpeciesPhaseCS)
+  iNumSolnPhases = nSolnPhasesSysCS
+
+  return
+
+end subroutine GetNumberPhasesDatabase
+
+subroutine GetNumberSpeciesDatabase(nSpeciesDB)
+  USE ModuleParseCS, ONLY: nSolnPhasesSysCS, nSpeciesPhaseCS
+  implicit none
+
+  integer, intent(out), dimension(nSolnPhasesSysCS)     :: nSpeciesDB
+
+  nSpeciesDB = nSpeciesPhaseCS(1:size(nSpeciesDB))
+
+  return
+
+end subroutine GetNumberSpeciesDatabase
+
 subroutine GetElementMass(iAtom, dMass)
 
   USE ModuleThermoIO, ONLY: dElementMass

@@ -27,6 +27,14 @@ namespace Thermochimica
   void resetThermo();
   void resetThermoAll();
 
+  // utilitiy functions for consistency check / database record
+  std::pair<std::size_t, std::size_t> getNumberPhasesDatabase();
+  std::vector<std::string> getPhaseNamesDatabase();
+  std::string getPhaseNameAtIndex(int phase_index);
+  std::vector<std::size_t> getNumberSpeciesDatabase();
+  std::vector<std::string> getSpeciesInPhaseDatabase(int phase_index);
+  std::vector<std::vector<std::string>> getSpeciesDatabase();
+
   // re-initialization-related functions
   void saveReinitData();
   std::pair<int, int> getReinitDataSizes();
