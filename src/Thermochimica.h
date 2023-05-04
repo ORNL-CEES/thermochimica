@@ -46,6 +46,11 @@ extern "C"
   void TCAPI_printResults();
   void TCAPI_printState();
 
+  void TCAPI_getNumberPhasesDatabase(int *, int *);
+  char *TCAPI_getPhaseNameAtIndex(int *, int *);
+  void TCAPI_getNumberSpeciesDatabase(int *);
+  char *TCAPI_getSpeciesAtIndex(int *, int *);
+
   void TCAPI_resetInfoThermo();
   void TCAPI_resetThermo();
   void TCAPI_resetThermoAll();
