@@ -10,7 +10,7 @@ subroutine SetThermoFileNameISO(cFileName, lcFileName) &
     character(kind=c_char,len=lcFileName), pointer :: fFileName
 
     call c_f_pointer(cptr=c_loc(cFileName), fptr=fFileName)
-    
+
     call SetThermoFileName(fFileName)
 
     return
@@ -174,7 +174,7 @@ subroutine SetElementMassISO(iAtom, dMass) &
     implicit none
     integer(C_INT), intent(in) :: iAtom
     real(C_DOUBLE), intent(in) :: dMass
-    
+
     call SetElementMass(iAtom, dMass)
 
     return
@@ -251,6 +251,80 @@ subroutine ResetThermoAllISO() &
 
 end subroutine ResetThermoAllISO
 
+subroutine GetNumberPhasesDatabaseISO(iSolnPhases, iConPhases) &
+    bind(C, name="TCAPI_getNumberPhasesDatabase")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer(C_INT), intent(out):: iSolnPhases, iConPhases
+
+    call GetNumberPhasesDatabase(iSolnPhases, iConPhases)
+
+    return
+
+end subroutine GetNumberPhasesDatabaseISO
+
+function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
+    bind(C, name='TCAPI_getPhaseNameAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS
+
+    implicit none
+
+    integer(c_int), intent(in) :: phase_index
+    integer(c_int), intent(out) :: phase_name_len
+    type(c_ptr) :: GetPhaseNameAtIndexISO
+
+    if (phase_index <=  nSolnPhasesSysCS) then
+        GetPhaseNameAtIndexISO = c_loc(cSolnPhaseNameCS(phase_index))
+        phase_name_len = len_trim(cSolnPhaseNameCS(phase_index))
+    else
+        GetPhaseNameAtIndexISO = c_loc(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
+        phase_name_len = len_trim(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
+    end if
+
+    return
+
+end function GetPhaseNameAtIndexISO
+
+subroutine GetNumberSpeciesDatabaseISO(nSpeciesDB) &
+    bind(C, name='TCAPI_getNumberSpeciesDatabase')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: nSolnPhasesSysCS
+
+    implicit none
+
+    integer(c_int), intent(out), dimension(nSolnPhasesSysCS) :: nSpeciesDB
+
+    call GetNumberSpeciesDatabase(nSpeciesDB)
+
+    return
+
+end subroutine GetNumberSpeciesDatabaseISO
+
+function GetSpeciesAtIndexISO(index, len) &
+    bind(C, name='TCAPI_getSpeciesAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS
+
+    implicit none
+
+    integer(c_int), intent(in) :: index
+    integer(c_int), intent(out) :: len
+    type(c_ptr) :: GetSpeciesAtIndexISO
+
+    GetSpeciesAtIndexISO = c_loc(cSpeciesNameCS(index))
+    len = len_trim(cSpeciesNameCS(index))
+
+    return
+
+end function GetSpeciesAtIndexISO
+
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
 
@@ -312,7 +386,7 @@ subroutine SolPhaseParseISO(iElem, dMolSum) &
 
     integer(C_INT), intent(in)  :: iElem
     real(C_DOUBLE), intent(out) :: dMolSum
-    
+
     call SolPhaseParse(iElem, dMolSum)
 
     return
@@ -432,7 +506,7 @@ subroutine getReinitDataISO(mAssemblage,mMolesPhase,mElementPotential, &
     bind(C, name="TCAPI_getReinitData")
 
     USE,INTRINSIC :: ISO_C_BINDING
-    
+
     USE ModuleThermo, ONLY: nElements, nSpecies
     implicit none
 
@@ -454,7 +528,7 @@ subroutine setReinitDataISO(mElements,mSpecies,mAssemblage,mMolesPhase, &
     bind(C, name="TCAPI_setReinitData")
 
     USE,INTRINSIC :: ISO_C_BINDING
-    
+
     implicit none
 
     integer(C_INT), intent(in)                            :: mElements, mSpecies
@@ -541,9 +615,9 @@ subroutine PrintStateISO() &
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
- 
+
     call PrintState
- 
+
 end subroutine PrintStateISO
 
 subroutine GetElementMoleFractionInPhaseISO(cElement, lcElement, cPhase, lcPhase, dMolesOut, INFO) &
@@ -799,7 +873,7 @@ subroutine GetMqmqaMolesPairsISO(cPhaseName, lcPhaseName, dMolesPairsOut, INFO) 
 
     call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
 
-    call GetMqmqaMolesPairs(fPhaseName, dMolesPairsOut, INFO)    
+    call GetMqmqaMolesPairs(fPhaseName, dMolesPairsOut, INFO)
 
     return
 
@@ -907,37 +981,37 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
     bind(C, name="TCAPI_setFuzzyStoich")
 
     USE,INTRINSIC :: ISO_C_BINDING
-  
+
     implicit none
     logical(C_BOOL), intent(in) :: lFuzzyStoichIn
-  
+
     call SetFuzzyStoich(lFuzzyStoichIn)
-  
+
     return
   end subroutine SetFuzzyStoichISO
-  
+
   subroutine SetFuzzyMagnitudeISO(dFuzzMagIn) &
     bind(C, name="TCAPI_setFuzzyMagnitude")
 
     USE,INTRINSIC :: ISO_C_BINDING
-  
+
     implicit none
     real(C_DOUBLE), intent(in) :: dFuzzMagIn
-  
+
     call SetFuzzyMagnitude(dFuzzMagIn)
-  
+
     return
   end subroutine SetFuzzyMagnitudeISO
-  
+
   subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
     bind(C, name="TCAPI_setGibbsMinCheck")
 
     USE,INTRINSIC :: ISO_C_BINDING
-  
+
     implicit none
     logical(C_BOOL), intent(in) :: lGibbsMinCheckIn
-  
+
     call SetGibbsMinCheck(lGibbsMinCheckIn)
-  
+
     return
   end subroutine SetGibbsMinCheckISO
