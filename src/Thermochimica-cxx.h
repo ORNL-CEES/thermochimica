@@ -7,8 +7,10 @@
 
 namespace Thermochimica
 {
-
   void thermochimica();
+  void thermochimicaSetup();
+  void thermochimicaSolver();
+
   void setThermoFilename(const std::string &filename);
   void setUnitTemperature(const std::string &tunit);
   void setUnitPressure(const std::string &punit);
@@ -28,6 +30,9 @@ namespace Thermochimica
   void resetThermoAll();
 
   // utilitiy functions for consistency check / database record
+  std::size_t getNumberElementsDatabase();
+  std::vector<std::string> getElementsDatabase();
+  std::string getElementAtIndex(int element_index);
   std::pair<std::size_t, std::size_t> getNumberPhasesDatabase();
   std::vector<std::string> getPhaseNamesDatabase();
   std::string getPhaseNameAtIndex(int phase_index);
@@ -68,6 +73,7 @@ namespace Thermochimica
   std::pair<double, int>
   getSublSiteMol(const std::string &phaseName, int sublattice, int constituent);
 
+  bool isPhaseMQM(const int phaseIndex);
   std::pair<double, int>
   getMqmqaMolesPairs(const std::string &phaseName);
   std::pair<double, int>

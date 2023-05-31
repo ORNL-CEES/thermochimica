@@ -36,7 +36,9 @@ extern "C"
   void TCAPI_setTemperaturePressure(double *, double *);
   void TCAPI_checkInfoThermo(int *);
 
-  void TCAPI_sSParseCSDataFile();
+  void TCAPI_parseCSDataFile();
+  void TCAPI_thermochimicaSetup();
+  void TCAPI_thermochimicaSolver();
   void TCAPI_thermochimica();
 
   void TCAPI_solPhaseParse(int *, double *);
@@ -46,6 +48,8 @@ extern "C"
   void TCAPI_printResults();
   void TCAPI_printState();
 
+  void TCAPI_getNumberElementsDatabase(int *);
+  char *TCAPI_getElementAtIndex(int *, int *);
   void TCAPI_getNumberPhasesDatabase(int *, int *);
   char *TCAPI_getPhaseNameAtIndex(int *, int *);
   void TCAPI_getNumberSpeciesDatabase(int *);
@@ -66,6 +70,7 @@ extern "C"
   void TCAPI_getElementFraction(int *, double *);
 
   // MQMQA functions
+  void TCAPI_isPhaseMQM(const int *, bool *);
   void TCAPI_getMqmqaMolesPairs(const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaPairMolFraction(const char *, std::size_t, const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaNumberPairsQuads(const char *, std::size_t, int *, int *, int *);

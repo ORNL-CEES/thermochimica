@@ -14,6 +14,16 @@ namespace Thermochimica
     TCAPI_thermochimica();
   }
 
+  void thermochimicaSetup()
+  {
+    TCAPI_thermochimicaSetup();
+  }
+
+  void thermochimicaSolver()
+  {
+    TCAPI_thermochimicaSolver();
+  }
+
   void setThermoFilename(const std::string &filename)
   {
     TCAPI_setThermoFilename(filename.c_str(), filename.length());
@@ -75,7 +85,7 @@ namespace Thermochimica
 
   void parseThermoFile()
   {
-    TCAPI_sSParseCSDataFile();
+    TCAPI_parseCSDataFile();
   }
 
   void setPrintResultsMode(int mode)
@@ -104,11 +114,40 @@ namespace Thermochimica
   }
 
   // utilitiy functions for consistency check / database record
+  std::size_t getNumberElementsDatabase()
+  {
+    int n_elements;
+    TCAPI_getNumberElementsDatabase(&n_elements);
+    return (std::size_t)n_elements;
+  }
+
+  std::vector<std::string> getElementsDatabase()
+  {
+    auto n_elements = getNumberElementsDatabase();
+
+    std::vector<std::string> elements(n_elements);
+
+    for (std::size_t i = 0; i < n_elements; ++i)
+      elements[i] = getElementAtIndex(i);
+
+    return elements;
+  }
+
+  std::string getElementAtIndex(int element_index)
+  {
+    int length;
+    auto index = element_index + 1; // Fortran indexing adjustment
+
+    char *buffer = TCAPI_getElementAtIndex(&index, &length);
+
+    return std::string(buffer, buffer + length);
+  }
+
   std::pair<std::size_t, std::size_t> getNumberPhasesDatabase()
   {
-    int solution, condensed;
-    TCAPI_getNumberPhasesDatabase(&solution, &condensed);
-    return {(std::size_t)solution, (std::size_t)condensed};
+    int n_solution, n_condensed;
+    TCAPI_getNumberPhasesDatabase(&n_solution, &n_condensed);
+    return {(std::size_t)n_solution, (std::size_t)n_condensed};
   }
 
   std::vector<std::string> getPhaseNamesDatabase()
@@ -225,6 +264,14 @@ namespace Thermochimica
     return potential;
   }
 
+  // std::pair<double, int> getElementPotential(const int elementID)
+  // {
+  //   double potential;
+  //   int info;
+  //   TCAPI_getElementPotential(&elementID, &potential, &info);
+  //   return {potential, info};
+  // }
+
   double getElementFraction(int atomicNumber)
   {
     double fraction;
@@ -334,6 +381,15 @@ namespace Thermochimica
   }
 
   // MQMQA functions
+
+  bool isPhaseMQM(const int phase_index)
+  {
+    bool isMQM;
+    auto index = phase_index + 1; // Adjust indexing for Fortran
+    TCAPI_isPhaseMQM(&index, &isMQM);
+
+    return isMQM;
+  }
 
   std::pair<double, int>
   getMqmqaMolesPairs(const std::string &phaseName)

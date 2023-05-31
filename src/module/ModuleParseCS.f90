@@ -95,7 +95,7 @@ module ModuleParseCS
     real(8),        dimension(:,:,:), allocatable :: dSublatticeChargeCS, dStoichPairsCS, dConstituentCoefficientsCS
     real(8),        dimension(:,:,:), allocatable :: dCoordinationNumberCS
 
-    character(3),   dimension(:),   allocatable :: cElementNameCS
+    character(3),   dimension(:),   allocatable, target :: cElementNameCS
     character(8),   dimension(:),   allocatable :: cSolnPhaseTypeCS
     character(25),  dimension(:),   allocatable, target :: cSolnPhaseNameCS
     character(25),  dimension(:),   allocatable, target :: cSpeciesNameCS

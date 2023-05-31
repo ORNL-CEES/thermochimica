@@ -416,8 +416,7 @@
     !
 !-------------------------------------------------------------------------------
 
-
-subroutine Thermochimica
+subroutine ThermochimicaSetup
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -440,6 +439,14 @@ subroutine Thermochimica
 
     ! Check the thermodynamic database to ensure that it is appropriate:
     if (INFOThermo == 0) call CheckThermoData
+
+end subroutine ThermochimicaSetup
+
+subroutine ThermochimicaSolver
+    USE ModuleThermoIO
+    USE ModuleThermo
+
+    implicit none
 
     ! Check is load is requested and data available:
     lReinitLoaded = .FALSE.
@@ -471,6 +478,21 @@ subroutine Thermochimica
     end if
 
     if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity
+
+    return
+
+end subroutine ThermochimicaSolver
+
+subroutine Thermochimica
+
+    USE ModuleThermoIO
+    USE ModuleThermo
+
+    implicit none
+
+    call ThermochimicaSetup
+
+    call ThermochimicaSolver
 
     return
 

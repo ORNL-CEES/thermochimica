@@ -559,7 +559,7 @@ subroutine getElementPotential(i, value, ierr)
      ierr = 1
      write(*,*) 'Element out of range ', i, nElements
      do k=1,nElements
-        write(*,*) 'Element idx',k,' ',cElementName(k)
+        write(*,*) 'Element idx', k,' ',cElementName(k)
      enddo
 
   else

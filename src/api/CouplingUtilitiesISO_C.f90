@@ -120,6 +120,41 @@ subroutine SetUnitsISO(cTemperature, lcTemperature, cPressure, lcPressure, cMass
 
 end subroutine SetUnitsISO
 
+subroutine GetNumberElementsDatabaseISO(dElements) &
+    bind(C, name="TCAPI_getNumberElementsDatabase")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: nElementsCS
+
+    implicit none
+
+    integer(C_INT), intent(out):: dElements
+
+    dElements = nElementsCS
+
+    return
+
+end subroutine GetNumberElementsDatabaseISO
+
+function GetElementAtIndexISO(index, len) &
+    bind(C, name='TCAPI_getElementAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: cElementNameCS
+
+    implicit none
+
+    integer(c_int), intent(in) :: index
+    integer(c_int), intent(out) :: len
+    type(c_ptr) :: GetElementAtIndexISO
+
+    GetElementAtIndexISO = c_loc(cElementNameCS(index))
+    len = len_trim(cElementNameCS(index))
+
+    return
+
+end function GetElementAtIndexISO
+
 subroutine SetTemperaturePressureISO(dTemp, dPress) &
     bind(C, name="TCAPI_setTemperaturePressure")
 
@@ -325,6 +360,24 @@ function GetSpeciesAtIndexISO(index, len) &
 
 end function GetSpeciesAtIndexISO
 
+subroutine IsPhaseMQMISO(phase_index, isMQM) &
+    bind(C, name='TCAPI_isPhaseMQM')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: cSolnPhaseTypeCS
+
+    implicit none
+    integer(c_int), intent(in) :: phase_index
+    logical(c_bool), intent(out) :: isMQM
+
+    isMQM = .FALSE.
+
+    if ( cSolnPhaseTypeCS(phase_index) == 'SUBG    ' .OR. cSolnPhaseTypeCS(phase_index) == 'SUBQ    ' ) isMQM = .TRUE.
+
+    return
+
+  end subroutine IsPhaseMQMISO
+
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
 
@@ -393,7 +446,7 @@ subroutine SolPhaseParseISO(iElem, dMolSum) &
 end subroutine SolPhaseParseISO
 
 subroutine SSParseCSDataFileISO() &
-    bind(C, name="TCAPI_sSParseCSDataFile")
+    bind(C, name="TCAPI_parseCSDataFile")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
@@ -417,6 +470,32 @@ subroutine ThermochimicaISO() &
     return
 
 end subroutine ThermochimicaISO
+
+subroutine ThermochimicaSetupISO() &
+    bind(C, name="TCAPI_thermochimicaSetup")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call ThermochimicaSetup()
+
+    return
+
+end subroutine ThermochimicaSetupISO
+
+subroutine ThermochimicaSolverISO() &
+    bind(C, name="TCAPI_thermochimicaSolver")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call ThermochimicaSolver()
+
+    return
+
+end subroutine ThermochimicaSolverISO
 
 subroutine getMolFractionISO(i, value, ierr) &
     bind(C, name="TCAPI_getMolFraction")
