@@ -56,6 +56,11 @@ namespace Thermochimica
     TCAPI_setTemperaturePressure(&temperature, &pressure);
   }
 
+  void presetElementMass(int element, double mass)
+  {
+    TCAPI_presetElementMass(&element, &mass);
+  }
+
   void setElementMass(int element, double mass)
   {
     TCAPI_setElementMass(&element, &mass);
@@ -98,6 +103,80 @@ namespace Thermochimica
     TCAPI_resetThermoAll();
   }
 
+  // utilitiy functions for consistency check / database record
+  std::pair<std::size_t, std::size_t> getNumberPhasesDatabase()
+  {
+    int solution, condensed;
+    TCAPI_getNumberPhasesDatabase(&solution, &condensed);
+    return {(std::size_t)solution, (std::size_t)condensed};
+  }
+
+  std::vector<std::string> getPhaseNamesDatabase()
+  {
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    auto n_phases = n_soln_phases + n_cond_phases;
+
+    std::vector<std::string> phase_names(n_phases);
+
+    for (std::size_t i = 0; i < n_phases; ++i)
+      phase_names[i] = getPhaseNameAtIndex(i);
+
+    return phase_names;
+  }
+
+  std::vector<std::size_t> getNumberSpeciesDatabase()
+  {
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    (void)n_cond_phases;
+    std::vector<int> n_sp(n_soln_phases);
+    std::vector<std::size_t> n_species(n_soln_phases);
+    TCAPI_getNumberSpeciesDatabase(n_sp.data());
+    for (std::size_t i = 0; i < n_soln_phases; ++i)
+      n_species[i] = (std::size_t)n_sp[i];
+
+    return n_species;
+  }
+
+  std::string getPhaseNameAtIndex(int phase_index)
+  {
+    int length;
+    auto index = phase_index + 1; // Fortran indexing starts at 1 instead of 0
+
+    char *buffer = TCAPI_getPhaseNameAtIndex(&index, &length);
+
+    return std::string(buffer, buffer + length);
+  }
+
+  std::vector<std::vector<std::string>> getSpeciesDatabase()
+  {
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    (void)n_cond_phases;
+    std::vector<std::vector<std::string>> species(n_soln_phases);
+
+    for (std::size_t i = 0; i < n_soln_phases; ++i)
+      species[i] = getSpeciesInPhaseDatabase(i);
+
+    return species;
+  }
+
+  std::vector<std::string> getSpeciesInPhaseDatabase(int phase_index)
+  {
+    int length, index;
+    auto n_species = getNumberSpeciesDatabase();
+    auto n_species_phase = phase_index == 0 ? n_species[phase_index] : n_species[phase_index] - n_species[phase_index - 1];
+
+    std::vector<std::string> species(n_species_phase);
+
+    for (std::size_t i = 0; i < n_species_phase; ++i)
+    {
+      index = phase_index == 0 ? i + 1 : n_species[phase_index - 1] + i + 1;
+      char *buffer = TCAPI_getSpeciesAtIndex(&index, &length);
+      species[i] = std::string(buffer, buffer + length);
+    }
+
+    return species;
+  }
+
   // re-initialization-related functions
   void saveReinitData()
   {
@@ -113,7 +192,7 @@ namespace Thermochimica
 
   std::vector<double> getMolesPhase()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<double> molesPhase(elements);
     TCAPI_getMolesPhase(molesPhase.data());
     return molesPhase;
@@ -121,7 +200,7 @@ namespace Thermochimica
 
   std::vector<int> getAssemblage()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<int> assemblage(elements);
     TCAPI_getAssemblage(assemblage.data());
     return assemblage;
@@ -140,7 +219,7 @@ namespace Thermochimica
 
   std::vector<double> getAllElementPotential()
   {
-    auto [elements, species] = getReinitDataSizes();
+    auto elements = getReinitDataSizes().first;
     std::vector<double> potential(elements);
     TCAPI_getAllElementPotential(potential.data());
     return potential;

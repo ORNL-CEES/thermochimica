@@ -17,6 +17,7 @@ namespace Thermochimica
   void setStandardUnits();
   void setModelicaUnits();
   void setTemperaturePressure(double temperature, double pressure);
+  void presetElementMass(int element, double mass);
   void setElementMass(int element, double mass);
   int checkInfoThermo();
   void parseThermoFile();
@@ -25,6 +26,14 @@ namespace Thermochimica
   void resetInfoThermo();
   void resetThermo();
   void resetThermoAll();
+
+  // utilitiy functions for consistency check / database record
+  std::pair<std::size_t, std::size_t> getNumberPhasesDatabase();
+  std::vector<std::string> getPhaseNamesDatabase();
+  std::string getPhaseNameAtIndex(int phase_index);
+  std::vector<std::size_t> getNumberSpeciesDatabase();
+  std::vector<std::string> getSpeciesInPhaseDatabase(int phase_index);
+  std::vector<std::vector<std::string>> getSpeciesDatabase();
 
   // re-initialization-related functions
   void saveReinitData();
@@ -69,7 +78,8 @@ namespace Thermochimica
   getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
   // Reinitialization data
-  struct reinitData {
+  struct reinitData
+  {
     std::vector<int> assemblage;
     std::vector<double> molesPhase;
     std::vector<double> elementPotential;
