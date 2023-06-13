@@ -202,32 +202,34 @@ subroutine SetElementMass(iAtom, dMass)
 
 end subroutine SetElementMass
 
-subroutine GetNumberPhasesDatabase(iNumSolnPhases, iNumConPhases)
+subroutine GetNumberPhasesSystem(iNumSolnPhases, iNumConPhases)
 
-  USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
+  ! USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
+  USE ModuleThermo, ONLY: nSpecies, nSpeciesPhase, nSolnPhasesSys
 
   implicit none
 
   integer, intent(out):: iNumSolnPhases, iNumConPhases
 
-  iNumConPhases = nSpeciesCS - MAXVAL(nSpeciesPhaseCS)
-  iNumSolnPhases = nSolnPhasesSysCS
+  iNumConPhases = nSpecies - MAXVAL(nSpeciesPhase)
+  iNumSolnPhases = nSolnPhasesSys
 
   return
 
-end subroutine GetNumberPhasesDatabase
+end subroutine GetNumberPhasesSystem
 
-subroutine GetNumberSpeciesDatabase(nSpeciesDB)
-  USE ModuleParseCS, ONLY: nSolnPhasesSysCS, nSpeciesPhaseCS
+subroutine GetNumberSpeciesSystem(nSpeciesDB)
+  USE ModuleThermo, ONLY: nSolnPhasesSys, nSpeciesPhase
   implicit none
 
-  integer, intent(out), dimension(nSolnPhasesSysCS)     :: nSpeciesDB
+  integer, intent(out), dimension(nSolnPhasesSys)     :: nSpeciesDB
 
-  nSpeciesDB = nSpeciesPhaseCS(1:size(nSpeciesDB))
+  nSpeciesDB = nSpeciesPhase(1:size(nSpeciesDB))
+  ! print *, nSpeciesDB
 
   return
 
-end subroutine GetNumberSpeciesDatabase
+end subroutine GetNumberSpeciesSystem
 
 subroutine GetElementMass(iAtom, dMass)
 

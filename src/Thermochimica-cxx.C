@@ -14,14 +14,29 @@ namespace Thermochimica
     TCAPI_thermochimica();
   }
 
-  void thermochimicaSetup()
+  void setup()
   {
-    TCAPI_thermochimicaSetup();
+    TCAPI_setup();
   }
 
-  void thermochimicaSolver()
+  void solve()
   {
-    TCAPI_thermochimicaSolver();
+    TCAPI_solve();
+  }
+
+  void init()
+  {
+    TCAPI_init();
+  }
+
+  void checkSystem()
+  {
+    TCAPI_checkSystem();
+  }
+
+  void compThermoData()
+  {
+    TCAPI_compThermoData();
   }
 
   void setThermoFilename(const std::string &filename)
@@ -143,16 +158,16 @@ namespace Thermochimica
     return std::string(buffer, buffer + length);
   }
 
-  std::pair<std::size_t, std::size_t> getNumberPhasesDatabase()
+  std::pair<std::size_t, std::size_t> getNumberPhasesSystem()
   {
     int n_solution, n_condensed;
-    TCAPI_getNumberPhasesDatabase(&n_solution, &n_condensed);
+    TCAPI_getNumberPhasesSystem(&n_solution, &n_condensed);
     return {(std::size_t)n_solution, (std::size_t)n_condensed};
   }
 
-  std::vector<std::string> getPhaseNamesDatabase()
+  std::vector<std::string> getPhaseNamesSystem()
   {
-    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesSystem();
     auto n_phases = n_soln_phases + n_cond_phases;
 
     std::vector<std::string> phase_names(n_phases);
@@ -163,13 +178,13 @@ namespace Thermochimica
     return phase_names;
   }
 
-  std::vector<std::size_t> getNumberSpeciesDatabase()
+  std::vector<std::size_t> getNumberSpeciesSystem()
   {
-    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesSystem();
     (void)n_cond_phases;
     std::vector<int> n_sp(n_soln_phases);
     std::vector<std::size_t> n_species(n_soln_phases);
-    TCAPI_getNumberSpeciesDatabase(n_sp.data());
+    TCAPI_getNumberSpeciesSystem(n_sp.data());
     for (std::size_t i = 0; i < n_soln_phases; ++i)
       n_species[i] = (std::size_t)n_sp[i];
 
@@ -186,22 +201,22 @@ namespace Thermochimica
     return std::string(buffer, buffer + length);
   }
 
-  std::vector<std::vector<std::string>> getSpeciesDatabase()
+  std::vector<std::vector<std::string>> getSpeciesSystem()
   {
-    auto [n_soln_phases, n_cond_phases] = getNumberPhasesDatabase();
+    auto [n_soln_phases, n_cond_phases] = getNumberPhasesSystem();
     (void)n_cond_phases;
     std::vector<std::vector<std::string>> species(n_soln_phases);
 
     for (std::size_t i = 0; i < n_soln_phases; ++i)
-      species[i] = getSpeciesInPhaseDatabase(i);
+      species[i] = getSpeciesInPhase(i);
 
     return species;
   }
 
-  std::vector<std::string> getSpeciesInPhaseDatabase(int phase_index)
+  std::vector<std::string> getSpeciesInPhase(int phase_index)
   {
     int length, index;
-    auto n_species = getNumberSpeciesDatabase();
+    auto n_species = getNumberSpeciesSystem();
     auto n_species_phase = phase_index == 0 ? n_species[phase_index] : n_species[phase_index] - n_species[phase_index - 1];
 
     std::vector<std::string> species(n_species_phase);

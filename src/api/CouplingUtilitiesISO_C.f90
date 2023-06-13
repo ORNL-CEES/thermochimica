@@ -286,8 +286,8 @@ subroutine ResetThermoAllISO() &
 
 end subroutine ResetThermoAllISO
 
-subroutine GetNumberPhasesDatabaseISO(iSolnPhases, iConPhases) &
-    bind(C, name="TCAPI_getNumberPhasesDatabase")
+subroutine GetNumberPhasesSystemISO(iSolnPhases, iConPhases) &
+    bind(C, name="TCAPI_getNumberPhasesSystem")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
@@ -295,17 +295,17 @@ subroutine GetNumberPhasesDatabaseISO(iSolnPhases, iConPhases) &
 
     integer(C_INT), intent(out):: iSolnPhases, iConPhases
 
-    call GetNumberPhasesDatabase(iSolnPhases, iConPhases)
+    call GetNumberPhasesSystem(iSolnPhases, iConPhases)
 
     return
 
-end subroutine GetNumberPhasesDatabaseISO
+end subroutine GetNumberPhasesSystemISO
 
 function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
     bind(C, name='TCAPI_getPhaseNameAtIndex')
 
     USE, INTRINSIC :: ISO_C_BINDING
-    USE ModuleParseCS
+    USE ModuleThermo
 
     implicit none
 
@@ -313,20 +313,20 @@ function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
     integer(c_int), intent(out) :: phase_name_len
     type(c_ptr) :: GetPhaseNameAtIndexISO
 
-    if (phase_index <=  nSolnPhasesSysCS) then
-        GetPhaseNameAtIndexISO = c_loc(cSolnPhaseNameCS(phase_index))
-        phase_name_len = len_trim(cSolnPhaseNameCS(phase_index))
+    if (phase_index <=  nSolnPhasesSys) then
+        GetPhaseNameAtIndexISO = c_loc(cSolnPhaseName(phase_index))
+        phase_name_len = len_trim(cSolnPhaseName(phase_index))
     else
-        GetPhaseNameAtIndexISO = c_loc(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
-        phase_name_len = len_trim(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
+        GetPhaseNameAtIndexISO = c_loc(cSpeciesName(phase_index - nSolnPhasesSys))
+        phase_name_len = len_trim(cSpeciesName(phase_index - nSolnPhasesSys))
     end if
 
     return
 
 end function GetPhaseNameAtIndexISO
 
-subroutine GetNumberSpeciesDatabaseISO(nSpeciesDB) &
-    bind(C, name='TCAPI_getNumberSpeciesDatabase')
+subroutine GetNumberSpeciesSystemISO(nSpeciesDB) &
+    bind(C, name='TCAPI_getNumberSpeciesSystem')
 
     USE, INTRINSIC :: ISO_C_BINDING
     USE ModuleParseCS, ONLY: nSolnPhasesSysCS
@@ -335,17 +335,17 @@ subroutine GetNumberSpeciesDatabaseISO(nSpeciesDB) &
 
     integer(c_int), intent(out), dimension(nSolnPhasesSysCS) :: nSpeciesDB
 
-    call GetNumberSpeciesDatabase(nSpeciesDB)
+    call GetNumberSpeciesSystem(nSpeciesDB)
 
     return
 
-end subroutine GetNumberSpeciesDatabaseISO
+end subroutine GetNumberSpeciesSystemISO
 
 function GetSpeciesAtIndexISO(index, len) &
     bind(C, name='TCAPI_getSpeciesAtIndex')
 
     USE, INTRINSIC :: ISO_C_BINDING
-    USE ModuleParseCS
+    USE ModuleThermo
 
     implicit none
 
@@ -353,8 +353,8 @@ function GetSpeciesAtIndexISO(index, len) &
     integer(c_int), intent(out) :: len
     type(c_ptr) :: GetSpeciesAtIndexISO
 
-    GetSpeciesAtIndexISO = c_loc(cSpeciesNameCS(index))
-    len = len_trim(cSpeciesNameCS(index))
+    GetSpeciesAtIndexISO = c_loc(cSpeciesName(index))
+    len = len_trim(cSpeciesName(index))
 
     return
 
@@ -465,37 +465,76 @@ subroutine ThermochimicaISO() &
 
     implicit none
 
-    call Thermochimica()
+    call Thermochimica
 
     return
 
 end subroutine ThermochimicaISO
 
 subroutine ThermochimicaSetupISO() &
-    bind(C, name="TCAPI_thermochimicaSetup")
+    bind(C, name="TCAPI_setup")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
-    call ThermochimicaSetup()
+    call ThermochimicaSetup
 
     return
 
 end subroutine ThermochimicaSetupISO
 
 subroutine ThermochimicaSolverISO() &
-    bind(C, name="TCAPI_thermochimicaSolver")
+    bind(C, name="TCAPI_solve")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
     implicit none
 
-    call ThermochimicaSolver()
+    call ThermochimicaSolver
 
     return
 
 end subroutine ThermochimicaSolverISO
+
+subroutine ThermochimicaCheckSystemISO() &
+    bind(C, name="TCAPI_checkSystem")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call CheckSystem
+
+    return
+
+end subroutine ThermochimicaCheckSystemISO
+
+subroutine ThermochimicaInitISO() &
+    bind(C, name="TCAPI_init")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call InitThermo
+
+    return
+
+end subroutine ThermochimicaInitISO
+
+subroutine CompThermoDataISO() &
+    bind(C, name="TCAPI_compThermoData")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call CompThermoData
+
+    return
+
+end subroutine CompThermoDataISO
 
 subroutine getMolFractionISO(i, value, ierr) &
     bind(C, name="TCAPI_getMolFraction")

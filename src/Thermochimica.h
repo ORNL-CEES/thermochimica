@@ -37,8 +37,11 @@ extern "C"
   void TCAPI_checkInfoThermo(int *);
 
   void TCAPI_parseCSDataFile();
-  void TCAPI_thermochimicaSetup();
-  void TCAPI_thermochimicaSolver();
+  void TCAPI_init();
+  void TCAPI_checkSystem();
+  void TCAPI_compThermoData();
+  void TCAPI_setup();
+  void TCAPI_solve();
   void TCAPI_thermochimica();
 
   void TCAPI_solPhaseParse(int *, double *);
@@ -50,9 +53,9 @@ extern "C"
 
   void TCAPI_getNumberElementsDatabase(int *);
   char *TCAPI_getElementAtIndex(int *, int *);
-  void TCAPI_getNumberPhasesDatabase(int *, int *);
+  void TCAPI_getNumberPhasesSystem(int *, int *);
   char *TCAPI_getPhaseNameAtIndex(int *, int *);
-  void TCAPI_getNumberSpeciesDatabase(int *);
+  void TCAPI_getNumberSpeciesSystem(int *);
   char *TCAPI_getSpeciesAtIndex(int *, int *);
 
   void TCAPI_resetInfoThermo();

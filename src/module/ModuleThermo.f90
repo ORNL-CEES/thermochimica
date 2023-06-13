@@ -115,12 +115,12 @@ module ModuleThermo
     real(8),      dimension(:,:,:),allocatable::  dSiteFraction, dCoordinationNumber, dSublatticeCharge, dStoichPairs
     real(8),      dimension(:,:,:),allocatable::  dConstituentCoefficients
 
-    character(12), dimension(:),   allocatable::  cElementName
-    character(30), dimension(:),   allocatable::  cSpeciesName
-    character(8),  dimension(:),   allocatable::  cSolnPhaseType
-    character(25), dimension(:),   allocatable::  cSolnPhaseName
-    character(8),  dimension(:,:,:),allocatable:: cConstituentNameSUB
-    character,     dimension(:),   allocatable::  cRegularParam
-    character(30),  dimension(:,:), allocatable :: cPairName
+    character(12), dimension(:),   allocatable::            cElementName
+    character(30), dimension(:),   allocatable, target::    cSpeciesName
+    character(8),  dimension(:),   allocatable::            cSolnPhaseType
+    character(25), dimension(:),   allocatable, target::    cSolnPhaseName
+    character(8),  dimension(:,:,:),allocatable::           cConstituentNameSUB
+    character,     dimension(:),   allocatable::            cRegularParam
+    character(30),  dimension(:,:), allocatable ::          cPairName
 
 end module ModuleThermo
