@@ -360,11 +360,29 @@ function GetSpeciesAtIndexISO(index, len) &
 
 end function GetSpeciesAtIndexISO
 
+subroutine IsPhaseGasISO(phase_index, isGas) &
+    bind(C, name='TCAPI_isPhaseGas')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo, ONLY: cSolnPhaseType
+
+    implicit none
+    integer(c_int), intent(in) :: phase_index
+    logical(c_bool), intent(out) :: isGas
+
+    isGas = .FALSE.
+
+    if ( cSolnPhaseType(phase_index) == 'IDMX    ' ) isGas = .TRUE.
+
+    return
+
+end subroutine IsPhaseGasISO
+
 subroutine IsPhaseMQMISO(phase_index, isMQM) &
     bind(C, name='TCAPI_isPhaseMQM')
 
     USE, INTRINSIC :: ISO_C_BINDING
-    USE ModuleParseCS, ONLY: cSolnPhaseTypeCS
+    USE ModuleThermo, ONLY: cSolnPhaseType
 
     implicit none
     integer(c_int), intent(in) :: phase_index
@@ -372,11 +390,11 @@ subroutine IsPhaseMQMISO(phase_index, isMQM) &
 
     isMQM = .FALSE.
 
-    if ( cSolnPhaseTypeCS(phase_index) == 'SUBG    ' .OR. cSolnPhaseTypeCS(phase_index) == 'SUBQ    ' ) isMQM = .TRUE.
+    if ( cSolnPhaseType(phase_index) == 'SUBG    ' .OR. cSolnPhaseType(phase_index) == 'SUBQ    ' ) isMQM = .TRUE.
 
     return
 
-  end subroutine IsPhaseMQMISO
+end subroutine IsPhaseMQMISO
 
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")

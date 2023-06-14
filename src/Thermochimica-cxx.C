@@ -395,8 +395,17 @@ namespace Thermochimica
     return {siteMoles, info};
   }
 
-  // MQMQA functions
+  // Gas phase functions
+  bool isPhaseGas(const int phase_index)
+  {
+    bool isGas;
+    auto index = phase_index + 1;
+    TCAPI_isPhaseGas(&index, &isGas);
 
+    return isGas;
+  }
+
+  // MQMQA functions
   bool isPhaseMQM(const int phase_index)
   {
     bool isMQM;

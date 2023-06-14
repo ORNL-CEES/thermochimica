@@ -72,6 +72,9 @@ extern "C"
   void TCAPI_getAllElementPotential(double *);
   void TCAPI_getElementFraction(int *, double *);
 
+  // Gas phase functions
+  void TCAPI_isPhaseGas(const int *, bool *);
+
   // MQMQA functions
   void TCAPI_isPhaseMQM(const int *, bool *);
   void TCAPI_getMqmqaMolesPairs(const char *, std::size_t, double *, int *);

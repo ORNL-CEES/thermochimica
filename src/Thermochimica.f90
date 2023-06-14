@@ -439,7 +439,8 @@ subroutine ThermochimicaSetup
 
     ! Check the thermodynamic database to ensure that it is appropriate:
     if (INFOThermo == 0) call CheckThermoData
-    ! print *, cSpeciesName
+    ! print *, nSolnPhasesSys
+    ! print *, nSpeciesPhase
 
 end subroutine ThermochimicaSetup
 

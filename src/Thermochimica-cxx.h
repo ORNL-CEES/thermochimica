@@ -76,6 +76,8 @@ namespace Thermochimica
   std::pair<double, int>
   getSublSiteMol(const std::string &phaseName, int sublattice, int constituent);
 
+  bool isPhaseGas(const int phaseIndex);
+
   bool isPhaseMQM(const int phaseIndex);
   std::pair<double, int>
   getMqmqaMolesPairs(const std::string &phaseName);
