@@ -196,6 +196,10 @@ subroutine ResetThermo
     if (allocated(iInterpolationOverride)) deallocate(iInterpolationOverride, STAT = INFO)
     i = i + INFO
 
+    print *, "ResetThermo"
+    print *, allocated(iterHistoryLevel), allocated(dMolesPhase)
+    call flush()
+
     lRetryAttempted = .FALSE.
 
     ! Return an INFOThermo if deallocation of any of the allocatable variables failed:

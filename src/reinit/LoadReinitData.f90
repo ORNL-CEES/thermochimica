@@ -71,6 +71,10 @@ subroutine LoadReinitData
   dMolesPhase         = dMolesPhase_Old * dNormalizeInput
   dMolFraction        = dMolFraction_Old
 
+  print *, "LoadReinitData"
+  print *, allocated(iterHistoryLevel), allocated(dMolesPhase)
+  call flush()
+
   lReinitLoaded = .TRUE.
 
 end subroutine LoadReinitData

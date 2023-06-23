@@ -112,22 +112,41 @@ subroutine LevelingSolver
     ! Initialize variables:
     n = 0
 
+    print *, "LevelingSolver"
+    print *, allocated(iterHistoryLevel), allocated(dMolesPhase)
+    call flush()
+
     ! Check to see if allocatable arrays have already been allocated:
-    if (allocated(dMolesPhase)) then
+    if (allocated(dMolesPhase).AND.allocated(iterHistoryLevel.AND.allocated(iAssemblage)....) then
         i = SIZE(iAssemblage)
 
         if (i /= nElements) then
             ! The number of elements in the system has changed.
+            print *, "deallocate1"
+            call flush()
+
+            if (allocated(dMolesPhase)) deallocate(dMolesPhase, STAT = INFO)
+            if (allocated(dElementPotential)) deallocate(dElementPotential, STAT = INFO)
+            if (allocated(iAssemblage)) deallocate(iAssemblage, STAT = INFO)
+            if (allocated(dMolesPhase)) deallocate(dMolesPhase, STAT = INFO)
+            if (allocated(dMolesPhase)) deallocate(dMolesPhase, STAT = INFO)...
+
             deallocate(dMolesPhase,dElementPotential,iAssemblage,iterHistoryLevel,dLevel, STAT = n)
             if (n /= 0) then
+                print *, "ERROR1"
+                call flush()
                 INFOThermo = 20
                 return
             end if
+            print *, "allocate1"
+            call flush()
             allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
             allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
         end if
     else
         ! Allocate memory to allocatable arrays for the first time:
+        print *, "allocate2"
+        call flush()
         allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
         allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
     end if
