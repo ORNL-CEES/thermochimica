@@ -44,6 +44,13 @@ subroutine PostProcessThermo
 
     ! Multiply the number of moles of all phases by the normalizing constant:
     dNormalizeInput = 1D0 / dNormalizeInput
+    ! print *, "========================= Moles Element ========================= "
+    ! print *, dMolesElement
+    ! print *, "========================= Normalize Input ========================= "
+    ! print *, dNormalizeInput
+    ! print *, "========================= Mass Scale ========================= "
+    ! print *, dMassScale
+    ! print *, "    "
     dMolesPhase     = dMolesPhase   * dNormalizeInput * dMassScale
     dMolesElement   = dMolesElement * dNormalizeInput * dMassScale
     dMolesSpecies   = dMolesSpecies * dNormalizeInput * dMassScale

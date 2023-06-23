@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <iostream>
 #include <math.h>
 #include <cstring>
 #include <map>
@@ -216,16 +217,36 @@ namespace Thermochimica
   std::vector<std::string> getSpeciesInPhase(int phase_index)
   {
     int length, index;
+    auto ph_index = phase_index + 1;
     auto n_species = getNumberSpeciesSystem();
-    auto n_species_phase = phase_index == 0 ? n_species[phase_index] : n_species[phase_index] - n_species[phase_index - 1];
+    auto is_mqm = isPhaseMQM(phase_index);
+
+    std::size_t n_species_phase;
+
+    if (is_mqm)
+    {
+      auto [n_pairs, n_quads, idbg] = getMqmqaNumberPairsQuads(getPhaseNameAtIndex(phase_index));
+      n_species_phase = n_pairs;
+    }
+    else
+      n_species_phase = phase_index == 0 ? n_species[phase_index] : n_species[phase_index] - n_species[phase_index - 1];
 
     std::vector<std::string> species(n_species_phase);
 
     for (std::size_t i = 0; i < n_species_phase; ++i)
     {
-      index = phase_index == 0 ? i + 1 : n_species[phase_index - 1] + i + 1;
-      char *buffer = TCAPI_getSpeciesAtIndex(&index, &length);
-      species[i] = std::string(buffer, buffer + length);
+      if (is_mqm)
+      {
+        index = i + 1;
+        char *buffer = TCAPI_getMqmqaPairAtIndex(&ph_index, &index, &length);
+        species[i] = std::string(buffer, buffer + length);
+      }
+      else
+      {
+        index = phase_index == 0 ? i + 1 : n_species[phase_index - 1] + i + 1;
+        char *buffer = TCAPI_getSpeciesAtIndex(&index, &length);
+        species[i] = std::string(buffer, buffer + length);
+      }
     }
 
     return species;

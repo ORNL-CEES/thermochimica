@@ -81,6 +81,7 @@ extern "C"
   void TCAPI_getMqmqaPairMolFraction(const char *, std::size_t, const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaNumberPairsQuads(const char *, std::size_t, int *, int *, int *);
   void TCAPI_getMqmqaConstituentFraction(const char *, std::size_t, int *, const char *, std::size_t, double *, int *);
+  char *TCAPI_getMqmqaPairAtIndex(int *, int *, int *);
 
   // MOOSE reinit functions
   void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *);
@@ -94,5 +95,4 @@ extern "C"
   void TCAPI_setFuzzyStoich(bool *);
   void TCAPI_setFuzzyMagnitude(double *);
   void TCAPI_setGibbsMinCheck(bool *);
-
 }

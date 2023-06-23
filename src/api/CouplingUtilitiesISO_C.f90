@@ -317,8 +317,8 @@ function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
         GetPhaseNameAtIndexISO = c_loc(cSolnPhaseName(phase_index))
         phase_name_len = len_trim(cSolnPhaseName(phase_index))
     else
-        GetPhaseNameAtIndexISO = c_loc(cSpeciesName(phase_index - nSolnPhasesSys))
-        phase_name_len = len_trim(cSpeciesName(phase_index - nSolnPhasesSys))
+        GetPhaseNameAtIndexISO = c_loc(cSpeciesName(MAXVAL(nSpeciesPhase) + phase_index - nSolnPhasesSys))
+        phase_name_len = len_trim(cSpeciesName(MAXVAL(nSpeciesPhase) + phase_index - nSolnPhasesSys))
     end if
 
     return
@@ -396,6 +396,29 @@ subroutine IsPhaseMQMISO(phase_index, isMQM) &
 
 end subroutine IsPhaseMQMISO
 
+function GetMqmqaPairNameISO(phase_index, pair_index, len) &
+    bind(C, name='TCAPI_getMqmqaPairAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo
+
+    implicit none
+
+    integer(c_int), intent(in) :: phase_index, pair_index
+    integer(c_int), intent(out) :: len
+    type(c_ptr) :: GetMqmqaPairNameISO
+
+    integer :: iSPI
+
+    iSPI = iPhaseSublattice(phase_index)    ! Following the name convention used in other MQMQA functions
+
+    GetMqmqaPairNameISO = c_loc(cPairName(iSPI, pair_index))
+    len = len_trim(cPairName(iSPI, pair_index))
+
+    return
+
+end function GetMqmqaPairNameISO
+
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
 
@@ -463,18 +486,21 @@ subroutine SolPhaseParseISO(iElem, dMolSum) &
     return
 end subroutine SolPhaseParseISO
 
-subroutine SSParseCSDataFileISO() &
+subroutine ParseCSDataFileISO() &
     bind(C, name="TCAPI_parseCSDataFile")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
+    USE :: ModuleThermoIO
+
     implicit none
 
-    call SSParseCSDataFile
+    call ParseCSDataFile(cThermoFileName)
+    ! call ParseCSDataFile
 
     return
 
-end subroutine SSParseCSDataFileISO
+end subroutine ParseCSDataFileISO
 
 subroutine ThermochimicaISO() &
     bind(C, name="TCAPI_thermochimica")

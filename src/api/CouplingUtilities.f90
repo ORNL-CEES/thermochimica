@@ -205,13 +205,13 @@ end subroutine SetElementMass
 subroutine GetNumberPhasesSystem(iNumSolnPhases, iNumConPhases)
 
   ! USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
-  USE ModuleThermo, ONLY: nSpecies, nSpeciesPhase, nSolnPhasesSys
+  USE ModuleThermo, ONLY: nSolnPhasesSys, nConPhasesSys
 
   implicit none
 
   integer, intent(out):: iNumSolnPhases, iNumConPhases
 
-  iNumConPhases = nSpecies - MAXVAL(nSpeciesPhase)
+  iNumConPhases = nConPhasesSys
   iNumSolnPhases = nSolnPhasesSys
 
   return
@@ -318,18 +318,17 @@ subroutine SolPhaseParse(iElem, dMolSum)
     return
 end subroutine SolPhaseParse
 
-subroutine SSParseCSDataFile
+! subroutine SSParseCSDataFile
 
-    USE ModuleThermoIO
-    USE ModuleSS
+!     USE ModuleThermoIO
 
-    implicit none
+!     implicit none
 
-    call ParseCSDataFile(cThermoFileName)
+!     call ParseCSDataFile(cThermoFileName)
 
-    return
+!     return
 
-end subroutine SSParseCSDataFile
+! end subroutine SSParseCSDataFile
 
 subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
 

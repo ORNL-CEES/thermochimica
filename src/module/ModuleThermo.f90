@@ -121,6 +121,6 @@ module ModuleThermo
     character(25), dimension(:),   allocatable, target::    cSolnPhaseName
     character(8),  dimension(:,:,:),allocatable::           cConstituentNameSUB
     character,     dimension(:),   allocatable::            cRegularParam
-    character(30),  dimension(:,:), allocatable ::          cPairName
+    character(30), dimension(:,:), allocatable, target::    cPairName
 
 end module ModuleThermo
