@@ -196,6 +196,7 @@ subroutine SetElementMass(iAtom, dMass)
       stop
   else
       if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
+      ! write(*,*) 'SetElementMass ', iAtom, dElementMass(iAtom), dMass
   end if
 
   return

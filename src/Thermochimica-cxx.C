@@ -300,14 +300,6 @@ namespace Thermochimica
     return potential;
   }
 
-  // std::pair<double, int> getElementPotential(const int elementID)
-  // {
-  //   double potential;
-  //   int info;
-  //   TCAPI_getElementPotential(&elementID, &potential, &info);
-  //   return {potential, info};
-  // }
-
   double getElementFraction(int atomicNumber)
   {
     double fraction;
