@@ -14,12 +14,10 @@ namespace Thermochimica
     try
     {
       if (std::find(_temperature_names.begin(), _temperature_names.end(), temperature_unit) == _temperature_names.end())
-        throw(temperature_unit);
+        throw std::range_error("checkTemperature: unknown temperature unit '" + std::to_string(temperature_unit) + "'.");
     }
-    catch (...)
+    catch (const std::runtime_error &e)
     {
-      std::cout
-          << "checkTemperature: unknown temperature unit " << temperature_unit << ". Typo?";
     }
   }
 
@@ -31,11 +29,10 @@ namespace Thermochimica
     try
     {
       if (std::find(_pressure_names.begin(), _pressure_names.end(), pressure_unit) == _pressure_names.end())
-        throw(pressure_unit);
+        throw std::range_error("checkPressure: unknown pressure unit '" + std::to_string(pressure_unit) + "'.");
     }
-    catch (...)
+    catch (const std::runtime_error &e)
     {
-      std::cout << "checkPressure: unknown pressure unit " << pressure_unit << ". Typo?";
     }
   }
 
@@ -50,11 +47,10 @@ namespace Thermochimica
     try
     {
       if (std::find(_mass_names.begin(), _mass_names.end(), mass_unit) == _mass_names.end())
-        throw(mass_unit);
+        throw std::range_error("checkMass: unknown mass unit '" + std::to_string(mass_unit) + "'.");
     }
-    catch (...)
+    catch (const std::runtime_error &e)
     {
-      std::cout << "checkMass: unknown mass unit " << mass_unit << ". Typo?";
     }
   }
 
@@ -70,12 +66,10 @@ namespace Thermochimica
       if (it != _atomic_number_map.end())
         return it->second;
       else
-        throw(element);
+        throw std::range_error("atomicNumber: unknown chemical element '" + std::to_string(element) + "'.");
     }
-    catch (...)
+    catch (const std::runtime_error &e)
     {
-      std ::cout << "atomicNumber: unknown chemical element " << element << " requested. Typo?";
-      return 0;
     }
   }
 
@@ -101,12 +95,10 @@ namespace Thermochimica
       if (atomic_number >= 1 && atomic_number <= _element_names.size())
         return _element_names[atomic_number - 1];
       else
-        throw(atomic_number);
+        throw std::range_error("elementName: Requesting an element with atomic number " + std::to_string(atomic_number) + ", which is outside of the known range.");
     }
-    catch (...)
+    catch (const std::runtime_error &e)
     {
-      std::cout << "elementName: Requesting an element with atomic number " << atomic_number << ", which is outside of the known range.";
-      return std::string();
     }
   }
 }
