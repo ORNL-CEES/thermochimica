@@ -542,7 +542,7 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
     implicit none
 
     integer :: i, j, k, iSolnPhaseIndex
-    real(8) :: dStepLength, dTemp, dMaxChange
+    real(8) :: dStepLength, dTemp, dMaxChange, dChange
 
     ! Initialize variables:
     dStepLength = 1D0
@@ -575,9 +575,15 @@ subroutine SubMinLineSearch(iSolnPhaseIndex)
         ! Absolute species index:
         i = iFirst + j - 1
         ! Apply step length:
-        dMolFraction(i) = dMolFraction(i) + dStepLength * dRHS(j)
+        dChange = dStepLength * dRHS(j)
+        if (dMolFraction(i) + dChange > 1D0) then
+            dChange = 1D0 - dMolFraction(i)
+        end if
+        dMolFraction(i) = dMolFraction(i) + dChange
         ! Store maximum change to the mole fraction:
-        dTemp = DMAX1(dTemp, DABS(dRHS(j)))
+        if (dChange > dTemp) then
+            dTemp = dChange
+        end if
     end do
 
     ! Iterate to satisfy Wolfe conditions:

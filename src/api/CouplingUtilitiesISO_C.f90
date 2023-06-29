@@ -286,6 +286,7 @@ subroutine ResetThermoAllISO() &
 
 end subroutine ResetThermoAllISO
 
+
 subroutine GetNumberPhasesSystemISO(iSolnPhases, iConPhases) &
     bind(C, name="TCAPI_getNumberPhasesSystem")
 
@@ -305,6 +306,7 @@ function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
     bind(C, name='TCAPI_getPhaseNameAtIndex')
 
     USE, INTRINSIC :: ISO_C_BINDING
+
     USE ModuleThermo
 
     implicit none
@@ -341,6 +343,7 @@ subroutine GetNumberSpeciesSystemISO(nSpeciesDB) &
 
 end subroutine GetNumberSpeciesSystemISO
 
+
 function GetSpeciesAtIndexISO(index, len) &
     bind(C, name='TCAPI_getSpeciesAtIndex')
 
@@ -355,6 +358,7 @@ function GetSpeciesAtIndexISO(index, len) &
 
     GetSpeciesAtIndexISO = c_loc(cSpeciesName(index))
     len = len_trim(cSpeciesName(index))
+
 
     return
 

@@ -130,6 +130,7 @@ namespace Thermochimica
   }
 
   // utilitiy functions for consistency check / database record
+
   std::size_t getNumberElementsDatabase()
   {
     int n_elements;
@@ -169,6 +170,7 @@ namespace Thermochimica
   std::vector<std::string> getPhaseNamesSystem()
   {
     auto [n_soln_phases, n_cond_phases] = getNumberPhasesSystem();
+
     auto n_phases = n_soln_phases + n_cond_phases;
 
     std::vector<std::string> phase_names(n_phases);
@@ -186,6 +188,7 @@ namespace Thermochimica
     std::vector<int> n_sp(n_soln_phases);
     std::vector<std::size_t> n_species(n_soln_phases);
     TCAPI_getNumberSpeciesSystem(n_sp.data());
+
     for (std::size_t i = 0; i < n_soln_phases; ++i)
       n_species[i] = (std::size_t)n_sp[i];
 
@@ -205,10 +208,12 @@ namespace Thermochimica
   std::vector<std::vector<std::string>> getSpeciesSystem()
   {
     auto [n_soln_phases, n_cond_phases] = getNumberPhasesSystem();
+
     (void)n_cond_phases;
     std::vector<std::vector<std::string>> species(n_soln_phases);
 
     for (std::size_t i = 0; i < n_soln_phases; ++i)
+
       species[i] = getSpeciesInPhase(i);
 
     return species;
@@ -231,10 +236,12 @@ namespace Thermochimica
     else
       n_species_phase = phase_index == 0 ? n_species[phase_index] : n_species[phase_index] - n_species[phase_index - 1];
 
+
     std::vector<std::string> species(n_species_phase);
 
     for (std::size_t i = 0; i < n_species_phase; ++i)
     {
+
       if (is_mqm)
       {
         index = i + 1;

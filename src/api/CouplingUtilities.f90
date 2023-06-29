@@ -203,9 +203,9 @@ subroutine SetElementMass(iAtom, dMass)
 
 end subroutine SetElementMass
 
+
 subroutine GetNumberPhasesSystem(iNumSolnPhases, iNumConPhases)
 
-  ! USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
   USE ModuleThermo, ONLY: nSolnPhasesSys, nConPhasesSys
 
   implicit none

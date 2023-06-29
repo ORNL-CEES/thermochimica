@@ -33,6 +33,7 @@ namespace Thermochimica
   void resetThermoAll();
 
   // utilitiy functions for consistency check / database record
+  
   std::size_t getNumberElementsDatabase();
   std::vector<std::string> getElementsDatabase();
   std::string getElementAtIndex(int element_index);
