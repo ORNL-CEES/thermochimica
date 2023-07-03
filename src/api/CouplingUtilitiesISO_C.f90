@@ -120,6 +120,41 @@ subroutine SetUnitsISO(cTemperature, lcTemperature, cPressure, lcPressure, cMass
 
 end subroutine SetUnitsISO
 
+subroutine GetNumberElementsDatabaseISO(dElements) &
+    bind(C, name="TCAPI_getNumberElementsDatabase")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: nElementsCS
+
+    implicit none
+
+    integer(C_INT), intent(out):: dElements
+
+    dElements = nElementsCS
+
+    return
+
+end subroutine GetNumberElementsDatabaseISO
+
+function GetElementAtIndexISO(index, len) &
+    bind(C, name='TCAPI_getElementAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleParseCS, ONLY: cElementNameCS
+
+    implicit none
+
+    integer(c_int), intent(in) :: index
+    integer(c_int), intent(out) :: len
+    type(c_ptr) :: GetElementAtIndexISO
+
+    GetElementAtIndexISO = c_loc(cElementNameCS(index))
+    len = len_trim(cElementNameCS(index))
+
+    return
+
+end function GetElementAtIndexISO
+
 subroutine SetTemperaturePressureISO(dTemp, dPress) &
     bind(C, name="TCAPI_setTemperaturePressure")
 
@@ -251,8 +286,9 @@ subroutine ResetThermoAllISO() &
 
 end subroutine ResetThermoAllISO
 
-subroutine GetNumberPhasesDatabaseISO(iSolnPhases, iConPhases) &
-    bind(C, name="TCAPI_getNumberPhasesDatabase")
+
+subroutine GetNumberPhasesSystemISO(iSolnPhases, iConPhases) &
+    bind(C, name="TCAPI_getNumberPhasesSystem")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
@@ -260,17 +296,18 @@ subroutine GetNumberPhasesDatabaseISO(iSolnPhases, iConPhases) &
 
     integer(C_INT), intent(out):: iSolnPhases, iConPhases
 
-    call GetNumberPhasesDatabase(iSolnPhases, iConPhases)
+    call GetNumberPhasesSystem(iSolnPhases, iConPhases)
 
     return
 
-end subroutine GetNumberPhasesDatabaseISO
+end subroutine GetNumberPhasesSystemISO
 
 function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
     bind(C, name='TCAPI_getPhaseNameAtIndex')
 
     USE, INTRINSIC :: ISO_C_BINDING
-    USE ModuleParseCS
+
+    USE ModuleThermo
 
     implicit none
 
@@ -278,20 +315,20 @@ function GetPhaseNameAtIndexISO(phase_index, phase_name_len) &
     integer(c_int), intent(out) :: phase_name_len
     type(c_ptr) :: GetPhaseNameAtIndexISO
 
-    if (phase_index <=  nSolnPhasesSysCS) then
-        GetPhaseNameAtIndexISO = c_loc(cSolnPhaseNameCS(phase_index))
-        phase_name_len = len_trim(cSolnPhaseNameCS(phase_index))
+    if (phase_index <=  nSolnPhasesSys) then
+        GetPhaseNameAtIndexISO = c_loc(cSolnPhaseName(phase_index))
+        phase_name_len = len_trim(cSolnPhaseName(phase_index))
     else
-        GetPhaseNameAtIndexISO = c_loc(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
-        phase_name_len = len_trim(cSpeciesNameCS(phase_index - nSolnPhasesSysCS))
+        GetPhaseNameAtIndexISO = c_loc(cSpeciesName(MAXVAL(nSpeciesPhase) + phase_index - nSolnPhasesSys))
+        phase_name_len = len_trim(cSpeciesName(MAXVAL(nSpeciesPhase) + phase_index - nSolnPhasesSys))
     end if
 
     return
 
 end function GetPhaseNameAtIndexISO
 
-subroutine GetNumberSpeciesDatabaseISO(nSpeciesDB) &
-    bind(C, name='TCAPI_getNumberSpeciesDatabase')
+subroutine GetNumberSpeciesSystemISO(nSpeciesDB) &
+    bind(C, name='TCAPI_getNumberSpeciesSystem')
 
     USE, INTRINSIC :: ISO_C_BINDING
     USE ModuleParseCS, ONLY: nSolnPhasesSysCS
@@ -300,17 +337,18 @@ subroutine GetNumberSpeciesDatabaseISO(nSpeciesDB) &
 
     integer(c_int), intent(out), dimension(nSolnPhasesSysCS) :: nSpeciesDB
 
-    call GetNumberSpeciesDatabase(nSpeciesDB)
+    call GetNumberSpeciesSystem(nSpeciesDB)
 
     return
 
-end subroutine GetNumberSpeciesDatabaseISO
+end subroutine GetNumberSpeciesSystemISO
+
 
 function GetSpeciesAtIndexISO(index, len) &
     bind(C, name='TCAPI_getSpeciesAtIndex')
 
     USE, INTRINSIC :: ISO_C_BINDING
-    USE ModuleParseCS
+    USE ModuleThermo
 
     implicit none
 
@@ -318,12 +356,72 @@ function GetSpeciesAtIndexISO(index, len) &
     integer(c_int), intent(out) :: len
     type(c_ptr) :: GetSpeciesAtIndexISO
 
-    GetSpeciesAtIndexISO = c_loc(cSpeciesNameCS(index))
-    len = len_trim(cSpeciesNameCS(index))
+    GetSpeciesAtIndexISO = c_loc(cSpeciesName(index))
+    len = len_trim(cSpeciesName(index))
+
 
     return
 
 end function GetSpeciesAtIndexISO
+
+subroutine IsPhaseGasISO(phase_index, isGas) &
+    bind(C, name='TCAPI_isPhaseGas')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo, ONLY: cSolnPhaseType
+
+    implicit none
+    integer(c_int), intent(in) :: phase_index
+    logical(c_bool), intent(out) :: isGas
+
+    isGas = .FALSE.
+
+    if ( cSolnPhaseType(phase_index) == 'IDMX    ' ) isGas = .TRUE.
+
+    return
+
+end subroutine IsPhaseGasISO
+
+subroutine IsPhaseMQMISO(phase_index, isMQM) &
+    bind(C, name='TCAPI_isPhaseMQM')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo, ONLY: cSolnPhaseType
+
+    implicit none
+    integer(c_int), intent(in) :: phase_index
+    logical(c_bool), intent(out) :: isMQM
+
+    isMQM = .FALSE.
+
+    if ( cSolnPhaseType(phase_index) == 'SUBG    ' .OR. cSolnPhaseType(phase_index) == 'SUBQ    ' ) isMQM = .TRUE.
+
+    return
+
+end subroutine IsPhaseMQMISO
+
+function GetMqmqaPairNameISO(phase_index, pair_index, len) &
+    bind(C, name='TCAPI_getMqmqaPairAtIndex')
+
+    USE, INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo
+
+    implicit none
+
+    integer(c_int), intent(in) :: phase_index, pair_index
+    integer(c_int), intent(out) :: len
+    type(c_ptr) :: GetMqmqaPairNameISO
+
+    integer :: iSPI
+
+    iSPI = iPhaseSublattice(phase_index)    ! Following the name convention used in other MQMQA functions
+
+    GetMqmqaPairNameISO = c_loc(cPairName(iSPI, pair_index))
+    len = len_trim(cPairName(iSPI, pair_index))
+
+    return
+
+end function GetMqmqaPairNameISO
 
 subroutine ThermoDebugISO() &
     bind(C, name="TCAPI_thermoDebug")
@@ -392,18 +490,21 @@ subroutine SolPhaseParseISO(iElem, dMolSum) &
     return
 end subroutine SolPhaseParseISO
 
-subroutine SSParseCSDataFileISO() &
-    bind(C, name="TCAPI_sSParseCSDataFile")
+subroutine ParseCSDataFileISO() &
+    bind(C, name="TCAPI_parseCSDataFile")
 
     USE,INTRINSIC :: ISO_C_BINDING
 
+    USE :: ModuleThermoIO
+
     implicit none
 
-    call SSParseCSDataFile
+    call ParseCSDataFile(cThermoFileName)
+    ! call ParseCSDataFile
 
     return
 
-end subroutine SSParseCSDataFileISO
+end subroutine ParseCSDataFileISO
 
 subroutine ThermochimicaISO() &
     bind(C, name="TCAPI_thermochimica")
@@ -412,11 +513,76 @@ subroutine ThermochimicaISO() &
 
     implicit none
 
-    call Thermochimica()
+    call Thermochimica
 
     return
 
 end subroutine ThermochimicaISO
+
+subroutine ThermochimicaSetupISO() &
+    bind(C, name="TCAPI_setup")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call ThermochimicaSetup
+
+    return
+
+end subroutine ThermochimicaSetupISO
+
+subroutine ThermochimicaSolverISO() &
+    bind(C, name="TCAPI_solve")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call ThermochimicaSolver
+
+    return
+
+end subroutine ThermochimicaSolverISO
+
+subroutine ThermochimicaCheckSystemISO() &
+    bind(C, name="TCAPI_checkSystem")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call CheckSystem
+
+    return
+
+end subroutine ThermochimicaCheckSystemISO
+
+subroutine ThermochimicaInitISO() &
+    bind(C, name="TCAPI_init")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call InitThermo
+
+    return
+
+end subroutine ThermochimicaInitISO
+
+subroutine CompThermoDataISO() &
+    bind(C, name="TCAPI_compThermoData")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    call CompThermoData
+
+    return
+
+end subroutine CompThermoDataISO
 
 subroutine getMolFractionISO(i, value, ierr) &
     bind(C, name="TCAPI_getMolFraction")

@@ -196,38 +196,41 @@ subroutine SetElementMass(iAtom, dMass)
       stop
   else
       if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
+      ! write(*,*) 'SetElementMass ', iAtom, dElementMass(iAtom), dMass
   end if
 
   return
 
 end subroutine SetElementMass
 
-subroutine GetNumberPhasesDatabase(iNumSolnPhases, iNumConPhases)
 
-  USE ModuleParseCS, ONLY: nSpeciesCS, nSpeciesPhaseCS, nSolnPhasesSysCS
+subroutine GetNumberPhasesSystem(iNumSolnPhases, iNumConPhases)
+
+  USE ModuleThermo, ONLY: nSolnPhasesSys, nConPhasesSys
 
   implicit none
 
   integer, intent(out):: iNumSolnPhases, iNumConPhases
 
-  iNumConPhases = nSpeciesCS - MAXVAL(nSpeciesPhaseCS)
-  iNumSolnPhases = nSolnPhasesSysCS
+  iNumConPhases = nConPhasesSys
+  iNumSolnPhases = nSolnPhasesSys
 
   return
 
-end subroutine GetNumberPhasesDatabase
+end subroutine GetNumberPhasesSystem
 
-subroutine GetNumberSpeciesDatabase(nSpeciesDB)
-  USE ModuleParseCS, ONLY: nSolnPhasesSysCS, nSpeciesPhaseCS
+subroutine GetNumberSpeciesSystem(nSpeciesDB)
+  USE ModuleThermo, ONLY: nSolnPhasesSys, nSpeciesPhase
   implicit none
 
-  integer, intent(out), dimension(nSolnPhasesSysCS)     :: nSpeciesDB
+  integer, intent(out), dimension(nSolnPhasesSys)     :: nSpeciesDB
 
-  nSpeciesDB = nSpeciesPhaseCS(1:size(nSpeciesDB))
+  nSpeciesDB = nSpeciesPhase(1:size(nSpeciesDB))
+  ! print *, nSpeciesDB
 
   return
 
-end subroutine GetNumberSpeciesDatabase
+end subroutine GetNumberSpeciesSystem
 
 subroutine GetElementMass(iAtom, dMass)
 
@@ -316,18 +319,17 @@ subroutine SolPhaseParse(iElem, dMolSum)
     return
 end subroutine SolPhaseParse
 
-subroutine SSParseCSDataFile
+! subroutine SSParseCSDataFile
 
-    USE ModuleThermoIO
-    USE ModuleSS
+!     USE ModuleThermoIO
 
-    implicit none
+!     implicit none
 
-    call ParseCSDataFile(cThermoFileName)
+!     call ParseCSDataFile(cThermoFileName)
 
-    return
+!     return
 
-end subroutine SSParseCSDataFile
+! end subroutine SSParseCSDataFile
 
 subroutine APpmInBToMolInVol(dAppm, dAMassPerMol, dBMassPerMol, dBDens, dVol, iMolScale, dAMol, dBMol)
 
@@ -559,7 +561,7 @@ subroutine getElementPotential(i, value, ierr)
      ierr = 1
      write(*,*) 'Element out of range ', i, nElements
      do k=1,nElements
-        write(*,*) 'Element idx',k,' ',cElementName(k)
+        write(*,*) 'Element idx', k,' ',cElementName(k)
      enddo
 
   else

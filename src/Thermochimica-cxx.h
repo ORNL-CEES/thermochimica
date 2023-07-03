@@ -7,8 +7,13 @@
 
 namespace Thermochimica
 {
-
   void thermochimica();
+  void setup();
+  void solve();
+  void init();
+  void checkSystem();
+  void compThermoData();
+
   void setThermoFilename(const std::string &filename);
   void setUnitTemperature(const std::string &tunit);
   void setUnitPressure(const std::string &punit);
@@ -28,12 +33,16 @@ namespace Thermochimica
   void resetThermoAll();
 
   // utilitiy functions for consistency check / database record
-  std::pair<std::size_t, std::size_t> getNumberPhasesDatabase();
-  std::vector<std::string> getPhaseNamesDatabase();
+  
+  std::size_t getNumberElementsDatabase();
+  std::vector<std::string> getElementsDatabase();
+  std::string getElementAtIndex(int element_index);
+  std::pair<std::size_t, std::size_t> getNumberPhasesSystem();
+  std::vector<std::string> getPhaseNamesSystem();
   std::string getPhaseNameAtIndex(int phase_index);
-  std::vector<std::size_t> getNumberSpeciesDatabase();
-  std::vector<std::string> getSpeciesInPhaseDatabase(int phase_index);
-  std::vector<std::vector<std::string>> getSpeciesDatabase();
+  std::vector<std::size_t> getNumberSpeciesSystem();
+  std::vector<std::string> getSpeciesInPhase(int phase_index);
+  std::vector<std::vector<std::string>> getSpeciesSystem();
 
   // re-initialization-related functions
   void saveReinitData();
@@ -68,6 +77,9 @@ namespace Thermochimica
   std::pair<double, int>
   getSublSiteMol(const std::string &phaseName, int sublattice, int constituent);
 
+  bool isPhaseGas(const int phaseIndex);
+
+  bool isPhaseMQM(const int phaseIndex);
   std::pair<double, int>
   getMqmqaMolesPairs(const std::string &phaseName);
   std::pair<double, int>

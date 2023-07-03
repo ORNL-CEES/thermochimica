@@ -257,7 +257,7 @@ subroutine GetMqmqaConstituentFraction(cPhase, iSublattice, cConstituent, dConst
             INFO = 1
             return
         end if
-        
+
         iSPI = iPhaseSublattice(iSolnIndex)
         nSub = nConstituentSublattice(iSPI,iSublattice)
 

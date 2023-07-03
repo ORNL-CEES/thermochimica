@@ -112,24 +112,69 @@ subroutine LevelingSolver
     ! Initialize variables:
     n = 0
 
-    ! Check to see if allocatable arrays have already been allocated:
     if (allocated(dMolesPhase)) then
-        i = SIZE(iAssemblage)
-
-        if (i /= nElements) then
-            ! The number of elements in the system has changed.
-            deallocate(dMolesPhase,dElementPotential,iAssemblage,iterHistoryLevel,dLevel, STAT = n)
+        if( SIZE(iAssemblage) /= nElements) then
+            deallocate(dMolesPhase, STAT=n)
             if (n /= 0) then
                 INFOThermo = 20
                 return
             end if
-            allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
-            allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
+            allocate(dMolesPhase(nElements))
+         end if
+    else
+        allocate(dMolesPhase(nElements))
+    end if
+
+    if (allocated(dElementPotential)) then
+        if( SIZE(iAssemblage) /= nElements) then
+            deallocate(dElementPotential, STAT=n)
+            if (n /= 0) then
+                INFOThermo = 20
+                return
+            end if
+            allocate(dElementPotential(nElements))
         end if
     else
-        ! Allocate memory to allocatable arrays for the first time:
-        allocate(dMolesPhase(nElements),dElementPotential(nElements),dLevel(nElements))
-        allocate(iAssemblage(nElements),iterHistoryLevel(nElements,1000))
+        allocate(dElementPotential(nElements))
+    end if
+
+    if (allocated(iAssemblage)) then
+        if( SIZE(iAssemblage) /= nElements) then
+            deallocate(iAssemblage, STAT=n)
+            if (n /= 0) then
+                INFOThermo = 20
+                return
+            end if
+            allocate(iAssemblage(nElements))
+        end if
+    else
+        allocate(iAssemblage(nElements))
+    end if
+
+    if (allocated(dLevel)) then
+        if( SIZE(iAssemblage) /= nElements) then
+            deallocate(dLevel, STAT=n)
+            if (n /= 0) then
+                INFOThermo = 20
+                return
+            end if
+            allocate(dLevel(nElements))
+        end if
+    else
+        allocate(dLevel(nElements))
+    end if
+
+    if (allocated(iterHistoryLevel)) then
+        if( SIZE(iAssemblage) /= nElements) then
+            deallocate(iterHistoryLevel, STAT=n)
+            if (n /= 0) then
+                INFOThermo = 20
+                return
+            end if
+            allocate(iterHistoryLevel(nElements,1000))
+        end if
+    else
+        allocate(iterHistoryLevel(nElements,1000))
     end if
 
     ! Initialize allocatable variables:

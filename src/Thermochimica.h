@@ -36,7 +36,12 @@ extern "C"
   void TCAPI_setTemperaturePressure(double *, double *);
   void TCAPI_checkInfoThermo(int *);
 
-  void TCAPI_sSParseCSDataFile();
+  void TCAPI_parseCSDataFile();
+  void TCAPI_init();
+  void TCAPI_checkSystem();
+  void TCAPI_compThermoData();
+  void TCAPI_setup();
+  void TCAPI_solve();
   void TCAPI_thermochimica();
 
   void TCAPI_solPhaseParse(int *, double *);
@@ -46,9 +51,12 @@ extern "C"
   void TCAPI_printResults();
   void TCAPI_printState();
 
-  void TCAPI_getNumberPhasesDatabase(int *, int *);
+  void TCAPI_getNumberElementsDatabase(int *);
+  char *TCAPI_getElementAtIndex(int *, int *);
+  void TCAPI_getNumberPhasesSystem(int *, int *);
   char *TCAPI_getPhaseNameAtIndex(int *, int *);
-  void TCAPI_getNumberSpeciesDatabase(int *);
+  void TCAPI_getNumberSpeciesSystem(int *);
+
   char *TCAPI_getSpeciesAtIndex(int *, int *);
 
   void TCAPI_resetInfoThermo();
@@ -65,11 +73,16 @@ extern "C"
   void TCAPI_getAllElementPotential(double *);
   void TCAPI_getElementFraction(int *, double *);
 
+  // Gas phase functions
+  void TCAPI_isPhaseGas(const int *, bool *);
+
   // MQMQA functions
+  void TCAPI_isPhaseMQM(const int *, bool *);
   void TCAPI_getMqmqaMolesPairs(const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaPairMolFraction(const char *, std::size_t, const char *, std::size_t, double *, int *);
   void TCAPI_getMqmqaNumberPairsQuads(const char *, std::size_t, int *, int *, int *);
   void TCAPI_getMqmqaConstituentFraction(const char *, std::size_t, int *, const char *, std::size_t, double *, int *);
+  char *TCAPI_getMqmqaPairAtIndex(int *, int *, int *);
 
   // MOOSE reinit functions
   void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *);
@@ -83,5 +96,4 @@ extern "C"
   void TCAPI_setFuzzyStoich(bool *);
   void TCAPI_setFuzzyMagnitude(double *);
   void TCAPI_setGibbsMinCheck(bool *);
-
 }
