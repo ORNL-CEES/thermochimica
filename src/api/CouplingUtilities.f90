@@ -226,7 +226,6 @@ subroutine GetNumberSpeciesSystem(nSpeciesDB)
   integer, intent(out), dimension(nSolnPhasesSys)     :: nSpeciesDB
 
   nSpeciesDB = nSpeciesPhase(1:size(nSpeciesDB))
-  ! print *, nSpeciesDB
 
   return
 
