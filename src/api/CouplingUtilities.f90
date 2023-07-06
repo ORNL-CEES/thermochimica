@@ -198,6 +198,7 @@ subroutine SetElementMass(iAtom, dMass)
       if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
       ! write(*,*) 'SetElementMass ', iAtom, dElementMass(iAtom), dMass
   end if
+  ! print *, "Set element mass in Thermochimica: Element=", iAtom, " Moles=", dElementMass(iAtom)
 
   return
 
@@ -226,7 +227,6 @@ subroutine GetNumberSpeciesSystem(nSpeciesDB)
   integer, intent(out), dimension(nSolnPhasesSys)     :: nSpeciesDB
 
   nSpeciesDB = nSpeciesPhase(1:size(nSpeciesDB))
-  ! print *, nSpeciesDB
 
   return
 
