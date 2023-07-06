@@ -198,7 +198,6 @@ subroutine SetElementMass(iAtom, dMass)
       if (.NOT. lPreset(iAtom)) dElementMass(iAtom) = dMass
       ! write(*,*) 'SetElementMass ', iAtom, dElementMass(iAtom), dMass
   end if
-  ! print *, "Set element mass in Thermochimica: Element=", iAtom, " Moles=", dElementMass(iAtom)
 
   return
 
