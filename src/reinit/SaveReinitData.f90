@@ -37,8 +37,6 @@ subroutine SaveReinitData
 
   implicit none
 
-  lReinitAvailable = .FALSE.
-
   ! If error has occurred, do not save
   if (INFOThermo /= 0) return
   ! If a calculation has not run, do not save
@@ -47,14 +45,34 @@ subroutine SaveReinitData
   ! (this seems to cause errors for new conditions where solution phase should be stable)
   if (nSolnPhases == 0) return
 
-  ! Initialize storage variables if not allocated already
-  if (.NOT. lReinitAvailable) then
-    if (allocated(dMolesPhase_Old)) deallocate(dMolesPhase_Old,dChemicalPotential_Old,dElementPotential_Old,&
-                                               dMolFraction_Old,iAssemblage_Old)
-    allocate(dMolesPhase_Old(nElements),dChemicalPotential_Old(nSpecies),dElementPotential_Old(nElements),&
-    dMolFraction_Old(nSpecies))
+  ! Initialize storage variables if not allocated already at the right size
+
+  ! nElements
+  if (allocated(dMolesPhase_Old) .AND. sizeof(dMolesPhase_Old) < nElements) &
+    deallocate(dMolesPhase_Old)
+  if (.NOT. allocated(dMolesPhase_Old)) &
+    allocate(dMolesPhase_Old(nElements))
+
+  if (allocated(dElementPotential_Old) .AND. sizeof(dElementPotential_Old) < nElements) &
+    deallocate(dElementPotential_Old)
+  if (.NOT. allocated(dElementPotential_Old)) &
+    allocate(dElementPotential_Old(nElements))
+
+  if (allocated(iAssemblage_Old) .AND. sizeof(iAssemblage_Old) < nElements) &
+    deallocate(iAssemblage_Old)
+  if (.NOT. allocated(iAssemblage_Old)) &
     allocate(iAssemblage_Old(nElements))
-  endif
+
+  !nSpecies
+  if (allocated(dChemicalPotential_Old) .AND. sizeof(dChemicalPotential_Old) < nSpecies) &
+    deallocate(dChemicalPotential_Old)
+  if (.NOT. allocated(dChemicalPotential_Old)) &
+    allocate(dChemicalPotential_Old(nSpecies))
+
+  if (allocated(dMolFraction_Old) .AND. sizeof(dMolFraction_Old) < nSpecies) &
+    deallocate(dMolFraction_Old)
+  if (.NOT. allocated(dMolFraction_Old)) &
+    allocate(dMolFraction_Old(nSpecies))
 
   ! Save old chemical potential data
   dChemicalPotential_Old  = dChemicalPotential
