@@ -152,7 +152,7 @@ subroutine LevelingSolver
     end if
 
     if (allocated(dLevel)) then
-        if( SIZE(iAssemblage) /= nElements) then
+        if( SIZE(dLevel) /= nElements) then
             deallocate(dLevel, STAT=n)
             if (n /= 0) then
                 INFOThermo = 20
@@ -165,7 +165,7 @@ subroutine LevelingSolver
     end if
 
     if (allocated(iterHistoryLevel)) then
-        if( SIZE(iAssemblage) /= nElements) then
+        if( SIZE(iterHistoryLevel) /= nElements) then
             deallocate(iterHistoryLevel, STAT=n)
             if (n /= 0) then
                 INFOThermo = 20
