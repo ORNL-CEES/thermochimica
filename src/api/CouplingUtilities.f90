@@ -603,13 +603,14 @@ subroutine getReinitDataSizes(mElements,mSpecies)
 end subroutine getReinitDataSizes
 
 subroutine getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
-              mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
+              mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable,mIterations)
   USE ModuleReinit
   USE ModuleThermoIO
   USE ModuleThermo, ONLY: nElements, nSpecies
+  USE ModuleGEMSolver, ONLY: iterGlobal
   implicit none
 
-  integer, intent(out)                           :: mReinitAvailable
+  integer, intent(out)                           :: mReinitAvailable, mIterations
   integer, intent(out), dimension(nElements)     :: mAssemblage
   real(8), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
   real(8), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
@@ -624,6 +625,7 @@ subroutine getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
     mMolFraction =  dMolFraction_Old
     mElementsUsed = iElementsUsed_Old
     mReinitAvailable = 1
+    mIterations = iterGlobal
   else
     mReinitAvailable = 0
   end if

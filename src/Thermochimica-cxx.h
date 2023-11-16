@@ -101,6 +101,7 @@ namespace Thermochimica
     int nPeriodicTable = 169;
     std::vector<int> elementsUsed = std::vector<int>(nPeriodicTable);
     bool reinitAvailable;
+    int GEM_iterations;
   };
 
   ReinitializationData getReinitData();
