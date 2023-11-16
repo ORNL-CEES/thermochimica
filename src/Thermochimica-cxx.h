@@ -33,7 +33,7 @@ namespace Thermochimica
   void resetThermoAll();
 
   // utilitiy functions for consistency check / database record
-  
+
   std::size_t getNumberElementsDatabase();
   std::vector<std::string> getElementsDatabase();
   std::string getElementAtIndex(int element_index);
@@ -90,7 +90,7 @@ namespace Thermochimica
   getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
   // Reinitialization data
-  struct reinitData
+  struct ReinitializationData
   {
     std::vector<int> assemblage;
     std::vector<double> molesPhase;
@@ -103,8 +103,8 @@ namespace Thermochimica
     bool reinitAvailable;
   };
 
-  reinitData getReinitData();
-  void setReinitData(const reinitData &data);
+  ReinitializationData getReinitData();
+  void setReinitData(const ReinitializationData & data);
 
   // Heat capacity, enthalpy, and entropy
   void setHeatCapacityEnthalpyEntropyRequested(bool requested);

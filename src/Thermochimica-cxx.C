@@ -472,9 +472,10 @@ namespace Thermochimica
     return {moleFraction, info};
   }
 
-  reinitData getReinitData()
+  ReinitializationData
+  getReinitData()
   {
-    reinitData data;
+    ReinitializationData data;
     int available;
     auto [elements, species] = getReinitDataSizes();
     data.assemblage.resize(elements);
@@ -490,7 +491,8 @@ namespace Thermochimica
     return data;
   }
 
-  void setReinitData(const reinitData &data)
+  void
+  setReinitData(const ReinitializationData & data)
   {
     auto [elements, species] = getReinitDataSizes();
     TCAPI_setReinitData(&elements, &species, data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data());
