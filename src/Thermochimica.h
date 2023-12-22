@@ -85,7 +85,7 @@ extern "C"
   char *TCAPI_getMqmqaPairAtIndex(int *, int *, int *);
 
   // MOOSE reinit functions
-  void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *);
+  void TCAPI_getReinitData(int *, double *, double *, double *, double *, int *, int *, int *);
   void TCAPI_setReinitData(const int *, const int *, const int *, const double *, const double *, const double *, const double *, const int *);
 
   // Heat capacity, enthalpy, and entropy

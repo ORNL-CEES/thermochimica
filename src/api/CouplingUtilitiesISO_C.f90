@@ -668,7 +668,7 @@ subroutine getReinitDataSizesISO(mElements, mSpecies) &
 end subroutine getReinitDataSizesISO
 
 subroutine getReinitDataISO(mAssemblage,mMolesPhase,mElementPotential, &
-    mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable) &
+    mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable, mIterations) &
     bind(C, name="TCAPI_getReinitData")
 
     USE,INTRINSIC :: ISO_C_BINDING
@@ -676,14 +676,14 @@ subroutine getReinitDataISO(mAssemblage,mMolesPhase,mElementPotential, &
     USE ModuleThermo, ONLY: nElements, nSpecies
     implicit none
 
-    integer(C_INT), intent(out)                           :: mReinitAvailable
+    integer(C_INT), intent(out)                           :: mReinitAvailable, mIterations
     integer(C_INT), intent(out), dimension(nElements)     :: mAssemblage
     real(C_DOUBLE), intent(out), dimension(nElements)     :: mMolesPhase, mElementPotential
     real(C_DOUBLE), intent(out), dimension(nSpecies)      :: mChemicalPotential, mMolFraction
     integer(C_INT), intent(out), dimension(0:168)         :: mElementsUsed
 
     call getReinitData(mAssemblage,mMolesPhase,mElementPotential, &
-            mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable)
+            mChemicalPotential,mMolFraction,mElementsUsed,mReinitAvailable,mIterations)
 
     return
 

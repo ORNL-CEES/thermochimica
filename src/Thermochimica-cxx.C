@@ -476,7 +476,7 @@ namespace Thermochimica
   getReinitData()
   {
     ReinitializationData data;
-    int available;
+    int available, iterations;
     auto [elements, species] = getReinitDataSizes();
     data.assemblage.resize(elements);
     data.molesPhase.resize(elements);
@@ -484,9 +484,17 @@ namespace Thermochimica
     data.chemicalPotential.resize(species);
     data.moleFraction.resize(species);
 
-    TCAPI_getReinitData(data.assemblage.data(), data.molesPhase.data(), data.elementPotential.data(), data.chemicalPotential.data(), data.moleFraction.data(), data.elementsUsed.data(), &available);
+    TCAPI_getReinitData(data.assemblage.data(),
+                        data.molesPhase.data(),
+                        data.elementPotential.data(),
+                        data.chemicalPotential.data(),
+                        data.moleFraction.data(),
+                        data.elementsUsed.data(),
+                        &available,
+                        &iterations);
 
     data.reinitAvailable = available;
+    data.GEM_iterations = iterations;
 
     return data;
   }
