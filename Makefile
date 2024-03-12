@@ -24,7 +24,7 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FFPE_TRAPS  ?= zero
-FCFLAGS     = -Wall -O2 -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
