@@ -86,7 +86,7 @@ Again, we start by creating a new file, this time in the `inputs` directory, and
 ```bash
 cp inputs/advanced-input.ti inputs/demo.ti
 ```
-Take a look at `demo.ti`, and make some changes. Note the `pressure` and `temperature` lines use the format start:stop:step to set ranges of values to loop over. You may also want to add the following line to enable output of results in JSON format:
+Take a look at `demo.ti`, and make some changes. Note the `pressure` and `temperature` lines use the format `start:stop:step` to set ranges of values to loop over. You may also want to add the following line to enable output of results in JSON format:
 ```bash
 write json        = .TRUE.
 ```
