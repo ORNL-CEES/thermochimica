@@ -1,0 +1,39 @@
+name: Feature Request
+description: Create a request for new features / enhancements
+title: "[ENHANCEMENT] <title>"
+labels: ["Enhancement", "Needs Triage"]
+body:
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue or PR for this?
+    description: Please search to see if an issue or PR already exists for the feature you are requesting.
+    options:
+    - label: I have searched the existing issues and PRs
+      required: true
+- type: textarea
+  attributes:
+    label: Reasoning
+    description: A concise description of what you are interested in.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Proposed Solution
+    description: A concise description of what you want to happen and how it should be implemented.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Impact
+    description: A concise description of any consequences you can foresee.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Anything else?
+    description: |
+      Links? References? Anything that will give us more context about your request!
+
+      Tip: You can attach images, etc. by clicking this area to highlight it and then dragging files in.
+  validations:
+    required: false
