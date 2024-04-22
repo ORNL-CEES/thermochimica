@@ -16,7 +16,7 @@ This interface is used to generate **binary** phase diagrams. It includes the fo
 It can be launched by using the following command:
 
 ```bash
-./scripts/binaryPhaseDiagramGUI.sh
+./scripts/phaseDiagramGUI.sh
 ```
 
 The `binaryPhaseDiagramGUI` window is shown below.
