@@ -42,7 +42,14 @@ wsl --install
 ```
 If WSL fails to start properly after reboot, you may need to create virtual disk space for WSL following [these instructions](https://utf9k.net/blog/wsl2-vhd-issue/).
 
-Once the Ubuntu app is successfully installed, you can follow the [Building Thermochimica](#building-thermochimica) instructions below.
+When Ubuntu app is successfully installed, run the following.
+```bash
+sudo apt-get update
+```
+```bash
+sudo apt install build-essential gfortran liblapack-dev git
+```
+Now you can follow the [Building Thermochimica](#building-thermochimica) instructions below.
 
 ## Building Thermochimica
 Clone the repository and navigate to the root Thermochimica directory:
