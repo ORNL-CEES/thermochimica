@@ -10,9 +10,6 @@ test/doc/
 # ignore outputs
 *.out
 *.txt
-*.dat
-*.DAT
-*.Dat
 *.json
 *.pdf
 *.mod
