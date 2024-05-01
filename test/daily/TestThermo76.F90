@@ -16,6 +16,7 @@
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
     !    02/24/2022    B.A.T. Breeden      SUBI Test Case
+    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
@@ -46,7 +47,7 @@ program TestThermo76
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'CsTe_mod1.DAT'
+    cThermoFileName        = DATA_DIRECTORY // 'CsTe-2.dat'
 
     ! Specify values:
     dPressure              = 1D0

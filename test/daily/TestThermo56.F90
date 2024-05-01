@@ -15,6 +15,7 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    06/30/2020    M. Poschmann         Original code
+    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
@@ -41,7 +42,7 @@ program TestThermo56
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY // 'FeCuCbase.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'Kang-CuFeC.dat'
 
     ! Specify values:
     dTemperature          = 1400D0

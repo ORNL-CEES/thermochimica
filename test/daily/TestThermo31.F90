@@ -16,6 +16,7 @@
     !    ----          ----------           ---------------------
     !    05/14/2013    M.H.A. Piro          Original code
     !    08/31/2018    B.W.N. Fitzpatrick   Change to a fictive database
+    !    17/04/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========
@@ -35,7 +36,7 @@ program TestThermo31
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'W-Au-Ar-O_02.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'WAuArO-2.dat'
 
     ! Specify values:
     dPressure              = 1D0

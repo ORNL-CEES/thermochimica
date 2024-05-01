@@ -16,6 +16,7 @@
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
     !    11/07/2018    B.W.N. Fitzpatrick  Changed to a C-O database
+    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
@@ -37,7 +38,7 @@ program TestThermo08
     cInputUnitTemperature   = 'K'
     cInputUnitPressure      = 'atm'
     cInputUnitMass          = 'moles'
-    cThermoFileName         = DATA_DIRECTORY // 'C-O.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'CO.dat'
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)

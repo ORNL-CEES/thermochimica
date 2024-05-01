@@ -16,7 +16,7 @@
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
     !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !
+    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
@@ -38,7 +38,7 @@ program TestThermo46
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'Kaye_NobleMetals.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'Kaye-NobleMetals.dat'
 
     ! Specify values:
     dPressure              = 1D0

@@ -15,6 +15,7 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    02/15/2019    M. Poschmann        Original
+    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
@@ -30,7 +31,7 @@ program ThermoTest14
     implicit none
 
     ! Initialize variables:
-    cThermoFileName         = DATA_DIRECTORY // 'test14.dat'
+    cThermoFileName         = DATA_DIRECTORY // 'PdRuTcMo.dat'
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
