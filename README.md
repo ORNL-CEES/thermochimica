@@ -44,7 +44,7 @@ If WSL fails to start properly after reboot, you may need to create virtual disk
 
 When Ubuntu app is successfully installed, run the following.
 ```bash
-sudo apt-get update
+sudo apt update && sudo apt upgrade
 ```
 ```bash
 sudo apt install build-essential gfortran liblapack-dev git
