@@ -30,6 +30,5 @@ test/doc/
 # ignore vscode cache
 .vscode/
 # some of these will occasionally require manual override
-data/
 python/
 private_tests
