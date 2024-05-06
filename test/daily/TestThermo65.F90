@@ -15,7 +15,7 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    10/01/2021    M. Poschmann         Original code
-    !    17/04/2024    A.E.F. Fitzsimmons   Naming convention change
+    !    05/06/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========
@@ -39,7 +39,7 @@ program TestThermo65
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'Kaye-ternaryMiscibility.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'ternaryMiscibility-Kaye.dat'
 
     ! Specify values:
     dPressure              = 1D0

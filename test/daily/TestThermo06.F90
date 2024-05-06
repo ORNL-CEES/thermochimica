@@ -16,7 +16,7 @@
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
     !    05/07/2018    B.W.N. Fitzpatrick  Modified purpose of code (to see if unspecified mass exists gracefully)
-    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========

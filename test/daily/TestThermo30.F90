@@ -16,7 +16,7 @@
     !    ----          ----------           ---------------------
     !    05/14/2013    M.H.A. Piro          Original code
     !    31/08/2018    B.W.N. Fitzpatrick   Change system to fictive RKMP model
-    !    17/04/2024    A.E.F. Fitzsimmons   Naming convention change
+    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========

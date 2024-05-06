@@ -16,7 +16,7 @@
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
     !    11/04/2022    M. Poschmann        SUBM Test Case
-    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========

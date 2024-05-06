@@ -16,7 +16,7 @@
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
     !    01/10/2022    B.A.T. Breeden      Modification to use Dupin's Zirc Data base with SUBI
-    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========

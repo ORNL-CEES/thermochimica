@@ -16,7 +16,7 @@
     !    ----          ----------          ---------------------
     !    02/07/2012    M.H.A. Piro         Original code
     !    28/11/2018    M. Poschmann        Created new test with C-O database
-    !    17/04/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========
