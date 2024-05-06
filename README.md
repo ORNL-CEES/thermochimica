@@ -87,7 +87,11 @@ Now you can run your calculation:
 ```bash
 ./bin/demo
 ```
-
+If you wish to save the output as a JSON, add the following line of code after Thermochimica is called. 
+```bash
+call WriteJSON(.TRUE.)
+```
+The output will be saved as the `outputs\thermoout.json`.
 ## Method 2: Input Scripts
 Again, we start by creating a new file, this time in the `inputs` directory, and can start by copying an existing file:
 ```bash
@@ -97,6 +101,7 @@ Take a look at `demo.ti`, and make some changes. Note the `pressure` and `temper
 ```bash
 write json        = .TRUE.
 ```
+The output will be saved as the `outputs\thermoout.json`.
 When you are done, the script can be run:
 ```bash
 ./bin/InputScriptMode inputs/demo.ti
@@ -109,7 +114,7 @@ First get pip and tkinter for Python:
 ```bash
 sudo apt install python3-pip python3-tk
 ```
-Now pip can be used to install the required packages:
+Navigate to Thermochimica folder, now pip can be used to install the required packages listed in the `python/requirements.txt` file:
 ```bash
 pip install -r python/requirements.txt
 ```
