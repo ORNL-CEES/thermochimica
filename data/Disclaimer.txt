@@ -1,0 +1,7 @@
+DISCLAIMER
+
+ 
+
+Some data-files stored in this subdirectory have been modified from their original use for software testing purposes. 
+Caution should be exercised by the user if using these files for any other purposes. 
+If you have any questions, please contact Markus Piro (pirom@mcmaster.ca)

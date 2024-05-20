@@ -15,7 +15,7 @@ program TestThermo62
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY //'NaCl-AlCl3.dat'
+    cThermoFileName       = DATA_DIRECTORY //'ClAlNa.dat'
 
     ! Specify values:
     dTemperature          = 2000D0

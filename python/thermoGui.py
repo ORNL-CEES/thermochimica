@@ -225,8 +225,8 @@ class CalculationWindow:
                              ]
         else:
             elementsLayout = [
-                              sg.Column(elem1Layout,vertical_alignment='t',scrollable = True, vertical_scroll_only = True, expand_y = True),
-                              sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True,key='-composition2-',visible=False)
+                              sg.Column(elem1Layout,vertical_alignment='t',scrollable = True, vertical_scroll_only = True, size=(200,400), expand_y = True),
+                              sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, size=(200,400), expand_y = True,key='-composition2-',visible=False)
                              ]
         self.layout = [tempLayout,
                         presLayout,

@@ -12,7 +12,7 @@ phaseFractionTol = 1e-2
 phaseIncludeTol = 1e-8
 
 class CalculationWindow:
-    def __init__(self, parent, datafile, nElements, elements, active):
+    def __init__(self, parent, datafile, nElements, elements, active, scrollable=True):
         self.parent = parent
         self.datafile = datafile
         self.nElements = nElements
@@ -20,7 +20,7 @@ class CalculationWindow:
         self.active = active
         if self.active:
             self.makeLayout()
-            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, location = [400,0], finalize=True)
+            self.sgw = sg.Window(f'Phase Diagram Setup: {os.path.basename(self.datafile)}', self.layout, resizable=True, size=(600,800), location=[400,0], finalize=True)
             windowList.append(self)
         self.children = []
         self.calculation = pseudoBinaryPhaseDiagramFunctions.diagram(self.datafile, True, True)
@@ -254,8 +254,8 @@ class CalculationWindow:
         if (self.nElements < 8):
             elemLayout = [sg.Column(elem1Layout),sg.Column(elem2Layout)]
         else:
-            elemLayout = [sg.Column(elem1Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True),
-                          sg.Column(elem2Layout,vertical_alignment='t', scrollable = True, vertical_scroll_only = True, expand_y = True)]
+            elemLayout = [sg.Column(elem1Layout, vertical_alignment='t', scrollable=True, vertical_scroll_only=True, size=(200,100), expand_y=True),
+                          sg.Column(elem2Layout, vertical_alignment='t', scrollable=True, vertical_scroll_only=True, size=(200,100), expand_y=True)]
         self.layout = [tempLayout,
                        presLayout,
                        elemLayout,

@@ -16,6 +16,7 @@
     !    ----          ----------           ---------------------
     !    05/14/2013    M.H.A. Piro          Original code
     !    31/08/2018    B.W.N. Fitzpatrick   Change system to fictive RKMP model
+    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
     !
     ! Purpose:
     ! ========
@@ -36,7 +37,7 @@ program TestThermo30
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'W-Au-Ar-O_01.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'WAuArO-1.dat'
 
     ! Specify values:
     dPressure              = 1D0

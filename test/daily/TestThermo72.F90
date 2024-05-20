@@ -16,6 +16,7 @@
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
     !    01/10/2022    B.A.T. Breeden      Modification to use Dupin's Zirc Data base with SUBI
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
@@ -46,7 +47,7 @@ program TestThermo72
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'CsTe.DAT'
+    cThermoFileName        = DATA_DIRECTORY // 'CsTe-1.dat'
 
     ! Specify values:
     dPressure              = 1D0
