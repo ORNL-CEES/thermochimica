@@ -130,7 +130,7 @@ Finally, launch a GUI:
 ./scripts/thermoGUI.sh
 ```
 
-If you have installed a python version other than your system default that you would like to use to run the Thermochimica GUIs, you can set the environment variable `python_for_thermochimica` to point to that python. Multiple interactive matplotlib windows seem to work better on python3.9 than with python3.8.
+If you have installed a python version other than your system default that you would like to use to run the Thermochimica GUIs, you can set the environment variable `python_for_thermochimica` to point to that Python. Multiple interactive matplotlib windows seem to work better on Python 3.9 than with Python 3.8.
 
 Further documentation on the use of the GUIs is available in the [GUI docs](/doc/graphicalUserInterfaces.md).
 
