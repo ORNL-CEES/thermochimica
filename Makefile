@@ -77,8 +77,6 @@ OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(patsubst %.F90, 
 MODS_OBJ    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_OBJ))
 
-$(info "OBJ_FILES = ", $(OBJ_FILES))
-$(info "MODS_LNK = ", $(MODS_LNK))
 ## =================
 ## LIBRARIES:
 ## =================
@@ -97,7 +95,7 @@ C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
 C_OBJ       = $(C_SRC:.C=.o)
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
-C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
+C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -132,7 +130,7 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES) : $(srcfiles) $(MODS_LNK)
+$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
 $(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
 $(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
