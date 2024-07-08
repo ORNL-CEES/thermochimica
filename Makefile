@@ -66,10 +66,10 @@ VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
 modfiles := $(shell find src -name "Module*.f90")
-srcfiles := $(shell find src -name "[^(Module)]*.f90")
+srcfiles := $(shell find src -iname "*.f90" -and -not -name "Module*")
 
 ##
-OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(notdir $(srcfiles))))
+OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(patsubst %.F90, %.o, $(notdir $(srcfiles)))))
 
 ## ========
 ## MODULES:
@@ -133,17 +133,18 @@ ${BIN_DIR}:
 
 # Enforce module dependency rules
 $(OBJ_FILES) : $(srcfiles) $(MODS_LNK)
+$(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
-$(OBJ_DIR)/%.o: %.f90
+$(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: %.F90
+$(OBJ_DIR)/%.o: %.F90 $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
