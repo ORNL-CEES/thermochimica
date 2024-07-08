@@ -68,11 +68,15 @@ VPATH		= $(SHARED_DIR)
 modfiles := $(shell find src -name "Module*.f90")
 srcfiles := $(shell find src -name "[^(Module)]*.f90")
 
+##
+OBJ_FILES			= $(patsubst %.f90, %.o, $(srcfiles))
+$(info $(OBJ_FILES))
+
 ## ========
 ## MODULES:
 ## ========
-MODS_SRC    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
-MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
+MODS_OBJ    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
+MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_OBJ))
 
 ## =================
 ## LIBRARIES:
@@ -127,7 +131,7 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(srcfiles): $(MODS_LNK)
+$(OBJ_FILES) : $(MODS_LNK)
 
 %.o: %.f90
 	$(FC) $(FCFLAGS) -c $< -o $@
