@@ -69,8 +69,7 @@ modfiles := $(shell find src -name "Module*.f90")
 srcfiles := $(shell find src -name "[^(Module)]*.f90")
 
 ##
-OBJ_FILES			= $(patsubst %.f90, %.o, $(srcfiles))
-$(info $(OBJ_FILES))
+OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(notdir $(srcfiles))))
 
 ## ========
 ## MODULES:
@@ -78,6 +77,8 @@ $(info $(OBJ_FILES))
 MODS_OBJ    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
 MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_OBJ))
 
+$(info "OBJ_FILES = ", $(OBJ_FILES))
+$(info "MODS_LNK = ", $(MODS_LNK))
 ## =================
 ## LIBRARIES:
 ## =================
@@ -131,10 +132,7 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES) : $(MODS_LNK)
-
-%.o: %.f90
-	$(FC) $(FCFLAGS) -c $< -o $@
+$(OBJ_FILES) : $(srcfiles) $(MODS_LNK)
 
 $(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
