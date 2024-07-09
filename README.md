@@ -1,6 +1,6 @@
 THERMOCHIMICA
 =============
-[![Build status](https://civet.inl.gov/repo/1234/master/branch_status.svg)](https://civet.inl.gov/repo/1234/)
+[![CIVET](https://civet.inl.gov/branch/21672/branch_status.svg)](https://civet.inl.gov/repo/1234/)
 
 THERMOCHIMICA is a computational library for chemical thermodynamics. It determines a unique combination of phases and their compositions for a prescribed chemical composition, temperature and pressure. The solver and the underlying thermodynamic models can be used to estimate the chemical state and various constitutive and transport properties necessary for modeling of materials and processes.
 
