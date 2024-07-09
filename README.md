@@ -1,5 +1,6 @@
-THERMOCHIMICA [![Basic Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/quick.yml/badge.svg)](https://github.com/ORNL-CEES/thermochimica/actions/workflows/quick.yml) [![Extended Status](https://github.com/ORNL-CEES/thermochimica/actions/workflows/main.yml/badge.svg)](https://github.com/ORNL-CEES/thermochimica/actions/workflows/main.yml)
+THERMOCHIMICA
 =============
+[![Build status](https://civet.inl.gov/repo/1234/master/branch_status.svg)](https://civet.inl.gov/repo/1234/)
 
 THERMOCHIMICA is a computational library for chemical thermodynamics. It determines a unique combination of phases and their compositions for a prescribed chemical composition, temperature and pressure. The solver and the underlying thermodynamic models can be used to estimate the chemical state and various constitutive and transport properties necessary for modeling of materials and processes.
 
@@ -10,7 +11,7 @@ Thermochimica requires a Fortran compiler and is regularly built using the GNU g
 Suggested modes of installation and operation for Ubuntu, MacOS, and Windows Subsystem for Linux (WSL) are decribed below. Please contact us or open an issue on GitHub should you encounter any difficulties. Also, suggestions for improvements to these instructions are welcome, particularly for native Windows installation.
 
 ## Prerequisites
-The prerequisites for cloning and building Thermochimica vary depending on the operating system. The instructions for some common OSs are provided below. 
+The prerequisites for cloning and building Thermochimica vary depending on the operating system. The instructions for some common OSs are provided below.
 ### Ubuntu
 Get packages required for basic Fortran compilation:
 ```bash
@@ -87,7 +88,7 @@ Now you can run your calculation:
 ```bash
 ./bin/demo
 ```
-If you wish to save the output as a JSON, add the following line of code after Thermochimica is called. 
+If you wish to save the output as a JSON, add the following line of code after Thermochimica is called.
 ```bash
 call WriteJSON(.TRUE.)
 ```
