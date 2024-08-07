@@ -1,0 +1,3 @@
+[submodule "private-test-suit"]
+	path = private-test-suit
+	url = https://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@github.com/aidanfitz/private-test-suit.git
