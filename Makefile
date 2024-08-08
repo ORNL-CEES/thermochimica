@@ -218,6 +218,20 @@ doctest:
 
 cleandoc:
 	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR); rm -r -f $(DOC_DIR)/$(TST_DIR)
+## ============
+## PRIVATE TESTS:
+## ============
+PTST_DIR    = private-test-suit
+PTEST_SRC   = $(notdir $(wildcard $(PTST_DIR)/*.F90))
+PTEST_OBJ   = $(PTEST_SRC:.F90=.o)
+PTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(PTEST_OBJ))
+PTST_OBJ    = $(basename $(PTEST_SRC))
+PTST_BIN    = $(addprefix $(BIN_DIR)/,$(PTST_OBJ))
+
+privatetest: $(PTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(PTST_BIN)
+
+$(OBJ_DIR)/%.o: $(PTST_DIR)/%.F90
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 ## ===========
 ## DAILY TESTS
@@ -230,7 +244,7 @@ $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 ## ===========
 ## ALL TESTS:
 ## ===========
-test: all dailytest
+test: all dailytest privatetest
 
 ## ===========
 ## DEBUG:
