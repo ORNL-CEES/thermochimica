@@ -37,3 +37,4 @@ data/
 test/
 python/
 private_tests
+.gitmodules
