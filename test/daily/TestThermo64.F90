@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo64.F90
-    !> \brief   Spot test - Nb-Zr-O-H 600 K.
-    !> \author  M. Poschmann
+    !> \file    TestThermo89.F90
+    !> \brief   SUBM worst case scenario.
+    !> \author  M.H.A. Piro, M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,65 +14,62 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    08/31/2021    M. Poschmann         Original code
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    11/11/2022    M. Poschmann        SUBM Test Case
+    !    04/17/2024    A.E.F Fitzsimmons   CsI data bug test
+    !    05/06/2024    A.E.F Fitzsimmons   Naming convention update 
     !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that ternary mixing SUBL cases with only
-    !!  one specified coefficient are handled correctly.
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !!  results of CsI at low pressure. This test is consistent with the test in the tutorial manual.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo64
 
     USE ModuleThermoIO
-    USE ModuleGEMSolver
     USE ModuleThermo
-    USE ModuleParseCS
 
     implicit none
 
-    integer :: i, j
-    logical :: bccPass
+    real(8) :: gibbscheck
+    logical :: s1pass
+
 
     ! Specify units:
-    cInputUnitTemperature = 'K'
+    cInputUnitTemperature = 'C'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'ZIRC-test64.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'CsI-Pham.dat'
 
     ! Specify values:
-    dPressure              = 100D0
-    dTemperature           = 600D0
-    dElementMass(41)       = 1D0            ! Nb
-    dElementMass(40)       = 1D0            ! Zr
-    dElementMass(8)        = 1D0            ! O
-    dElementMass(1)        = 0.1D0          ! H
+    dTemperature          = 400
+    dPressure             = 1D-5
 
-    ! Specify output mode:
-    iPrintResultsMode     = 2
+    dElementMass(53)       = 1D0                              ! I
+    dElementMass(55)      = 1D0                              ! cs
+
+
+    gibbscheck = -4.41869D05
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
 
-    bccPass = .FALSE.
+    ! Check results:
+    s1pass = .FALSE.
+
     ! Check results:
     if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS((dGibbsEnergySys - (-5.24838E+05))/(-5.24838E+05))) < 1D-3) then
-            do i = 1, nSolnPhases
-                j = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(j) == 'BCC_A2') then
-                    bccPass = .TRUE.
-                end if
-            end do
+        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
+            s1pass = .TRUE.
         end if
     end if
 
-    if (bccPass) then
+    if (s1pass) then
         ! The test passed:
         print *, 'TestThermo64: PASS'
         ! Reset Thermochimica:

@@ -1,67 +1,81 @@
+
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestThermo88.F90
+    !> \brief   SUBM mismatch coefficients and charges.
+    !> \author  M.H.A. Piro, M. Poschmann
+    !
+    ! DISCLAIMER
+    ! ==========
+    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
+    ! programming are given below.
+    !
+    ! Revisions:
+    ! ==========
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    11/11/2022    M. Poschmann        SUBM Test Case
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    
+    ! Purpose:
+    ! ========
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !!  results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2.
+    !!  Two constituents on both sublattices are tested.
+    !
+    !-------------------------------------------------------------------------------------------------------------
+
 program TestThermo62
 
     USE ModuleThermoIO
     USE ModuleThermo
-    USE ModuleGEMSolver
-    USE ModuleParseCS
 
     implicit none
 
-    integer   :: i,j,k
-    real(8) :: gibbsCheck, p1check, p2check, s1check
-    logical :: subqPass, gasPass
+    real(8) :: gibbscheck
+    logical :: s1pass
+
 
     ! Specify units:
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName       = DATA_DIRECTORY //'ClAlNa.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'ZrFeKClNaFOLi.dat'
 
     ! Specify values:
-    dTemperature          = 2000D0
+    dTemperature          = 1000
     dPressure             = 1.0D0
     dElementMass          = 0D0
-    dElementMass(17)      = 2D0                              ! Cl
-    dElementMass(13)      = 1D0                              ! Al
 
-    gibbsCheck = -9.64834D+05
-    p1check    = 0.80307D0
-    s1check    = 3.8514D-03
-    p2check    = 0.60797D0
+    dElementMass(3)       = 3D0                              ! Li
+    dElementMass(11)      = 0D0                              ! Na
+    dElementMass(17)      = 0D0                              ! Cl
+    dElementMass(9)       = 5D0                              ! F
+    dElementMass(26)      = 0D0                              ! Fe
+    dElementMass(8)       = 1D0                              ! O
+    dElementMass(19)      = 0D0                              ! K
+    dElementMass(40)      = 1D0                              ! Zr
 
-    ! Specify output and debug modes:
-    iPrintResultsMode     = 2
-    lDebugMode            = .FALSE.
+    gibbscheck = -1.90265D05
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
 
-    subqPass = .FALSE.
-    gasPass = .FALSE.
+    ! Check results:
+    s1pass = .FALSE.
+
+    ! Check results:
     if (INFOThermo == 0) then
-        if (DABS((dGibbsEnergySys - gibbsCheck)/gibbsCheck) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = nElements + 1 - i
-                j = -iAssemblage(k)
-                if (cSolnPhaseName(j) == 'MSsoln') then
-                    if (DABS((dMolesPhase(k)-p1check)/p1check) < 1D-3) then
-                        if (DABS((dMolFraction(nSpeciesPhase(j-1)+1)-s1check)/s1check) < 1D-3) then
-                            subqPass = .TRUE.
-                        end if
-                    end if
-                else if (cSolnPhaseName(j) == 'gas_ideal') then
-                    if (DABS((dMolesPhase(k)-p2check)/p2check) < 1D-3) then
-                        gasPass = .TRUE.
-                    end if
-                end if
-            end do
+        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
+            s1pass = .TRUE.
         end if
     end if
 
-    if (subqPass .AND. gasPass) then
+    if (s1pass) then
         ! The test passed:
         print *, 'TestThermo62: PASS'
         ! Reset Thermochimica:
@@ -74,11 +88,5 @@ program TestThermo62
         call ResetThermo
         call EXIT(1)
     end if
-
-    ! Destruct everything:
-    if (INFOThermo == 0)        call ResetThermoAll
-
-    ! Call the debugger:
-    call ThermoDebug
 
 end program TestThermo62

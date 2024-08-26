@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo40.F90
-    !> \brief   Spot test - 2250K with 80% Mo, 20% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !> \file    TestThermo61.F90
+    !> \brief   Tricky SUBL vacancy-vacancy
+    !> \author  M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,69 +14,79 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    24/06/2021    M. Poschmann         Original code
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 2250K with 80% Mo, 20% Ru.
+    !> \details The purpose of this application test is to ensure that Thermochimica includes vacancy-vacancy
+    !! species in the SUBL model if appropriate.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo40
 
     USE ModuleThermoIO
+    USE ModuleGEMSolver
     USE ModuleThermo
+    USE ModuleParseCS
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    integer :: i, j, k
+    real(8) :: gibbsCheck, p1check, p2check, s1check, dHeatCapacityCheck
+    logical :: subqPass, gasPass, cppass
 
     ! Specify units:
-    cInputUnitTemperature  = 'K'
-    cInputUnitPressure     = 'atm'
-    cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cInputUnitTemperature = 'K'
+    cInputUnitPressure    = 'atm'
+    cInputUnitMass        = 'moles'
+    cThermoFileName        = DATA_DIRECTORY // 'FeTiVO.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 2250D0
-    dElementMass(42)       = 0.8D0        ! Mo
-    dElementMass(44)       = 0.2D0        ! Ru
+    dTemperature           = 1000D0
+    dElementMass(8)        = 2D0              ! O
+    dElementMass(22)       = 0.5D0            ! Ti
+
+    gibbsCheck = -6.24557D05
+    p1check    = 0.50000D0
+    s1check    = 0.99772D0
+    p2check    = 0.50114D0
+    dHeatCapacityCheck = 54.8676
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    call Thermochimica
+    if (INFOThermo == 0)        call Thermochimica
     call HeatCapacity
 
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    cppass = .FALSE.
-    ! Check results:
+    subqPass = .FALSE.
+    gasPass  = .FALSE.
+    cppass   = .FALSE.
     if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.44373D5))/(-1.44373E+5) < 1D-3) then
+        if (DABS((dGibbsEnergySys - gibbsCheck)/gibbsCheck) < 1D-3) then
             do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'BCCN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.2D0)/0.2D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Mo') then
-                            if (DABS(dMolFraction(j) - 0.8D0)/0.8D0 < 1D-3) s2pass = .TRUE.
+                k = nElements + 1 - i
+                j = -iAssemblage(k)
+                if (cSolnPhaseName(j) == 'Rutilesoln') then
+                    if (DABS((dMolesPhase(k)-p1check)/p1check) < 1D-3) then
+                        if (DABS((dMolFraction(nSpeciesPhase(j-1)+1)-s1check)/s1check) < 1D-3) then
+                            subqPass = .TRUE.
                         end if
-                    end do
+                    end if
+                else if (cSolnPhaseName(j) == 'gas_ideal') then
+                    if (DABS((dMolesPhase(k)-p2check)/p2check) < 1D-3) then
+                        gasPass = .TRUE.
+                    end if
                 end if
             end do
-            if (ABS(dHeatCapacity - 40.2724)/40.2724 < 1D-3) cppass = .TRUE.
+            if (ABS(dHeatCapacity - dHeatCapacityCheck)/dHeatCapacityCheck < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    if (subqPass .AND. gasPass .AND. cppass) then
         ! The test passed:
         print *, 'TestThermo40: PASS'
         ! Reset Thermochimica:
@@ -89,5 +99,11 @@ program TestThermo40
         call ResetThermo
         call EXIT(1)
     end if
+
+    ! Destruct everything:
+    if (INFOThermo == 0)        call ResetThermoAll
+
+    ! Call the debugger:
+    call ThermoDebug
 
 end program TestThermo40

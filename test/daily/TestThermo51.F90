@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo51.F90
-    !> \brief   Spot test - 2250K with 55% Tc, 45% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !> \file    TestThermo76.F90
+    !> \brief   Spot test - 2500K with 1.0 Cs - 0.5 Te
+    !> \author  M.H.A. Piro, B.A.T. Breeden
     !
     ! DISCLAIMER
     ! ==========
@@ -15,13 +15,18 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    02/24/2022    B.A.T. Breeden      SUBI Test Case
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.
+    !!  results for the open literature Cs-Te assessment file at 2500K with 1.0 mol of Cs and 0.5 mol of Te.
+    !!  It also tests mixing term Case #9 of the SUBI phase.
+    !!  The DAT file was pulled from the following article. However, modifications may have been made
+    !!  from the original version: T. N. Pham Thi, J. C. Dumas, V. Bouineau, N. Dupin, C. Gueneau, S. Gosse, 
+    !!  P. Benigni, P. Maugis and J. Rogez, "Thermodynamic assessment of the Cs–Te binary system," Calphad,
+    !!  vol. 48, pp. 1-12, 2015.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -32,51 +37,78 @@ program TestThermo51
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
+    real(8) :: pcheck1, pcheck2, gibbscheck
+    integer :: i,j,k,l
+    logical :: s1pass, s2pass, s3pass, s4pass
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'CsTe-2.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 2250D0
-    dElementMass(43)       = 0.55D0        ! Tc
-    dElementMass(44)       = 0.45D0        ! Ru
+    dTemperature           = 2500D0
+    dElementMass(52)        = 0.5D0          ! Te
+    dElementMass(55)        = 1.0D0          ! Cs
+
+    ! Liquid #1
+    sfcheck1 = 1D0               !Cs
+    sfcheck2 = 0.34222D0         !Va
+    sfcheck3 = 0.48667D0         !Cs2Te
+    sfcheck4 = 0.17111D0         !Te
+
+    pcheck1 = -377921D0        !Cs
+    pcheck2 = -381967D0        !Te
+
+    gibbscheck = -568905D0
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
-    call HeatCapacity
 
+    ! Check results:
     s1pass = .FALSE.
     s2pass = .FALSE.
-    cppass = .FALSE.
+    s3pass = .FALSE.
+    s4pass = .FALSE.
+
     ! Check results:
     if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.54452D5))/(-1.54452D5) < 1D-3) then
+        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3) .AND. &
+            (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
+            (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3)) then
             do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'HCPN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.45D0)/0.45D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
-                            if (DABS(dMolFraction(j) - 0.55D0)/0.55D0 < 1D-3) s2pass = .TRUE.
-                        end if
+                if (cSolnPhaseName(k) == 'IONIC_LIQUID') then
+                    do j = 1, 2
+                        do l = 1, nConstituentSublattice(i,j)
+                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Cs+') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck1)/sfcheck1 < 1D-3) s1pass = .TRUE.
+                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck2)/sfcheck2 < 1D-3) s2pass = .TRUE.
+                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Cs2Te') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck3)/sfcheck3 < 1D-3) s3pass = .TRUE.
+                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Te') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck4)/sfcheck4 < 1D-3) s4pass = .TRUE.
+                            end if
+                        end do
                     end do
+
                 end if
             end do
-            if (ABS(dHeatCapacity - 38.5394)/38.5394 < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    if (s1pass .AND. &
+        s2pass .AND. &
+        s3pass .AND. &
+        s4pass) then
         ! The test passed:
         print *, 'TestThermo51: PASS'
         ! Reset Thermochimica:

@@ -66,16 +66,13 @@ VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
 modfiles := $(shell find src -name "Module*.f90")
-srcfiles := $(shell find src -iname "*.f90" -and -not -name "Module*")
-
-##
-OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(patsubst %.F90, %.o, $(notdir $(srcfiles)))))
+srcfiles := $(shell find src -name "[^(Module)]*.f90")
 
 ## ========
 ## MODULES:
 ## ========
-MODS_OBJ    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
-MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_OBJ))
+MODS_SRC    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
+MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
 ## LIBRARIES:
@@ -95,7 +92,7 @@ C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
 C_OBJ       = $(C_SRC:.C=.o)
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
-C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
+C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -130,19 +127,21 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
-$(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
+$(srcfiles): $(MODS_LNK)
 
-$(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
+%.o: %.f90
+	$(FC) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: %.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
@@ -218,20 +217,6 @@ doctest:
 
 cleandoc:
 	rm -r -f $(DOC_DIR)/html; rm -r -f $(TEX_DIR); rm -r -f $(TST_DIR)/$(DOC_DIR)/html; rm -r -f $(TST_DIR)/$(TEX_DIR); rm -r -f $(DOC_DIR)/$(TST_DIR)
-## ============
-## PRIVATE TESTS:
-## ============
-PTST_DIR    = private-test-suit
-PTEST_SRC   = $(notdir $(wildcard $(PTST_DIR)/*.F90))
-PTEST_OBJ   = $(PTEST_SRC:.F90=.o)
-PTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(PTEST_OBJ))
-PTST_OBJ    = $(basename $(PTEST_SRC))
-PTST_BIN    = $(addprefix $(BIN_DIR)/,$(PTST_OBJ))
-
-privatetest: $(PTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(PTST_BIN)
-
-$(OBJ_DIR)/%.o: $(PTST_DIR)/%.F90
-	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 ## ===========
 ## DAILY TESTS
@@ -244,7 +229,7 @@ $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 ## ===========
 ## ALL TESTS:
 ## ===========
-test: all dailytest privatetest
+test: all dailytest
 
 ## ===========
 ## DEBUG:

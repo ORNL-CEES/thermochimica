@@ -1,8 +1,8 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo32.F90
-    !> \brief   Spot test - W-Au-Ar-Ne-O, 2452K.
+    !> \file    TestThermo53.F90
+    !> \brief   Spot test - 1973K with 10% Mo, 30% Pd, 60% Ru.
     !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
@@ -15,13 +15,13 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use a fictive system
-    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
+    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
+    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention 
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for a fictive system labelled W-Au-Ar-Ne-O at 2452K.
+    !! results for the Pd-Ru-Tc-Mo system at 1973K with 10% Mo, 30% Pd, 60% Ru.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -32,46 +32,60 @@ program TestThermo32
 
     implicit none
 
+    integer :: i,j,k
+    logical :: s1pass, s2pass, s3pass, cppass
+
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'WAuArNeO-1.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 2452D0
-    dElementMass(74)       = 1.95D0        ! W
-    dElementMass(79)       = 1D0           ! Au
-    dElementMass(18)       = 2D0           ! Ar
-    dElementMass(8)        = 10D0          ! O
-    dElementMass(10)       = 10D0          ! Ne
+    dTemperature           = 973D0
+    dElementMass(42)       = 0.1D0        ! Mo
+    dElementMass(46)       = 0.3D0        ! Pd
+    dElementMass(44)       = 0.6D0        ! Ru
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
-    !iPrintResultsMode = 2
-    !call PrintResults
-
+    s1pass = .FALSE.
+    s2pass = .FALSE.
+    s3pass = .FALSE.
+    cppass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS(dGibbsEnergySys - (1.672D7))/((1.672D7))) < 1D-3) then
-            ! The test passed:
-            print *, 'TestThermo32: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo32: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
+        if (DABS(dGibbsEnergySys - (-4.90922E+04))/(-4.90922E+04) < 1D-3) then
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements + 1 - i)
+                if (cSolnPhaseName(k) == 'HCPN') then
+                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
+                            if (DABS(dMolFraction(j) - 0.80273D0)/0.80273D0 < 1D-3) s1pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Mo') then
+                            if (DABS(dMolFraction(j) - 0.10757D0)/0.10757D0 < 1D-3) s2pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Pd') then
+                            if (DABS(dMolFraction(j) - 8.9693E-02)/8.9693E-02 < 1D-3) s3pass = .TRUE.
+                        end if
+                    end do
+                end if
+            end do
+            if (ABS(dHeatCapacity - 30.1581)/30.1581 < 1D-3) cppass = .TRUE.
         end if
+    end if
+
+    if (s1pass .AND. s2pass .AND. s3pass .AND. cppass) then
+        ! The test passed:
+        print *, 'TestThermo32: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo32: FAIL <---'
@@ -79,8 +93,5 @@ program TestThermo32
         call ResetThermo
         call EXIT(1)
     end if
-
-    ! Reset Thermochimica:
-    call ResetThermo
 
 end program TestThermo32

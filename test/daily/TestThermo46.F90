@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo46.F90
-    !> \brief   Spot test - 2250K with 55% Tc, 45% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !> \file    TestThermo71.F90
+    !> \brief   Spot test - 2000K with 20% Cr, 70% Zr, 10% O.
+    !> \author  M.H.A. Piro, B.A.T. Breeden
     !
     ! DISCLAIMER
     ! ==========
@@ -15,12 +15,14 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    01/10/2022    B.A.T. Breeden      Modification to use Dupin's Zirc Data base with SUBI
+    !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.
+    !\details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !!  results for the Zirc Data file at 1500K with 0.7 mols of Cn, 0.2 mols of Zr and 0.1 of O. It also
+    !!  tests mixing term Case #2 an #3 of the SUBI phase. Permission was granted from N. Dupin to make
+    !!  use of the Zirc DAT file.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -31,51 +33,79 @@ program TestThermo46
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    real(8) :: sfcheck1, sfcheck2, sfcheck3
+
+    real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
+    integer :: i,j,k,l
+    logical :: s1pass, s2pass, s3pass
+
+
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'ZIRC_no_liq.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 2250D0
-    dElementMass(43)       = 0.55D0        ! Tc
-    dElementMass(44)       = 0.45D0        ! Ru
+    dTemperature           = 2000D0
+    dElementMass(8)         = 0.1D0          ! O
+    dElementMass(24)        = 0.2D0          ! Cr
+    dElementMass(40)        = 0.7D0          ! Zr
+
+    ! Liquid #1
+    sfcheck1 = 3.30097D-1      !Cr
+    sfcheck2 = 6.69903D-1      !Zr
+    sfcheck3 = 9.99997D-1      !Va
+
+    pcheck1 = -126330D0        ! Cr
+    pcheck2 = -628950D0        ! O
+    pcheck3 = -151241D0        ! Zr
+
+    gibbscheck = -194030D0
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
-    call HeatCapacity
 
+    ! Check results:
     s1pass = .FALSE.
     s2pass = .FALSE.
-    cppass = .FALSE.
+    s3pass = .FALSE.
+    !s4pass = .FALSE.
+
     ! Check results:
     if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.54452D5))/(-1.54452D5) < 1D-3) then
+        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3) .AND. &
+            (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
+            (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
+            (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
             do i = 1, nSolnPhases
                 k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'HCPN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.45D0)/0.45D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
-                            if (DABS(dMolFraction(j) - 0.55D0)/0.55D0 < 1D-3) s2pass = .TRUE.
-                        end if
+                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
+                    do j = 1, 2
+                        do l = 1, nConstituentSublattice(i,j)
+                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'CR+3') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck1)/sfcheck1 < 1D-3) s1pass = .TRUE.
+                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'ZR+4') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck2)/sfcheck2 < 1D-3) s2pass = .TRUE.
+                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
+                                if (DABS(dSiteFraction(i,j,l) - sfcheck3)/sfcheck3 < 1D-3) s3pass = .TRUE.
+                            end if
+                        end do
                     end do
+
                 end if
             end do
-            if (ABS(dHeatCapacity - 38.5394)/38.5394 < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    if (s1pass .AND. &
+        s2pass .AND. &
+        s3pass) then
         ! The test passed:
         print *, 'TestThermo46: PASS'
         ! Reset Thermochimica:

@@ -1,8 +1,8 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo30.F90
-    !> \brief   Spot test - W-Au-Ar-O.
+    !> \file    TestThermo51.F90
+    !> \brief   Spot test - 2250K with 55% Tc, 45% Ru.
     !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
@@ -12,16 +12,16 @@
     !
     ! Revisions:
     ! ==========
-    !    Date          Programmer           Description of change
-    !    ----          ----------           ---------------------
-    !    05/14/2013    M.H.A. Piro          Original code
-    !    31/08/2018    B.W.N. Fitzpatrick   Change system to fictive RKMP model
-    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
+    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for a fictive system labelled W-Au-Ar-O.
+    !! results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -29,45 +29,59 @@ program TestThermo30
 
     USE ModuleThermoIO
     USE ModuleThermo
-    USE ModuleGEMSolver
 
     implicit none
+
+    integer :: i,j,k
+    logical :: s1pass, s2pass, cppass
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'WAuArO-1.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 1455D0
-    dElementMass(74)       = 1.95D0        ! W
-    dElementMass(79)       = 1D0           ! Au
-    dElementMass(18)       = 2D0           ! Ar
-    dElementMass(8)        = 10D0          ! O
+    dTemperature           = 2250D0
+    dElementMass(43)       = 0.55D0        ! Tc
+    dElementMass(44)       = 0.45D0        ! Ru
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
+    s1pass = .FALSE.
+    s2pass = .FALSE.
+    cppass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        if ((DABS(dGibbsEnergySys - (-4.620D5))/((-4.620D5))) < 1D-3) then
-            ! The test passed:
-            print *, 'TestThermo30: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo30: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
+        if (DABS(dGibbsEnergySys - (-1.54452D5))/(-1.54452D5) < 1D-3) then
+            do i = 1, nSolnPhases
+                k = -iAssemblage(nElements + 1 - i)
+                if (cSolnPhaseName(k) == 'HCPN') then
+                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
+                            if (DABS(dMolFraction(j) - 0.45D0)/0.45D0 < 1D-3) s1pass = .TRUE.
+                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
+                            if (DABS(dMolFraction(j) - 0.55D0)/0.55D0 < 1D-3) s2pass = .TRUE.
+                        end if
+                    end do
+                end if
+            end do
+            if (ABS(dHeatCapacity - 38.5394)/38.5394 < 1D-3) cppass = .TRUE.
         end if
+    end if
+
+    if (s1pass .AND. s2pass .AND. cppass) then
+        ! The test passed:
+        print *, 'TestThermo30: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo30: FAIL <---'
@@ -75,10 +89,5 @@ program TestThermo30
         call ResetThermo
         call EXIT(1)
     end if
-
-    !call ThermoDebug
-
-    ! Reset Thermochimica:
-    call ResetThermo
 
 end program TestThermo30

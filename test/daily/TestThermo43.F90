@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo43.F90
-    !> \brief   Spot test - 400K with 40% Pd, 60% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !> \file    TestThermo64.F90
+    !> \brief   Spot test - Nb-Zr-O-H 600 K.
+    !> \author  M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,69 +14,65 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    08/31/2021    M. Poschmann         Original code
     !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 400K with 40% Pd, 60% Ru.
+    !> \details The purpose of this application test is to ensure that ternary mixing SUBL cases with only
+    !!  one specified coefficient are handled correctly.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo43
 
     USE ModuleThermoIO
+    USE ModuleGEMSolver
     USE ModuleThermo
+    USE ModuleParseCS
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    integer :: i, j
+    logical :: bccPass
 
     ! Specify units:
-    cInputUnitTemperature  = 'K'
-    cInputUnitPressure     = 'atm'
-    cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cInputUnitTemperature = 'K'
+    cInputUnitPressure    = 'atm'
+    cInputUnitMass        = 'moles'
+    cThermoFileName        = DATA_DIRECTORY // 'ZIRC-test64.dat'
 
     ! Specify values:
-    dPressure              = 1D0
-    dTemperature           = 400D0
-    dElementMass(46)       = 0.4D0        ! Pd
-    dElementMass(44)       = 0.6D0        ! Ru
+    dPressure              = 100D0
+    dTemperature           = 600D0
+    dElementMass(41)       = 1D0            ! Nb
+    dElementMass(40)       = 1D0            ! Zr
+    dElementMass(8)        = 1D0            ! O
+    dElementMass(1)        = 0.1D0          ! H
+
+    ! Specify output mode:
+    iPrintResultsMode     = 2
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    call Thermochimica
-    call HeatCapacity
+    if (INFOThermo == 0)        call Thermochimica
 
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    cppass = .FALSE.
+    bccPass = .FALSE.
     ! Check results:
     if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.33770D4))/(-1.33770D4) < 1D-3) then
+        ! The fluorite oxide phase should be the only one stable at equilibrium.
+        if ((DABS((dGibbsEnergySys - (-5.24838E+05))/(-5.24838E+05))) < 1D-3) then
             do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'FCCN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 5.4695E-03)/5.4695E-03 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Pd') then
-                            if (DABS(dMolFraction(j) - 0.99453D0)/0.99453D0 < 1D-3) s2pass = .TRUE.
-                        end if
-                    end do
+                j = -iAssemblage(nElements + 1 - i)
+                if (cSolnPhaseName(j) == 'BCC_A2') then
+                    bccPass = .TRUE.
                 end if
             end do
-            if (ABS(dHeatCapacity - 25.7620)/25.7620 < 1D-3) cppass = .TRUE.
         end if
     end if
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    if (bccPass) then
         ! The test passed:
         print *, 'TestThermo43: PASS'
         ! Reset Thermochimica:
