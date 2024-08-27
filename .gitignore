@@ -34,7 +34,6 @@ test/doc/
 .vscode/
 # some of these will occasionally require manual override
 data/
-test/
 python/
 private_tests
 .gitmodules
