@@ -2,72 +2,30 @@
 
 set -Eeuo pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-cd $script_dir
+cd "$script_dir/bin"
 
-cd bin
+# Array of test names from public test suite
+tests=(
+    TestThermo01 TestThermo02 TestThermo03 TestThermo04 TestThermo05
+    TestThermo06 TestThermo07 TestThermo08 TestThermo09 TestThermo10
+    TestThermo11 TestThermo12 TestThermo13 TestThermo14 TestThermo15
+    TestThermo16 TestThermo17 TestThermo18 TestThermo19 TestThermo20
+    TestThermo21 TestThermo22 TestThermo23 TestThermo24 TestThermo25
+    TestThermo26 TestThermo27 TestThermo28 TestThermo29 TestThermo30
+    TestThermo31 TestThermo32 TestThermo33 TestThermo34 TestThermo35
+    TestThermo36 TestThermo37 TestThermo38 TestThermo39 TestThermo40
+    TestThermo41 TestThermo42 TestThermo43 TestThermo44 TestThermo45
+    TestThermo46 TestThermo47 TestThermo48 TestThermo49 TestThermo50
+    TestThermo51 TestThermo52 TestThermo53 TestThermo54 TestThermo55
+    TestThermo56 TestThermo57 TestThermo58 TestThermo59 TestThermo60
+    TestThermo61 TestThermo62 TestThermo63 TestThermo64
+)
 
-./TestThermo01
-./TestThermo02
-./TestThermo03
-./TestThermo04
-./TestThermo05
-./TestThermo06
-./TestThermo07
-./TestThermo08
-./TestThermo09
-./TestThermo10
-./TestThermo11
 ./TestThermo12 > test12out.txt
 tail -1 test12out.txt
-./TestThermo13
-./TestThermo14
-./TestThermo30
-./TestThermo31
-./TestThermo32
-./TestThermo33
-./TestThermo40
-./TestThermo41
-./TestThermo42
-./TestThermo43
-./TestThermo44
-./TestThermo45
-./TestThermo46
-./TestThermo47
-./TestThermo48
-./TestThermo49
-./TestThermo50
-./TestThermo51
-./TestThermo52
-./TestThermo53
-./TestThermo54
-./TestThermo55
-./TestThermo56
-./TestThermo57
-./TestThermo58
-./TestThermo59
-./TestThermo60
-./TestThermo61
-./TestThermo62
-./TestThermo63
-./TestThermo64
-./TestThermo65
-./TestThermo70
-./TestThermo71
-./TestThermo72
-./TestThermo73
-./TestThermo74
-./TestThermo75
-./TestThermo76
-./TestThermo77
-./TestThermo78
-./TestThermo80
-./TestThermo81
-./TestThermo82
-./TestThermo83
-./TestThermo84
-./TestThermo85
-./TestThermo86
-./TestThermo87
-./TestThermo88
-./TestThermo89
-./TestThermo90
+
+# Iterate through tests and run each one
+for test_name in "${tests[@]}"; do
+    ./"$test_name"
+
+done

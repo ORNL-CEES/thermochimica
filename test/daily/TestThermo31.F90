@@ -94,4 +94,4 @@ program TestThermo31
         call EXIT(1)
     end if
 
-end program TestThermo52
+end program TestThermo31
