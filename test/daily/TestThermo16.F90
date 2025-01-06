@@ -30,14 +30,16 @@ program TestThermo16
 
     USE ModuleThermoIO
     USE ModuleThermo
-
+    USE ModuleTesting
+    
     implicit none
 
-    !Gibbs Energy result via Factsage
-    real(8) :: gibbscheck
-    
-    !Init test values
-    gibbscheck = 6.769E5
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -53,30 +55,34 @@ program TestThermo16
     dElementMass(18)       = 5D0        ! Ar
     dElementMass(8)        = 2D0        ! O
 
+    ! Init test values
+    dGibbsCheck            = 6.76880D05
+    dHeatCapacityCheck     = 251.212
+    nSpeciesTest           = 4
+    iSpeciesIndexTest      = [1, 2, 3, 4] !Au, W, O, Ar
+    dMolFractionTest       = [0.272727D0, 9.09090D-02, 0.18181D0, 0.45454D0 ]
+    lPass                  = .FALSE.
+
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
+    
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    !iPrintResultsMode = 2
-    !call PrintResults
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
     ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS(dGibbsEnergySys - (gibbscheck))/((gibbscheck))) < 1D-3) then
-            ! The test passed:
-            print *, 'TestThermo16: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo16: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
-        end if
+    if (lPass) then
+        ! The test passed:
+        print *, 'TestThermo16: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo16: FAIL <---'
@@ -84,9 +90,7 @@ program TestThermo16
         call ResetThermo
         call EXIT(1)
     end if
-
-    !call ThermoDebug
-
+    
     ! Reset Thermochimica:
     call ResetThermo
 

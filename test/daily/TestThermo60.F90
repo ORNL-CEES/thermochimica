@@ -30,12 +30,16 @@ program TestThermo60
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    real(8) :: gibbscheck
-    logical :: s1pass
-
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -49,33 +53,31 @@ program TestThermo60
     dElementMass          = 0D0
 
     dElementMass(3)       = 2D0                              ! Li
-    ! dElementMass(11)      = 2D0                              ! Na
-    ! dElementMass(17)      = 4D0                              ! Cl
-    ! dElementMass(9)       = 5D0                             ! F
-    ! dElementMass(26)      = 3D0                              ! Fe
     dElementMass(8)       = 3D0                              ! O
-    ! dElementMass(19)      = 4D0                              ! K
     dElementMass(40)      = 1D0                              ! Zr
 
-    gibbscheck = -1.01677D05
+    ! Init test values
+    dGibbsCheck           = -1.01677D05
+    dHeatCapacityCheck    = 3189.08
+    nSpeciesTest          = 2
+    iSpeciesIndexTest     = [1, 2] !Li2O, ZrO2
+    dMolFractionTest      = [4.9999D-01, 5.0000D-01]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
-    ! Check results:
-    s1pass = .FALSE.
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
-            s1pass = .TRUE.
-        end if
-    end if
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    if (s1pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo60: PASS'
         ! Reset Thermochimica:

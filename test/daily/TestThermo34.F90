@@ -29,12 +29,16 @@ program TestThermo34
     USE ModuleGEMSolver
     USE ModuleThermo
     USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i, j, iFirst
-    real(8) :: T, B, StructureFactor
-    logical :: fccPass, bccPass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -52,43 +56,28 @@ program TestThermo34
     dElementMass(50)       = 0.1D0          ! Sn
     dElementMass(1)        = 1D0            ! H
 
-    ! Specify output mode:
-    iPrintResultsMode     = 2
+    ! Init test values
+    dGibbsCheck            = -4.96674D04
+    dHeatCapacityCheck     = 131.162
+    nSpeciesTest           = 8
+    iSpeciesIndexTest      = [1, 3, 4, 8, 9, 11, 39, 60] !Cr, Fe, H, Ni, Sn, V, Cr:Fe, V:Ni
+    dMolFractionTest       = [1.4724D-64, 4.1279D-68, 1.3186D-37, 5.2694D-71, 1.9488D-55, 4.4569D-89, 8.1559D-02, 5.0192D-04]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
+    call HeatCapacity
 
-    fccPass = .FALSE.
-    bccPass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS(dGibbsEnergySys - (-4.96674D04))/((-4.96674D04))) < 1D-3) then
-            do i = 1, nSolnPhases
-                j = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(j) == 'FCC_A1') then
-                    call CompMagneticTemperatureMoment(j,T,B)
-                    iFirst = nSpeciesPhase(j-1) + 1
-                    StructureFactor = dCoeffGibbsMagnetic(iFirst,3)
-                    T = -T * StructureFactor
-                    B = -B * StructureFactor
-                    if ((DABS((T-97.24D0)/97.24D0) < 1D-3) .AND. (DABS((B-0.13862D0)/0.13862D0) < 1D-3)) then
-                        fccPass = .TRUE.
-                    end if
-                else if (cSolnPhaseName(j) == 'BCC_A2') then
-                    call CompMagneticTemperatureMoment(j,T,B)
-                    if ((DABS((T-641.38D0)/641.38D0) < 1D-3) .AND. (DABS((B-1.5248D0)/1.5248D0) < 1D-3)) then
-                        bccPass = .TRUE.
-                    end if
-                end if
-            end do
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (fccPass .AND. bccPass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo34: PASS'
         ! Reset Thermochimica:

@@ -127,10 +127,14 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
+
 $(srcfiles): $(MODS_LNK)
 
+$(OBJ_DIR)/ModuleTesting.o: $(OBJ_DIR)/ModuleThermo.o
+$(OBJ_DIR)/ModuleTesting.o: $(OBJ_DIR)/ModuleThermoIO.o
+
 %.o: %.f90
-	$(FC) $(FCFLAGS) -c $< -o $@
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@

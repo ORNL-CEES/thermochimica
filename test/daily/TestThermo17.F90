@@ -29,14 +29,16 @@ program TestThermo17
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    !Gibbs Energy result via Factsage
-    real(8) :: gibbscheck
-    
-    !Init test values
-    gibbscheck = 1.672D7
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -53,28 +55,34 @@ program TestThermo17
     dElementMass(8)        = 10D0          ! O
     dElementMass(10)       = 10D0          ! Ne
 
+    ! Init test values
+    dGibbsCheck            = 1.67160D07
+    dHeatCapacityCheck     = 603.816
+    nSpeciesTest           = 5
+    iSpeciesIndexTest      = [1, 2, 3, 4, 5] !Au, W, O, Ar, Ne
+    dMolFractionTest       = [4.00801D-02, 7.81563D-02, 0.40080D0, 8.01603D-02, 0.40080D0]
+    lPass                  = .FALSE.
+
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
+    !Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+    
     ! Check results:
-    if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS(dGibbsEnergySys - (gibbscheck))/((gibbscheck))) < 1D-3) then
-            ! The test passed:
-            print *, 'TestThermo17: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo17: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
-        end if
+    if (lPass) then
+        ! The test passed:
+        print *, 'TestThermo17: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo17: FAIL <---'

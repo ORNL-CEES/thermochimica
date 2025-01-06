@@ -30,12 +30,16 @@ program TestThermo61
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    real(8) :: gibbscheck
-    logical :: s1pass
-
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -57,25 +61,28 @@ program TestThermo61
     dElementMass(19)      = 0D0                              ! K
     dElementMass(40)      = 1D0                              ! Zr
 
-    gibbscheck = -1.50268D04
+    ! Init test values
+    dGibbsCheck           = -1.50268D04
+    dHeatCapacityCheck    = -6975.92
+    nSpeciesTest          = 2
+    iSpeciesIndexTest     = [1, 2] !ZrCl4, ZrO2
+    dMolFractionTest      = [4.9999D-01, 5.0000D-01]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
+    
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    ! Check results:
-    s1pass = .FALSE.
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
-            s1pass = .TRUE.
-        end if
-    end if
-
-    if (s1pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo61: PASS'
         ! Reset Thermochimica:

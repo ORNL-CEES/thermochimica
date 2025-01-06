@@ -29,11 +29,16 @@ program TestThermo56
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    real(8) :: gibbscheck
-    logical :: s1pass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
 
     ! Specify units:
@@ -48,32 +53,32 @@ program TestThermo56
     dElementMass          = 0D0
 
     dElementMass(3)       = 1.2D0                              ! Li
-    ! dElementMass(11)      = 0.4D0                             ! Na
     dElementMass(17)      = 0.5D0                              ! Cl
     dElementMass(9)       = 0.3D0                              ! F
-    ! dElementMass(26)      = 0.3D0                             ! Fe
     dElementMass(8)       = 0.2D0                              ! O
-    ! dElementMass(19)      = 0.2D0                             ! K
 
-    gibbscheck = -4.52110D04
+    ! Init test values
+    dGibbsCheck           = -4.52110D04
+    dHeatCapacityCheck    = -4.92203D-03
+    nSpeciesTest          = 3
+    iSpeciesIndexTest     = [1, 2, 3] !LiF, LiCl, Li2O
+    dMolFractionTest      = [2.9999D-01, 5.0000D-01, 2.0000D-01]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
-    ! Check results:
-    s1pass = .FALSE.
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3)) then
-            s1pass = .TRUE.
-        end if
-    end if
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    if (s1pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo56: PASS'
         ! Reset Thermochimica:

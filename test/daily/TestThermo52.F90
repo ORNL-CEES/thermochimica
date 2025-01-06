@@ -31,16 +31,16 @@ program TestThermo52
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
-    real(8) :: sfcheck5, sfcheck6, sfcheck7
-    real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
-    integer :: i,j,k,l
-    logical :: s1pass, s2pass, s3pass, s4pass, s5pass
-    logical :: s6pass, s7pass, s8pass, s9pass, s10pass
-
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -51,91 +51,32 @@ program TestThermo52
     ! Specify values:
     dPressure              = 1D0
     dTemperature           = 2500D0
-    dElementMass(41)        = 1D0          ! Nb
-    dElementMass(8)         = 0.3D0        ! O
-    dElementMass(50)        = 0.7D0        ! Sn
+    dElementMass(41)       = 1D0          ! Nb
+    dElementMass(8)        = 0.3D0        ! O
+    dElementMass(50)       = 0.7D0        ! Sn
 
-    ! Liquid #1
-    sfcheck1 = 0.99586D0          !Nb+2
-    sfcheck2 = 0.327163D0         !O-2
-    sfcheck3 = 0.563388D0         !Va
-    sfcheck4 = 0.109449D0         !NBO5/2
-
-    ! Liquid #2
-    sfcheck5 = 0.418758D0         !Nb+2
-    sfcheck6 = 0.581242D0         !Sn+2
-    sfcheck7 = 0.99976D0          !Va
-
-    pcheck1 = -183696D0       !Nb
-    pcheck2 = -593052D0       !O
-    pcheck3 = -249101D0       !Sn
-
-    gibbscheck = -535982D0
+    ! Init test values
+    dGibbsCheck            = -5.14706D05
+    dHeatCapacityCheck     = -1.7023D09
+    nSpeciesTest           = 4
+    iSpeciesIndexTest      = [6, 14, 20, 21] ! O2Sn, NB+2:O-2, O2Sn, NB+2:O-2
+    dMolFractionTest       = [4.5414D-11, 5.1351D-01, 1.0010D-027,  2.1018D-03]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
-    ! Check results:
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    s3pass = .FALSE.
-    s4pass = .FALSE.
-    s5pass = .FALSE.
-    s6pass = .FALSE.
-    s7pass = .FALSE.
-    s8pass = .FALSE.
-    s9pass = .FALSE.
-    s10pass = .FALSE.
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3) .AND. &
-            (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
-            (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
-            (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
-            loop_checkPhases: do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'NB+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck1)/sfcheck1 < 1D-3) s1pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'O-2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck2)/sfcheck2 < 1D-3) s2pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck3)/sfcheck3 < 1D-3) s3pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'NBO5/2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck4)/sfcheck4 < 1D-3) s4pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'NB+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck5)/sfcheck5 < 1D-3) s5pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'SN+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck6)/sfcheck6 < 1D-3) s6pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck7)/sfcheck7 < 1D-3) s7pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                end if
-            end do loop_checkPhases
-        end if
-    end if
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    if (s1pass .AND. &
-        s2pass .AND. &
-        s3pass .AND. &
-        s4pass .AND. &
-        s5pass .AND. &
-        s6pass .AND. &
-        s7pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo52: PASS'
         ! Reset Thermochimica:

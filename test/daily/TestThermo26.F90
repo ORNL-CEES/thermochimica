@@ -29,11 +29,16 @@ program TestThermo26
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, s3pass, cppass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -48,6 +53,14 @@ program TestThermo26
     dElementMass(46)       = 0.4D0        ! Pd
     dElementMass(44)       = 0.3D0        ! Ru
 
+    ! Init test values
+    dGibbsCheck            = -1.38528D05
+    dHeatCapacityCheck     = 37.9398
+    nSpeciesTest           = 4
+    iSpeciesIndexTest      = [1, 2, 3, 4, 12] !Mo, Mo2, Ru, Pd, Pd
+    dMolFractionTest       = [5.30212D-12, 6.86724D-18, 2.57749D-10, 9.71941D-05, 3.01074D-02]
+    lPass                  = .FALSE.
+
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
@@ -55,32 +68,13 @@ program TestThermo26
     call Thermochimica
     call HeatCapacity
 
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    s3pass = .FALSE.
-    cppass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.38528D5))/(-1.38528D5) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'FCCN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.13193D0)/0.13193D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Mo') then
-                            if (DABS(dMolFraction(j) - 0.24756D0)/0.24756D0 < 1D-3) s2pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Pd') then
-                            if (DABS(dMolFraction(j) - 0.62051D0)/0.62051D0 < 1D-3) s3pass = .TRUE.
-                        end if
-                    end do
-                end if
-            end do
-            if (ABS(dHeatCapacity - 37.9399)/37.9399 < 1D-3) cppass = .TRUE.
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (s1pass .AND. s2pass .AND. s3pass .AND. cppass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo26: PASS'
         ! Reset Thermochimica:

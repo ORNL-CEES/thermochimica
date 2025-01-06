@@ -4,12 +4,16 @@ program TestThermo42
     USE ModuleThermo
     USE ModuleGEMSolver
     USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer   :: i,j,k
-    real(8) :: gibbsCheck, p1check, p2check, s1check
-    logical :: subqPass, solPass
+    !Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -20,53 +24,32 @@ program TestThermo42
     ! Specify values:
     dTemperature          = 1000D0
     dPressure             = 1.0D0
-    dElementMass          = 0D0
     dElementMass(17)      = 3D0                              ! Cl
     dElementMass(11)      = 1D0                              ! Na
     dElementMass(13)      = 1D0                              ! Al
 
-    gibbsCheck = -1.17685D+06
-    p1check    = 4.2176D0
-    s1check    = 0.23035D0
-    p2check    = 4.4748D-2
-
-    ! Specify output and debug modes:
-    iPrintResultsMode     = 2
-    lDebugMode            = .FALSE.
+    !Init test values
+    dGibbsCheck           = -1.17685D06
+    dHeatCapacityCheck    = 3.10958D02
+    nSpeciesTest          = 3
+    iSpeciesIndexTest     = [8, 10, 12] !Al-Al-Cl-Cl, Na-Al-Cl-Cl, Al-Al2-Cl-Cl
+    dMolFractionTest      = [3.1217D-03, 0.54214D0, 6.6187D-04]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    if (INFOThermo == 0) call Thermochimica
+    call HeatCapacity
 
-    subqPass = .FALSE.
-    solPass = .FALSE.
-    if (INFOThermo == 0) then
-        if (DABS((dGibbsEnergySys - gibbsCheck)/gibbsCheck) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = nElements + 1 - i
-                j = -iAssemblage(k)
-                if (cSolnPhaseName(j) == 'MSsoln') then
-                    if (DABS((dMolesPhase(k)-p1check)/p1check) < 1D-3) then
-                        if (DABS((dMolFraction(nSpeciesPhase(j-1)+1)-s1check)/s1check) < 1D-3) then
-                            subqPass = .TRUE.
-                        end if
-                    end if
-                end if
-            end do
-            do i = 1, nConPhases
-                j = iAssemblage(i)
-                if (ADJUSTL(TRIM(cSpeciesName(j))) == 'NaCl_S1(s)') then
-                    if (DABS((dMolesPhase(i)-p2check)/p2check) < 1D-3) then
-                        solPass = .TRUE.
-                    end if
-                end if
-            end do
-        end if
-    end if
+    !Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (subqPass .AND. solPass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo42: PASS'
         ! Reset Thermochimica:

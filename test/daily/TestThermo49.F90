@@ -31,19 +31,17 @@
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo49
-
     USE ModuleThermoIO
     USE ModuleThermo
-
+    USE ModuleTesting
     implicit none
 
-    real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
-    real(8) :: sfcheck5, sfcheck6, sfcheck7
-    real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
-    integer :: i,j,k,l
-    logical :: s1pass, s2pass, s3pass, s4pass
-    logical :: s5pass, s6pass, s7pass
-
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -58,84 +56,28 @@ program TestThermo49
     dElementMass(25)       = 4D0          ! Mn
     dElementMass(16)       = 3D0          ! S
 
-    ! Liquid #1
-    sfcheck1 = 3.2331D-1         !Fe+2
-    sfcheck2 = 6.7669D-1         !Mn+2
-    sfcheck3 = 5.1140D-1         !S-2
-    sfcheck4 = 4.8860D-1         !Va
-
-    ! Liquid #2
-    sfcheck5 = 7.7271D-1         !Fe+2
-    sfcheck6 = 2.27D-1           !Mn+2
-    sfcheck7 = 9.9999D-1         !Va
-
-    pcheck1 = -121307D0       !Ca
-    pcheck2 = -155496D0       !Mn
-    pcheck3 = -360095D0       !S
-
-    gibbscheck = -1944880D0
+    ! Init test values
+    dGibbsCheck            = -1.94495D06
+    dHeatCapacityCheck     = 128.00
+    nSpeciesTest           = 6
+    iSpeciesIndexTest      = [10, 11, 12, 15, 16, 17] !Fe+2:S-2, Fe+2:Va, Mn+2:S-2, Fe+2:S-2, Fe+2:Va. Mn+2:S-2
+    dMolFractionTest       = [5.5296D-05, 7.7304D-01, 1.6228D-05, 1.1106D-01, 2.1224D-01, 2.3246D-01]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
+    
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    ! Check results:
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    s3pass = .FALSE.
-    s4pass = .FALSE.
-    s5pass = .FALSE.
-    s6pass = .FALSE.
-    s7pass = .FALSE.
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3) .AND. &
-            (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
-            (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
-            (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
-            loop_checkPhases: do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Fe+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck1)/sfcheck1 < 1D-3) s1pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Mn+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck2)/sfcheck2 < 1D-3) s2pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'S-2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck3)/sfcheck3 < 1D-3) s3pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck4)/sfcheck4 < 1D-3) s4pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Fe+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck5)/sfcheck5 < 1D-3) s5pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Mn+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck6)/sfcheck6 < 1D-3) s6pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck7)/sfcheck7 < 1D-3) s7pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                end if
-            end do loop_checkPhases
-        end if
-    end if
-
-    if (s1pass .AND. &
-        s2pass .AND. &
-        s3pass .AND. &
-        s4pass .AND. &
-        s5pass .AND. &
-        s6pass .AND. &
-        s7pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo49: PASS'
         ! Reset Thermochimica:

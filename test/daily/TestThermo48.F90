@@ -34,16 +34,16 @@ program TestThermo48
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4, sfcheck5
-    real(8) :: sfcheck6, sfcheck7, sfcheck8, sfcheck9, sfcheck10
-    real(8) :: pcheck1, pcheck2, pcheck3, gibbscheck
-    integer :: i,j,k,l
-    logical :: s1pass, s2pass, s3pass, s4pass, s5pass
-    logical :: s6pass, s7pass, s8pass, s9pass, s10pass
-
+    !Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
@@ -54,103 +54,32 @@ program TestThermo48
     ! Specify values:
     dPressure              = 1D0
     dTemperature           = 2500D0
-    dElementMass(20)        = 1D0          ! Ca
-    dElementMass(25)        = 1D0          ! Mn
-    dElementMass(16)        = 1D0          ! S
+    dElementMass(20)       = 1D0          ! Ca
+    dElementMass(25)       = 1D0          ! Mn
+    dElementMass(16)       = 1D0          ! S
 
-    ! Liquid #1
-    sfcheck1 = 8.06572D-1         !Ca
-    sfcheck2 = 1.93428D-1         !Mn
-    sfcheck3 = 8.18084D-1         !S-2
-    sfcheck4 = 1.81915D-1         !Va
-    sfcheck5 = 7.69522D-7         !S
-
-    ! Liquid #2
-    sfcheck6 = 1.96945D-2         !Ca
-    sfcheck7 = 9.80306D-1         !Mn
-    sfcheck8 = 1.6531D-3          !S-2
-    sfcheck9 = 9.98344D-1         !Va
-    sfcheck10 = 3.04003D-6        !S
-
-    pcheck1 = -251878D0       !Ca
-    pcheck2 = -201710D0       !Mn
-    pcheck3 = -457030D0       !S
-
-    gibbscheck = -910619D0
+    !Init test values
+    dGibbsCheck            = -9.10619D05
+    dHeatCapacityCheck     = -5.32116D03
+    nSpeciesTest           = 3
+    iSpeciesIndexTest      = [1, 19, 20] !S, Ca:S, Mn:S
+    dMolFractionTest       = [2.8964D-06, 5.4737D-03, 9.9452D-01]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
+    
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+    
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    ! Check results:
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    s3pass = .FALSE.
-    s4pass = .FALSE.
-    s5pass = .FALSE.
-    s6pass = .FALSE.
-    s7pass = .FALSE.
-    s8pass = .FALSE.
-    s9pass = .FALSE.
-    s10pass = .FALSE.
-
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS((dGibbsEnergySys - (gibbscheck))/(gibbscheck)) < 1D-3) .AND. &
-            (DABS((dElementPotential(1)*dIdealConstant*dTemperature - pcheck1)/pcheck1) < 1D-3).AND. &
-            (DABS((dElementPotential(2)*dIdealConstant*dTemperature - pcheck2)/pcheck2) < 1D-3).AND. &
-            (DABS((dElementPotential(3)*dIdealConstant*dTemperature - pcheck3)/pcheck3) < 1D-3)) then
-            loop_checkPhases: do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'IONIC_LIQ') then
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Ca+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck1)/sfcheck1 < 1D-3) s1pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Mn+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck2)/sfcheck2 < 1D-3) s2pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'S-2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck3)/sfcheck3 < 1D-3) s3pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck4)/sfcheck4 < 1D-3) s4pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'S') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck5)/sfcheck5 < 1D-3) s5pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                
-                    do j = 1, 2
-                        do l = 1, nConstituentSublattice(i,j)
-                            if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Ca+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck6)/sfcheck6 < 1D-3) s6pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Mn+2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck7)/sfcheck7 < 1D-3) s7pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'S-2') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck8)/sfcheck8 < 1D-3) s8pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'Va') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck9)/sfcheck9 < 1D-3) s9pass = .TRUE.
-                            else if (TRIM(ADJUSTL(cConstituentNameSUB(i,j,l))) == 'S') then
-                                if (DABS(dSiteFraction(i,j,l) - sfcheck10)/sfcheck10 < 1D-3) s10pass = .TRUE.
-                            end if
-                        end do
-                    end do
-                end if
-            end do loop_checkPhases
-        end if
-    end if
-
-    if (s1pass .AND. &
-        s2pass .AND. &
-        s3pass .AND. &
-        s4pass .AND. &
-        s5pass .AND. &
-        s6pass .AND. &
-        s7pass .AND. &
-        s8pass .AND. &
-        s9pass .AND. &
-        s10pass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo48: PASS'
         ! Reset Thermochimica:

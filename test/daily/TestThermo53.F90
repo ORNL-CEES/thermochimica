@@ -30,7 +30,7 @@ program TestThermo53
 
     USE ModuleThermoIO
     USE ModuleThermo
-
+    USE ModuleTesting
     implicit none
 
     real(8) :: sfcheck1, sfcheck2, sfcheck3, sfcheck4
@@ -69,7 +69,10 @@ program TestThermo53
 
     ! Call Thermochimica:
     call Thermochimica
-
+    !call printMolFractions
+    !iPrintResultsMode = 2
+    ! Perform post-processing of results:
+    !if (iPrintResultsMode > 0)  call PrintResults
     ! Check results:
     s1pass = .FALSE.
     s2pass = .FALSE.

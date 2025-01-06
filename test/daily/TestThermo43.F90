@@ -15,7 +15,7 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    08/31/2021    M. Poschmann         Original code
-    !
+    !    10/28/2024    A.E.F. Fitzsimmons   SQA Remodle
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that ternary mixing SUBL cases with only
@@ -29,11 +29,16 @@ program TestThermo43
     USE ModuleGEMSolver
     USE ModuleThermo
     USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i, j
-    logical :: bccPass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -49,30 +54,28 @@ program TestThermo43
     dElementMass(8)        = 1D0            ! O
     dElementMass(1)        = 0.1D0          ! H
 
-    ! Specify output mode:
-    iPrintResultsMode     = 2
+    ! Init test values
+    dGibbsCheck            = -5.24838D05
+    dHeatCapacityCheck     = 72.479
+    nSpeciesTest           = 7
+    iSpeciesIndexTest      = [1, 3, 5, 7, 10, 15, 17] !H, H2O, HO, HZr, NbO2, Zr2, ZrO2
+    dMolFractionTest       = [1.1114D-20, 3.8973D-51, 5.8381D-46, 3.0155D-47, 7.4787D-48, 2.7307D-79, 7.9320D-43]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
+    call HeatCapacity
 
-    bccPass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS((dGibbsEnergySys - (-5.24838E+05))/(-5.24838E+05))) < 1D-3) then
-            do i = 1, nSolnPhases
-                j = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(j) == 'BCC_A2') then
-                    bccPass = .TRUE.
-                end if
-            end do
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (bccPass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo43: PASS'
         ! Reset Thermochimica:
