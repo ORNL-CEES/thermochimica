@@ -16,7 +16,8 @@
     !    ----          ----------          ---------------------
     !    08/10/2020    M. Poschmann         Original code
     !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
-    !    04/09/2024    A.E.F. Fitzsimmons   Remodel
+    !    08/27/2024    A.E.F. Fitzsimmons   Remodel
+    !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
