@@ -163,6 +163,8 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: A tag was not properly read in input parsing.'
     elseif (INFOThermo == 55) then
         print *, 'DEBUG: Not all input parameters were supplied in input file.'
+    elseif (INFOThermo == 56) then
+        print *, 'DEBUG: Thermochimica does not support data-files with functions.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90
