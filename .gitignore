@@ -2,11 +2,13 @@
 bin/
 obj/
 lib/
+
 # ignore doc subdirectories
 doc/html/
 doc/latex/
 doc/test/
 test/doc/
+
 # ignore outputs
 *.out
 *.txt
@@ -30,11 +32,16 @@ test/doc/
 *.lai
 *.csv
 *.pkl
+
 # ignore vscode cache
 .vscode/
+
 # some of these will occasionally require manual override
 data/
 test/
 python/
 private_tests
-.gitmodules
+
+# Ignore dynamic libraries
+*.dylib
+.libs
