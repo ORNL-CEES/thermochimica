@@ -109,12 +109,7 @@ subroutine ParseCSHeader
         INFO = 8
         return
     end if
-    !Checking for function file.
-    if ((nSolnPhasesSysCS == 0) .AND. (iGasPhase == 0)) then
-        !create a debug output to call
-        INFO = 56
-        return
-    end if
+
     ! Check to see if there are any gaseous species:
     if (iGasPhase == 0) then
         ! There is no gas phase, the number of solution phases and indexing must be adjusted.
