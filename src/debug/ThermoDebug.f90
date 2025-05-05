@@ -11,10 +11,10 @@
     ! Revisions:
     ! ==========
     !
-    !    Date          Programmer       Description of change
-    !    ----          ----------       ---------------------
-    !    10/21/2011    M.H.A. Piro      Original code.
-    !
+    !    Date          Programmer         Description of change
+    !    ----          ----------         ---------------------
+    !    10/21/2011    M.H.A. Piro        Original code.
+    !    05/05/2025    A.E.F. Fitzsimmons added more debug calls
     !
     ! Purpose:
     ! ========
@@ -163,6 +163,14 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: A tag was not properly read in input parsing.'
     elseif (INFOThermo == 55) then
         print *, 'DEBUG: Not all input parameters were supplied in input file.'
+    elseif (INFOThermo == 56) then
+        print *, 'DEBUG: Lower bound is larger than upper bound.'
+    elseif (INFOThermo == 57) then
+        print *, 'DEBUG: Unsuccessful phase transition search.'
+    elseif (INFOThermo == 58) then
+        print *, 'DEBUG: No Phase Transitions in given temperature range in PhaseTransition subroutine.'
+    elseif (INFOThermo == 59) then
+        print *, "DEBUG: Phase Transition module needs more than one elements."
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90
