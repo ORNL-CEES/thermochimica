@@ -18,7 +18,7 @@ tests=(
     TestThermo46 TestThermo47 TestThermo48 TestThermo49 TestThermo50
     TestThermo51 TestThermo52 TestThermo53 TestThermo54 TestThermo55
     TestThermo56 TestThermo57 TestThermo58 TestThermo59 TestThermo60
-    TestThermo61 TestThermo62 TestThermo63 TestThermo64
+    TestThermo61 TestThermo62 TestThermo63 TestThermo64 TestTransition1
 )
 
 ./TestThermo12 > test12out.txt

@@ -79,11 +79,6 @@ subroutine PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionT
                 dPhaseTransitionTemp(iTransitions) = dTemperature
                 call SortInt(iAssemblage, nElements)
 
-                ! FOR DEBUG: REMOVE LATER
-                print *, "AssemblageUpper: ", iAssemblageUpper, NEW_LINE(" "), &
-                         " AssemblageLower: ", iAssemblageLower, NEW_LINE(" "), &
-                         " AssemblageTransition: ", iAssemblage, NEW_LINE(" ")
-
                 ! New Lower
                 dTempLower = dTemperature + dTempTolerance
                 iAssemblageLower = iAssemblageUpper
@@ -96,9 +91,6 @@ subroutine PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionT
 
             lCompareAssemblage = ALL(iAssemblage == iAssemblageUpper)
             lCompareAssemblage2 = ALL(iAssemblage == iAssemblageLower)
-
-            ! FOR DEBUG: REMOVE LATER
-            !print *, "Iteration: ", i, " dTempLower: ", dTempLower, " dTempUpper: ", dTempUpper, " dTempGuess: ", dTemperature, NEW_LINE(" ")
 
             ! Bisection check
             if (lCompareAssemblage) then
