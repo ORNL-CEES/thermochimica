@@ -75,7 +75,7 @@ module ModuleTesting
         real(8), intent(in) :: dTolerance
         logical, intent(out) :: lPass
         integer :: i, n
-        real(8) :: diff
+        real(8) :: dDiff
     
         n = size(dPhaseTransitionTemp)
         lPass = .TRUE.
@@ -83,10 +83,10 @@ module ModuleTesting
         do i = 1, n
             ! Only check where the expected value is non-zero
             if (dTestTransitionTemp(i) > 0D0) then
-                diff = abs(dPhaseTransitionTemp(i) - dTestTransitionTemp(i))
-                if (diff > dTolerance) then
+                dDiff = abs(dPhaseTransitionTemp(i) - dTestTransitionTemp(i))
+                if (dDiff > dTolerance) then
                     print *, 'Mismatch at index ', i, ': calculated = ', dPhaseTransitionTemp(i), &
-                             ', expected = ', dTestTransitionTemp(i), ', diff = ', diff
+                             ', expected = ', dTestTransitionTemp(i), ', dDiff = ', dDiff
                     lPass = .FALSE.
                 end if
             end if
