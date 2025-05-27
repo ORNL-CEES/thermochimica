@@ -38,7 +38,6 @@ test/doc/
 
 # some of these will occasionally require manual override
 data/
-test/
 python/
 private_tests
 
