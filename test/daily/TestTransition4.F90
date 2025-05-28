@@ -1,4 +1,23 @@
-program TestTransition1
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestTransition4.F90
+    !> \brief   Testing phase transition subroutine
+    !> \author  A.E.F. Fitzsimmons
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/26/2024    A.E.F. Fitzsimmons   Original Code
+    !
+    ! Purpose:
+    ! ========
+    !> \details Testing new Transition function
+    !!
+    !
+    !-------------------------------------------------------------------------------------------------------------
+program TestTransition4
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -9,12 +28,9 @@ program TestTransition1
     ! Init variables
     real(8) :: dTempMin, dTempMax, dTempTolerance
     real(8), dimension(10) :: dPhaseTransitionTemp, dTestTransitionTemp
-    integer :: i, iTransitions, iTestTransitions
+    integer :: iTransitions, iTestTransitions
     logical :: lPass
 
-    i = 1
-    iTransitions = 0
-    dPhaseTransitionTemp = 0D0
     dTempTolerance       = 1D0
 
     ! Specify units:
@@ -33,12 +49,12 @@ program TestTransition1
     dTempMin              = 300
     dTempMax              = 1300
     iTestTransitions      = 3
-    dTestTransitionTemp   = [735.39D0, 1064.22D0, 1103.52D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0] ! 304.99 missing
+    dTestTransitionTemp   = [735.39D0, 1064.22D0, 1103.52D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0]
     lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-    call Thermochimica ! or I can init hardcode nElements
+    call Thermochimica 
 
     ! Test call
     call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransitions)
@@ -58,4 +74,4 @@ program TestTransition1
         call EXIT(1)
     end if
 
-end program TestTransition1
+end program TestTransition4

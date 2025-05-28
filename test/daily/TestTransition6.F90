@@ -1,4 +1,23 @@
-program TestTransition1
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestTransition6.F90
+    !> \brief   Testing phase transition subroutine
+    !> \author  A.E.F. Fitzsimmons
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/26/2024    A.E.F. Fitzsimmons   Original Code
+    !
+    ! Purpose:
+    ! ========
+    !> \details Testing new Transition function
+    !!
+    !
+    !-------------------------------------------------------------------------------------------------------------
+program TestTransition6
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -9,13 +28,10 @@ program TestTransition1
     ! Init variables
     real(8) :: dTempMin, dTempMax, dTempTolerance
     real(8), dimension(10) :: dPhaseTransitionTemp, dTestTransitionTemp
-    integer :: i, iTransitions, iTestTransitions
+    integer :: iTransitions, iTestTransitions
     logical :: lPass
 
-    i = 1
-    iTransitions = 0
-    dPhaseTransitionTemp = 0D0
-    dTempTolerance       = 1D0
+    dTempTolerance       = 1D-1
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -26,19 +42,19 @@ program TestTransition1
     ! Specify values:
     dPressure              = 1D0
     dTemperature           = 1000
-    dElementMass(52)       = 0.75 ! Te
-    dElementMass(55)       = 0.25 ! Cs
+    dElementMass(52)       = 0.25 ! Te
+    dElementMass(55)       = 0.75 ! Cs
 
     ! Init test values
     dTempMin              = 300
-    dTempMax              = 1000
-    iTestTransitions      = 1
-    dTestTransitionTemp   = [499.62D0, 501.21D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0]
+    dTempMax              = 1500
+    iTestTransitions      = 3
+    dTestTransitionTemp   = [301.33D0, 850.82D0, 1027.51D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0, 0D0]
     lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-    call Thermochimica ! or I can init hardcode nElements
+    call Thermochimica
 
     ! Test call
     call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransitions)
@@ -47,16 +63,16 @@ program TestTransition1
 
     if (lPass) then
         ! The test passed:
-        print *, 'TestTransition4: PASS'
+        print *, 'TestTransition6: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestTransition4: FAIL <---'
+        print *, 'TestTransition6: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestTransition1
+end program TestTransition6

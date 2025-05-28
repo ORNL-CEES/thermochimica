@@ -1,7 +1,7 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ModuleTesting.F90
-    !> \brief   Module for testing.
+    !> \file    PhaseTransition.F90
+    !> \brief   Find Phase Transitions
     !> \author  A.E.F. Fitzsimmons
     !
     !> \todo    Input file setup, Return assemblages
@@ -36,6 +36,7 @@ subroutine PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionT
     i = 1
     iMaxIteration = 50
     iTransitions = 0
+    dPhaseTransitionTemp = 0D0
     dTempLower = dTempMin
     dTempUpper = dTempMax
     lCompareAssemblage = .FALSE.

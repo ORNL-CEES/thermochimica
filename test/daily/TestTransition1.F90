@@ -1,3 +1,22 @@
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestTransition1.F90
+    !> \brief   Testing phase transition subroutine
+    !> \author  A.E.F. Fitzsimmons
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/26/2024    A.E.F. Fitzsimmons   Original Code
+    !
+    ! Purpose:
+    ! ========
+    !> \details Testing new Transition function
+    !!
+    !
+    !-------------------------------------------------------------------------------------------------------------
 program TestTransition1
 
     USE ModuleThermoIO
@@ -9,12 +28,9 @@ program TestTransition1
     ! Init variables
     real(8) :: dTempMin, dTempMax, dTempTolerance
     real(8), dimension(10) :: dPhaseTransitionTemp, dTestTransitionTemp
-    integer :: i, iTransitions, iTestTransitions
+    integer :: iTransitions, iTestTransitions
     logical :: lPass
 
-    i = 1
-    iTransitions = 0
-    dPhaseTransitionTemp = 0D0
     dTempTolerance       = 1D-1
 
     ! Specify units:
@@ -38,14 +54,12 @@ program TestTransition1
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-    call Thermochimica ! or I can init hardcode nElements
+    call Thermochimica 
 
     !Test call
     call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransitions)
     call checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, 1D0, lPass)
-    do i = 1, size(dPhaseTransitionTemp)
-        print *, dPhaseTransitionTemp(i)
-    end do 
+
     if (lPass) then
         ! The test passed:
         print *, 'TestTransition1: PASS'

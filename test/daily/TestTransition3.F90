@@ -1,4 +1,23 @@
-program TestTransition1
+    !-------------------------------------------------------------------------------------------------------------
+    !
+    !> \file    TestTransition3.F90
+    !> \brief   Testing phase transition subroutine
+    !> \author  A.E.F. Fitzsimmons
+    !
+    !
+    ! Revisions:
+    ! ==========
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/26/2024    A.E.F. Fitzsimmons   Original Code
+    !
+    ! Purpose:
+    ! ========
+    !> \details Testing new Transition function
+    !!
+    !
+    !-------------------------------------------------------------------------------------------------------------
+program TestTransition3
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -9,13 +28,10 @@ program TestTransition1
     ! Init variables
     real(8) :: dTempMin, dTempMax, dTempTolerance
     real(8), dimension(10) :: dPhaseTransitionTemp, dTestTransitionTemp
-    integer :: i, iTransitions, iTestTransitions
+    integer :: iTransitions, iTestTransitions
     logical :: lPass
 
-    i = 1
-    iTransitions = 0
-    dPhaseTransitionTemp = 0D0
-    dTempTolerance       = 1D0
+    dTempTolerance       = 1D-1
 
     ! Specify units:
     cInputUnitTemperature = 'K'
@@ -26,8 +42,8 @@ program TestTransition1
     ! Specify values:
     dPressure              = 1D0
     dTemperature           = 1000
-    dElementMass(45)       = 0.4 ! Pd
-    dElementMass(46)       = 0.6 ! Rh
+    dElementMass(45)       = 0.4 ! Rh
+    dElementMass(46)       = 0.6 ! Pd
 
     ! Init test values
     dTempMin              = 500
@@ -38,7 +54,7 @@ program TestTransition1
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
-    call Thermochimica ! or I can init hardcode nElements
+    call Thermochimica 
 
     !Test call
     call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransitions)
@@ -58,4 +74,4 @@ program TestTransition1
         call EXIT(1)
     end if
 
-end program TestTransition1
+end program TestTransition3
