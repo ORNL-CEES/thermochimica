@@ -57,6 +57,7 @@ module ModuleThermoIO
     logical,       dimension(0:118)          :: lPreset = .FALSE.
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(:), allocatable                :: cThermoFileName
+    character(:), allocatable                :: cOutputFilePath
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
     logical                                  :: lFuzzyStoich = .FALSE., lGibbsMinCheck = .FALSE.
