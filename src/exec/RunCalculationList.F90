@@ -30,18 +30,14 @@ program RunCalculationList
       call EXIT(1)
     endif
     ! Open input file
-    !print *, cOutputFilePathTemp
     open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
     cOutputFilePath = '../outputs/thermoout.json'
     if (INFO /= 0) then
-      !print INFO
       INFOThermo = 50
       print *, 'Cannot open input file ', cInputFile
       return
     endif
-    !print *, cOutputFilePathTemp
-    !print 1
     ! Initialize for read loop
     lEnd = .FALSE.
     iCounter = 0
@@ -181,7 +177,6 @@ program RunCalculationList
           if(INFO /= 0) then
             INFOThermo = 54
             write(cErrMsg,'(A35,I10)') 'Cannot read output file on line', iCounter
-            print *, trim(cErrMsg)
             return
           endif
           cOutputFilePath = cOutputFilePathTemp
@@ -357,10 +352,9 @@ program RunCalculationList
     endif
 
     call ParseCSDataFile(cThermoFileName)
-    !print DATA_DIRECTORY
     ! Specify values:
     if (lWriteJSON) then
-        OPEN(2, file= DATA_DIRECTORY//cOutputFilePath, &
+        OPEN(2, file= DATA_DIRECTORY // cOutputFilePath, &
             status='REPLACE', action='write')
         WRITE(2,*) '{'
         CLOSE(2)

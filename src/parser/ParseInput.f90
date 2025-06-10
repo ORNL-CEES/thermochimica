@@ -238,7 +238,6 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         if (INFO /= 0) then
           INFOThermo = 54
           write (cErrMsg, '(A35,I10)') 'That is some crap buddy', iCounter !Need to create an error here, temp is the same as data
-          print *, trim(cErrMsg)
           return
         end if
         cOutputFilePath = cOutputFilePathTemp
