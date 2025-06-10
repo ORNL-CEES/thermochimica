@@ -32,12 +32,15 @@ program RunCalculationList
     ! Open input file
     open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
-    cOutputFilePath = '../outputs/thermoout.json'
+    
     if (INFO /= 0) then
       INFOThermo = 50
       print *, 'Cannot open input file ', cInputFile
       return
     endif
+    ! Set default output file path
+    cOutputFilePath = '../outputs/thermoout.json'
+    
     ! Initialize for read loop
     lEnd = .FALSE.
     iCounter = 0
@@ -172,7 +175,9 @@ program RunCalculationList
             return
           endif
           lMassUnit = .TRUE.
-        case('output')
+        case('output','output file','output_file','Output File','Output file','output File', 'path','output path',&
+          'Output Path','Output path','outputpath','outputfile','filepath','Output_File','out','json','JSON','JSON File',&
+          'jsonout','JSON out','JSON output file')
           read(cValue,'(A)',IOSTAT = INFO) cOutputFilePathTemp
           if(INFO /= 0) then
             INFOThermo = 54
