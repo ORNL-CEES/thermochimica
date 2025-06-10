@@ -20,12 +20,28 @@
 ## ===================
 ## COMPILER VARIABLES:
 ## ===================
-AR          = ar
-FC          = gfortran
-CC          = g++
+AR          ?= ar
+FCFLAGS     ?= -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+# ifeq ($(USE_MPI)x,yesx)
+# 	FC          = mpifort
+# 	FCFLAGS     += -DUSE_MPI
+# else
+# 	FC          ?= gfortran
+# endif
+# CC          ?= g++
+# FFPE_TRAPS  ?= zero
+# CCFLAGS     ?= -std=gnu++17
+
+ifdef USE_MPI
+	FC          = mpifort
+	FCFLAGS     += -DUSE_MPI
+else
+	FC          = gfortran
+endif
+USE_MPI      = 0
+CC          ?= g++
 FFPE_TRAPS  ?= zero
-FCFLAGS     = -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
-CCFLAGS     = -std=gnu++17
+CCFLAGS     ?= -std=gnu++17
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
