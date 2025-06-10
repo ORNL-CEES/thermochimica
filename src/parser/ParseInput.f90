@@ -233,11 +233,14 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           return
         end if
         lMassUnit = .TRUE.
-      case ('output_file','output file','Output File','Output file')
+      case('output','output file','output_file','Output File','Output file','output File', 'path','output path',&
+          'Output Path','Output path','outputpath','outputfile','filepath','Output_File','out','json','JSON','JSON File',&
+          'jsonout','JSON out','JSON output file')
         read(cValue,'(A)',IOSTAT=INFO) cOutputFilePathTemp
         if (INFO /= 0) then
           INFOThermo = 54
-          write (cErrMsg, '(A35,I10)') 'That is some crap buddy', iCounter !Need to create an error here, temp is the same as data
+          write (cErrMsg, '(A35,I10)') 'Cannot read output file on line: ', iCounter !Need to create an error here, temp is the same as data
+          print *, trim(cErrMsg)
           return
         end if
         cOutputFilePath = cOutputFilePathTemp
