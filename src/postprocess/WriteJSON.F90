@@ -10,12 +10,12 @@ subroutine WriteJSON(append)
     logical :: exist
     integer :: i, c, nElectron, its
 
-    inquire(file= DATA_DIRECTORY // '../outputs/thermoout.json', exist=exist)
+    inquire(file= DATA_DIRECTORY // cOutputFilePath, exist=exist)
     if (append .AND. exist) then
-        open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+        open(1, file= DATA_DIRECTORY // cOutputFilePath, &
               status='OLD', position='append', action='write')
     else
-        open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+        open(1, file= DATA_DIRECTORY // cOutputFilePath, &
               status='REPLACE', action='write')
     end if
 

@@ -12,7 +12,7 @@ program RunCalculationList
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
-    character(1024) :: cLineInit, cThermoFileNameTemp
+    character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
 
@@ -23,7 +23,6 @@ program RunCalculationList
 
     ! lWriteJSON true by default
     lWriteJSON = .TRUE.
-
     ! Read input argument to get filename
     call get_command_argument(1, cInputFile)
     if (len_trim(cInputFile) == 0) then
@@ -33,12 +32,15 @@ program RunCalculationList
     ! Open input file
     open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
+    
     if (INFO /= 0) then
       INFOThermo = 50
       print *, 'Cannot open input file ', cInputFile
       return
     endif
-
+    ! Set default output file path
+    cOutputFilePath = '../outputs/thermoout.json'
+    
     ! Initialize for read loop
     lEnd = .FALSE.
     iCounter = 0
@@ -173,6 +175,16 @@ program RunCalculationList
             return
           endif
           lMassUnit = .TRUE.
+        case('output','output file','output_file','Output File','Output file','output File', 'path','output path',&
+          'Output Path','Output path','outputpath','outputfile','filepath','Output_File','out','json','JSON','JSON File',&
+          'jsonout','JSON out','JSON output file')
+          read(cValue,'(A)',IOSTAT = INFO) cOutputFilePathTemp
+          if(INFO /= 0) then
+            INFOThermo = 54
+            write(cErrMsg,'(A35,I10)') 'Cannot read output file on line', iCounter
+            return
+          endif
+          cOutputFilePath = cOutputFilePathTemp
         case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
           'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
           read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
@@ -345,10 +357,9 @@ program RunCalculationList
     endif
 
     call ParseCSDataFile(cThermoFileName)
-
     ! Specify values:
     if (lWriteJSON) then
-        OPEN(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+        OPEN(2, file= DATA_DIRECTORY // cOutputFilePath, &
             status='REPLACE', action='write')
         WRITE(2,*) '{'
         CLOSE(2)
@@ -366,7 +377,7 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+      open(2, file= DATA_DIRECTORY // cOutputFilePath, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
       write(intStr,*) i
@@ -387,7 +398,7 @@ program RunCalculationList
     CLOSE(3)
 
     if (lWriteJSON) then
-        open(2, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+        open(2, file= DATA_DIRECTORY // cOutputFilePath, &
             status='OLD', position='append', action='write')
         write(2,*) '}'
         close (2)
