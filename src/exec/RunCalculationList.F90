@@ -19,7 +19,6 @@ program RunCalculationList
     integer :: ierr,MPI_rank,MPI_size
     character(16) :: intStr
     integer :: fileCheck
-    character(1024) :: fullPath,parPath
     character(1024) :: fileOut
     character(3) :: integerString
     ! Initialize INFO
@@ -372,12 +371,6 @@ program RunCalculationList
       do i = 0, MPI_size - 1
         write(integerString, '(I0)') i
         fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
-        ! parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath) // i
-        ! ! write(parPath, '(I3)') i
-        ! fullPath = trim(parPath // '.json'
-        ! fileOut = trim(fullPath)
-        ! write (fileOut, '(A,'../outputs/')')
-        print *, "FileOut: ", fileout
         OPEN(2 + i, file= fileOut, &
             status='REPLACE', action='write')
         WRITE(2+i,*) '{'
@@ -399,10 +392,8 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
-      write(parPath, '(I3)') fileCheck
-      fullPath = parPath // '.json'
-      fileOut = trim(fullPath)
+      write(integerString, '(I0)') fileCheck
+      fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
       open(2+fileCheck, file= fileOut, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2+fileCheck,*) ','
@@ -423,18 +414,10 @@ program RunCalculationList
     end do
     CLOSE(256)
 
-    !if (lWriteJSON) then
-        !open(2, file= DATA_DIRECTORY // cOutputFilePath, &
-            !status='OLD', position='append', action='write')
-        !write(2,*) '}'
-        !close (2)
-    !end if
     if (lWriteJSON) then
       do i = 0, MPI_size-1
-        parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
-        write(parPath, '(I3)') i
-        fullPath = parPath // '.json'
-        fileOut = trim(fullPath)
+        write(integerString, '(I0)') i
+        fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
         open(2+i, file= fileOut, &
             status='OLD', position='append', action='write')
         write(2+i,*) '}'
