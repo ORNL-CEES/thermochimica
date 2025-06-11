@@ -42,7 +42,7 @@ program RunCalculationList
       return
     endif
     ! Set default output file path
-    cOutputFilePath = 'thermoout'
+    fileOut = 'thermoout'
     
     ! Initialize for read loop
     lEnd = .FALSE.
@@ -187,7 +187,7 @@ program RunCalculationList
             write(cErrMsg,'(A35,I10)') 'Cannot read output file on line', iCounter
             return
           endif
-          cOutputFilePath = cOutputFilePathTemp
+          fileOut = cOutputFilePathTemp
         case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
           'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
           read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
@@ -364,21 +364,21 @@ program RunCalculationList
     call MPI_INIT(ierr)
     call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
     call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
-    print *, "MPI Size: ", MPI_size
-    print *, "MPI Rank: ", MPI_rank
+    ! print *, "MPI Size: ", MPI_size
+    ! print *, "MPI Rank: ", MPI_rank
     
     if (lWriteJSON) then
       do i = 0, MPI_size - 1
         write(integerString, '(I0)') i
-        fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
-        OPEN(2 + i, file= fileOut, &
+        cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(fileOut) // '_' // trim(adjustl(integerString)) // '.json'
+        OPEN(2 + i, file= cOutputFilePath, &
             status='REPLACE', action='write')
         WRITE(2+i,*) '{'
         CLOSE(2+i)
       end do
     end if
     
-    do i = 1, nCalc
+    do i = 0, nCalc - 1
       fileCheck = modulo(i,MPI_size)
       if (fileCheck /= MPI_rank) continue
       cInputUnitPressure = cRunUnitPressure
@@ -393,11 +393,11 @@ program RunCalculationList
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
       write(integerString, '(I0)') fileCheck
-      fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
-      open(2+fileCheck, file= fileOut, &
+      cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(fileOut) // '_' // trim(adjustl(integerString)) // '.json'
+      open(2+fileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2+fileCheck,*) ','
-      write(intStr,*) i
+      write(intStr,*) i + 1
       write(2+fileCheck,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
       close (2+fileCheck)
       if (lWriteJSON) then
@@ -417,8 +417,8 @@ program RunCalculationList
     if (lWriteJSON) then
       do i = 0, MPI_size-1
         write(integerString, '(I0)') i
-        fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
-        open(2+i, file= fileOut, &
+        cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(fileOut) // '_' // trim(adjustl(integerString)) // '.json'
+        open(2+i, file= cOutputFilePath, &
             status='OLD', position='append', action='write')
         write(2+i,*) '}'
         close (2+i)
