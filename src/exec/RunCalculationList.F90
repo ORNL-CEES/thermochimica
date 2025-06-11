@@ -16,11 +16,12 @@ program RunCalculationList
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
-    integer :: ierr,rank,size
+    integer :: ierr,MPI_rank,MPI_size
     character(16) :: intStr
     integer :: fileCheck
     character(1024) :: fullPath,parPath
     character(1024) :: fileOut
+    character(3) :: integerString
     ! Initialize INFO
     INFO = 0
 
@@ -362,15 +363,21 @@ program RunCalculationList
     call ParseCSDataFile(cThermoFileName)
     ! Specify values:
     call MPI_INIT(ierr)
-    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,size,ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
+    print *, "MPI Size: ", MPI_size
+    print *, "MPI Rank: ", MPI_rank
     
     if (lWriteJSON) then
-      do i = 0, size - 1
-        parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
-        write(parPath, '(I3)') i
-        fullPath = parPath // '.json'
-        fileOut = trim(fullPath)
+      do i = 0, MPI_size - 1
+        write(integerString, '(I0)') i
+        fileOut = trim(DATA_DIRECTORY) // '../outputs/' // trim(cOutputFilePath) // '_' // trim(adjustl(integerString)) // '.json'
+        ! parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath) // i
+        ! ! write(parPath, '(I3)') i
+        ! fullPath = trim(parPath // '.json'
+        ! fileOut = trim(fullPath)
+        ! write (fileOut, '(A,'../outputs/')')
+        print *, "FileOut: ", fileout
         OPEN(2 + i, file= fileOut, &
             status='REPLACE', action='write')
         WRITE(2+i,*) '{'
@@ -379,8 +386,8 @@ program RunCalculationList
     end if
     
     do i = 1, nCalc
-      fileCheck = modulo(i,size)
-      if (fileCheck /= rank) continue
+      fileCheck = modulo(i,MPI_size)
+      if (fileCheck /= MPI_rank) continue
       cInputUnitPressure = cRunUnitPressure
       cInputUnitTemperature = cRunUnitTemperature
       cInputUnitMass = cRunUnitMass
@@ -423,7 +430,7 @@ program RunCalculationList
         !close (2)
     !end if
     if (lWriteJSON) then
-      do i = 0, size-1
+      do i = 0, MPI_size-1
         parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
         write(parPath, '(I3)') i
         fullPath = parPath // '.json'

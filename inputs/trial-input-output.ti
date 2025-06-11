@@ -3,7 +3,7 @@ temperature unit  = K
 pressure unit     = atm
 mass unit         = moles
 data file         = data/CO.dat
-output            = ../outputs/newout.json
+output            = newout
 ! Specify output and debug modes:
 print mode        = 2
 
