@@ -368,7 +368,7 @@ program RunCalculationList
     if (lWriteJSON) then
       do i = 0, size - 1
         fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath, '(IX)') i
+        write(fullPath, '(I3)') i
         fileOut = trim(fullPath)
         OPEN(2 + i, file= fileOut, &
             status='REPLACE', action='write')
@@ -392,7 +392,7 @@ program RunCalculationList
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
       fullPath = DATA_DIRECTORY // cOutputFilePath
-      write(fullPath, '(IX)'), fileCheck
+      write(fullPath, '(I3)'), fileCheck
       fileOut = trim(fullPath)
       open(2+fileCheck, file= fileOut, &
           status='OLD', position='append', action='write')
@@ -423,7 +423,7 @@ program RunCalculationList
     if (lWriteJSON) then
       do i = 0, size
         fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath, '(IX)') i
+        write(fullPath, '(I3)') i
         fileOut = trim(fullPath)
         open(2+i, file= fileOut, &
             status='OLD', position='append', action='write')
