@@ -21,7 +21,7 @@
 ## COMPILER VARIABLES:
 ## ===================
 AR          ?= ar
-FC          ?= mpif90
+FC          ?= mpifort
 CC          ?= mpicc
 FFPE_TRAPS  ?= zero
 FCFLAGS     ?= -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
