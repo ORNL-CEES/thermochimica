@@ -4,8 +4,9 @@ program RunCalculationList
     USE ModuleGEMSolver
     USE ModuleThermo
     USE ModuleParseCS
-    include 'mpif.h'
     implicit none
+    include 'mpif.h'
+    
     character(1024) :: cInputFile
     integer :: i, j, nElIn, nCalc
     integer, dimension(:), allocatable :: iEls
@@ -367,7 +368,7 @@ program RunCalculationList
     if (lWriteJSON) then
       do i = 0, size - 1
         fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath '(i0)') i
+        write(fullPath '(IX)') i
         fileOut = trim(fullPath)
         OPEN(2 + i, file= fileOut, &
             status='REPLACE', action='write')
@@ -391,7 +392,7 @@ program RunCalculationList
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
       fullPath = DATA_DIRECTORY // cOutputFilePath
-      write(fullPath '(i0)') fileCheck
+      write(fullPath '(IX)') fileCheck
       fileOut = trim(fullPath)
       open(2+fileCheck, file= fileOut, &
           status='OLD', position='append', action='write')
@@ -422,7 +423,7 @@ program RunCalculationList
     if (lWriteJSON) then
       do i = 0, size
         fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath '(i0)') i
+        write(fullPath '(IX)') i
         fileOut = trim(fullPath)
         open(2+i, file= fileOut, &
             status='OLD', position='append', action='write')
