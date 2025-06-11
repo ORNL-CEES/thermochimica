@@ -19,7 +19,7 @@ program RunCalculationList
     integer :: ierr,rank,size
     character(16) :: intStr
     integer :: fileCheck
-    character(1024) :: fullPath
+    character(1024) :: fullPath,parPath
     character(1024) :: fileOut
     ! Initialize INFO
     INFO = 0
@@ -42,7 +42,7 @@ program RunCalculationList
       return
     endif
     ! Set default output file path
-    cOutputFilePath = '../outputs/thermoout.json'
+    cOutputFilePath = 'thermoout'
     
     ! Initialize for read loop
     lEnd = .FALSE.
@@ -52,7 +52,7 @@ program RunCalculationList
       ! Keep track of line number
       iCounter = iCounter + 1
       ! Read a line
-      READ(300,'(A)',IOSTAT = INFO) cLineInit
+      READ(256,'(A)',IOSTAT = INFO) cLineInit
       ! If there was an error on read, give line number and return
       if (INFO > 0) then
         INFOThermo = 51
@@ -367,8 +367,9 @@ program RunCalculationList
     
     if (lWriteJSON) then
       do i = 0, size - 1
-        fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath, '(I3)') i
+        parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
+        write(parPath, '(I3)') i
+        fullPath = parPath // '.json'
         fileOut = trim(fullPath)
         OPEN(2 + i, file= fileOut, &
             status='REPLACE', action='write')
@@ -391,8 +392,9 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      fullPath = DATA_DIRECTORY // cOutputFilePath
-      write(fullPath, '(I3)'), fileCheck
+      parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
+      write(parPath, '(I3)') fileCheck
+      fullPath = parPath // '.json'
       fileOut = trim(fullPath)
       open(2+fileCheck, file= fileOut, &
           status='OLD', position='append', action='write')
@@ -421,9 +423,10 @@ program RunCalculationList
         !close (2)
     !end if
     if (lWriteJSON) then
-      do i = 0, size
-        fullPath = DATA_DIRECTORY // cOutputFilePath
-        write(fullPath, '(I3)') i
+      do i = 0, size-1
+        parPath = DATA_DIRECTORY // '../outputs/' // trim(cOutputFilePath)
+        write(parPath, '(I3)') i
+        fullPath = parPath // '.json'
         fileOut = trim(fullPath)
         open(2+i, file= fileOut, &
             status='OLD', position='append', action='write')
@@ -431,5 +434,6 @@ program RunCalculationList
         close (2+i)
       end do
     end if
-    MPI_FINALIZE(ierr)
+    
+    call MPI_FINALIZE(ierr)
 end program RunCalculationList
