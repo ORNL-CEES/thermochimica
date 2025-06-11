@@ -380,7 +380,7 @@ program RunCalculationList
     
     do i = 0, nCalc - 1
       fileCheck = modulo(i,MPI_size)
-      if (fileCheck /= MPI_rank) continue
+      if (fileCheck /= MPI_rank) CYCLE
       cInputUnitPressure = cRunUnitPressure
       cInputUnitTemperature = cRunUnitTemperature
       cInputUnitMass = cRunUnitMass
