@@ -364,37 +364,37 @@ program RunCalculationList
         WRITE(2,*) '{'
         CLOSE(2)
     end if
-
-    do i = 1, nCalc
-      cInputUnitPressure = cRunUnitPressure
-      cInputUnitTemperature = cRunUnitTemperature
-      cInputUnitMass = cRunUnitMass
-      READ(3,*,IOSTAT = INFO) dTemperature, dPressure, dEls
-      dElementMass = 0D0
-      do j = 1, nElIn
-        dElementMass(iEls(j)) = dEls(j)
+    C$PAR DOALL
+      do i = 1, nCalc
+        cInputUnitPressure = cRunUnitPressure
+        cInputUnitTemperature = cRunUnitTemperature
+        cInputUnitMass = cRunUnitMass
+        READ(3,*,IOSTAT = INFO) dTemperature, dPressure, dEls
+        dElementMass = 0D0
+        do j = 1, nElIn
+          dElementMass(iEls(j)) = dEls(j)
+        end do
+        call Thermochimica
+        call PrintResults
+        if (iPrintResultsMode > 0) call ThermoDebug
+        open(2, file= DATA_DIRECTORY // cOutputFilePath, &
+            status='OLD', position='append', action='write')
+        if (i > 1) write(2,*) ','
+        write(intStr,*) i
+        write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
+        close (2)
+        if (lWriteJSON) then
+            call WriteJSON(.TRUE.)
+        end if
+        ! Reset Thermochimica:
+        if (INFOThermo == 0) then
+            call ResetThermo
+        else
+            call ResetThermoAll
+            INFOThermo = 0
+            call ParseCSDataFile(cThermoFileName)
+        end if
       end do
-      call Thermochimica
-      call PrintResults
-      if (iPrintResultsMode > 0) call ThermoDebug
-      open(2, file= DATA_DIRECTORY // cOutputFilePath, &
-          status='OLD', position='append', action='write')
-      if (i > 1) write(2,*) ','
-      write(intStr,*) i
-      write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
-      close (2)
-      if (lWriteJSON) then
-          call WriteJSON(.TRUE.)
-      end if
-      ! Reset Thermochimica:
-      if (INFOThermo == 0) then
-          call ResetThermo
-      else
-          call ResetThermoAll
-          INFOThermo = 0
-          call ParseCSDataFile(cThermoFileName)
-      end if
-    end do
     CLOSE(3)
 
     if (lWriteJSON) then
