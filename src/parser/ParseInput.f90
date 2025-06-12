@@ -52,15 +52,15 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   integer                     :: iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
   character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
-  character(1024)             :: cLineInit, cThermoFileNameTemp
+  character(1024)             :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
-
+  !character(1024)             :: cOutputFileName Nothing to see here
   ! Initialize INFO
   INFO = 0
 
   ! lWriteJSON true by default
   lWriteJSON = .TRUE.
-
+  cOutputFilePathTemp = '../outputs/thermoout.json'
   ! Open input file
   open (UNIT = 1, FILE = cInputFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
   ! Check for error on attempt to open
@@ -233,6 +233,17 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           return
         end if
         lMassUnit = .TRUE.
+      case('output','output file','output_file','Output File','Output file','output File', 'path','output path',&
+          'Output Path','Output path','outputpath','outputfile','filepath','Output_File','out','json','JSON','JSON File',&
+          'jsonout','JSON out','JSON output file')
+        read(cValue,'(A)',IOSTAT=INFO) cOutputFilePathTemp
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A35,I10)') 'Cannot read output file on line: ', iCounter !Need to create an error here, temp is the same as data
+          print *, trim(cErrMsg)
+          return
+        end if
+        cOutputFilePath = cOutputFilePathTemp
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
         read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
