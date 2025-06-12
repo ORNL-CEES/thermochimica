@@ -32,7 +32,7 @@ module ModuleTesting
 
     contains
 
-    subroutine testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+    subroutine testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
         USE ModuleThermo
 
         !Init variables
@@ -56,7 +56,7 @@ module ModuleTesting
 
         lPass = .TRUE.
 
-    end subroutine testMolFraction
+    end subroutine testProperties
 
     subroutine printMolFractions
         USE ModuleThermo

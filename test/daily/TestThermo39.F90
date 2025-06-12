@@ -70,7 +70,7 @@ program TestThermo39
     call HeatCapacity
 
     !Execute the test for mole fractions, gibbs energy and heat capacity
-    if (INFOThermo == 0) call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+    if (INFOThermo == 0) call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
     deallocate(iSpeciesIndexTest, dMolFractionTest)
 

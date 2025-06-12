@@ -14,8 +14,8 @@
     !
     ! Purpose:
     ! ========
-    !> \details Using a bisection search, this subroutine will find and record temperatures of which a phase has
-    !! made a transition. Returning the list of transition temperatures.
+    !> \details Using a bisection search, this subroutine will find and record phase transition temperatures.
+    !
     !
     !-------------------------------------------------------------------------------------------------------------
 subroutine PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransitions)

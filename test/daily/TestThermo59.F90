@@ -76,7 +76,7 @@ program TestThermo59
     call HeatCapacity
 
     ! Execute the test for mole fractions, gibbs energy and heat capacity
-    call testMolFraction(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
     ! Deallocation
     deallocate(iSpeciesIndexTest, dMolFractionTest)
