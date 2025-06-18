@@ -18,11 +18,14 @@ program RunCalculationList
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
-    integer :: ierr,MPI_rank,MPI_size
+    integer :: MPI_rank,MPI_size
     character(16) :: intStr
     integer :: fileCheck
     character(1024) :: fileOut
     character(3) :: integerString
+#ifdef USE_MPI
+    integer :: ierr
+#endif
     ! Initialize INFO
     INFO = 0
     MPI_rank = 1

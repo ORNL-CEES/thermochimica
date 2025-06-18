@@ -38,7 +38,6 @@ ifdef USE_MPI
 else
 	FC          = gfortran
 endif
-USE_MPI      = 0
 CC          ?= g++
 FFPE_TRAPS  ?= zero
 CCFLAGS     ?= -std=gnu++17
