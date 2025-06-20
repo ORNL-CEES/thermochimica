@@ -19,10 +19,10 @@ program RunCalculationList
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
     integer :: MPI_rank,MPI_size
-    character(16) :: intStr
-    integer :: fileCheck
-    character(1024) :: fileOut
-    character(3) :: integerString
+    character(16) :: cIntStr
+    integer :: iFileCheck
+    character(1024) :: cFileOut
+    character(3) :: cIntegerString
 #ifdef USE_MPI
     integer :: ierr
 #endif
@@ -47,7 +47,7 @@ program RunCalculationList
       return
     endif
     ! Set default output file path
-    fileOut = 'thermoout'
+    cFileOut = 'thermoout'
     
     ! Initialize for read loop
     lEnd = .FALSE.
@@ -192,7 +192,7 @@ program RunCalculationList
             write(cErrMsg,'(A35,I10)') 'Cannot read output file on line', iCounter
             return
           endif
-          fileOut = cOutputFilePathTemp
+          cFileOut = cOutputFilePathTemp
         case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
           'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
           read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
@@ -363,7 +363,7 @@ program RunCalculationList
       cRunUnitMass = 'moles'
       return
     endif
-    ! print *, USE_MPI +
+
     call ParseCSDataFile(cThermoFileName)
     ! Specify values:
 #ifdef USE_MPI
@@ -371,14 +371,11 @@ program RunCalculationList
       call MPI_INIT(ierr)
       call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
-    ! print *, "MPI Size: ", MPI_size
-    ! print *, "MPI Rank: ", MPI_rank
     endif
 #endif
-    ! print *, MPI_rank
-    ! print *, integerString
-    write(integerString,'(I0)') MPI_rank
-    cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(fileOut) // '_' // trim(adjustl(integerString)) // '.json'
+
+    write(cIntegerString,'(I0)') MPI_rank
+    cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
     if (lWriteJSON) then
       do i = 0, MPI_size - 1
         OPEN(2 + i, file= cOutputFilePath, &
@@ -401,12 +398,12 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2+fileCheck, file= cOutputFilePath, &
+      open(2+iFileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
-      if (i > 1) write(2+fileCheck,*) ','
-      write(intStr,*) i + 1
-      write(2+fileCheck,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
-      close (2+fileCheck)
+      if (i > 1) write(2+iFileCheck,*) ','
+      write(cIntStr,*) i + 1
+      write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
+      close (2+iFileCheck)
       if (lWriteJSON) then
           call WriteJSON(.TRUE.)
       end if
