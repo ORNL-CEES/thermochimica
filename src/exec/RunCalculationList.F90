@@ -402,12 +402,8 @@ program RunCalculationList
       if (iPrintResultsMode > 0) call ThermoDebug
       open(2+iFileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
-#ifdef USE_MPI
-      ! Guarantees a proper .JSON file will be returned if USE_MPI=yes
-      if (modulo(i,MPI_size) == MPI_rank .AND. i > MPI_size)  write(2+iFileCheck,*) ','
-#else
-      if (i > 1) write(2+iFileCheck,*) ','
-#endif
+      
+      if (i > 1 .AND. i > MPI_rank) write(2+iFileCheck,*) ','
       write(cIntStr,*) i + 1
       write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
       close (2+iFileCheck)
