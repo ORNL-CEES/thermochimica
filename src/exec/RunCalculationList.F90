@@ -385,8 +385,12 @@ program RunCalculationList
       end do
     end if
     
-    do i = 0, nCalc - 1
+    do i = 1, nCalc
+      print *, MPI_size
+      print *, MPI_rank
+#ifdef USE_MPI
       if (modulo(i,MPI_size) /= MPI_rank) CYCLE
+#endif
       cInputUnitPressure = cRunUnitPressure
       cInputUnitTemperature = cRunUnitTemperature
       cInputUnitMass = cRunUnitMass
@@ -427,8 +431,6 @@ program RunCalculationList
       end do
     end if
 #ifdef USE_MPI    
-    if(USE_MPI > 0) then
-      call MPI_FINALIZE(ierr)
-    endif
+    call MPI_FINALIZE(ierr)
 #endif
 end program RunCalculationList
