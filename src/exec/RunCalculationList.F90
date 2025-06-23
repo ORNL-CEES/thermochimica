@@ -373,7 +373,6 @@ program RunCalculationList
       call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
     endif
 #endif
-
     write(cIntegerString,'(I0)') MPI_rank
     cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
     if (lWriteJSON) then
@@ -403,7 +402,7 @@ program RunCalculationList
       open(2+iFileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
       
-      if (i > 1 .AND. i > MPI_rank) write(2+iFileCheck,*) ','
+      if (i > 1 .AND. i > MPI_size) write(2+iFileCheck,*) ','
       write(cIntStr,*) i + 1
       write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
       close (2+iFileCheck)
@@ -423,7 +422,9 @@ program RunCalculationList
 
     if (lWriteJSON) then
       do i = 0, MPI_size-1
+#ifdef USE_MPI
         if (modulo(i,MPI_size) /= MPI_rank) CYCLE
+#endif
         open(2+i, file= cOutputFilePath, &
             status='OLD', position='append', action='write')
         write(2+i,*) '}'
