@@ -386,8 +386,6 @@ program RunCalculationList
     end if
     
     do i = 1, nCalc
-      print *, MPI_size
-      print *, MPI_rank
 #ifdef USE_MPI
       if (modulo(i,MPI_size) /= MPI_rank) CYCLE
 #endif
@@ -404,7 +402,12 @@ program RunCalculationList
       if (iPrintResultsMode > 0) call ThermoDebug
       open(2+iFileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
+#ifdef USE_MPI
+      ! Guarantees a proper .JSON file will be returned if USE_MPI=yes
+      if (modulo(i,MPI_size) == MPI_rank .AND. i > MPI_size)  write(2+iFileCheck,*) ','
+#else
       if (i > 1) write(2+iFileCheck,*) ','
+#endif
       write(cIntStr,*) i + 1
       write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
       close (2+iFileCheck)
@@ -424,6 +427,7 @@ program RunCalculationList
 
     if (lWriteJSON) then
       do i = 0, MPI_size-1
+        if (modulo(i,MPI_size) /= MPI_rank) CYCLE
         open(2+i, file= cOutputFilePath, &
             status='OLD', position='append', action='write')
         write(2+i,*) '}'
