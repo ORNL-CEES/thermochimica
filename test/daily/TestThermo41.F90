@@ -1,51 +1,37 @@
-
-    !-------------------------------------------------------------------------------------------------------------
-    !
-    !> \file    TestThermo41.F90
-    !> \brief   Spot test - 2250K with 48.86% Mo, 51.14% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
-    !
-    ! DISCLAIMER
-    ! ==========
-    ! All of the programming herein is original unless otherwise specified.  Details of contributions to the
-    ! programming are given below.
-    !
-    ! Revisions:
-    ! ==========
-    !    Date          Programmer          Description of change
-    !    ----          ----------          ---------------------
-    !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
-    !
-    ! Purpose:
-    ! ========
-    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 2250K with 48.86% Mo, 51.14% Ru.
-    !
-    !-------------------------------------------------------------------------------------------------------------
-
 program TestThermo41
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    !Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
-    cInputUnitTemperature  = 'K'
-    cInputUnitPressure     = 'atm'
-    cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cInputUnitTemperature = 'K'
+    cInputUnitPressure    = 'atm'
+    cInputUnitMass        = 'moles'
+    cThermoFileName       = DATA_DIRECTORY //'ClAlNa.dat'
 
     ! Specify values:
-    dPressure              = 1D0
-    dTemperature           = 2250D0
-    dElementMass(42)       = 4.3D0        ! Mo
-    dElementMass(44)       = 4.5D0        ! Ru
+    dTemperature          = 2000D0
+    dPressure             = 1.0D0
+    dElementMass(17)      = 2D0                              ! Cl
+    dElementMass(13)      = 1D0                              ! Al
+
+   !Init test values
+    dGibbsCheck            = -9.64834D05
+    dHeatCapacityCheck     = 6.84308D01
+    nSpeciesTest           = 3
+    iSpeciesIndexTest      = [2, 4, 8] !Al2Cl6, Al2-Al2-Cl-Cl, Al-Al2-Va-Va
+    dMolFractionTest       = [1.5843D-04, 5.3213D-03, 0.36809D0]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -53,30 +39,14 @@ program TestThermo41
     ! Call Thermochimica:
     call Thermochimica
     call HeatCapacity
+    
+    !Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    cppass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-1.30624D6))/(-1.30624D6) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'HCPN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.51136D0)/0.51136D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Mo') then
-                            if (DABS(dMolFraction(j) - 0.48864D0)/0.48864D0 < 1D-3) s2pass = .TRUE.
-                        end if
-                    end do
-                end if
-            end do
-            if (ABS(dHeatCapacity - 352.351)/352.351 < 1D-3) cppass = .TRUE.
-        end if
-    end if
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo41: PASS'
         ! Reset Thermochimica:
@@ -89,5 +59,11 @@ program TestThermo41
         call ResetThermo
         call EXIT(1)
     end if
+
+    ! Destruct everything:
+    if (INFOThermo == 0)        call ResetThermoAll
+
+    ! Call the debugger:
+    call ThermoDebug
 
 end program TestThermo41

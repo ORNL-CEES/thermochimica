@@ -66,16 +66,13 @@ VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
 modfiles := $(shell find src -name "Module*.f90")
-srcfiles := $(shell find src -iname "*.f90" -and -not -name "Module*")
-
-##
-OBJ_FILES			=  $(addprefix $(OBJ_DIR)/,$(patsubst %.f90, %.o, $(patsubst %.F90, %.o, $(notdir $(srcfiles)))))
+srcfiles := $(shell find src -name "[^(Module)]*.f90")
 
 ## ========
 ## MODULES:
 ## ========
-MODS_OBJ    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
-MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_OBJ))
+MODS_SRC    = $(patsubst %.f90, %.o, $(notdir $(modfiles)))
+MODS_LNK    = $(addprefix $(OBJ_DIR)/,$(MODS_SRC))
 
 ## =================
 ## LIBRARIES:
@@ -95,7 +92,7 @@ C_SRC       = Thermochimica-c.C Thermochimica-cxx.C
 C_OBJ       = $(C_SRC:.C=.o)
 C_LNK       = $(addprefix $(OBJ_DIR)/,$(C_OBJ))
 TC-C_LIB    = libthermoc.a
-C_LIB  			= $(OBJ_DIR)/$(TC-C_LIB)
+C_LIB  		= $(OBJ_DIR)/$(TC-C_LIB)
 
 ## ============
 ## OLD EXECUTABLES:
@@ -130,19 +127,25 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
-$(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
-$(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
+$(srcfiles): $(MODS_LNK)
+
+$(OBJ_DIR)/ModuleTesting.o: $(OBJ_DIR)/ModuleThermo.o
+$(OBJ_DIR)/ModuleTesting.o: $(OBJ_DIR)/ModuleThermoIO.o
+
+%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: %.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.f90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
