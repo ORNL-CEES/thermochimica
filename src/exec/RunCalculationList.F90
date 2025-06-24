@@ -401,14 +401,14 @@ program RunCalculationList
       if (iPrintResultsMode > 0) call ThermoDebug
       open(2+iFileCheck, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
-      
       if (i > 1 .AND. i > MPI_size) write(2+iFileCheck,*) ','
       write(cIntStr,*) i + 1
       write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
-      close (2+iFileCheck)
+      
       if (lWriteJSON) then
           call WriteJSON(.TRUE.)
       end if
+      close (2+iFileCheck)
       ! Reset Thermochimica:
       if (INFOThermo == 0) then
           call ResetThermo
