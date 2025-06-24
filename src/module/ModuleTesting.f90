@@ -47,11 +47,20 @@ module ModuleTesting
         dToleranceCheck = 1D-3
 
         !Test Gibbs and HeatCapacity
-        if (DABS((dGibbsEnergySys - dGibbsCheck)/dGibbsCheck) >= dToleranceCheck) return
-        if (DABS(dHeatCapacity - dHeatCapacityCheck)/dHeatCapacityCheck >= dToleranceCheck) return
-
+        if (DABS((dGibbsEnergySys - dGibbsCheck)/dGibbsCheck) >= dToleranceCheck) then
+            print *, "Gibbs Energy Test Failed"
+            return
+        elseif (DABS(dHeatCapacity - dHeatCapacityCheck)/dHeatCapacityCheck >= dToleranceCheck) then 
+            print *, "Heat Capacity Test Failed"
+            return
+        end if 
+        
+        !Test Mole Fraction
         do i = 1, nSpeciesTest
-            if (DABS(dMolFraction(iSpeciesIndexTest(i)) - dMolFractionTest(i))/dMolFractionTest(i) >= dToleranceCheck) return
+            if (DABS(dMolFraction(iSpeciesIndexTest(i)) - dMolFractionTest(i))/dMolFractionTest(i) >= dToleranceCheck) then 
+                print *, "Mole fraction Test Failed" 
+                return
+            end if
         end do
 
         lPass = .TRUE.
