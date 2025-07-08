@@ -18,18 +18,15 @@ program RunCalculationList
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
-    integer :: MPI_rank,MPI_size
     character(16) :: cIntStr
-    integer :: iFileCheck
     character(1024) :: cFileOut
     character(3) :: cIntegerString
 #ifdef USE_MPI
     integer :: ierr
+    integer :: MPI_rank,MPI_size
 #endif
     ! Initialize INFO
     INFO = 0
-    MPI_rank = 1
-    MPI_size = 1
     ! lWriteJSON true by default
     lWriteJSON = .TRUE.
     ! Read input argument to get filename
@@ -39,7 +36,7 @@ program RunCalculationList
       call EXIT(1)
     endif
     ! Open input file
-    open (UNIT = 2561, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
+    open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
     if (INFO /= 0) then
       INFOThermo = 50
@@ -57,7 +54,7 @@ program RunCalculationList
       ! Keep track of line number
       iCounter = iCounter + 1
       ! Read a line
-      READ(2561,'(A)',IOSTAT = INFO) cLineInit
+      READ(3,'(A)',IOSTAT = INFO) cLineInit
       ! If there was an error on read, give line number and return
       if (INFO > 0) then
         INFOThermo = 51
@@ -372,17 +369,24 @@ program RunCalculationList
       call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
       call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
     endif
-#endif
     write(cIntegerString,'(I0)') MPI_rank
     cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
     if (lWriteJSON) then
-      do i = 0, MPI_size - 1
-        OPEN(2 + i, file= cOutputFilePath, &
-            status='REPLACE', action='write')
-        WRITE(2+i,*) '{'
-        CLOSE(2+i)
-      end do
+      OPEN(2, file= cOutputFilePath, &
+          status='REPLACE', action='write')
+      WRITE(2,*) '{'
+      CLOSE(2)
     end if
+#else
+    write(cIntegerString,'(I0)') 1
+    cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
+    if (lWriteJSON) then
+      OPEN(2, file= cOutputFilePath, &
+          status='REPLACE', action='write')
+      WRITE(2,*) '{'
+      CLOSE(2)
+    end if
+#endif
     
     do i = 1, nCalc
 #ifdef USE_MPI
@@ -391,7 +395,7 @@ program RunCalculationList
       cInputUnitPressure = cRunUnitPressure
       cInputUnitTemperature = cRunUnitTemperature
       cInputUnitMass = cRunUnitMass
-      READ(2561,*,IOSTAT = INFO) dTemperature, dPressure, dEls
+      READ(3,*,IOSTAT = INFO) dTemperature, dPressure, dEls
       dElementMass = 0D0
       do j = 1, nElIn
         dElementMass(iEls(j)) = dEls(j)
@@ -399,16 +403,20 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2+iFileCheck, file= cOutputFilePath, &
+      open(2, file= cOutputFilePath, &
           status='OLD', position='append', action='write')
-      if (i > 1 .AND. i > MPI_size) write(2+iFileCheck,*) ','
-      write(cIntStr,*) i + 1
-      write(2+iFileCheck,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
-      
+#ifdef USE_MPI
+      if (i > 1 .AND. i > MPI_size) write(2,*) ','
+#else
+      if (i > 1) write(2,*) ','
+#endif
+      write(cIntStr,*) i
+      write(2,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
+      close (2)
       if (lWriteJSON) then
           call WriteJSON(.TRUE.)
       end if
-      close (2+iFileCheck)
+      
       ! Reset Thermochimica:
       if (INFOThermo == 0) then
           call ResetThermo
@@ -418,18 +426,13 @@ program RunCalculationList
           call ParseCSDataFile(cThermoFileName)
       end if
     end do
-    CLOSE(2561)
+    CLOSE(3)
 
     if (lWriteJSON) then
-      do i = 0, MPI_size-1
-#ifdef USE_MPI
-        if (modulo(i,MPI_size) /= MPI_rank) CYCLE
-#endif
-        open(2+i, file= cOutputFilePath, &
+        open(2, file= cOutputFilePath, &
             status='OLD', position='append', action='write')
-        write(2+i,*) '}'
-        close (2+i)
-      end do
+        write(2,*) '}'
+        close (2)
     end if
 #ifdef USE_MPI    
     call MPI_FINALIZE(ierr)
