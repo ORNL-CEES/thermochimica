@@ -20,7 +20,7 @@ program RunCalculationList
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
     character(16) :: cIntStr
     character(1024) :: cFileOut
-    character(3) :: cIntegerString
+    character(1024) :: cIntegerString
 #ifdef USE_MPI
     integer :: ierr
     integer :: MPI_rank,MPI_size
@@ -364,11 +364,9 @@ program RunCalculationList
     call ParseCSDataFile(cThermoFileName)
     ! Specify values:
 #ifdef USE_MPI
-    if(USE_MPI > 0) then
-      call MPI_INIT(ierr)
-      call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
-      call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
-    endif
+    call MPI_INIT(ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
     write(cIntegerString,'(I0)') MPI_rank
     cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
     if (lWriteJSON) then
