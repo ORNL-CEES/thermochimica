@@ -30,6 +30,10 @@ module ModuleTesting
     
     implicit none
 
+    SAVE
+
+    integer :: nMaxPhaseTransition = 15
+    
     contains
 
     subroutine testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
