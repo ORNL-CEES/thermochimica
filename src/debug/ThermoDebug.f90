@@ -171,6 +171,22 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: No Phase Transitions in given temperature range in PhaseTransition subroutine.'
     elseif (INFOThermo == 59) then
         print *, "DEBUG: Phase Transition module needs more than one elements."
+    elseif (INFOThermo == 60) then
+        print *, "DEBUG: Error reading validation data."
+    elseif (INFOThermo == 61) then
+        print *, "DEBUG: Error reading validation number and elements in CSV."
+    elseif (INFOThermo == 62) then 
+        print *, "DEBUG: Error reading validation elements."
+    elseif (INFOThermo == 63) then
+        print *, "DEBUG: Failed to read validation CSV test entry."
+    elseif (INFOThermo == 64) then
+        print *, "DEBUG: Failed to allocate dTransition."
+    elseif (INFOThermo == 65) then
+        print *, "DEBUG: Error reading CSV Test Line."
+    elseif (INFOThermo == 66) then
+        print *, "DEBUG: Error validation csv unacceptable range"
+    elseif (INFOThermo == 67) then
+        print *, "DEBUG: Error validation csv number of elements incorrect"
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

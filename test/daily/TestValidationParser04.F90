@@ -9,15 +9,15 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    07/07/2025    A.E.F. Fitzsimmons   Original Code
+    !    07/15/2025    A.E.F. Fitzsimmons   Original Code
     !
     ! Purpose:
     ! ========
-    !> \details Testing new validation parser, using verification measurements.
+    !> \details Debug call test to many elements.
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser01
+program TestValidationParser04
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -37,20 +37,20 @@ program TestValidationParser01
     cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'KayeVerification.csv', lPass)
+    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-01.csv', lPass)
     
     if (lPass) then
         ! The test passed:
-        print *, 'TestValidationParser01: PASS'
+        print *, 'TestValidationParser04: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser01: FAIL <---'
+        print *, 'TestValidationParser04: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser01
+end program TestValidationParser04

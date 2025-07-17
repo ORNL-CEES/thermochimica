@@ -59,7 +59,7 @@ subroutine ParseValidation(cTestCSV,lPass)
 
     ! Record an error if there are issues opening the data-file:
     if (INFO /= 0) then
-        INFOThermo = 61 
+        INFOThermo = 60 
         return
     end if
 
@@ -68,16 +68,29 @@ subroutine ParseValidation(cTestCSV,lPass)
 
     !Read line 2 Get Number of elements and parameters
     read(2, *, IOSTAT = INFO) nElementTest, nParamTest
+    if (INFO /= 0) then
+        INFOThermo = 61
+    end if
     allocate(cTestElement(nElementTest), iElementIndex(nElementTest), dMass(nElementTest)) 
     nElements = nElementTest
 
     !Init Arrays
     iElementIndex = 0
     dMass = 0D0
+    cTestElement = " "
     call GetElementName(cElementNamePT)
 
     !Reading Elements required
     read(2, *, IOSTAT = INFO) cTestElement(1:nElementTest)
+    print *, cTestElement
+    if (cTestElement(nElementTest) == " ") then
+        INFOThermo = 67
+        return
+    end if
+    if (INFO /= 0) then
+        INFOThermo = 62
+        return
+    end if
 
     !Getting Periodic table index
     do j = 1, nElementTest
@@ -90,14 +103,23 @@ subroutine ParseValidation(cTestCSV,lPass)
     do i = 1, nParamTest
 
         read (2, *, IOSTAT = INFO) nTestNumber, iTransitions, dMass, dTempMin, dTempMax
+        if (INFO /= 0) then
+            INFOThermo = 63
+            return
+        end if
+        
         backspace(2, IOSTAT = INFO)
         read (2, *, IOSTAT = INFO) nTestnumber, iTransitions, dMass, dTempMin, dTempMax, dTransition(1:2 * iTransitions)
-        
-        !Minimum temperature is less than 0
-        if (dTempMin < 0) then
-            INFOThermo = 60
+        if (INFO /= 0) then
+            INFOThermo = 64
             return
-        endif
+        end if
+
+        !Minimum temperature is less than 0
+        if (dTempMin < 0 .OR. dTempMin > dTempMax) then
+            INFOThermo = 66
+            return
+        end if
 
         !Set Element mass
         do j = 1, nElementTest
@@ -120,6 +142,11 @@ subroutine ParseValidation(cTestCSV,lPass)
         call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransCount)
         call checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, 1D0, lPass)
         
+        if(.NOT. lPass) then
+            print *, "Test Number: ", nTestNumber, " failed."
+            EXIT
+        end if
+
         !Reset test variables
         iTransCount          = 0
         iPos                 = 1

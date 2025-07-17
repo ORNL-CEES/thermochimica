@@ -17,7 +17,7 @@
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser01
+program TestValidationParser02
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -37,20 +37,20 @@ program TestValidationParser01
     cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'KayeVerification.csv', lPass)
+    call ParseValidation(DATA_DIRECTORY // 'Kaye_Mo-Ru.csv', lPass)
     
     if (lPass) then
         ! The test passed:
-        print *, 'TestValidationParser01: PASS'
+        print *, 'TestValidationParser02: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser01: FAIL <---'
+        print *, 'TestValidationParser02: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser01
+end program TestValidationParser02
