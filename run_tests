@@ -20,7 +20,8 @@ tests=(
     TestThermo56 TestThermo57 TestThermo58 TestThermo59 TestThermo60
     TestThermo61 TestThermo62 TestTransition01 TestTransition02 
     TestTransition03 TestTransition04 TestTransition05 TestValidationParser01
-    TestValidationParser02 TestValidationParser03 TestValidationParser04
+    TestValidationParser02 TestValidationParser04
+    TestValidationParser05 TestValidationParser06
 )
 
 ./TestThermo12 > test12out.txt

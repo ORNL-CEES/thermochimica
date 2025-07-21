@@ -17,7 +17,7 @@
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser04
+program TestValidationParser05
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -37,21 +37,21 @@ program TestValidationParser04
     cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-01.csv', lPass)
-
-    ! Test for wrong number of elements
-    if (INFOThermo == 67) then
+    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-02.csv', lPass)
+    
+    ! Too size of test number check
+    if (INFOThermo == 63) then
         ! The test passed:
-        print *, 'TestValidationParser04: PASS'
+        print *, 'TestValidationParser05: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser04: FAIL <---'
+        print *, 'TestValidationParser05: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser04
+end program TestValidationParser05

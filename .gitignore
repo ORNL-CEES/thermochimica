@@ -30,7 +30,6 @@ test/doc/
 *.so
 *.0
 *.lai
-*.csv
 *.pkl
 
 # ignore vscode cache

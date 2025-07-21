@@ -70,6 +70,7 @@ subroutine ParseValidation(cTestCSV,lPass)
     read(2, *, IOSTAT = INFO) nElementTest, nParamTest
     if (INFO /= 0) then
         INFOThermo = 61
+        return
     end if
     allocate(cTestElement(nElementTest), iElementIndex(nElementTest), dMass(nElementTest)) 
     nElements = nElementTest
@@ -82,12 +83,11 @@ subroutine ParseValidation(cTestCSV,lPass)
 
     !Reading Elements required
     read(2, *, IOSTAT = INFO) cTestElement(1:nElementTest)
-    print *, cTestElement
+    ! Check for too many tests
     if (cTestElement(nElementTest) == " ") then
         INFOThermo = 67
-        return
-    end if
-    if (INFO /= 0) then
+        return 
+    elseif (INFO /= 0) then
         INFOThermo = 62
         return
     end if
@@ -101,23 +101,30 @@ subroutine ParseValidation(cTestCSV,lPass)
 
     !Testing loop
     do i = 1, nParamTest
-
+        
+        if (i > nParamTest) then
+            INFOThermo = 68
+            return
+        end if 
+        
         read (2, *, IOSTAT = INFO) nTestNumber, iTransitions, dMass, dTempMin, dTempMax
         if (INFO /= 0) then
             INFOThermo = 63
             return
         end if
-        
+
         backspace(2, IOSTAT = INFO)
         read (2, *, IOSTAT = INFO) nTestnumber, iTransitions, dMass, dTempMin, dTempMax, dTransition(1:2 * iTransitions)
         if (INFO /= 0) then
             INFOThermo = 64
             return
-        end if
-
-        !Minimum temperature is less than 0
-        if (dTempMin < 0 .OR. dTempMin > dTempMax) then
+        elseif (dTempMin < 0 .OR. dTempMin > dTempMax) then
+            !Minimum temperature is less than 0 or wrong min and max
             INFOThermo = 66
+            return
+        elseif (dTransition(2 * iTransitions) == 0) then
+            ! Missing transition value
+            INFOThermo = 69
             return
         end if
 
@@ -161,6 +168,3 @@ subroutine ParseValidation(cTestCSV,lPass)
     close (INFO)
 
 end subroutine ParseValidation        
-
-
-

@@ -178,15 +178,19 @@ subroutine ThermoDEBUG
     elseif (INFOThermo == 62) then 
         print *, "DEBUG: Error reading validation elements."
     elseif (INFOThermo == 63) then
-        print *, "DEBUG: Failed to read validation CSV test entry."
+        print *, "DEBUG: Error number of validation tests."
     elseif (INFOThermo == 64) then
         print *, "DEBUG: Failed to allocate dTransition."
     elseif (INFOThermo == 65) then
-        print *, "DEBUG: Error reading CSV Test Line."
+        print *, "DEBUG: Error reading CSV validation test Line."
     elseif (INFOThermo == 66) then
         print *, "DEBUG: Error validation csv unacceptable range"
     elseif (INFOThermo == 67) then
-        print *, "DEBUG: Error validation csv number of elements incorrect"
+        print *, "DEBUG: Error validation csv number of elements incorrect."
+    elseif (INFOThermo == 68) then
+        print *, "DEBUG: Error Validation CSV contains too many tests."
+    elseif (INFOThermo == 69) then
+        print *, "DEBUG: Error Validation CSV incorrect number of transitions ."
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

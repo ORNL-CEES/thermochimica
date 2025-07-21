@@ -13,11 +13,11 @@
     !
     ! Purpose:
     ! ========
-    !> \details Debug call test to many elements.
+    !> \details Debug call test missing range temperature
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser04
+program TestValidationParser06
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -37,21 +37,21 @@ program TestValidationParser04
     cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-01.csv', lPass)
-
+    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-03.csv', lPass)
+    
     ! Test for wrong number of elements
-    if (INFOThermo == 67) then
+    if (INFOThermo == 69) then
         ! The test passed:
-        print *, 'TestValidationParser04: PASS'
+        print *, 'TestValidationParser06: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser04: FAIL <---'
+        print *, 'TestValidationParser06: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser04
+end program TestValidationParser06
