@@ -444,7 +444,7 @@ program RunCalculationList
     end do
     CLOSE(3)
     if (lWriteJSON) then
-        open(2, file= cOutputFilePath, &
+        open(2, file=cOutputFilePath, &
             status='OLD', position='append', action='write')
         write(2,*) '}'
         close (2)

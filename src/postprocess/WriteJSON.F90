@@ -10,12 +10,12 @@ subroutine WriteJSON(append)
     logical :: exist
     integer :: i, c, nElectron, its
 
-    inquire(file= cOutputFilePath, exist=exist)
+    inquire(file=cOutputFilePath, exist=exist)
     if (append .AND. exist) then
-        open(1, file=  cOutputFilePath, &
+        open(1, file= cOutputFilePath, &
               status='OLD', position='append', action='write')
     else
-        open(1, file= cOutputFilePath, &
+        open(1, file=cOutputFilePath, &
               status='REPLACE', action='write')
     end if
 
