@@ -94,6 +94,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
                 LOOP_Species: do j = nSpeciesPhase(iPhaseInd-1) + 1, nSpeciesPhase(iPhaseInd)
                     dMolesOut = dMolesOut + dMolesSpecies(j) * dStoichSpecies(j,k)
                 end do LOOP_Species
+                INFO = 0
                 exit LOOP_PHASE
             end if
             INFO = 2
@@ -106,6 +107,7 @@ subroutine GetElementMolesInPhase(cElement, lcElement, cPhase, lcPhase, dMolesOu
                 cTempPhase = ADJUSTL(cSpeciesName(iPhaseInd))
                 if (cTempPhase == cSearchPhase) then
                     dMolesOut = dMolesPhase(i) * dStoichSpecies(iPhaseInd,k)
+                    INFO = 0
                     exit LOOP_Stoich
                 end if
                 INFO = 2
