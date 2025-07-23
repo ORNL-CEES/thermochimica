@@ -423,7 +423,7 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2, file= cOutputFilePath, &
+      open(2, file=cOutputFilePath, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
       write(cIntStr,*) i
