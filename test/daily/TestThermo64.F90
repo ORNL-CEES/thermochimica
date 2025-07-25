@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo64.F90
-    !> \brief   Spot test - Nb-Zr-O-H 600 K.
-    !> \author  M. Poschmann
+    !> \file    TestThermo89.F90
+    !> \brief   SUBM worst case scenario.
+    !> \author  M.H.A. Piro, M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,65 +14,68 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    08/31/2021    M. Poschmann         Original code
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    11/11/2022    M. Poschmann        SUBM Test Case
+    !    04/17/2024    A.E.F Fitzsimmons   CsI data bug test
+    !    05/06/2024    A.E.F Fitzsimmons   Naming convention update 
+    !    10/28/2024    A.E.F. Fitzsimmons  SQA Remodle
     !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that ternary mixing SUBL cases with only
-    !!  one specified coefficient are handled correctly.
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !!  results of CsI at low pressure. This test is consistent with the test in the tutorial manual.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo64
 
     USE ModuleThermoIO
-    USE ModuleGEMSolver
     USE ModuleThermo
-    USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i, j
-    logical :: bccPass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
-    cInputUnitTemperature = 'K'
+    cInputUnitTemperature = 'C'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'ZIRC-test64.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'CsI-Pham.dat'
 
     ! Specify values:
-    dPressure              = 100D0
-    dTemperature           = 600D0
-    dElementMass(41)       = 1D0            ! Nb
-    dElementMass(40)       = 1D0            ! Zr
-    dElementMass(8)        = 1D0            ! O
-    dElementMass(1)        = 0.1D0          ! H
+    dTemperature          = 400
+    dPressure             = 1D-5
+    dElementMass(53)      = 1D0                              ! I
+    dElementMass(55)      = 1D0                              ! cs
 
-    ! Specify output mode:
-    iPrintResultsMode     = 2
+    ! Init test values
+    dGibbsCheck           = -4.41869D05
+    dHeatCapacityCheck    = 69.8320
+    nSpeciesTest          = 4
+    iSpeciesIndexTest     = [1, 3, 5, 6] !Cs, I, CsI, Cs2I2
+    dMolFractionTest      = [4.2170D-18, 1.0711D-02, 2.5818D-03, 1.9349D-05]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
+    call HeatCapacity
 
-    bccPass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS((dGibbsEnergySys - (-5.24838E+05))/(-5.24838E+05))) < 1D-3) then
-            do i = 1, nSolnPhases
-                j = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(j) == 'BCC_A2') then
-                    bccPass = .TRUE.
-                end if
-            end do
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (bccPass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo64: PASS'
         ! Reset Thermochimica:
