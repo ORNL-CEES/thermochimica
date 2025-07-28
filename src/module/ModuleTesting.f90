@@ -83,8 +83,7 @@ module ModuleTesting
 
     subroutine checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, dTolerance, lPass)
         implicit none
-        real(8), intent(in) :: dPhaseTransitionTemp(:)
-        real(8), intent(in) :: dTestTransitionTemp(:)
+        real(8), intent(in) :: dPhaseTransitionTemp(:), dTestTransitionTemp(:)
         real(8), intent(in) :: dTolerance
         logical, intent(out) :: lPass
         integer :: i, n
