@@ -41,8 +41,8 @@ module ModuleTesting
 
         !Init variables
         integer, intent(in):: nSpeciesTest
-        integer, allocatable, intent(in) :: iSpeciesIndexTest(:)
-        real(8), allocatable, intent(in) :: dMolFractionTest(:)
+        integer, intent(in) :: iSpeciesIndexTest(:)
+        real(8), intent(in) :: dMolFractionTest(:)
         real(8), intent(in) :: dGibbsCheck, dHeatCapacityCheck
         logical, intent(out) :: lPass
         real(8) :: dToleranceCheck
@@ -83,7 +83,8 @@ module ModuleTesting
 
     subroutine checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, dTolerance, lPass)
         implicit none
-        real(8), intent(in) :: dPhaseTransitionTemp(:), dTestTransitionTemp(:)
+        real(8), intent(in) :: dPhaseTransitionTemp(:)
+        real(8), intent(in) :: dTestTransitionTemp(:)
         real(8), intent(in) :: dTolerance
         logical, intent(out) :: lPass
         integer :: i, n
