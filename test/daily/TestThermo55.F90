@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo55.F90
-    !> \brief   Spot test - Ni-Cr-Fe-H 300 K.
-    !> \author  M. Poschmann
+    !> \file    TestThermo81.F90
+    !> \brief   SUBM first sublattice binary mixing.
+    !> \author  M.H.A. Piro, M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,81 +14,72 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    05/21/2020    M. Poschmann         Original code
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    11/04/2022    M. Poschmann        SUBM Test Case
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    08/27/2024    A.E.F. Fitzsimmons  Remodel
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for a system including magnetic solution species and excess magnetic terms.
+    !!  results a SUBM phase with a binary excess mixing term on the first sublattice.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo55
 
     USE ModuleThermoIO
-    USE ModuleGEMSolver
     USE ModuleThermo
-    USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i, j, iFirst
-    real(8) :: T, B, StructureFactor
-    logical :: fccPass, bccPass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'ZIRC-noSUBI.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'ZrFeKClNaFOLi.dat'
 
     ! Specify values:
-    dPressure              = 1000D0
-    dTemperature           = 300D0
-    dElementMass(23)       = 0.1D0          ! V
-    dElementMass(24)       = 1D0            ! Cr
-    dElementMass(26)       = 2D0            ! Fe
-    dElementMass(28)       = 1D0            ! Ni
-    dElementMass(50)       = 0.1D0          ! Sn
-    dElementMass(1)        = 1D0            ! H
+    dTemperature          = 1000
+    dPressure             = 1.0D0
+    dElementMass          = 0D0
 
-    ! Specify output mode:
-    iPrintResultsMode     = 2
+    dElementMass(3)       = 0.1D0                              ! Li
+    dElementMass(11)      = 0.4D0                              ! Na
+    dElementMass(26)      = 0.3D0                              ! Fe
+    dElementMass(8)       = 0.8D0                              ! O
+    dElementMass(19)      = 0.2D0                              ! K
+
+    ! Init test values
+    dGibbsCheck           = -5.12663D04
+    dHeatCapacityCheck    = -1.01318
+    nSpeciesTest          = 4
+    iSpeciesIndexTest     = [1, 2, 3, 4] !Li2O, Na2O, Fe2O3, K2O
+    dMolFractionTest      = [1.0000D-01, 3.9999D-01, 2.9999D-01, 2.0000D-01]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
+    call HeatCapacity
 
-    fccPass = .FALSE.
-    bccPass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        ! The fluorite oxide phase should be the only one stable at equilibrium.
-        if ((DABS(dGibbsEnergySys - (-4.96674D04))/((-4.96674D04))) < 1D-3) then
-            do i = 1, nSolnPhases
-                j = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(j) == 'FCC_A1') then
-                    call CompMagneticTemperatureMoment(j,T,B)
-                    iFirst = nSpeciesPhase(j-1) + 1
-                    StructureFactor = dCoeffGibbsMagnetic(iFirst,3)
-                    T = -T * StructureFactor
-                    B = -B * StructureFactor
-                    if ((DABS((T-97.24D0)/97.24D0) < 1D-3) .AND. (DABS((B-0.13862D0)/0.13862D0) < 1D-3)) then
-                        fccPass = .TRUE.
-                    end if
-                else if (cSolnPhaseName(j) == 'BCC_A2') then
-                    call CompMagneticTemperatureMoment(j,T,B)
-                    if ((DABS((T-641.38D0)/641.38D0) < 1D-3) .AND. (DABS((B-1.5248D0)/1.5248D0) < 1D-3)) then
-                        bccPass = .TRUE.
-                    end if
-                end if
-            end do
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (fccPass .AND. bccPass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo55: PASS'
         ! Reset Thermochimica:
@@ -101,11 +92,5 @@ program TestThermo55
         call ResetThermo
         call EXIT(1)
     end if
-
-    ! Destruct everything:
-    if (INFOThermo == 0)        call ResetThermoAll
-
-    ! Call the debugger:
-    call ThermoDebug
 
 end program TestThermo55
