@@ -115,6 +115,4 @@ subroutine PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionT
 
     end do
 
-
-
 end subroutine PhaseTransition

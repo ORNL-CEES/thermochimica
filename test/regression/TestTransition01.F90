@@ -62,13 +62,13 @@ program TestTransition1
 
     if (lPass) then
         ! The test passed:
-        print *, 'TestTransition1: PASS'
+        print *, 'TestTransition01: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestTransition1: FAIL <---'
+        print *, 'TestTransition01: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)

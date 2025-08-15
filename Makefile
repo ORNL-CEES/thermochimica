@@ -27,7 +27,7 @@ FFPE_TRAPS  ?= zero
 FCFLAGS = -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check \
           -ffpe-trap=$(FFPE_TRAPS) -cpp \
           -D"DATA_DIRECTORY='$(DATA_DIR)'" \
-          -D"DATA_DIRECTORY2='$(DATA_DIR2)'"
+          -D"CSV_DIRECTORY='$(CSVT_DIR)'"
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
@@ -67,7 +67,7 @@ SHARED_DIR  = $(SRC_DIR)
 SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
-CSVT_DIR 	= $(TST_DIR)/csv/ 
+CSVT_DIR 	= $(CURR_DIR)/$(TST_DIR)/csv/
 VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules

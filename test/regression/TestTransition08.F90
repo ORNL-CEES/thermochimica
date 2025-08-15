@@ -1,6 +1,6 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ValidationParserTest01.F90
+    !> \file    TestTransition08.F90
     !> \brief   Testing validation parser
     !> \author  A.E.F. Fitzsimmons
     !
@@ -9,7 +9,7 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    07/14/2025    A.E.F. Fitzsimmons   Original Code
+    !    07/07/2025    A.E.F. Fitzsimmons   Original Code
     !
     ! Purpose:
     ! ========
@@ -17,7 +17,7 @@
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser03
+program TestTransition08
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -37,20 +37,20 @@ program TestValidationParser03
     cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'Kaye_Pd-Tc.csv', lPass)
+    call ParseCSVFile(CSV_DIRECTORY // 'Kaye_Mo-Ru.csv', lPass)
     
     if (lPass) then
         ! The test passed:
-        print *, 'TestValidationParser03: PASS'
+        print *, 'TestTransition08: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser03: FAIL <---'
+        print *, 'TestTransition08: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser03
+end program TestTransition08

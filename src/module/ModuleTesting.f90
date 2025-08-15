@@ -83,8 +83,7 @@ module ModuleTesting
 
     subroutine checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, dTolerance, lPass)
         implicit none
-        real(8), intent(in) :: dPhaseTransitionTemp(:)
-        real(8), intent(in) :: dTestTransitionTemp(:)
+        real(8), intent(in) :: dPhaseTransitionTemp(:), dTestTransitionTemp(:)
         real(8), intent(in) :: dTolerance
         logical, intent(out) :: lPass
         integer :: i, n
@@ -106,4 +105,26 @@ module ModuleTesting
         end do
     
     end subroutine checkTransitionTest
+
+    subroutine checkTransitionTestIndex(dPhaseTransitionTemp, dTestTransitionTemp, dTolerance, nIndex, lPass)
+        implicit none
+        real(8), intent(in) :: dPhaseTransitionTemp(:), dTestTransitionTemp(:)
+        real(8), intent(in) :: dTolerance
+        integer, intent(in) :: nIndex
+        logical, intent(out) :: lPass
+        real(8) :: dDiff
+
+        lPass = .TRUE.
+    
+        if (dTestTransitionTemp(nIndex) > 0D0) then
+            dDiff = abs(dPhaseTransitionTemp(nIndex) - dTestTransitionTemp(nIndex))
+            if (dDiff > dTolerance) then
+                print *, 'Mismatch at index ', nIndex, ': calculated = ', dPhaseTransitionTemp(nIndex), &
+                             ', expected = ', dTestTransitionTemp(nIndex), ', dDiff = ', dDiff
+                lPass = .FALSE.
+            end if
+        end if
+    
+    end subroutine checkTransitionTestIndex
+
 end module ModuleTesting

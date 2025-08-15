@@ -12,9 +12,9 @@ test/doc/
 # ignore outputs
 *.out
 *.txt
-*.dat
-*.DAT
-*.Dat
+#*.dat
+#*.DAT
+#*.Dat
 *.json
 *.pdf
 *.mod
@@ -30,14 +30,15 @@ test/doc/
 *.so
 *.0
 *.lai
-*.csv
+#*.csv
 *.pkl
+Thermo-debugging.F90
 
 # ignore vscode cache
 .vscode/
 
 # some of these will occasionally require manual override
-data/
+#data/
 python/
 private_tests
 

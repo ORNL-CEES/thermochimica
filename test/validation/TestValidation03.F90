@@ -1,6 +1,6 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ValidationParserTest01.F90
+    !> \file    TestValidation03.F90
     !> \brief   Testing validation parser
     !> \author  A.E.F. Fitzsimmons
     !
@@ -9,15 +9,15 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    07/07/2025    A.E.F. Fitzsimmons   Original Code
+    !    08/11/2025    A.E.F. Fitzsimmons   Original Code
     !
     ! Purpose:
     ! ========
-    !> \details Testing new validation parser, using verification measurements.
+    !> \details Validation of LiF-CsF system. Basked on Lipkina's Project
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser02
+program TestValidation03
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -34,23 +34,26 @@ program TestValidationParser02
     cInputUnitMass        = 'moles'
     dPressure             = 1D0
     dTemperature          = 1000D0
-    cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
+    cThermoFileName       = DATA_DIRECTORY // "Scuro_KFCsI.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'Kaye_Mo-Ru.csv', lPass)
+    call ParseCSVFile(CSV_DIRECTORY // 'MSTDBTC_KF-CsI.csv', lPass)
     
+    call ThermoDebug
+
+    ! Test for wrong number of elements
     if (lPass) then
         ! The test passed:
-        print *, 'TestValidationParser02: PASS'
+        print *, 'TestValidation03: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser02: FAIL <---'
+        print *, 'TestValidation03: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser02
+end program TestValidation03

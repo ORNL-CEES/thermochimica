@@ -1,6 +1,6 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ParseValidation.F90
+    !> \file    ParseCSVFile.F90
     !> \brief   Parse Validation data and run phase transition tests.
     !> \author  A.E.F. Fitzsimmons
     !
@@ -19,7 +19,7 @@
     !
     !-------------------------------------------------------------------------------------------------------------
 
-subroutine ParseValidation(cTestCSV,lPass)
+subroutine ParseCSVFile(cTestCSV,lPass)
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleTesting
@@ -27,6 +27,7 @@ subroutine ParseValidation(cTestCSV,lPass)
     implicit none
 
     character(*), intent(in)::  cTestCSV
+    logical, intent(out) :: lPass
 
     integer :: INFO, nElementTest, nParamTest, nTestNumber, iTransitions, i, j, iPos, iPos2, iTransCount
     integer, allocatable :: iElementIndex(:)
@@ -38,7 +39,6 @@ subroutine ParseValidation(cTestCSV,lPass)
     character(250) :: cLines
     character(3), dimension(0:nElementsPT):: cElementNamePT
     character(3), allocatable :: cTestElement(:)
-    logical, intent(out) :: lPass
 
     ! Initialize variables:
     INFOThermo   = 0
@@ -146,14 +146,24 @@ subroutine ParseValidation(cTestCSV,lPass)
             end if
         end do
 
-        call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransCount)
-        call checkTransitionTest(dPhaseTransitionTemp, dTestTransitionTemp, 1D0, lPass)
-        
-        if(.NOT. lPass) then
-            print *, "Test Number: ", nTestNumber, " failed."
-            EXIT
+        if(SIZE(dTestTransitionTemp) /= SIZE(dTestTolerance)) then
+            INFOThermo = 70
+            return
         end if
 
+        ! Thermochimica phase transition calculation
+        call PhaseTransition(dTempMin, dTempMax, dTempTolerance, dPhaseTransitionTemp, iTransCount)
+
+        ! Check by tolerance
+        do j = 1, SIZE(dTestTolerance(1:iTransitions))
+            call checkTransitionTestIndex(dPhaseTransitionTemp, dTestTransitionTemp, dTestTolerance(j), j, lPass)
+            if(.NOT. lPass) then
+                print *, "Test Number: ", i, " failed ", "at transition number", j, NEW_LINE(" ")
+                !EXIT
+            end if
+        end do
+
+        if (.NOT. lPass) EXIT
         !Reset test variables
         iTransCount          = 0
         iPos                 = 1
@@ -167,4 +177,4 @@ subroutine ParseValidation(cTestCSV,lPass)
     deallocate(cTestElement, iElementIndex, dMass)
     close (INFO)
 
-end subroutine ParseValidation        
+end subroutine ParseCSVFile        

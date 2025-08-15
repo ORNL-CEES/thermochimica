@@ -1,6 +1,6 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestTransition4.F90
+    !> \file    TestTransition04.F90
     !> \brief   Testing phase transition subroutine
     !> \author  A.E.F. Fitzsimmons
     !
@@ -17,7 +17,7 @@
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestTransition4
+program TestTransition04
 
     USE ModuleThermoIO
     USE ModuleThermo
@@ -62,16 +62,16 @@ program TestTransition4
 
     if (lPass) then
         ! The test passed:
-        print *, 'TestTransition4: PASS'
+        print *, 'TestTransition04: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestTransition4: FAIL <---'
+        print *, 'TestTransition04: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestTransition4
+end program TestTransition04

@@ -1,6 +1,6 @@
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    ValidationParserTest01.F90
+    !> \file    TestValidation06.F90
     !> \brief   Testing validation parser
     !> \author  A.E.F. Fitzsimmons
     !
@@ -9,15 +9,15 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    07/15/2025    A.E.F. Fitzsimmons   Original Code
+    !    08/11/2025    A.E.F. Fitzsimmons   Original Code
     !
     ! Purpose:
     ! ========
-    !> \details Debug call test missing range temperature
+    !> \details Validation of LiF-CsF system. Basked on Lipkina's Project
     !!
     !
     !-------------------------------------------------------------------------------------------------------------
-program TestValidationParser06
+program TestValidation06
     USE ModuleTesting
     USE ModuleThermoIO
 
@@ -34,24 +34,26 @@ program TestValidationParser06
     cInputUnitMass        = 'moles'
     dPressure             = 1D0
     dTemperature          = 1000D0
-    cThermoFileName       = DATA_DIRECTORY // "MoPdRuRhTc-Kaye.dat" 
+    cThermoFileName       = DATA_DIRECTORY // "Scuro_NaICsI.dat" 
 
     call ParseCSDataFile(cThermoFileName)
-    call ParseValidation(DATA_DIRECTORY // 'IO_CSV-03.csv', lPass)
+    call ParseCSVFile(CSV_DIRECTORY // 'MSTDBTC_NaI-CsI.csv', lPass)
     
+    call ThermoDebug
+
     ! Test for wrong number of elements
-    if (INFOThermo == 69) then
+    if (lPass) then
         ! The test passed:
-        print *, 'TestValidationParser06: PASS'
+        print *, 'TestValidation06: PASS'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(0)
     else
         ! The test failed.
-        print *, 'TestValidationParser06: FAIL <---'
+        print *, 'TestValidation06: FAIL <---'
         ! Reset Thermochimica:
         call ResetThermo
         call EXIT(1)
     end if
 
-end program TestValidationParser06
+end program TestValidation06

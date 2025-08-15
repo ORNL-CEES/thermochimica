@@ -190,7 +190,9 @@ subroutine ThermoDEBUG
     elseif (INFOThermo == 68) then
         print *, "DEBUG: Error Validation CSV contains too many tests."
     elseif (INFOThermo == 69) then
-        print *, "DEBUG: Error Validation CSV incorrect number of transitions ."
+        print *, "DEBUG: Error Validation CSV incorrect number of transitions."
+    elseif (INFOThermo == 70) then
+        print *, "DEBUG: Error number of tolerances are not equal to the number of transitions"
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90
