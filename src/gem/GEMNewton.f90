@@ -99,10 +99,7 @@ subroutine GEMNewton(INFO)
 
     integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry
     integer, dimension(nElements)        :: iErrCol
-    integer, dimension(:),   allocatable :: IPIV
     real(8)                              :: dTemp
-    real(8), dimension(:),   allocatable :: B
-    real(8), dimension(:,:), allocatable :: A
 
     ! Count phases:
     j = nConPhases
@@ -136,18 +133,27 @@ subroutine GEMNewton(INFO)
         ! on retry we are going to use dummy phases
         if (iTry > 0) nVar = nElements * 2
 
-        ! Allocate memory:
-        allocate(A(nVar, nVar))
-        allocate(B(nVar))
-        allocate(IPIV(nVar))
+        ! Allocate or resize workspace if necessary:
+        if (.NOT. allocated(GEM_A) .OR. SIZE(GEM_A,1) < nVar) then
+            if (allocated(GEM_A)) deallocate(GEM_A)
+            allocate(GEM_A(nVar, nVar))
+        end if
+        if (.NOT. allocated(GEM_B) .OR. SIZE(GEM_B) < nVar) then
+            if (allocated(GEM_B)) deallocate(GEM_B)
+            allocate(GEM_B(nVar))
+        end if
+        if (.NOT. allocated(GEM_IPIV) .OR. SIZE(GEM_IPIV) < nVar) then
+            if (allocated(GEM_IPIV)) deallocate(GEM_IPIV)
+            allocate(GEM_IPIV(nVar))
+        end if
 
         ! Initialize variables:
-        IPIV                = 0
-        INFO                = 0
-        A                   = 0D0
-        B                   = 0D0
-        dUpdateVar          = 0D0
-        dEffStoichSolnPhase = 0D0
+        GEM_IPIV(1:nVar)        = 0
+        INFO                    = 0
+        GEM_A(1:nVar,1:nVar)    = 0D0
+        GEM_B(1:nVar)           = 0D0
+        dUpdateVar              = 0D0
+        dEffStoichSolnPhase     = 0D0
 
         do k = 1, nSolnPhases
             ! Absolute solution phase index:
@@ -168,22 +174,22 @@ subroutine GEMNewton(INFO)
                     ! Loop through species in phase:
                     do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
                         dTemp  = dStoichSpecies(l,i) * dStoichSpecies(l,j) * dMolesSpecies(l)
-                        A(i,j) = A(i,j) + dTemp / (DFLOAT(iParticlesPerMole(l))**2)
+                        GEM_A(i,j) = GEM_A(i,j) + dTemp / (DFLOAT(iParticlesPerMole(l))**2)
                     end do
                 end do
                 ! Apply symmetry:
-                A(j,i) = A(i,j)
+                GEM_A(j,i) = GEM_A(i,j)
             end do
         end do
 
         ! Compute the constraint vector (elements):
         do j = 1, nElements
-            B(j) = dMolesElement(j)
+            GEM_B(j) = dMolesElement(j)
             do l = 1, nSolnPhases
                 k = -iAssemblage(nElements - l + 1)
                 do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
                     dTemp = dStoichSpecies(i,j) * dMolesSpecies(i) * (dChemicalPotential(i) - 1D0)
-                    B(j)  = B(j) + dTemp / DFLOAT(iParticlesPerMole(i))
+                    GEM_B(j)  = GEM_B(j) + dTemp / DFLOAT(iParticlesPerMole(i))
                 end do
             end do
         end do
@@ -197,28 +203,28 @@ subroutine GEMNewton(INFO)
             call CompStoichSolnPhase(k)
 
             do i = 1,nElements
-                A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
-                A(j,i) = A(i,j)
+                GEM_A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
+                GEM_A(j,i) = GEM_A(i,j)
             end do
-            B(j) = dGibbsSolnPhase(k)
+            GEM_B(j) = dGibbsSolnPhase(k)
         end do
 
         ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
         do j = nElements + nSolnPhases + 1, nElements + nConPhases + nSolnPhases
             k = j - nElements - nSolnPhases
             do i = 1, nElements
-                A(i,j) = dStoichSpecies(iAssemblage(k),i)
-                A(j,i) = A(i,j)
+                GEM_A(i,j) = dStoichSpecies(iAssemblage(k),i)
+                GEM_A(j,i) = GEM_A(i,j)
             end do
-            B(j) = dStdGibbsEnergy(iAssemblage(k))
+            GEM_B(j) = dStdGibbsEnergy(iAssemblage(k))
         end do
 
         do k = 1, iTry
             i = iErrCol(k)
             j = nElements + nSolnPhases + nConPhases + k
-            A(i,j) = 1D0
-            A(j,i) = A(i,j)
-            B(j) = 0D0
+            GEM_A(i,j) = 1D0
+            GEM_A(j,i) = GEM_A(i,j)
+            GEM_B(j) = 0D0
         end do
 
         ! Check if the Hessian is properly structured if the system contains any charged phases:
@@ -228,32 +234,33 @@ subroutine GEMNewton(INFO)
                 dTemp = 0D0
                 ! Loop through coefficients along column:
                 do i = 1, nElements
-                    dTemp = dTemp + DABS(A(i,j))
+                    dTemp = dTemp + DABS(GEM_A(i,j))
                     if (dTemp > 0D0) cycle LOOP_SUB
                 end do
                 ! The phase corresponding to this electron is not stable.
-                A(j,j) = 1D0
+                GEM_A(j,j) = 1D0
             end do LOOP_SUB
         end if
 
         ! Call the linear equation solver:
         if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
-            call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
+            ! TODO: explore sparse or structured solvers when GEM_A contains many zeros
+            call dgesv( nVar, 1, GEM_A, SIZE(GEM_A, 1), GEM_IPIV, GEM_B, SIZE(GEM_B, 1), INFO )
         else
             do i = 1, nElements
-                B(i) = dElementPotential(i)
+                GEM_B(i) = dElementPotential(i)
             end do
-            B(nElements + 1) = dMolesPhase(1)
+            GEM_B(nElements + 1) = dMolesPhase(1)
         end if
 
         do k = 1, iTry
             j = nElements + nSolnPhases + nConPhases + k
-            B(j) = 0D0
+            GEM_B(j) = 0D0
         end do
 
         ! Check for a NAN:
         LOOP_CheckNan: do i = 1, nVar
-            if (B(i) /= B(i)) then
+            if (GEM_B(i) /= GEM_B(i)) then
                 INFO = 1
                 exit LOOP_CheckNan
             end if
@@ -265,7 +272,6 @@ subroutine GEMNewton(INFO)
             else
                 iErrCol(iTry+1) = INFO
                 INFO = 0
-                deallocate(A, B, IPIV)
             end if
         end if
     end do TryLoop
@@ -273,7 +279,7 @@ subroutine GEMNewton(INFO)
     ! Store the updated variables if LAPACK is successful:
     if (INFO == 0) then
         do j = 1, nVar
-            dUpdateVar(j) = B(j)
+            dUpdateVar(j) = GEM_B(j)
         end do
 
         ! Reset:
@@ -284,10 +290,7 @@ subroutine GEMNewton(INFO)
         dUpdateVar    = 0D0
     end if
 
-    ! Deallocate memory of local variables:
-    i = 0
-    deallocate(A, B, IPIV, STAT = i)
-    if (i /= 0) INFOThermo = 24
+    ! Workspace arrays retained between iterations
 
     return
 

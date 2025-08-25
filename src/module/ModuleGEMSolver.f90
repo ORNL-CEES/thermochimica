@@ -62,11 +62,12 @@ module ModuleGEMSolver
     integer                              ::  iConPhaseLast, iSolnPhaseLast,       iSolnSwap,  iPureConSwap
     integer,                 parameter   ::  iterGlobalMax = 3000
     integer, dimension(:,:), allocatable ::  iterHistory
+    integer, dimension(:),   allocatable ::  GEM_IPIV      ! Pivot indices for GEMNewton
 
     real(8)                              ::  dGEMFunctionNorm,    dGEMFunctionNormLast, dMaxSpeciesChange, dMinGibbs
-    real(8), dimension(:),   allocatable ::  dSumMolFractionSoln, dMolesPhaseLast, dUpdateVar, dDrivingForceSoln
+    real(8), dimension(:),   allocatable ::  dSumMolFractionSoln, dMolesPhaseLast, dUpdateVar, dDrivingForceSoln, GEM_B   ! Workspace vector for GEMNewton
     real(8), dimension(:),   allocatable ::  dPartialExcessGibbs, dPartialExcessGibbsLast
-    real(8), dimension(:,:), allocatable ::  dEffStoichSolnPhase
+    real(8), dimension(:,:), allocatable ::  dEffStoichSolnPhase, GEM_A   ! Workspace matrix for GEMNewton
 
     logical                              ::  lDebugMode, lRevertSystem, lConverged
     logical, dimension(:),   allocatable ::  lSolnPhases, lMiscibility
