@@ -100,6 +100,12 @@ subroutine GEMNewton(INFO)
     integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry
     integer, dimension(nElements)        :: iErrCol
     real(8)                              :: dTemp
+    integer                              :: idx, nSpeciesSoln
+    real(8), dimension(:,:), allocatable :: dStoichSoln, dStoichWeighted
+    real(8), dimension(:),   allocatable :: dWeightA, dWeightB
+    real(8)                              :: tStart, tEnd, tTotalStart
+    logical, parameter                   :: lProfile = .false.
+    integer                              :: ldStoich, ldStoichSpec
 
     ! Count phases:
     j = nConPhases
@@ -165,34 +171,55 @@ subroutine GEMNewton(INFO)
             end do
         end do
 
-        ! Construct the Hessian matrix (elements):
-        do j = 1, nElements
-            do i = j, nElements
-                do k = 1, nSolnPhases
-                    ! Absolute solution phase index:
-                    m = -iAssemblage(nElements - k + 1)
-                    ! Loop through species in phase:
-                    do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
-                        dTemp  = dStoichSpecies(l,i) * dStoichSpecies(l,j) * dMolesSpecies(l)
-                        GEM_A(i,j) = GEM_A(i,j) + dTemp / (DFLOAT(iParticlesPerMole(l))**2)
-                    end do
-                end do
-                ! Apply symmetry:
-                GEM_A(j,i) = GEM_A(i,j)
-            end do
+        ! Construct the Hessian matrix (elements) and constraint vector using BLAS:
+        if (lProfile) then
+            call cpu_time(tTotalStart)
+            tStart = tTotalStart
+        end if
+        nSpeciesSoln = 0
+        do k = 1, nSolnPhases
+            m = -iAssemblage(nElements - k + 1)
+            nSpeciesSoln = nSpeciesSoln + nSpeciesPhase(m) - nSpeciesPhase(m-1)
         end do
+        if (nSpeciesSoln > 0) then
+            allocate(dStoichSoln(nElements, nSpeciesSoln), dStoichWeighted(nElements, nSpeciesSoln))
+            allocate(dWeightA(nSpeciesSoln), dWeightB(nSpeciesSoln))
+            idx = 0
+            do k = 1, nSolnPhases
+                m = -iAssemblage(nElements - k + 1)
+                do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+                    idx = idx + 1
+                    dStoichSoln(1:nElements,idx)     = dStoichSpecies(l,1:nElements)
+                    dStoichWeighted(1:nElements,idx) = dStoichSoln(1:nElements,idx)
+                    dWeightA(idx)          = dMolesSpecies(l) / (DFLOAT(iParticlesPerMole(l))**2)
+                    dWeightB(idx)          = dMolesSpecies(l) * (dChemicalPotential(l) - 1D0) / DFLOAT(iParticlesPerMole(l))
+                end do
+            end do
 
-        ! Compute the constraint vector (elements):
-        do j = 1, nElements
-            GEM_B(j) = dMolesElement(j)
-            do l = 1, nSolnPhases
-                k = -iAssemblage(nElements - l + 1)
-                do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                    dTemp = dStoichSpecies(i,j) * dMolesSpecies(i) * (dChemicalPotential(i) - 1D0)
-                    GEM_B(j)  = GEM_B(j) + dTemp / DFLOAT(iParticlesPerMole(i))
+            do idx = 1, nSpeciesSoln
+                call dscal(nElements, DSQRT(dWeightA(idx)), dStoichWeighted(1,idx), 1)
+            end do
+            call dgemm('N','T', nElements, nElements, nSpeciesSoln, 1D0, dStoichWeighted, nElements, &
+                       dStoichWeighted, nElements, 1D0, GEM_A, nVar)
+            GEM_B(1:nElements) = dMolesElement(1:nElements)
+            call dgemv('N', nElements, nSpeciesSoln, 1D0, dStoichSoln, nElements, dWeightB, 1, 1D0, GEM_B, 1)
+            deallocate(dStoichSoln, dStoichWeighted, dWeightA, dWeightB)
+            do j = 1, nElements
+                do i = j + 1, nElements
+                    GEM_A(i,j) = GEM_A(j,i)
                 end do
             end do
-        end do
+        else
+            GEM_B(1:nElements) = dMolesElement(1:nElements)
+        end if
+        if (lProfile) then
+            call cpu_time(tEnd)
+            write(*,'(A,F10.6)') 'Hessian element assembly time (s): ', tEnd - tStart
+            tStart = tEnd
+        end if
+
+        ldStoich    = size(dEffStoichSolnPhase,1)
+        ldStoichSpec= size(dStoichSpecies,1)
 
         ! Construct the Hessian matrix and constraint vector (contribution from solution phases):
         do j = nElements + 1, nElements + nSolnPhases
@@ -202,22 +229,25 @@ subroutine GEMNewton(INFO)
             ! Compute the stoichiometry of this phase:
             call CompStoichSolnPhase(k)
 
-            do i = 1,nElements
-                GEM_A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
-                GEM_A(j,i) = GEM_A(i,j)
-            end do
+            call dcopy(nElements, dEffStoichSolnPhase(k,1), ldStoich, GEM_A(1,j), 1)
+            call dscal(nElements, dMolesPhase(l), GEM_A(1,j), 1)
+            call dcopy(nElements, GEM_A(1,j), 1, GEM_A(j,1), nVar)
             GEM_B(j) = dGibbsSolnPhase(k)
         end do
 
         ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
         do j = nElements + nSolnPhases + 1, nElements + nConPhases + nSolnPhases
             k = j - nElements - nSolnPhases
-            do i = 1, nElements
-                GEM_A(i,j) = dStoichSpecies(iAssemblage(k),i)
-                GEM_A(j,i) = GEM_A(i,j)
-            end do
+            call dcopy(nElements, dStoichSpecies(iAssemblage(k),1), ldStoichSpec, GEM_A(1,j), 1)
+            call dcopy(nElements, GEM_A(1,j), 1, GEM_A(j,1), nVar)
             GEM_B(j) = dStdGibbsEnergy(iAssemblage(k))
         end do
+
+        if (lProfile) then
+            call cpu_time(tEnd)
+            write(*,'(A,F10.6)') 'Hessian phase assembly time (s): ', tEnd - tStart
+            write(*,'(A,F10.6)') 'Total Hessian assembly time (s): ', tEnd - tTotalStart
+        end if
 
         do k = 1, iTry
             i = iErrCol(k)
