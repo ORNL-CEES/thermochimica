@@ -1,26 +1,49 @@
 #!/usr/bin/env bash
-# Run TestThermo* executables, continue on failure, and summarize.
+# Run TestThermo* executables, optionally skip some, colorize output, and summarize.
 
-set -Euo pipefail           # no -e so we don't exit on first failure
+set -Euo pipefail           # NOTE: no -e so we don't exit on first failure
 shopt -s nullglob
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 cd "$script_dir/bin"
 
+# Pattern of tests to run (glob). Example to narrow: TEST_PATTERN="TestThermo7*"
 TEST_PATTERN="${TEST_PATTERN:-TestThermo*}"
 
-# Tests to skip
-SKIP_TESTS=(
-  TestThermo00
-)
+# --- Optional skip list ---
+# Provide via env var, e.g.:
+#   SKIP_TESTS="TestThermo40 TestThermo41,TestThermo44
+#               TestThermo47"
+# If SKIP_TESTS is empty or unset, NOTHING is skipped.
+SKIP_TESTS_RAW="${SKIP_TESTS:-}"
+# Normalize separators to spaces -> array
+if [[ -n "$SKIP_TESTS_RAW" ]]; then
+  # shellcheck disable=SC2206
+  SKIP_TESTS_ARR=( $(printf '%s' "$SKIP_TESTS_RAW" | tr ',\n' '  ' | xargs -n1 | paste -sd' ' -) )
+else
+  SKIP_TESTS_ARR=()
+fi
 
 is_skipped() {
   local t="$1"
-  for s in "${SKIP_TESTS[@]}"; do
+  # No skip list? Never skip.
+  ((${#SKIP_TESTS_ARR[@]}==0)) && return 1
+  for s in "${SKIP_TESTS_ARR[@]}"; do
     [[ "$t" == "$s" ]] && return 0
   done
   return 1
 }
+
+# --- Colors (auto-disable if not a TTY or NO_COLOR is set) ---
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  if command -v tput >/dev/null 2>&1 && tput colors >/dev/null 2>&1; then
+    RED=$(tput setaf 1); GREEN=$(tput setaf 2); YELLOW=$(tput setaf 3); BOLD=$(tput bold); RESET=$(tput sgr0)
+  else
+    RED=$'\e[31m'; GREEN=$'\e[32m'; YELLOW=$'\e[33m'; BOLD=$'\e[1m'; RESET=$'\e[0m'
+  fi
+else
+  RED=""; GREEN=""; YELLOW=""; BOLD=""; RESET=""
+fi
 
 FAILED=()
 PASSED=()
@@ -29,19 +52,11 @@ TOTAL=0
 run_test() {
   local t="$1"
   local log="${t}.log"
-
-  if [[ "$t" == "TestThermo12" ]]; then
-    ./"$t" > test12out.txt 2>&1
-    tail -n 1 test12out.txt || true
-    return $?
-  else
-    ./"$t" > "$log" 2>&1
-    return $?
-  fi
+  ./"$t" > "$log" 2>&1
+  return $?
 }
 
-# Build the test list without using mapfile/readarray.
-# 1) Expand the glob, 2) strip ./, 3) sort -V.
+# Build the test list (no mapfile/readarray dependency)
 tests_list="$(
   for p in ./$TEST_PATTERN; do
     [[ -x "$p" ]] || continue
@@ -53,7 +68,7 @@ tests_list="$(
 while IFS= read -r t; do
   [[ -n "$t" ]] || continue
   if is_skipped "$t"; then
-    printf '[SKIP] %s\n' "$t"
+    printf '%s[SKIP]%s %s\n' "$YELLOW" "$RESET" "$t"
     continue
   fi
 
@@ -65,26 +80,30 @@ while IFS= read -r t; do
     end_ns=$(date +%s%N 2>/dev/null || echo 0)
     if [[ $start_ns != 0 && $end_ns != 0 ]]; then
       dur_ms=$(( (end_ns - start_ns)/1000000 ))
-      printf '[PASS] %s (%d ms)\n' "$t" "$dur_ms"
+      printf '%s[PASS]%s %s (%d ms)\n' "$GREEN" "$RESET" "$t" "$dur_ms"
     else
-      printf '[PASS] %s\n' "$t"
+      printf '%s[PASS]%s %s\n' "$GREEN" "$RESET" "$t"
     fi
     PASSED+=("$t")
   else
     end_ns=$(date +%s%N 2>/dev/null || echo 0)
     if [[ $start_ns != 0 && $end_ns != 0 ]]; then
       dur_ms=$(( (end_ns - start_ns)/1000000 ))
-      printf '[FAIL] %s (%d ms)\n' "$t" "$dur_ms"
+      printf '%s[FAIL]%s %s (%d ms)\n' "$RED" "$RESET" "$t" "$dur_ms"
     else
-      printf '[FAIL] %s\n' "$t"
+      printf '%s[FAIL]%s %s\n' "$RED" "$RESET" "$t"
     fi
     FAILED+=("$t")
   fi
 done <<< "$tests_list"
 
 echo
-printf 'Summary: %d run, %d passed, %d failed\n' "$TOTAL" "${#PASSED[@]}" "${#FAILED[@]}"
 if ((${#FAILED[@]})); then
-  printf 'Failed: %s\n' "${FAILED[*]}"
+  printf '%sSummary:%s %d run, %s%d passed%s, %s%d failed%s\n' \
+    "$BOLD" "$RESET" "$TOTAL" "$GREEN" "${#PASSED[@]}" "$RESET" "$RED" "${#FAILED[@]}" "$RESET"
+  printf '%sFailed:%s %s\n' "$RED" "$RESET" "${FAILED[*]}"
   exit 1
+else
+  printf '%sSummary:%s %d run, %s%d passed%s, %s%d failed%s\n' \
+    "$BOLD" "$RESET" "$TOTAL" "$GREEN" "${#PASSED[@]}" "$RESET" "$RED" "0" "$RESET"
 fi
