@@ -72,4 +72,29 @@ module ModuleGEMSolver
     logical                              ::  lDebugMode, lRevertSystem, lConverged
     logical, dimension(:),   allocatable ::  lSolnPhases, lMiscibility
 
+contains
+
+    subroutine ResizeGEMWorkspace(nVar)
+
+        implicit none
+
+        integer, intent(in) :: nVar
+
+        if (allocated(GEM_A))    deallocate(GEM_A)
+        if (allocated(GEM_B))    deallocate(GEM_B)
+        if (allocated(GEM_IPIV)) deallocate(GEM_IPIV)
+        if (allocated(dUpdateVar)) deallocate(dUpdateVar)
+
+        allocate(GEM_A(nVar, nVar))
+        allocate(GEM_B(nVar))
+        allocate(GEM_IPIV(nVar))
+        allocate(dUpdateVar(nVar))
+
+        GEM_A      = 0D0
+        GEM_B      = 0D0
+        GEM_IPIV   = 0
+        dUpdateVar = 0D0
+
+    end subroutine ResizeGEMWorkspace
+
 end module ModuleGEMSolver

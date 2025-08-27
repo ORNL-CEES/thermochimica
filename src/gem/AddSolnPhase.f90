@@ -73,7 +73,7 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     implicit none
 
-    integer::                       i, j, k, iPhaseChange, INFO, nConPhasesLast, iterBack
+    integer::                       i, j, k, iPhaseChange, INFO, nConPhasesLast, iterBack, nVar
     integer,dimension(nElements)::  iAssemblageTest, iAssemblageLast
     real(8),dimension(nElements)::  dTempVec
     logical::                       lPhasePass, lSwapLater, lCompEverything
@@ -149,6 +149,8 @@ subroutine AddSolnPhase(iPhaseChange,lSwapLater,lPhasePass)
     LOOP_CheckAssemblage: do i = 1, j
 
         ! Check that the phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then

@@ -48,7 +48,7 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
 
     implicit none
 
-    integer  ::  i, j, INFO, nMiscPhases
+    integer  ::  i, j, INFO, nMiscPhases, nVar
     real(8)  ::  dTemp
     logical  ::  lPhasePass
 
@@ -99,7 +99,9 @@ subroutine CheckPhaseChange(lPhasePass,INFO)
         dTemp = 1D100
     end if
 
-    ! Establish the Hessian matrix and compute the direction vector:
+    ! Allocate workspace and compute the direction vector:
+    nVar = nElements + nConPhases + nSolnPhases
+    call ResizeGEMWorkspace(nVar)
     call GEMNewton(INFO)
 
     ! Reinitialize variables:
