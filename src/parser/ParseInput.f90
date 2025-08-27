@@ -243,7 +243,6 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *, trim(cErrMsg)
           return
         end if
-        cOutputFilePath = cOutputFilePathTemp
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
         read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
@@ -481,5 +480,8 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           INFOThermo = 5
           return
   end select
+
+  ! 'output' might not be in the input => we must ensure that cOutputFilePath is set
+  cOutputFilePath = cOutputFilePathTemp
 
 end subroutine ParseInput
