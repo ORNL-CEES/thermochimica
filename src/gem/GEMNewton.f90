@@ -138,32 +138,11 @@ subroutine GEMNewton(INFO)
     TryLoop: do iTry = 0, nMaxTry
         ! on retry we are going to use dummy phases
         if (iTry > 0) nVar = nElements * 2
-
-        ! Allocate or resize workspace if necessary:
-        if (.NOT. allocated(GEM_A) .OR. SIZE(GEM_A,1) /= nVar) then
-            if (allocated(GEM_A)) deallocate(GEM_A)
-            allocate(GEM_A(nVar, nVar))
-        end if
-        if (.NOT. allocated(GEM_B) .OR. SIZE(GEM_B) /= nVar) then
-            if (allocated(GEM_B)) deallocate(GEM_B)
-            allocate(GEM_B(nVar))
-        end if
-        if (.NOT. allocated(GEM_IPIV) .OR. SIZE(GEM_IPIV) /= nVar) then
-            if (allocated(GEM_IPIV)) deallocate(GEM_IPIV)
-            allocate(GEM_IPIV(nVar))
-        end if
-        if (.NOT. allocated(dUpdateVar) .OR. SIZE(dUpdateVar) /= nVar) then
-            if (allocated(dUpdateVar)) deallocate(dUpdateVar)
-            allocate(dUpdateVar(nVar))
-        end if
+        call ResizeGEMWorkspace(nVar)
 
         ! Initialize variables:
-        GEM_IPIV(1:nVar)        = 0
-        INFO                    = 0
-        GEM_A(1:nVar,1:nVar)    = 0D0
-        GEM_B(1:nVar)           = 0D0
-        dUpdateVar              = 0D0
-        dEffStoichSolnPhase     = 0D0
+        INFO                = 0
+        dEffStoichSolnPhase = 0D0
 
         do k = 1, nSolnPhases
             ! Absolute solution phase index:

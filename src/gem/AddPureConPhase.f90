@@ -55,7 +55,7 @@ subroutine AddPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     implicit none
 
-    integer                       :: i, iPhaseChange, iterBack, INFO
+    integer                       :: i, iPhaseChange, iterBack, INFO, nVar
     integer, dimension(nElements) :: iAssemblageTest
     logical                       :: lPhasePass, lSwapLater
 
@@ -96,6 +96,8 @@ subroutine AddPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         iAssemblage(nConPhases)     = iPhaseChange
 
         ! Check to make sure that the phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         if (.NOT.(lPhasePass)) then
