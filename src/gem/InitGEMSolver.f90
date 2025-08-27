@@ -365,7 +365,7 @@ subroutine InitGemCheckSolnPhase
 
     implicit none
 
-    integer::   i, j, k, l, nConPhasesTemp
+    integer::   i, j, k, l, nConPhasesTemp, nVar
     integer,dimension(nElements):: iAssemblageLast
     real(8)::   dTemp
     logical::   lPhasePass
