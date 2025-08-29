@@ -68,7 +68,7 @@ program thermo
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'C-O.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'CO.dat'
 
     ! Specify values:
     dPressure              = 1D0
