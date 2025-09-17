@@ -60,6 +60,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
 
   ! lWriteJSON true by default
   lWriteJSON = .TRUE.
+
   cOutputFilePathTemp = '../outputs/thermoout.json'
   call SetDefaultOutputFilePath()
   ! Open input file
