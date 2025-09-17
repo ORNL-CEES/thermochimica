@@ -83,7 +83,7 @@ module ModuleThermoIO
 
 contains
 
-    pure logical function PathIsAbsolute(path)
+    logical function PathIsAbsolute(path)
 
         character(*), intent(in) :: path
         character(len(path)) :: trimmed
