@@ -11,6 +11,7 @@ program RunCalculationList
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
+    character(:), allocatable :: cOutputFullPath
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
@@ -39,7 +40,7 @@ program RunCalculationList
       return
     endif
     ! Set default output file path
-    cOutputFilePath = '../outputs/thermoout.json'
+    call SetDefaultOutputFilePath()
     
     ! Initialize for read loop
     lEnd = .FALSE.
@@ -184,7 +185,7 @@ program RunCalculationList
             write(cErrMsg,'(A35,I10)') 'Cannot read output file on line', iCounter
             return
           endif
-          cOutputFilePath = cOutputFilePathTemp
+          call UpdateOutputFilePath(cOutputFilePathTemp)
         case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
           'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
           read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp
@@ -357,9 +358,10 @@ program RunCalculationList
     endif
 
     call ParseCSDataFile(cThermoFileName)
+    cOutputFullPath = GetResolvedOutputFilePath()
     ! Specify values:
     if (lWriteJSON) then
-        OPEN(2, file= DATA_DIRECTORY // cOutputFilePath, &
+        OPEN(2, file= cOutputFullPath, &
             status='REPLACE', action='write')
         WRITE(2,*) '{'
         CLOSE(2)
@@ -377,7 +379,7 @@ program RunCalculationList
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
-      open(2, file= DATA_DIRECTORY // cOutputFilePath, &
+      open(2, file= cOutputFullPath, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
       write(intStr,*) i
@@ -398,7 +400,7 @@ program RunCalculationList
     CLOSE(3)
 
     if (lWriteJSON) then
-        open(2, file= DATA_DIRECTORY // cOutputFilePath, &
+        open(2, file= cOutputFullPath, &
             status='OLD', position='append', action='write')
         write(2,*) '}'
         close (2)
