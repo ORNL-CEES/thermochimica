@@ -30,6 +30,7 @@ program ThermochimicaInputScriptMode
   real(8) :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
   integer :: i, nT, j, nP, nSim
   character(16) :: intStr
+  character(:), allocatable :: cOutputFullPath
 
   ! Read input argument to get filename
   call get_command_argument(1, cInputFile)
@@ -60,8 +61,10 @@ program ThermochimicaInputScriptMode
     dDeltaP = (dPressHigh - dPressLow) / nT
   end if
 
+  cOutputFullPath = GetResolvedOutputFilePath()
+
   if (lWriteJSON) then
-    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+    open(1, file= cOutputFullPath, &
         status='REPLACE', action='write')
     write(1,*) '{'
     close (1)
@@ -91,7 +94,7 @@ program ThermochimicaInputScriptMode
       ! Perform post-processing of results:
       if (iPrintResultsMode > 0)  call PrintResults
       if (lWriteJSON) then
-        open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+        open(1, file= cOutputFullPath, &
             status='OLD', position='append', action='write')
         if ((i > 0) .OR. (j > 0)) write(1,*) ','
         write(intStr,*) nSim
@@ -115,7 +118,7 @@ program ThermochimicaInputScriptMode
   end do
 
   if (lWriteJSON) then
-    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+    open(1, file= cOutputFullPath, &
         status='OLD', position='append', action='write')
     write(1,*) '}'
     close (1)
