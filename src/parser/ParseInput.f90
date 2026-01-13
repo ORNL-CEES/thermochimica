@@ -60,8 +60,9 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
 
   ! lWriteJSON true by default
   lWriteJSON = .TRUE.
-  ! Set the default value of the JSON output file
-  cOutputFilePath = '../outputs/thermoout.json'
+
+  cOutputFilePathTemp = '../outputs/thermoout.json'
+  call SetDefaultOutputFilePath()
   ! Open input file
   open (UNIT = 1, FILE = cInputFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
   ! Check for error on attempt to open
@@ -244,7 +245,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           print *, trim(cErrMsg)
           return
         end if
-        cOutputFilePath = cOutputFilePathTemp
+        call UpdateOutputFilePath(cOutputFilePathTemp)
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
         read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp

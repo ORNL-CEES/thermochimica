@@ -9,13 +9,16 @@ subroutine WriteJSON(append)
     logical, intent(in) :: append
     logical :: exist
     integer :: i, c, nElectron, its
+    character(:), allocatable :: cOutputFullPath
 
-    inquire(file= DATA_DIRECTORY // cOutputFilePath, exist=exist)
+    cOutputFullPath = GetResolvedOutputFilePath()
+
+    inquire(file= cOutputFullPath, exist=exist)
     if (append .AND. exist) then
-        open(1, file= DATA_DIRECTORY // cOutputFilePath, &
+        open(1, file= cOutputFullPath, &
               status='OLD', position='append', action='write')
     else
-        open(1, file= DATA_DIRECTORY // cOutputFilePath, &
+        open(1, file= cOutputFullPath, &
               status='REPLACE', action='write')
     end if
 
