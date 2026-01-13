@@ -1,8 +1,8 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo30.F90
-    !> \brief   Spot test - W-Au-Ar-O.
+    !> \file    TestThermo51.F90
+    !> \brief   Spot test - 2250K with 55% Tc, 45% Ru.
     !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
     !
     ! DISCLAIMER
@@ -12,16 +12,17 @@
     !
     ! Revisions:
     ! ==========
-    !    Date          Programmer           Description of change
-    !    ----          ----------           ---------------------
-    !    05/14/2013    M.H.A. Piro          Original code
-    !    31/08/2018    B.W.N. Fitzpatrick   Change system to fictive RKMP model
-    !    04/17/2024    A.E.F. Fitzsimmons   Naming convention change
+    !    Date          Programmer          Description of change
+    !    ----          ----------          ---------------------
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
+    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    08/27/2024    A.E.F. Fitzsimmons  SQA, standardizing tests
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for a fictive system labelled W-Au-Ar-O.
+    !! results for the Pd-Ru-Tc-Mo system at 2250K with 55% Tc, 45% Ru.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -29,45 +30,56 @@ program TestThermo30
 
     USE ModuleThermoIO
     USE ModuleThermo
-    USE ModuleGEMSolver
+    USE ModuleTesting
 
     implicit none
+
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'WAuArO-1.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 1455D0
-    dElementMass(74)       = 1.95D0        ! W
-    dElementMass(79)       = 1D0           ! Au
-    dElementMass(18)       = 2D0           ! Ar
-    dElementMass(8)        = 10D0          ! O
+    dTemperature           = 2250D0
+    dElementMass(43)       = 0.55D0        ! Tc
+    dElementMass(44)       = 0.45D0        ! Ru
+
+    ! Init test values
+    dGibbsCheck            = -1.54452D05
+    dHeatCapacityCheck     = 38.5393
+    nSpeciesTest           = 4
+    iSpeciesIndexTest      = [1, 2, 7, 8] !Tc, Ru, Tc, Ru
+    dMolFractionTest       = [2.68858D-08, 3.18793D-08, 5.62750D-01, 4.37249D-01]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
     call Thermochimica
+    call HeatCapacity
 
-    ! Check results:
-    if (INFOThermo == 0) then
-        if ((DABS(dGibbsEnergySys - (-4.620D5))/((-4.620D5))) < 1D-3) then
-            ! The test passed:
-            print *, 'TestThermo30: PASS'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(0)
-        else
-            ! The test failed.
-            print *, 'TestThermo30: FAIL <---'
-            ! Reset Thermochimica:
-            call ResetThermo
-            call EXIT(1)
-        end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
+
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
+        ! The test passed:
+        print *, 'TestThermo30: PASS'
+        ! Reset Thermochimica:
+        call ResetThermo
+        call EXIT(0)
     else
         ! The test failed.
         print *, 'TestThermo30: FAIL <---'
@@ -75,10 +87,5 @@ program TestThermo30
         call ResetThermo
         call EXIT(1)
     end if
-
-    !call ThermoDebug
-
-    ! Reset Thermochimica:
-    call ResetThermo
 
 end program TestThermo30

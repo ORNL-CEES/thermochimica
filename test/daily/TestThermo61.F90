@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo61.F90
-    !> \brief   Tricky SUBL vacancy-vacancy
-    !> \author  M. Poschmann
+    !> \file    TestThermo87.F90
+    !> \brief   SUBM mistmatch coefficients and charges.
+    !> \author  M.H.A. Piro, M. Poschmann
     !
     ! DISCLAIMER
     ! ==========
@@ -14,79 +14,76 @@
     ! ==========
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
-    !    24/06/2021    M. Poschmann         Original code
+    !    05/14/2013    M.H.A. Piro         Original code
+    !    11/08/2022    M. Poschmann        SUBM Test Case
     !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    10/28/2024    A.E.F. Fitzsimmons  SQA Remodle
     !
     ! Purpose:
     ! ========
-    !> \details The purpose of this application test is to ensure that Thermochimica includes vacancy-vacancy
-    !! species in the SUBL model if appropriate.
+    !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
+    !!  results a SUBM phase where not all charges and coefficients are equal, i.e. with Zr(4+) + O(2-) -> ZrO2.
+    !!  Two constituents on second sublattice are tested.
     !
     !-------------------------------------------------------------------------------------------------------------
 
 program TestThermo61
 
     USE ModuleThermoIO
-    USE ModuleGEMSolver
     USE ModuleThermo
-    USE ModuleParseCS
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i, j, k
-    real(8) :: gibbsCheck, p1check, p2check, s1check, dHeatCapacityCheck
-    logical :: subqPass, gasPass, cppass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature = 'K'
     cInputUnitPressure    = 'atm'
     cInputUnitMass        = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'FeTiVO.dat'
+    cThermoFileName       = DATA_DIRECTORY // 'ZrFeKClNaFOLi.dat'
 
     ! Specify values:
-    dPressure              = 1D0
-    dTemperature           = 1000D0
-    dElementMass(8)        = 2D0              ! O
-    dElementMass(22)       = 0.5D0            ! Ti
+    dTemperature          = 1000
+    dPressure             = 1.0D0
+    dElementMass          = 0D0
 
-    gibbsCheck = -6.24557D05
-    p1check    = 0.50000D0
-    s1check    = 0.99772D0
-    p2check    = 0.50114D0
-    dHeatCapacityCheck = 54.8676
+    dElementMass(3)       = 0D0                              ! Li
+    dElementMass(11)      = 0D0                              ! Na
+    dElementMass(17)      = 2D0                              ! Cl
+    dElementMass(9)       = 0D0                              ! F
+    dElementMass(26)      = 0D0                              ! Fe
+    dElementMass(8)       = 1D0                              ! O
+    dElementMass(19)      = 0D0                              ! K
+    dElementMass(40)      = 1D0                              ! Zr
+
+    ! Init test values
+    dGibbsCheck           = -1.50268D04
+    dHeatCapacityCheck    = -6975.92
+    nSpeciesTest          = 2
+    iSpeciesIndexTest     = [1, 2] !ZrCl4, ZrO2
+    dMolFractionTest      = [4.9999D-01, 5.0000D-01]
+    lPass                 = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
 
     ! Call Thermochimica:
-    if (INFOThermo == 0)        call Thermochimica
+    call Thermochimica
     call HeatCapacity
+    
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    subqPass = .FALSE.
-    gasPass  = .FALSE.
-    cppass   = .FALSE.
-    if (INFOThermo == 0) then
-        if (DABS((dGibbsEnergySys - gibbsCheck)/gibbsCheck) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = nElements + 1 - i
-                j = -iAssemblage(k)
-                if (cSolnPhaseName(j) == 'Rutilesoln') then
-                    if (DABS((dMolesPhase(k)-p1check)/p1check) < 1D-3) then
-                        if (DABS((dMolFraction(nSpeciesPhase(j-1)+1)-s1check)/s1check) < 1D-3) then
-                            subqPass = .TRUE.
-                        end if
-                    end if
-                else if (cSolnPhaseName(j) == 'gas_ideal') then
-                    if (DABS((dMolesPhase(k)-p2check)/p2check) < 1D-3) then
-                        gasPass = .TRUE.
-                    end if
-                end if
-            end do
-            if (ABS(dHeatCapacity - dHeatCapacityCheck)/dHeatCapacityCheck < 1D-3) cppass = .TRUE.
-        end if
-    end if
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
 
-    if (subqPass .AND. gasPass .AND. cppass) then
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo61: PASS'
         ! Reset Thermochimica:
@@ -99,11 +96,5 @@ program TestThermo61
         call ResetThermo
         call EXIT(1)
     end if
-
-    ! Destruct everything:
-    if (INFOThermo == 0)        call ResetThermoAll
-
-    ! Call the debugger:
-    call ThermoDebug
 
 end program TestThermo61

@@ -1,9 +1,9 @@
 
     !-------------------------------------------------------------------------------------------------------------
     !
-    !> \file    TestThermo50.F90
-    !> \brief   Spot test - 1234K with 1% Tc, 99% Ru.
-    !> \author  M.H.A. Piro, B.W.N. Fitzpatrick
+    !> \file    TestThermo75.F90
+    !> \brief   Spot test - 1500K with 0.5 Ca - 0.2 Mn - 0.4 Fe.
+    !> \author  M.H.A. Piro, B.A.T. Breeden
     !
     ! DISCLAIMER
     ! ==========
@@ -15,13 +15,19 @@
     !    Date          Programmer          Description of change
     !    ----          ----------          ---------------------
     !    05/14/2013    M.H.A. Piro         Original code
-    !    08/31/2018    B.W.N. Fitzpatrick  Modification to use Kaye's Pd-Ru-Tc-Mo system
-    !    05/06/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    02/24/2022    B.A.T. Breeden      SUBI Test Case
+    !    04/17/2024    A.E.F. Fitzsimmons  Naming convention change
+    !    08/27/2024    A.E.F. Fitzsimmons  Remodel
     !
     ! Purpose:
     ! ========
     !> \details The purpose of this application test is to ensure that Thermochimica computes the correct
-    !! results for the Pd-Ru-Tc-Mo system at 1234K with 1% Tc, 99% Ru.
+    !!  results for the open literature Ca-Mn-S assessment file at 1500K with 0.5 mol of Ca, 0.2 mol of Mn, and
+    !!  0.4 mol of Fe. It also tests mixing term Case #8 of the SUBI phase.
+    !!
+    !!  The DAT file was pulled from the following article. However, modifications may have been made
+    !!  from the original version: D. Dilner, "Thermodynamic description of the Fe–Mn–Ca–Mg–S system," Calphad,
+    !!  vol. 53, pp. 55-61, 2016.
     !
     !-------------------------------------------------------------------------------------------------------------
 
@@ -29,23 +35,37 @@ program TestThermo50
 
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModuleTesting
 
     implicit none
 
-    integer :: i,j,k
-    logical :: s1pass, s2pass, cppass
+    ! Init variables
+    logical :: lPass
+    real(8) :: dGibbsCheck, dHeatCapacityCheck
+    integer :: nSpeciesTest
+    integer, allocatable :: iSpeciesIndexTest(:)
+    real(8), allocatable :: dMolFractionTest(:)
 
     ! Specify units:
     cInputUnitTemperature  = 'K'
     cInputUnitPressure     = 'atm'
     cInputUnitMass         = 'moles'
-    cThermoFileName        = DATA_DIRECTORY // 'NobleMetals-Kaye.dat'
+    cThermoFileName        = DATA_DIRECTORY // 'FeMnCaS-2.dat'
 
     ! Specify values:
     dPressure              = 1D0
-    dTemperature           = 1234D0
-    dElementMass(43)       = 1D0        ! Tc
-    dElementMass(44)       = 99D0        ! Ru
+    dTemperature           = 1500D0
+    dElementMass(26)       = 0.4D0          ! Fe
+    dElementMass(25)       = 0.2D0          ! Mn
+    dElementMass(20)       = 0.5D0          ! Ca
+
+    ! Init test values
+    dGibbsCheck            = -1.16594D05
+    dHeatCapacityCheck     = 42.6874
+    nSpeciesTest           = 3
+    iSpeciesIndexTest      = [1, 2, 3] !Ca+2:Va, Fe+2:Va, Mn+2:Va
+    dMolFractionTest       = [4.5454D-01, 3.6363D-01, 1.8181D-01]
+    lPass                  = .FALSE.
 
     ! Parse the ChemSage data-file:
     call ParseCSDataFile(cThermoFileName)
@@ -54,29 +74,13 @@ program TestThermo50
     call Thermochimica
     call HeatCapacity
 
-    s1pass = .FALSE.
-    s2pass = .FALSE.
-    cppass = .FALSE.
-    ! Check results:
-    if (INFOThermo == 0) then
-        if (DABS(dGibbsEnergySys - (-5.64282D6))/(-5.64282D6) < 1D-3) then
-            do i = 1, nSolnPhases
-                k = -iAssemblage(nElements + 1 - i)
-                if (cSolnPhaseName(k) == 'HCPN') then
-                    do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
-                        if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Ru') then
-                            if (DABS(dMolFraction(j) - 0.99D0)/0.99D0 < 1D-3) s1pass = .TRUE.
-                        else if (TRIM(ADJUSTL(cSpeciesName(j))) == 'Tc') then
-                            if (DABS(dMolFraction(j) - 0.01D0)/0.01D0 < 1D-3) s2pass = .TRUE.
-                        end if
-                    end do
-                end if
-            end do
-            if (ABS(dHeatCapacity - 2983.20)/2983.20 < 1D-3) cppass = .TRUE.
-        end if
-    end if
+    ! Execute the test for mole fractions, gibbs energy and heat capacity
+    call testProperties(dGibbsCheck, dHeatCapacityCheck, nSpeciesTest, iSpeciesIndexTest, dMolFractionTest, lPass)
 
-    if (s1pass .AND. s2pass .AND. cppass) then
+    ! Deallocation
+    deallocate(iSpeciesIndexTest, dMolFractionTest)
+
+    if (lPass) then
         ! The test passed:
         print *, 'TestThermo50: PASS'
         ! Reset Thermochimica:
