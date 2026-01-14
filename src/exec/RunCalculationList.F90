@@ -33,7 +33,7 @@ program RunCalculationList
     ! Open input file
     open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
-    
+
     if (INFO /= 0) then
       INFOThermo = 50
       print *, 'Cannot open input file ', cInputFile
@@ -41,7 +41,7 @@ program RunCalculationList
     endif
     ! Set default output file path
     call SetDefaultOutputFilePath()
-    
+
     ! Initialize for read loop
     lEnd = .FALSE.
     iCounter = 0
@@ -359,6 +359,9 @@ program RunCalculationList
 
     call ParseCSDataFile(cThermoFileName)
     cOutputFullPath = GetResolvedOutputFilePath()
+    print *, '###################'
+    print *, "cOutputFullPath: ", cOutputFullPath
+    print *, '###################'
     ! Specify values:
     if (lWriteJSON) then
         OPEN(2, file= cOutputFullPath, &

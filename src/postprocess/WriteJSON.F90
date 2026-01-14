@@ -11,7 +11,13 @@ subroutine WriteJSON(append)
     integer :: i, c, nElectron, its
     character(:), allocatable :: cOutputFullPath
 
+    print *, "*************************"
+
     cOutputFullPath = GetResolvedOutputFilePath()
+
+    print *, "================="
+    print *, "cOutputFullPath: ", cOutputFullPath
+    print *, "================="
 
     inquire(file= cOutputFullPath, exist=exist)
     if (append .AND. exist) then
