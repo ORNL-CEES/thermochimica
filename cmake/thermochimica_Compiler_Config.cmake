@@ -1,5 +1,4 @@
 SET(Fortran_FLAGS
-    -fno-automatic
     -D"DATA_DIRECTORY='${${PACKAGE_NAME}_SOURCE_DIR}/data/'"
 )
 IF(${PROJECT_NAME}_GPROF})

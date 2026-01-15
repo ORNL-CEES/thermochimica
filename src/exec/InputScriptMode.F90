@@ -63,6 +63,7 @@ program ThermochimicaInputScriptMode
 
   cOutputFullPath = GetResolvedOutputFilePath()
 
+
   if (lWriteJSON) then
     open(1, file= cOutputFullPath, &
         status='REPLACE', action='write')

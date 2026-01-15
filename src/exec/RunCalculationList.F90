@@ -11,7 +11,7 @@ program RunCalculationList
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
-    character(:), allocatable :: cOutputFullPath
+    character(len=:), allocatable :: cOutputFullPath
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
@@ -33,7 +33,7 @@ program RunCalculationList
     ! Open input file
     open (UNIT = 3, FILE = cInputFile, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
     ! Check for error on attempt to open
-    
+
     if (INFO /= 0) then
       INFOThermo = 50
       print *, 'Cannot open input file ', cInputFile
@@ -41,7 +41,7 @@ program RunCalculationList
     endif
     ! Set default output file path
     call SetDefaultOutputFilePath()
-    
+
     ! Initialize for read loop
     lEnd = .FALSE.
     iCounter = 0

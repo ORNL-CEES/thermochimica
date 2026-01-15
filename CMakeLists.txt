@@ -10,7 +10,6 @@ if(LAPACK_FOUND AND BLAS_FOUND)
 endif()
 
 SET(Fortran_FLAGS
-    -fno-automatic
     -cpp
     -D"DATA_DIRECTORY='${CMAKE_CURRENT_SOURCE_DIR}/data/'"
 )

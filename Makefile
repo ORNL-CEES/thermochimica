@@ -24,7 +24,7 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FFPE_TRAPS  ?= zero
-FCFLAGS     = -Wall -O2 -ffree-line-length-none -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
+FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'"
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
@@ -32,16 +32,16 @@ ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
     LDLOC   = -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
     # link flags for linux users:
-    LDFLAGS = -O2 -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
-    LDFLAGS = -O2 -framework Accelerate -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -framework Accelerate -fbounds-check
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
     LDLOC   =  -llapack -lblas -lgfortran
     # link flags for Windows users:
-    LDFLAGS = -O2 -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fbounds-check
 endif
 
 ## ====================
@@ -236,6 +236,6 @@ test: all dailytest
 ## DEBUG:
 ## ===========
 setdebug:
-	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -D"DATA_DIRECTORY='$(DATA_DIR)'")
+	$(eval FCFLAGS = -Wall -O0 -g -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
 debug: setdebug all dailytest

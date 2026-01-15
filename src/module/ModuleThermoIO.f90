@@ -97,7 +97,7 @@ contains
         else if ((trimmed(1:1) == '/') .OR. (trimmed(1:1) == '\\')) then
             PathIsAbsolute = .TRUE.
         else if (n >= 2) then
-            PathIsAbsolute = (trimmed(2:2) == ':')
+            PathIsAbsolute = (trimmed(1:2) == '..')
         else
             PathIsAbsolute = .FALSE.
         end if
@@ -138,12 +138,12 @@ contains
     end subroutine UpdateOutputFilePath
 
     function GetResolvedOutputFilePath() result(path)
+        implicit none
+        character(len=:), allocatable :: path
 
-        character(:), allocatable :: path
-
-        if (.NOT. allocated(cResolvedOutputFilePath)) then
-            call SetDefaultOutputFilePath()
-        end if
+        ! In modern compilers, assignment automatically handles allocation
+        if (.not. allocated(cResolvedOutputFilePath)) call SetDefaultOutputFilePath()
+        if (.not. allocated(cResolvedOutputFilePath)) error stop "Resolved path not set"
 
         path = cResolvedOutputFilePath
 
