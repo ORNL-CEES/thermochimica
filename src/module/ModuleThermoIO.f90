@@ -89,26 +89,16 @@ contains
         character(len(path)) :: trimmed
         integer :: n
 
-        print *, 'PathIsAbsolute'
         trimmed = adjustl(path)
         n = len_trim(trimmed)
 
-        print *, "trimmed: ", trimmed, " n: ", n
-
         if (n <= 0) then
-            print *, 'Cond1'
             PathIsAbsolute = .FALSE.
         else if ((trimmed(1:1) == '/') .OR. (trimmed(1:1) == '\\')) then
-            print *, 'Cond2'
-            print *, 'trimmed(1:1)', trimmed(1:1)
             PathIsAbsolute = .TRUE.
         else if (n >= 2) then
-            print *, 'Cond3'
             PathIsAbsolute = (trimmed(1:2) == '..')
-            print *, 'trimmed(2:2): ', trimmed(1:2)
-            print *, PathIsAbsolute
         else
-            print *, 'Cond4'
             PathIsAbsolute = .FALSE.
         end if
 
@@ -118,8 +108,6 @@ contains
 
         call UpdateOutputFilePath('../outputs/thermoout.json')
 
-        print *, "SetDefaultOutputPath"
-
     end subroutine SetDefaultOutputFilePath
 
     subroutine UpdateOutputFilePath(rawPath)
@@ -127,9 +115,6 @@ contains
         character(*), intent(in) :: rawPath
         character(len(rawPath)) :: cleaned
         integer :: n
-
-        print *, "UpdateOutputFilePath"
-        print *, rawPath
 
         cleaned = adjustl(rawPath)
         n = len_trim(cleaned)
@@ -150,41 +135,18 @@ contains
             cResolvedOutputFilePath = DATA_DIRECTORY // cleaned(1:n)
         end if
 
-        print *, "UpdateOutputFilePath: ", cResolvedOutputFilePath
-
     end subroutine UpdateOutputFilePath
 
-    ! function GetResolvedOutputFilePath() result(path)
-
-    !     character(len=4096) :: path   ! choose a size you’re comfortable with
-
-    !     print *, "GetResolvedOutputFilePath"
-
-    !     if (.not. allocated(cResolvedOutputFilePath)) call SetDefaultOutputFilePath()
-    !     if (.not. allocated(cResolvedOutputFilePath)) error stop "Resolved path not set"
-
-    !     path = cResolvedOutputFilePath  ! will pad with spaces
-
-    !     print *, "ResolvedPath: ", path
-
-    ! end function GetResolvedOutputFilePath
-
-    FUNCTION GetResolvedOutputFilePath() RESULT(path)
-        IMPLICIT NONE
-        CHARACTER(len=:), ALLOCATABLE :: path
+    function GetResolvedOutputFilePath() result(path)
+        implicit none
+        character(len=:), allocatable :: path
 
         ! In modern compilers, assignment automatically handles allocation
         if (.not. allocated(cResolvedOutputFilePath)) call SetDefaultOutputFilePath()
         if (.not. allocated(cResolvedOutputFilePath)) error stop "Resolved path not set"
 
-        ! path = cResolvedOutputFilePath
-
-        ! print *, "path: ", path
-        ! print *, "POOP!"
-
         path = cResolvedOutputFilePath
 
-    END FUNCTION GetResolvedOutputFilePath
-
+    end function GetResolvedOutputFilePath
 
 end module ModuleThermoIO

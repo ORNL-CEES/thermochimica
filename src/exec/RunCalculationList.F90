@@ -359,9 +359,6 @@ program RunCalculationList
 
     call ParseCSDataFile(cThermoFileName)
     cOutputFullPath = GetResolvedOutputFilePath()
-    print *, '###################'
-    print *, "cOutputFullPath: ", cOutputFullPath
-    print *, '###################'
     ! Specify values:
     if (lWriteJSON) then
         OPEN(2, file= cOutputFullPath, &
