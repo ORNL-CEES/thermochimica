@@ -11,7 +11,7 @@ program RunCalculationList
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
     character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
-    character(:), allocatable :: cOutputFullPath
+    character(len=:), allocatable :: cOutputFullPath
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel

@@ -171,15 +171,18 @@ contains
 
     FUNCTION GetResolvedOutputFilePath() RESULT(path)
         IMPLICIT NONE
-        CHARACTER(LEN=:), ALLOCATABLE :: path  ! Supported in F2003+
+        CHARACTER(len=:), ALLOCATABLE :: path
 
         ! In modern compilers, assignment automatically handles allocation
         if (.not. allocated(cResolvedOutputFilePath)) call SetDefaultOutputFilePath()
         if (.not. allocated(cResolvedOutputFilePath)) error stop "Resolved path not set"
 
-        path = cResolvedOutputFilePath
+        ! path = cResolvedOutputFilePath
 
-        print *, "path: ", path
+        ! print *, "path: ", path
+        ! print *, "POOP!"
+
+        path = cResolvedOutputFilePath
 
     END FUNCTION GetResolvedOutputFilePath
 
