@@ -132,6 +132,7 @@ subroutine GEMNewton(INFO)
 
     iErrCol = 0
     nMaxTry = nElements - (nConPhases + nSolnPhases)
+    if (nMaxTry < 0) nMaxTry = 0
     TryLoop: do iTry = 0, nMaxTry
         ! on retry we are going to use dummy phases
         if (iTry > 0) nVar = nElements * 2

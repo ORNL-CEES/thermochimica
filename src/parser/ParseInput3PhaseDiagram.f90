@@ -38,7 +38,8 @@ subroutine ParseInput3PhaseDiagram(cInputFileName,dTemp,dX1lo,dX1hi,dDeltaX1,dX2
   character(*)                :: cInputFileName
   integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lPressureUnit, lTemperatureUnit, lData, lEl, lMassUnit
-  character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
+  character(:), allocatable   :: cLine, cTag, cValue, cElementNumber
+  character(128)              :: cErrMsg
   character(1024)             :: cLineInit, cThermoFileNameTemp
   real(8), intent(out)        :: dTemp, dPress, dX1lo, dX1hi, dDeltaX1, dX2lo, dX2hi, dDeltaX2
   integer, intent(out)        :: iEl1, iEl2, iEl3

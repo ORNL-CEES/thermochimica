@@ -130,7 +130,7 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
+$(OBJ_FILES): $(MODS_LNK)
 $(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
 $(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)

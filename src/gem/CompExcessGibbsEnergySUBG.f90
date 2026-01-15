@@ -199,6 +199,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSub1) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
+                m = 1
                 dNij(i,j)  = dNij(i,j)  + (dMolFraction(l) * nA * nX)
                 do kk = 1, nA2X2
                     if   ((iConstituentSublattice(iSPI,1,kk) == i) &
@@ -284,6 +285,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if ((j + nSub1) == iPairID(iSPI,k,4))  then
                     nX = nX + 1
                 end if
+                m = 1
                 do kk = 1, nA2X2
                     if   ((iConstituentSublattice(iSPI,1,kk) == i) &
                     .AND. (iConstituentSublattice(iSPI,2,kk) == j)) then
@@ -310,6 +312,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         if (kk /= ll) iWeight = iWeight * 2
 
         ! SUBG and SUBQ differ in entropy calculation by the powers to which X_i/j and Y_i are raised
+        dPowXij = 0D0
+        dPowYi  = 0D0
         if (cSolnPhaseType(iSolnIndex) == 'SUBG') then
             dPowXij = 1D0
             dPowYi  = 1D0
@@ -338,6 +342,13 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     LOOP_Param: do abxy = nParamPhase(iSolnIndex-1) + 1, nParamPhase(iSolnIndex)
 
         if (dExcessGibbsParam(abxy) == 0D0) cycle LOOP_Param
+
+        dDgex = 0D0
+        dDgexBase = 0D0
+        dGex = 0D0
+        dYik = 0D0
+        dYjk = 0D0
+        dYdk = 0D0
 
         ! AB/XY parametrization
         a  = iRegularParam(abxy,2)              ! Index of A
@@ -604,6 +615,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                         if ((j + nSub1) == iPairID(iSPI,k,4))  then
                             nX = nX + 1
                         end if
+                        m = 1
                         do kk = 1, nA2X2
                             if   ((iConstituentSublattice(iSPI,1,kk) == i) &
                             .AND. (iConstituentSublattice(iSPI,2,kk) == j)) then
@@ -673,6 +685,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             l = iPairID(iSPI,ijkl,4) - nSub1
 
             dChiFactor = 0D0
+            dDgex = 0D0
             if ((a /= b) .AND. (x == y)) then
                 if ((x == k) .AND. (x == l)) then
                     dChiFactor = 1D0

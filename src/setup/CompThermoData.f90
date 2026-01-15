@@ -670,6 +670,7 @@ subroutine CompThermoData
                             m = iRegularParamCS(j,k+1)
 
                             ! Figure out the sublattice (l) and constituent (m) indices:
+                            l = 0
                             LOOP_SUBL: do s = 1, nSublatticePhaseCS(nCounter)
                                 l = s
                                 if (m > nConstituentSublatticeCS(nCounter,s)) then
@@ -768,6 +769,7 @@ subroutine CompThermoData
                             m = iRegularParamCS(j,k+1)
 
                             ! Figure out the sublattice (l) and constituent (m) indices:
+                            l = 0
                             LOOP_SUBI: do s = 1, nSublatticePhaseCS(nCounter)
                                 l = s
                                 if (m > nConstituentSublatticeCS(nCounter,s)) then
@@ -812,6 +814,7 @@ subroutine CompThermoData
                         m = iMagneticParamCS(j,k+1)
 
                         ! Figure out the sublattice (l) and constituent (m) indices:
+                        l = 0
                         LOOP_SUBLmag: do s = 1, nSublatticePhaseCS(nCounter)
                             l = s
                             if (m > nConstituentSublatticeCS(nCounter,s)) then
