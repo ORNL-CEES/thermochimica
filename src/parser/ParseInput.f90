@@ -51,7 +51,8 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
   integer                     :: iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
-  character(:), allocatable   :: cLine, cErrMsg, cTag, cValue, cElementNumber
+  character(:), allocatable   :: cLine, cTag, cValue, cElementNumber
+  character(128)              :: cErrMsg
   character(1024)             :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
   !character(1024)             :: cOutputFileName Nothing to see here

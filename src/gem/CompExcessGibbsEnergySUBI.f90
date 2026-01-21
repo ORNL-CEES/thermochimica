@@ -199,6 +199,7 @@ subroutine CompExcessGibbsEnergySUBI(iSolnIndex)
         l2 = iConstituentSublattice(iSPI,2,n)
 
         ! Allocating the correct constituent charges
+        lc1 = 0D0
         if (l1 > 0) lc1 = dSublatticeCharge(iSPI,1,l1)
         lc2 = -dSublatticeCharge(iSPI,2,l2)
 

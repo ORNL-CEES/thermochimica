@@ -450,6 +450,7 @@ subroutine WriteJSONMQM(iSolnIndex)
 
     ! Use most abundant element in phase to normalize
     dMax = 0D0
+    iMax = 1
     do i = 1, nElements
         dSumElementQuads = 0D0
         do k = 1, nPairsSRO(iSPI,2)

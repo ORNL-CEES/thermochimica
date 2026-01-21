@@ -49,6 +49,8 @@ subroutine CompMagneticTemperatureMoment(iSolnPhaseIndex,Tcritical,B)
         else if (cSolnPhaseType(iSolnPhaseIndex) == 'SUBLM') then
             iChargedPhaseID = iPhaseSublattice(iSolnPhaseIndex)
             ! Reinitialize temporary variable:
+            x1 = 0D0
+            x2 = 0D0
             dPreFactor = 1D0
 
             ! Store the number of constituents involved in this parameter:

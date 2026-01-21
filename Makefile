@@ -130,34 +130,34 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
+$(OBJ_FILES): $(MODS_LNK)
 $(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
-$(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.f90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: %.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
 	$(AR) rcs $@ $^
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C | $(OBJ_DIR)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 $(C_LIB): $(C_LNK)
 	$(AR) rcs $@ $^
 
-$(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
+$(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK) | $(BIN_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) $(LDFLAGS) -o $(BIN_DIR)/$* $< $(SHARED_LNK) $(LDLOC)
 
 .PHONY: clean veryclean test doc cleandoc directories
