@@ -106,7 +106,7 @@ contains
 
     subroutine SetDefaultOutputFilePath()
 
-        call UpdateOutputFilePath('../outputs/thermoout.json')
+        call UpdateOutputFilePath('thermochimica_out.json')
 
     end subroutine SetDefaultOutputFilePath
 
@@ -119,20 +119,14 @@ contains
         cleaned = adjustl(rawPath)
         n = len_trim(cleaned)
 
-        if (n <= 0) then
-            cOutputFilePath = '../outputs/thermoout.json'
-            cResolvedOutputFilePath = DATA_DIRECTORY // '../outputs/thermoout.json'
-            return
-        end if
-
         cOutputFilePath = cleaned(1:n)
 
         if (PathIsAbsolute(cleaned(1:n))) then
             cResolvedOutputFilePath = cleaned(1:n)
         else if ((INDEX(cleaned(1:n), '/') == 0) .AND. (INDEX(cleaned(1:n), '\\') == 0)) then
-            cResolvedOutputFilePath = DATA_DIRECTORY // '../outputs/' // cleaned(1:n)
+            cResolvedOutputFilePath = OUTPUT_DIRECTORY // cleaned(1:n)
         else
-            cResolvedOutputFilePath = DATA_DIRECTORY // cleaned(1:n)
+            cResolvedOutputFilePath = OUTPUT_DIRECTORY // cleaned(1:n)
         end if
 
     end subroutine UpdateOutputFilePath
