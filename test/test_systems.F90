@@ -87,7 +87,16 @@ contains
             new_unittest("subl_cl_al_2000k", test_subl_cl_al_2000k), &
             new_unittest("subl_cl_na_al_solid_1000k", test_subl_cl_na_al_solid_1000k), &
             new_unittest("ternary_miscibility_pd_ru_tc_mo_400k", test_ternary_miscibility_pd_ru_tc_mo_400k), &
-            new_unittest("csi_low_pressure_673k", test_csi_low_pressure_673k) &
+            new_unittest("csi_low_pressure_673k", test_csi_low_pressure_673k), &
+            new_unittest("subi_sn_o_1500k_miscibility", test_subi_sn_o_1500k_miscibility), &
+            new_unittest("subi_cr_zr_o_2000k", test_subi_cr_zr_o_2000k), &
+            new_unittest("subi_cs_te_700k", test_subi_cs_te_700k), &
+            new_unittest("subi_ca_mn_s_2500k_miscibility", test_subi_ca_mn_s_2500k_miscibility), &
+            new_unittest("subi_fe_mn_ca_s_1900k_miscibility", test_subi_fe_mn_ca_s_1900k_miscibility), &
+            new_unittest("subi_fe_mn_ca_1500k", test_subi_fe_mn_ca_1500k), &
+            new_unittest("subi_cs_te_2500k", test_subi_cs_te_2500k), &
+            new_unittest("subi_nb_sn_o_2500k_miscibility", test_subi_nb_sn_o_2500k_miscibility), &
+            new_unittest("subi_cr_sn_o_2000k", test_subi_cr_sn_o_2000k) &
             ]
     end subroutine collect_systems
 
@@ -2748,6 +2757,260 @@ contains
 
         call ResetThermoAll
     end subroutine test_csi_low_pressure_673k
+
+    !-------------------------------------------------------------------------------------------------------------
+    ! SUBI Ionic Liquid Tests (70-78)
+    ! These tests validate ionic liquid systems with sublattice ionic model
+    !-------------------------------------------------------------------------------------------------------------
+
+    !> Test Sn-O miscibility gap at 1500K - Converted from TestThermo70.F90
+    subroutine test_subi_sn_o_1500k_miscibility(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'ZIRC_no_liq.dat'
+        dTemperature   = 1500D0
+        dPressure      = 1D0
+        dElementMass(8) = 0.3D0
+        dElementMass(50) = 0.7D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -181212D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_sn_o_1500k_miscibility
+
+    !> Test Cr-Zr-O ternary at 2000K - Converted from TestThermo71.F90
+    subroutine test_subi_cr_zr_o_2000k(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'ZIRC_no_liq.dat'
+        dTemperature   = 2000D0
+        dPressure      = 1D0
+        dElementMass(8) = 0.1D0
+        dElementMass(24) = 0.2D0
+        dElementMass(40) = 0.7D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -194030D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_cr_zr_o_2000k
+
+    !> Test Cs-Te binary at 700K - Converted from TestThermo72.F90
+    subroutine test_subi_cs_te_700k(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'CsTe-1.dat'
+        dTemperature   = 700D0
+        dPressure      = 1D0
+        dElementMass(52) = 0.8D0
+        dElementMass(55) = 0.2D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -90213.3D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_cs_te_700k
+
+    !> Test Ca-Mn-S miscibility at 2500K - Converted from TestThermo73.F90
+    subroutine test_subi_ca_mn_s_2500k_miscibility(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'CaMnS.dat'
+        dTemperature   = 2500D0
+        dPressure      = 1D0
+        dElementMass(20) = 1D0
+        dElementMass(25) = 1D0
+        dElementMass(16) = 1D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -910619D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_ca_mn_s_2500k_miscibility
+
+    !> Test Fe-Mn-Ca-S quaternary at 1900K - Converted from TestThermo74.F90
+    subroutine test_subi_fe_mn_ca_s_1900k_miscibility(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'FeMnCaS-1.dat'
+        dTemperature   = 1900D0
+        dPressure      = 1D0
+        dElementMass(26) = 2D0
+        dElementMass(25) = 4D0
+        dElementMass(16) = 3D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -1944880D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_fe_mn_ca_s_1900k_miscibility
+
+    !> Test Fe-Mn-Ca ternary at 1500K - Converted from TestThermo75.F90
+    subroutine test_subi_fe_mn_ca_1500k(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'FeMnCaS-2.dat'
+        dTemperature   = 1500D0
+        dPressure      = 1D0
+        dElementMass(26) = 0.4D0
+        dElementMass(25) = 0.2D0
+        dElementMass(20) = 0.5D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -116594D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_fe_mn_ca_1500k
+
+    !> Test Cs-Te high temp at 2500K - Converted from TestThermo76.F90
+    subroutine test_subi_cs_te_2500k(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'CsTe-2.dat'
+        dTemperature   = 2500D0
+        dPressure      = 1D0
+        dElementMass(52) = 0.5D0
+        dElementMass(55) = 1.0D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -568905D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_cs_te_2500k
+
+    !> Test Nb-Sn-O miscibility at 2500K - Converted from TestThermo77.F90
+    subroutine test_subi_nb_sn_o_2500k_miscibility(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'ZIRC_no_liq_mod1.dat'
+        dTemperature   = 2500D0
+        dPressure      = 1D0
+        dElementMass(41) = 1D0
+        dElementMass(8) = 0.3D0
+        dElementMass(50) = 0.7D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -535982D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_nb_sn_o_2500k_miscibility
+
+    !> Test Cr-Sn-O ternary at 2000K - Converted from TestThermo78.F90
+    subroutine test_subi_cr_sn_o_2000k(error)
+        type(error_type), allocatable, intent(out) :: error
+        real(8) :: expected_gibbs, computed_gibbs, relative_error
+        dElementMass = 0D0
+        cInputUnitTemperature = 'K'
+        cInputUnitPressure    = 'atm'
+        cInputUnitMass        = 'moles'
+        cThermoFileName       = DATA_DIRECTORY // 'ZIRC_no_liq_mod2.dat'
+        dTemperature   = 2000D0
+        dPressure      = 1D0
+        dElementMass(24) = 0.5D0
+        dElementMass(50) = 0.8D0
+        dElementMass(8) = 0.6D0
+        call ParseCSDataFile(cThermoFileName)
+        call Thermochimica
+        call check(error, INFOThermo == 0, "Thermochimica failed: " // int_to_str(INFOThermo))
+        if (allocated(error)) then
+            call ResetThermoAll
+            return
+        end if
+        expected_gibbs = -1266220D0
+        computed_gibbs = dGibbsEnergySys
+        relative_error = DABS(computed_gibbs - expected_gibbs) / DABS(expected_gibbs)
+        call check(error, relative_error < 1D-3, "Gibbs mismatch. Expected: " // real_to_str(expected_gibbs) // ", Got: " // real_to_str(computed_gibbs))
+        call ResetThermoAll
+    end subroutine test_subi_cr_sn_o_2000k
 
     !> Helper function to convert integer to string
     function int_to_str(i) result(str)
