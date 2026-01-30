@@ -63,7 +63,7 @@ subroutine InitGEMSolver
 
     implicit none
 
-    integer::                               i, j, k, l
+    integer::                               i, j, k, l, nVar
     integer,dimension(nElements)::          iAssemblageLast
     real(8)::                               dTemp, dSum
     real(8),dimension(-1:nSolnPhasesSys)::  dTempVec
@@ -306,6 +306,8 @@ subroutine InitGEMSolver
         LOOP_CheckPhaseAssemblage: do j = 1, i
 
                 ! Check to make sure that the phase can be added:
+                nVar = nElements + nConPhases + nSolnPhases
+                call ResizeGEMWorkspace(nVar)
                 call CheckPhaseChange(lPhasePass,k)
 
                 if (k == 0) then
@@ -363,7 +365,7 @@ subroutine InitGemCheckSolnPhase
 
     implicit none
 
-    integer::   i, j, k, l, nConPhasesTemp
+    integer::   i, j, k, l, nConPhasesTemp, nVar
     integer,dimension(nElements):: iAssemblageLast
     real(8)::   dTemp
     logical::   lPhasePass
@@ -411,6 +413,8 @@ subroutine InitGemCheckSolnPhase
                     call CompMolSolnPhase
 
                     ! Check to make sure that the phase can be added:
+                    nVar = nElements + nConPhases + nSolnPhases
+                    call ResizeGEMWorkspace(nVar)
                     call CheckPhaseChange(lPhasePass,l)
 
                     if (lPhasePass) then
