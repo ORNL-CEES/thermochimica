@@ -101,7 +101,10 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
     iOpenPosition = scan(cLine,'(')
     lParenHasNumber = .FALSE.
     if (iOpenPosition > 0) then
-      iClosePosition = scan(cLine,')')
+      iClosePosition = 0
+      do iClosePosition = iDelimiterPosition - 1, 1, -1
+        if (cLine(iClosePosition:iClosePosition) == ')') exit
+      end do
       ! Check for no close ')'
       if (iClosePosition == 0) then
         INFOThermo = 42

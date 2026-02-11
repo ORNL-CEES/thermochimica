@@ -1,0 +1,14 @@
+! CO system temperature sweep (unconstrained)
+
+temperature       = 300:1500:100
+pressure          = 1
+mass(6)           = 1.0
+mass(8)           = 1.5
+
+temperature unit  = 'K'
+pressure unit     = 'atm'
+mass unit         = 'moles'
+
+data file         = data/CO.dat
+print mode        = 0
+write json        = .TRUE.

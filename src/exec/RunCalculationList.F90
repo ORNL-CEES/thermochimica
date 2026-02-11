@@ -90,7 +90,10 @@ program RunCalculationList
       iEqualPosition = scan(cLine,'=')
       lParenHasNumber = .FALSE.
       if ((iOpenPosition > 0) .AND. (iOpenPosition < iEqualPosition)) then
-        iClosePosition = scan(cLine,')')
+        iClosePosition = 0
+        do iClosePosition = iEqualPosition - 1, 1, -1
+          if (cLine(iClosePosition:iClosePosition) == ')') exit
+        end do
         ! Check for no close ')'
         if (iClosePosition == 0) then
           INFOThermo = 52

@@ -95,6 +95,7 @@ subroutine GEMSolver
 
     ! Initialize the GEM solver:
     call InitGEMSolver
+    if (INFOThermo /= 0) return
 
     !!!
     !!! CONSIDER MOVING THIS INTO THE InitGEMSolver SUBROUTINE:
