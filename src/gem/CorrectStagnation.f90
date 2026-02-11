@@ -51,10 +51,11 @@ subroutine CorrectStagnation
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer                       :: i, j
+    integer                       :: i, j, k
     integer, dimension(nElements) :: iTempVec
     real(8), dimension(nElements) :: dTempVec
     logical                       :: lPhasePass, lSwapLater
@@ -89,6 +90,13 @@ subroutine CorrectStagnation
             j = iTempVec(i)
             if (j > nSolnPhases) cycle LOOP_SolnRem
 
+            if (nPhaseConstraints > 0) then
+                k = -iAssemblage(nElements - j + 1)
+                if (k > 0) then
+                    if (lPhaseConstrainedSoln(k)) cycle LOOP_SolnRem
+                end if
+            end if
+
             ! Try removing this solution phase:
             call RemSolnPhase(j,lPhasePass)
 
@@ -113,6 +121,10 @@ subroutine CorrectStagnation
             LOOP_PureConRem: do i = 1, nConPhases
 
                 j = iTempVec(i)
+
+                if (nPhaseConstraints > 0) then
+                    if (lPhaseConstrainedCon(iAssemblage(j))) cycle LOOP_PureConRem
+                end if
 
                 ! Try removing this pure condensed phase
                 call RemPureConPhase(j,lSwapLater,lPhasePass)

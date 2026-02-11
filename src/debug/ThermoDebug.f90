@@ -163,6 +163,18 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: A tag was not properly read in input parsing.'
     elseif (INFOThermo == 55) then
         print *, 'DEBUG: Not all input parameters were supplied in input file.'
+    elseif (INFOThermo == 80) then
+        print *, 'DEBUG: Phase constraints: failed to resolve phase names.'
+    elseif (INFOThermo == 81) then
+        print *, 'DEBUG: Phase constraints: fractions must sum to 1.0.'
+    elseif (INFOThermo == 82) then
+        print *, 'DEBUG: Phase constraints: failed to compute targets.'
+    elseif (INFOThermo == 83) then
+        print *, 'DEBUG: Phase constraints: invalid effective stoichiometry.'
+    elseif (INFOThermo == 84) then
+        print *, 'DEBUG: Phase constraints: too many constrained phases for Gibbs phase rule.'
+    elseif (INFOThermo == 85) then
+        print *, 'DEBUG: Phase constraints: solver failed to satisfy constraints.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

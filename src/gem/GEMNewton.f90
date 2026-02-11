@@ -94,13 +94,15 @@ subroutine GEMNewton(INFO)
     USE ModuleThermo
     USE ModuleThermoIO, ONLY: INFOThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry
-    integer, dimension(nElements)        :: iErrCol
+    integer                              :: i, j, k, l, m, INFO, nVar, iTry, nMaxTry, nElemExt, nReal
+    integer                              :: c, idxLambda, rel
+    integer, dimension(:),   allocatable :: iErrCol
     integer, dimension(:),   allocatable :: IPIV
-    real(8)                              :: dTemp
+    real(8)                              :: dTemp, dSumStoich, dScoeff
     real(8), dimension(:),   allocatable :: B
     real(8), dimension(:,:), allocatable :: A
 
@@ -128,14 +130,19 @@ subroutine GEMNewton(INFO)
     if ((nConPhases + nSolnPhases) <= 0) return
 
     ! Determine the number of unknowns/linear equations:
-    nVar = nElements + nConPhases + nSolnPhases
+    nElemExt = nElements + nPhaseConstraints
+    nVar     = nElemExt + nConPhases + nSolnPhases
 
+    nReal = nElements - nChargedConstraints
+    if (nReal < 1) nReal = nElements
+
+    allocate(iErrCol(nElemExt))
     iErrCol = 0
-    nMaxTry = nElements - (nConPhases + nSolnPhases)
+    nMaxTry = nElemExt - (nConPhases + nSolnPhases)
     if (nMaxTry < 0) nMaxTry = 0
     TryLoop: do iTry = 0, nMaxTry
         ! on retry we are going to use dummy phases
-        if (iTry > 0) nVar = nElements * 2
+        if (iTry > 0) nVar = nElemExt * 2
 
         ! Allocate memory:
         allocate(A(nVar, nVar))
@@ -177,6 +184,33 @@ subroutine GEMNewton(INFO)
             end do
         end do
 
+        ! Construct element-lambda and lambda-lambda contributions (constrained solution phases only):
+        if (nPhaseConstraints > 0) then
+            do c = 1, nPhaseConstraints
+                if (iPhaseConstraintKind(c) /= 0) cycle
+                idxLambda = nElements + c
+                m = iPhaseConstraintID(c)
+
+                do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+                    dSumStoich = 0D0
+                    do j = 1, nReal
+                        dSumStoich = dSumStoich + dStoichSpecies(l,j)
+                    end do
+                    dScoeff = dSumStoich / DFLOAT(iParticlesPerMole(l))
+                    A(idxLambda, idxLambda) = A(idxLambda, idxLambda) + dScoeff * dScoeff * dMolesSpecies(l)
+
+                    do i = 1, nElements
+                        dTemp = dStoichSpecies(l,i) * dScoeff * dMolesSpecies(l) / DFLOAT(iParticlesPerMole(l))
+                        A(i, idxLambda) = A(i, idxLambda) + dTemp
+                    end do
+                end do
+
+                do i = 1, nElements
+                    A(idxLambda, i) = A(i, idxLambda)
+                end do
+            end do
+        end if
+
         ! Compute the constraint vector (elements):
         do j = 1, nElements
             B(j) = dMolesElement(j)
@@ -189,9 +223,31 @@ subroutine GEMNewton(INFO)
             end do
         end do
 
+        ! Compute the constraint vector (phase fraction constraints):
+        if (nPhaseConstraints > 0) then
+            do c = 1, nPhaseConstraints
+                idxLambda = nElements + c
+                B(idxLambda) = dPhaseConstraintElemTarget(c)
+
+                if (iPhaseConstraintKind(c) == 0) then
+                    m = iPhaseConstraintID(c)
+                    do l = nSpeciesPhase(m-1) + 1, nSpeciesPhase(m)
+                        dSumStoich = 0D0
+                        do j = 1, nReal
+                            dSumStoich = dSumStoich + dStoichSpecies(l,j)
+                        end do
+                        dScoeff = dSumStoich / DFLOAT(iParticlesPerMole(l))
+                        B(idxLambda) = B(idxLambda) + dScoeff * dMolesSpecies(l) * &
+                            (dChemicalPotential(l) - 1D0)
+                    end do
+                end if
+            end do
+        end if
+
         ! Construct the Hessian matrix and constraint vector (contribution from solution phases):
-        do j = nElements + 1, nElements + nSolnPhases
-            l = 2 * nElements - j + 1       ! Relative solution phase index (in iAssemblage vector).
+        do rel = 1, nSolnPhases
+            j = nElemExt + rel
+            l = nElements - rel + 1         ! Relative solution phase index (in iAssemblage vector).
             k = -iAssemblage(l)             ! Absolute solution phase index.
 
             ! Compute the stoichiometry of this phase:
@@ -201,22 +257,65 @@ subroutine GEMNewton(INFO)
                 A(i,j) = dEffStoichSolnPhase(k,i) * dMolesPhase(l)
                 A(j,i) = A(i,j)
             end do
+
+            if (nPhaseConstraints > 0) then
+                if (lPhaseConstrainedSoln(k)) then
+                    idxLambda = 0
+                    do c = 1, nPhaseConstraints
+                        if ((iPhaseConstraintKind(c) == 0) .AND. (iPhaseConstraintID(c) == k)) then
+                            idxLambda = nElements + c
+                            exit
+                        end if
+                    end do
+                    if (idxLambda > 0) then
+                        dSumStoich = 0D0
+                        do i = 1, nReal
+                            dSumStoich = dSumStoich + dEffStoichSolnPhase(k,i)
+                        end do
+                        A(idxLambda, j) = dSumStoich * dMolesPhase(l)
+                        A(j, idxLambda) = A(idxLambda, j)
+                    end if
+                end if
+            end if
+
             B(j) = dGibbsSolnPhase(k)
         end do
 
         ! Construct the Hessian matrix and constraint vector (contribution from pure condensed phases):
-        do j = nElements + nSolnPhases + 1, nElements + nConPhases + nSolnPhases
-            k = j - nElements - nSolnPhases
+        do j = nElemExt + nSolnPhases + 1, nElemExt + nConPhases + nSolnPhases
+            k = j - nElemExt - nSolnPhases
             do i = 1, nElements
                 A(i,j) = dStoichSpecies(iAssemblage(k),i)
                 A(j,i) = A(i,j)
             end do
+
+            if (nPhaseConstraints > 0) then
+                if (lPhaseConstrainedCon(iAssemblage(k))) then
+                    idxLambda = 0
+                    do c = 1, nPhaseConstraints
+                        if ((iPhaseConstraintKind(c) == 1) .AND. (iPhaseConstraintID(c) == iAssemblage(k))) then
+                            idxLambda = nElements + c
+                            exit
+                        end if
+                    end do
+                    if (idxLambda > 0) then
+                        dSumStoich = 0D0
+                        do i = 1, nReal
+                            dSumStoich = dSumStoich + dStoichSpecies(iAssemblage(k),i)
+                        end do
+                        dScoeff = dSumStoich / DFLOAT(iParticlesPerMole(iAssemblage(k)))
+                        A(idxLambda, j) = dScoeff
+                        A(j, idxLambda) = A(idxLambda, j)
+                    end if
+                end if
+            end if
+
             B(j) = dStdGibbsEnergy(iAssemblage(k))
         end do
 
         do k = 1, iTry
             i = iErrCol(k)
-            j = nElements + nSolnPhases + nConPhases + k
+            j = nElemExt + nSolnPhases + nConPhases + k
             A(i,j) = 1D0
             A(j,i) = A(i,j)
             B(j) = 0D0
@@ -238,7 +337,7 @@ subroutine GEMNewton(INFO)
         end if
 
         ! Call the linear equation solver:
-        if ((nConPhases > 1) .OR. (nSolnPhases > 0)) then
+        if ((nConPhases > 1) .OR. (nSolnPhases > 0) .OR. (nPhaseConstraints > 0)) then
             call dgesv( nVar, 1, A, nVar, IPIV, B, nVar, INFO )
         else
             do i = 1, nElements
@@ -248,7 +347,7 @@ subroutine GEMNewton(INFO)
         end if
 
         do k = 1, iTry
-            j = nElements + nSolnPhases + nConPhases + k
+            j = nElemExt + nSolnPhases + nConPhases + k
             B(j) = 0D0
         end do
 
@@ -261,7 +360,7 @@ subroutine GEMNewton(INFO)
         end do LOOP_CheckNan
 
         if (iTry < nMaxTry) then
-            if ((INFO <= 0) .OR. (INFO > nElements)) then
+            if ((INFO <= 0) .OR. (INFO > nElemExt)) then
                 exit TryLoop
             else
                 iErrCol(iTry+1) = INFO
@@ -287,7 +386,7 @@ subroutine GEMNewton(INFO)
 
     ! Deallocate memory of local variables:
     i = 0
-    deallocate(A, B, IPIV, STAT = i)
+    deallocate(A, B, IPIV, iErrCol, STAT = i)
     if (i /= 0) INFOThermo = 24
 
     return

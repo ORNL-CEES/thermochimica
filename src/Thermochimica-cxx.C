@@ -99,6 +99,13 @@ namespace Thermochimica
     return idbg;
   }
 
+  std::string getInfoThermoMessage()
+  {
+    int length;
+    char *buffer = TCAPI_getInfoThermoMessage(&length);
+    return std::string(buffer, buffer + length);
+  }
+
   void parseThermoFile()
   {
     TCAPI_parseCSDataFile();
@@ -533,6 +540,18 @@ namespace Thermochimica
   void setGibbsMinCheck(bool requested)
   {
     TCAPI_setGibbsMinCheck(&requested);
+  }
+
+  // Phase fraction constraints
+  void addPhaseFractionConstraint(const std::string &phaseName, double fraction)
+  {
+    int info = 0;
+    TCAPI_addPhaseFractionConstraint(phaseName.c_str(), phaseName.length(), &fraction, &info);
+  }
+
+  void clearPhaseConstraints()
+  {
+    TCAPI_clearPhaseConstraints();
   }
 
 }

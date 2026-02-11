@@ -26,10 +26,18 @@ subroutine WriteJSON(append)
 
     ! Only proceed for a successful calculation:
     if (INFOThermo /= 0) then
+        write(1,*) '  "info": ', INFOThermo, ','
+        if (INFOThermo == 85) then
+            write(1,*) '  "info message": "Phase constraints: solver failed to satisfy constraints."'
+        else
+            write(1,*) '  "info message": "Thermochimica error; see INFOThermo for details."'
+        end if
         write(1,*) '}'
         close (1)
         return
     end if
+
+    write(1,*) '  "info": ', INFOThermo, ','
 
     ! Print the results for solution phases:
     call WriteJSONSolnPhase

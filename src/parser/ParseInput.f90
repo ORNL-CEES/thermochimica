@@ -44,20 +44,25 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
   USE ModuleThermoIO
   USE ModuleGEMSolver
   USE ModuleParseCS
+  USE ModulePhaseConstraints
 
   implicit none
 
   character(*)                :: cInputFileName
   integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
+  integer                     :: iReadStatus
   integer                     :: iColon1, iColon2
   logical                     :: lEnd, lPressure, lTemperature, lMass, lPressureUnit, lTemperatureUnit, lMassUnit, lData
-  character(:), allocatable   :: cLine, cTag, cValue, cElementNumber
+  logical                     :: lParenHasNumber
+  character(:), allocatable   :: cLine, cTag, cValue, cParenValue
   character(128)              :: cErrMsg
   character(1024)             :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dDeltaT, dPressLow, dPressHigh, dDeltaP
+  real(8)                     :: dPhaseFraction
   !character(1024)             :: cOutputFileName Nothing to see here
   ! Initialize INFO
   INFO = 0
+  call ClearPhaseConstraints
 
   ! lWriteJSON true by default
   lWriteJSON = .TRUE.
@@ -94,6 +99,7 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
     end if
     ! Remove leading then trailing spaces on line
     cLine = trim(adjustl(cLineInit))
+    if (allocated(cParenValue)) deallocate(cParenValue)
     ! Check for comment line (going to be liberal with choices of comment indicators)
     if (scan(cLine,'!@#$%&*/\?|') == 1) then
       cycle LOOP_ReadFile
@@ -112,8 +118,12 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
     ! Masses will be the only lines to contain '()' on the LHS, so look for these
     iOpenPosition = scan(cLine,'(')
     iEqualPosition = scan(cLine,'=')
+    lParenHasNumber = .FALSE.
     if ((iOpenPosition > 0) .AND. (iOpenPosition < iEqualPosition)) then
-      iClosePosition = scan(cLine,')')
+      iClosePosition = 0
+      do iClosePosition = iEqualPosition - 1, 1, -1
+        if (cLine(iClosePosition:iClosePosition) == ')') exit
+      end do
       ! Check for no close ')'
       if (iClosePosition == 0) then
         INFOThermo = 52
@@ -121,13 +131,11 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         print *,  trim(cErrMsg)
         return
       end if
-      cElementNumber = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
-      read(cElementNumber,*,IOSTAT = INFO) iElementNumber
-      if (INFO /= 0) then
-        INFOThermo = 53
-        write (cErrMsg, '(A36,I10)') 'Cannot read element number on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
+      cParenValue = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
+      iReadStatus = 0
+      read(cParenValue,*,IOSTAT = iReadStatus) iElementNumber
+      if (iReadStatus == 0) then
+        lParenHasNumber = .TRUE.
       end if
       cTag = trim(adjustl(cTag(1 : (iOpenPosition - 1))))
     end if
@@ -190,6 +198,12 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
         end if
         lTemperature = .TRUE.
       case ('m','mass','M','Mass')
+        if (.NOT. lParenHasNumber) then
+          INFOThermo = 53
+          write (cErrMsg, '(A54,I10)') 'Mass tag requires element index on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
         read(cValue,*,IOSTAT = INFO) dElementMass(iElementNumber)
         if (INFO /= 0) then
           INFOThermo = 54
@@ -198,6 +212,22 @@ subroutine ParseInput(cInputFileName,dTempLow,dTempHigh,dDeltaT,dPressLow,dPress
           return
         end if
         lMass = .TRUE.
+      case ('phase fraction','Phase fraction','phase_fraction','Phase_fraction','phasefraction',&
+        'PhaseFraction','phase frac','Phase frac','phase_frac','Phase_frac')
+        if (.NOT. allocated(cParenValue)) then
+          INFOThermo = 54
+          write (cErrMsg, '(A51,I10)') 'Phase fraction missing phase name on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        read(cValue,*,IOSTAT = INFO) dPhaseFraction
+        if (INFO /= 0) then
+          INFOThermo = 54
+          write (cErrMsg, '(A44,I10)') 'Cannot read phase fraction on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        call AddPhaseFractionConstraint(cParenValue, dPhaseFraction)
       case ('p_unit','pressure_unit','Pressure_unit','Pressure_Unit','P_unit','pressure unit',&
         'Pressure Unit','Pressure unit','press_unit','press unit','Press unit','Press Unit',&
         'p unit','P unit','P Unit',&

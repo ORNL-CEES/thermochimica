@@ -25,6 +25,7 @@ namespace Thermochimica
   void presetElementMass(int element, double mass);
   void setElementMass(int element, double mass);
   int checkInfoThermo();
+  std::string getInfoThermoMessage();
   void parseThermoFile();
   void setPrintResultsMode(int mode);
   void printResults();
@@ -115,5 +116,9 @@ namespace Thermochimica
   void setFuzzyStoich(bool requested);
   void setFuzzyMagnitude(double magnitude);
   void setGibbsMinCheck(bool requested);
+
+  // Phase fraction constraints
+  void addPhaseFractionConstraint(const std::string &phaseName, double fraction);
+  void clearPhaseConstraints();
 
 }
