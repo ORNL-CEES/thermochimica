@@ -159,6 +159,7 @@ subroutine CheckPhaseAssemblage
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -172,6 +173,9 @@ subroutine CheckPhaseAssemblage
     dMaxChange        = 0D0
     dMolesPhaseChange = 0.01D0
     lAddPhase         = .FALSE.
+
+    ! Do not modify phase assemblage when constraints are active:
+    if (nPhaseConstraints > 0) return
 
     if ((iterGlobal <  30).AND.(iterGlobal - iterLast < 2)) return
     if ((iterGlobal >= 30).AND.(iterGlobal - iterLast < 5)) return

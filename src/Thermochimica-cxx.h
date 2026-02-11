@@ -116,4 +116,8 @@ namespace Thermochimica
   void setFuzzyMagnitude(double magnitude);
   void setGibbsMinCheck(bool requested);
 
+  // Phase fraction constraints
+  void addPhaseFractionConstraint(const std::string &phaseName, double fraction);
+  void clearPhaseConstraints();
+
 }

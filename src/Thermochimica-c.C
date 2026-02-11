@@ -86,6 +86,16 @@ void GetSublSiteMol(const char *phaseName, int *sublattice, int *constituent, do
   TCAPI_getSublSiteMol(phaseName, strlen(phaseName), sublattice, constituent, siteMoles, info);
 }
 
+void AddPhaseFractionConstraint(const char *phaseName, double fraction, int *info)
+{
+  TCAPI_addPhaseFractionConstraint(phaseName, strlen(phaseName), &fraction, info);
+}
+
+void ClearPhaseConstraints(void)
+{
+  TCAPI_clearPhaseConstraints();
+}
+
 // MQMQA functions
 
 void GetMqmqaMolesPairs(const char *phaseName, double *molesPairs, int *info)

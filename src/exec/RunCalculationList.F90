@@ -4,23 +4,28 @@ program RunCalculationList
     USE ModuleGEMSolver
     USE ModuleThermo
     USE ModuleParseCS
+    USE ModulePhaseConstraints
 
     implicit none
     character(1024) :: cInputFile
     integer :: i, j, nElIn, nCalc
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
-    character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber
+    character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber, cParenValue
     character(len=:), allocatable :: cOutputFullPath
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
+    integer :: iReadStatus
+    logical :: lParenHasNumber
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
 
     character(16) :: intStr
+    real(8) :: dPhaseFraction
 
     ! Initialize INFO
     INFO = 0
+    call ClearPhaseConstraints
 
     ! lWriteJSON true by default
     lWriteJSON = .TRUE.
@@ -63,6 +68,7 @@ program RunCalculationList
       endif
       ! Remove leading then trailing spaces on line
       cLine = trim(adjustl(cLineInit))
+      if (allocated(cParenValue)) deallocate(cParenValue)
       ! Check for comment line (going to be liberal with choices of comment indicators)
       if (scan(cLine,'!@#$%&*/\?|') == 1) then
         cycle LOOP_ReadFile
@@ -81,6 +87,7 @@ program RunCalculationList
       ! Masses will be the only lines to contain '()' on the LHS, so look for these
       iOpenPosition = scan(cLine,'(')
       iEqualPosition = scan(cLine,'=')
+      lParenHasNumber = .FALSE.
       if ((iOpenPosition > 0) .AND. (iOpenPosition < iEqualPosition)) then
         iClosePosition = scan(cLine,')')
         ! Check for no close ')'
@@ -90,14 +97,12 @@ program RunCalculationList
           print *,  trim(cErrMsg)
           return
         endif
-        cElementNumber = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
-        read(cElementNumber,*,IOSTAT = INFO) iElementNumber
-        if (INFO /= 0) then
-          INFOThermo = 53
-          write (cErrMsg, '(A36,I10)') 'Cannot read element number on line: ', iCounter
-          print *,  trim(cErrMsg)
-          return
-        endif
+        cParenValue = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
+        iReadStatus = 0
+        read(cParenValue,*,IOSTAT = iReadStatus) iElementNumber
+        if (iReadStatus == 0) then
+          lParenHasNumber = .TRUE.
+        end if
         cTag = trim(adjustl(cTag(1 : (iOpenPosition - 1))))
       endif
 
@@ -176,6 +181,22 @@ program RunCalculationList
             return
           endif
           lMassUnit = .TRUE.
+        case ('phase fraction','Phase fraction','phase_fraction','Phase_fraction','phasefraction',&
+          'PhaseFraction','phase frac','Phase frac','phase_frac','Phase_frac')
+          if (.NOT. allocated(cParenValue)) then
+            INFOThermo = 54
+            write (cErrMsg, '(A51,I10)') 'Phase fraction missing phase name on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+          read(cValue,*,IOSTAT = INFO) dPhaseFraction
+          if (INFO /= 0) then
+            INFOThermo = 54
+            write (cErrMsg, '(A44,I10)') 'Cannot read phase fraction on line: ', iCounter
+            print *,  trim(cErrMsg)
+            return
+          end if
+          call AddPhaseFractionConstraint(cParenValue, dPhaseFraction)
         case('output','output file','output_file','Output File','Output file','output File', 'path','output path',&
           'Output Path','Output path','outputpath','outputfile','filepath','Output_File','out','json','JSON','JSON File',&
           'jsonout','JSON out','JSON output file')

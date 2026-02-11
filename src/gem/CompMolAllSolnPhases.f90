@@ -58,6 +58,7 @@ subroutine CompMolAllSolnPhases
     USE ModuleThermoIO, ONLY: INFOThermo
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -70,8 +71,9 @@ subroutine CompMolAllSolnPhases
     character                             :: TRANS
 
 
-    ! Return if there aren't any solution phases:
+    ! Return if there aren't any solution phases or if constraints are active:
     if (nSolnPhases == 0) return
+    if (nPhaseConstraints > 0) return
 
     ! Initialize variables:
     TRANS     = 'N'

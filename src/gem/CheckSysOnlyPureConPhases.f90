@@ -63,6 +63,7 @@ subroutine CheckSysOnlyPureConPhases
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -80,6 +81,9 @@ subroutine CheckSysOnlyPureConPhases
     AA   = 0D0
     B    = 0D0
     BB   = 0D0
+
+    ! Do not adjust the phase assemblage when constraints are active:
+    if (nPhaseConstraints > 0) return
 
     ! If this comes straight from levelling, phases may have 0 moles
     ! These should be removed

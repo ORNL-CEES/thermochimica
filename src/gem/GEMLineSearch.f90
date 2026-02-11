@@ -120,6 +120,7 @@ subroutine GEMLineSearch
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -134,6 +135,9 @@ subroutine GEMLineSearch
     dWolfeFunctionNormLast  = 1D-12
     dMolesSpeciesLast       = dMolesSpecies
     dElementPotentialLast   = dElementPotential
+    if (nPhaseConstraints > 0) then
+        if (allocated(dPhaseConstraintLambdaLast)) dPhaseConstraintLambdaLast = dPhaseConstraintLambda
+    end if
     dGEMFunctionNormLast    = dGEMFunctionNorm
     dPartialExcessGibbsLast = dPartialExcessGibbs
     lCompEverything         = .FALSE.
@@ -283,11 +287,13 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer                       :: i, j, k, l, nMisciblePhases
+    integer                       :: i, j, k, l, nMisciblePhases, nElemExt, nReal, c, cIdx
     real(8)                       :: dStepLength, dTemp, dMaxIncrease, dMaxDecrease, dMaxChange, dMaxGamma
+    real(8)                       :: dSumStoich
     real(8), dimension(nElements) :: dElementPotentialLast
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     logical                       :: lCompEverything
@@ -298,6 +304,9 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     dStepLength      = 1D0
     dMolesPhaseLast  = dMolesPhase
     nMisciblePhases  = 0
+    nElemExt         = nElements + nPhaseConstraints
+    nReal            = nElements - nChargedConstraints
+    if (nReal < 1) nReal = nElements
 
     ! Count the number of stable miscible phases:
     do j = 1, nSolnPhases
@@ -331,7 +340,7 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
 
     ! Update the number of moles of pure condensed phases:
     do i = 1, nConPhases
-        j = nElements + nSolnPhases + i
+        j = nElemExt + nSolnPhases + i
         dMolesPhase(i) = dUpdateVar(j)
     end do
 
@@ -339,6 +348,17 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
     ! Initialize the step length (prevent moles from being negative):
     do l = 1, nSolnPhases
         k = -iAssemblage(nElements - l + 1)     ! Absolute solution phase index.
+        cIdx = 0
+        if (nPhaseConstraints > 0) then
+            if (lPhaseConstrainedSoln(k)) then
+                do c = 1, nPhaseConstraints
+                    if ((iPhaseConstraintKind(c) == 0) .AND. (iPhaseConstraintID(c) == k)) then
+                        cIdx = c
+                        exit
+                    end if
+                end do
+            end if
+        end if
 
         do i = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
             dTemp = 0D0
@@ -346,12 +366,20 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
                 dTemp = dTemp + dUpdateVar(j) * dStoichSpecies(i,j)
             end do
 
+            if (cIdx > 0) then
+                dSumStoich = 0D0
+                do j = 1, nReal
+                    dSumStoich = dSumStoich + dStoichSpecies(i,j)
+                end do
+                dTemp = dTemp + dUpdateVar(nElements + cIdx) * dSumStoich
+            end if
+
             dTemp = dTemp / DFLOAT(iParticlesPerMole(i))
 
             ! NOTE: The variable dMolFraction is used temporarily to represent
             ! the fractional update to dMolesSpecies, but it does not replace
             ! dMolesSpecies in the event that further dampening is required.
-            dMolFraction(i) = (1D0 + dUpdateVar(nElements + l) + dTemp - &
+            dMolFraction(i) = (1D0 + dUpdateVar(nElemExt + l) + dTemp - &
                 dChemicalPotential(i))
 
             if (dMolFraction(i) /= 1D0) dTemp = 1D0 / (1D0 - dMolFraction(i))
@@ -398,10 +426,29 @@ subroutine InitGEMLineSearch(dStepLength,dMolesSpeciesLast,dElementPotentialLast
         end if
     end do
 
-	! Update the element potentials:
+    if (nPhaseConstraints > 0) then
+        do c = 1, nPhaseConstraints
+            dTemp = DABS(dPhaseConstraintLambda(c) - dUpdateVar(nElements + c))
+
+            if (dUpdateVar(nElements + c) == 0D0) cycle
+
+            if (dTemp > 1D0) then
+                dTemp = dMaxGamma / dTemp
+                dStepLength = DMIN1(dTemp, dStepLength)
+            end if
+        end do
+    end if
+
+    ! Update the element potentials:
     do i = 1, nElements
         dElementPotential(i) = dUpdateVar(i)
     end do
+
+    if (nPhaseConstraints > 0) then
+        do c = 1, nPhaseConstraints
+            dPhaseConstraintLambda(c) = dUpdateVar(nElements + c)
+        end do
+    end if
 
     ! Update the system variables:
     call UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotentialLast)
@@ -508,8 +555,9 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
-    integer                       :: i, j, k
+    integer                       :: i, j, k, c
     real(8)                       :: dTemp, dStepLength
     real(8), dimension(nSpecies)  :: dMolesSpeciesLast
     real(8), dimension(nElements) :: dElementPotentialLast
@@ -537,6 +585,13 @@ subroutine UpdateSystemVariables(dStepLength,dMolesSpeciesLast,dElementPotential
     LOOP_Gamma: do i = 1, nElements
         dElementPotential(i) = dStepLength * dElementPotential(i) + (1D0 - dStepLength) * dElementPotentialLast(i)
     end do LOOP_Gamma
+
+    if (nPhaseConstraints > 0) then
+        do c = 1, nPhaseConstraints
+            dPhaseConstraintLambda(c) = dStepLength * dPhaseConstraintLambda(c) + &
+                (1D0 - dStepLength) * dPhaseConstraintLambdaLast(c)
+        end do
+    end if
 
 end subroutine UpdateSystemVariables
 
