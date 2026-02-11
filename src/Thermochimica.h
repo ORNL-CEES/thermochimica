@@ -35,6 +35,7 @@ extern "C"
   void TCAPI_presetElementMass(int *, double *);
   void TCAPI_setTemperaturePressure(double *, double *);
   void TCAPI_checkInfoThermo(int *);
+  char *TCAPI_getInfoThermoMessage(int *);
 
   void TCAPI_parseCSDataFile();
   void TCAPI_init();

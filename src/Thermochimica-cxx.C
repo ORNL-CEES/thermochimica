@@ -99,6 +99,13 @@ namespace Thermochimica
     return idbg;
   }
 
+  std::string getInfoThermoMessage()
+  {
+    int length;
+    char *buffer = TCAPI_getInfoThermoMessage(&length);
+    return std::string(buffer, buffer + length);
+  }
+
   void parseThermoFile()
   {
     TCAPI_parseCSDataFile();

@@ -25,6 +25,7 @@ namespace Thermochimica
   void presetElementMass(int element, double mass);
   void setElementMass(int element, double mass);
   int checkInfoThermo();
+  std::string getInfoThermoMessage();
   void parseThermoFile();
   void setPrintResultsMode(int mode);
   void printResults();

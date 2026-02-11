@@ -247,6 +247,25 @@ subroutine CheckINFOThermoISO(dbginfo) &
 
 end subroutine CheckINFOThermoISO
 
+function GetINFOThermoMessageISO(msg_len) &
+    bind(C, name="TCAPI_getInfoThermoMessage")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer(C_INT), intent(out) :: msg_len
+    type(c_ptr) :: GetINFOThermoMessageISO
+    character(len=256), target, save :: cInfoMessage
+
+    call GetINFOThermoMessage(cInfoMessage)
+    msg_len = len_trim(cInfoMessage)
+    GetINFOThermoMessageISO = c_loc(cInfoMessage)
+
+    return
+
+end function GetINFOThermoMessageISO
+
 subroutine ResetINFOThermoISO() &
     bind(C, name="TCAPI_resetInfoThermo")
 

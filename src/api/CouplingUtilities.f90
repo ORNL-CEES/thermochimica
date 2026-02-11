@@ -275,6 +275,43 @@ subroutine ResetINFOThermo
 
 end subroutine ResetINFOThermo
 
+subroutine GetINFOThermoMessage(cMessage)
+
+  USE ModuleThermoIO, ONLY: INFOThermo
+
+  implicit none
+
+  character(*), intent(out) :: cMessage
+
+  cMessage = ''
+
+  select case (INFOThermo)
+  case (0)
+    cMessage = 'Successful exit.'
+  case (12)
+    cMessage = 'The GEMSolver subroutine failed to converge.'
+  case (13)
+    cMessage = 'The GEMSolver subroutine detected a NAN.'
+  case (80)
+    cMessage = 'Phase constraints: failed to resolve phase names.'
+  case (81)
+    cMessage = 'Phase constraints: fractions must sum to 1.0.'
+  case (82)
+    cMessage = 'Phase constraints: failed to compute targets.'
+  case (83)
+    cMessage = 'Phase constraints: invalid effective stoichiometry.'
+  case (84)
+    cMessage = 'Phase constraints: too many constrained phases for Gibbs phase rule.'
+  case (85)
+    cMessage = 'Phase constraints: solver failed to satisfy constraints.'
+  case default
+    cMessage = 'Thermochimica error; see INFOThermo for details.'
+  end select
+
+  return
+
+end subroutine GetINFOThermoMessage
+
 subroutine SolPhaseParse(iElem, dMolSum)
 
   ! quick hack for bison, ZrH, H in
