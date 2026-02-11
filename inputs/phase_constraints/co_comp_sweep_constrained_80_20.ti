@@ -5,11 +5,11 @@ pressure unit     = 'atm'
 mass unit         = 'moles'
 print mode        = 0
 write json        = .TRUE.
-phase fraction(gas_ideal)  = 0.7
-phase fraction(C_Graphite(s))  = 0.3
+phase fraction(gas_ideal)  = 0.8
+phase fraction(C_Graphite(s))  = 0.2
 nEl               = 2
 iEl               = 6 8
-nCalc             = 16
+nCalc             = 11
 1000 1 1.0 0.5
 1000 1 1.0 0.6
 1000 1 1.0 0.7
@@ -21,8 +21,3 @@ nCalc             = 16
 1000 1 1.0 1.3
 1000 1 1.0 1.4
 1000 1 1.0 1.5
-1000 1 1.0 1.6
-1000 1 1.0 1.7
-1000 1 1.0 1.8
-1000 1 1.0 1.9
-1000 1 1.0 2.0

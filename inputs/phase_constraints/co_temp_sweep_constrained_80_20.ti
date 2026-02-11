@@ -1,12 +1,13 @@
-! CO system temperature sweep (constrained: 70/30 gas/graphite)
+! CO system temperature sweep (constrained: 80/20 gas/graphite)
 
-temperature       = 300:1500:100
+temperature       = 300:500:100
+temperature       = 700:1500:100
 pressure          = 1
 mass(6)           = 1.0
 mass(8)           = 1.5
 
-phase fraction(gas_ideal)      = 0.7
-phase fraction(C_Graphite(s))  = 0.3
+phase fraction(gas_ideal)      = 0.8
+phase fraction(C_Graphite(s))  = 0.2
 
 temperature unit  = 'K'
 pressure unit     = 'atm'

@@ -19,14 +19,14 @@ DEFAULT_JSON = REPO_ROOT / 'outputs' / 'thermochimica_out.json'
 
 TEMP_SWEEP_CASES = [
     ('unconstrained', INPUT_DIR / 'co_temp_sweep_unconstrained.ti'),
-    ('constrained 50/50', INPUT_DIR / 'co_temp_sweep_constrained_50_50.ti'),
-    ('constrained 70/30', INPUT_DIR / 'co_temp_sweep_constrained_70_30.ti'),
+    ('constrained 60/40', INPUT_DIR / 'co_temp_sweep_constrained_60_40.ti'),
+    ('constrained 80/20', INPUT_DIR / 'co_temp_sweep_constrained_80_20.ti'),
 ]
 
 COMP_SWEEP_CASES = [
     ('unconstrained', INPUT_DIR / 'co_comp_sweep_unconstrained.ti'),
-    ('constrained 50/50', INPUT_DIR / 'co_comp_sweep_constrained_50_50.ti'),
-    ('constrained 70/30', INPUT_DIR / 'co_comp_sweep_constrained_70_30.ti'),
+    ('constrained 60/40', INPUT_DIR / 'co_comp_sweep_constrained_60_40.ti'),
+    ('constrained 80/20', INPUT_DIR / 'co_comp_sweep_constrained_80_20.ti'),
 ]
 
 PHASES = ['gas_ideal', 'C_Graphite(s)']

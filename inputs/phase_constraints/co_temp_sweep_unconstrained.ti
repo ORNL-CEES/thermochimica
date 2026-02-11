@@ -1,6 +1,7 @@
 ! CO system temperature sweep (unconstrained)
 
-temperature       = 300:1500:100
+temperature       = 300:500:100
+temperature       = 700:1500:100
 pressure          = 1
 mass(6)           = 1.0
 mass(8)           = 1.5
