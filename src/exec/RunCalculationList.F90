@@ -11,7 +11,8 @@ program RunCalculationList
     integer :: i, j, nElIn, nCalc
     integer, dimension(:), allocatable :: iEls
     real(8), dimension(:), allocatable :: dEls
-    character(:), allocatable :: cLine, cErrMsg, cTag, cValue, cElementNumber, cParenValue
+    character(:), allocatable :: cLine, cTag, cValue, cParenValue
+    character(256) :: cErrMsg
     character(len=:), allocatable :: cOutputFullPath
     integer :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iEqualPosition
     integer :: iReadStatus
