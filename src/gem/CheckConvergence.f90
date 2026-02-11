@@ -216,7 +216,15 @@ subroutine CheckConvergence
                         exit
                     end if
                 end do
-                if (l > 0) dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                if (l > 0) then
+                    if (dMolesPhase(l) < dTolerance(7)) then
+                        dTemp = -dPhaseConstraintElemTarget(c)
+                    else
+                        dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                    end if
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
             else
                 k = iPhaseConstraintID(c)
                 dSum = 0D0
@@ -230,7 +238,15 @@ subroutine CheckConvergence
                         exit
                     end if
                 end do
-                if (l > 0) dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                if (l > 0) then
+                    if (dMolesPhase(l) < dTolerance(7)) then
+                        dTemp = -dPhaseConstraintElemTarget(c)
+                    else
+                        dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                    end if
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
             end if
             dConstraintMax = MAX(dConstraintMax, DABS(dTemp) / dTotalElems)
         end do

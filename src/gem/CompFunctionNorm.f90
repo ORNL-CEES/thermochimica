@@ -161,7 +161,11 @@ subroutine CompFunctionNorm
                         exit
                     end if
                 end do
-                if (l > 0) dTemp = dMolesPhase(l) * dSumStoich - dPhaseConstraintElemTarget(c)
+                if (l > 0) then
+                    dTemp = dMolesPhase(l) * dSumStoich - dPhaseConstraintElemTarget(c)
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
             else
                 k = iPhaseConstraintID(c)
                 dSumStoich = 0D0
@@ -175,7 +179,11 @@ subroutine CompFunctionNorm
                         exit
                     end if
                 end do
-                if (l > 0) dTemp = dMolesPhase(l) * dSumStoich - dPhaseConstraintElemTarget(c)
+                if (l > 0) then
+                    dTemp = dMolesPhase(l) * dSumStoich - dPhaseConstraintElemTarget(c)
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
             end if
             dGEMFunctionNorm = dGEMFunctionNorm + (dTemp / dTotalElems)**(2)
         end do

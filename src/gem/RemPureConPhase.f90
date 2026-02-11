@@ -46,6 +46,7 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -59,6 +60,12 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     ! Initialize variables:
     lSwapLater = .FALSE.
     lPhasePass = .FALSE.
+
+    if (nPhaseConstraints > 0) then
+        if (iPhaseChange > 0 .AND. iPhaseChange <= nConPhases) then
+            if (lPhaseConstrainedCon(iAssemblage(iPhaseChange))) return
+        end if
+    end if
 
     ! Store the phase assemblage and number of moles in a temporary vector:
     iTempVec(1:nConPhases) = iAssemblage(1:nConPhases)
