@@ -173,6 +173,8 @@ subroutine ThermoDEBUG
         print *, 'DEBUG: Phase constraints: invalid effective stoichiometry.'
     elseif (INFOThermo == 84) then
         print *, 'DEBUG: Phase constraints: too many constrained phases for Gibbs phase rule.'
+    elseif (INFOThermo == 85) then
+        print *, 'DEBUG: Phase constraints: solver failed to satisfy constraints.'
     elseif (INFOThermo == 99) then
         print *, 'DEBUG: The input element masses are not representable in terms of the available species.'
         ! Check CompThermoData.f90

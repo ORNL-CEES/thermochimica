@@ -87,6 +87,7 @@ subroutine GEMSolver
     USE ModuleThermoIO
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -142,7 +143,13 @@ subroutine GEMSolver
     end do LOOP_GEMSolver
 
     ! Report an error if the GEMSolver did not converge but no other errors were encountered:
-    if (.NOT.(lConverged).AND.(INFOThermo == 0)) INFOThermo = 12
+    if (.NOT.(lConverged).AND.(INFOThermo == 0)) then
+        if (nPhaseConstraints > 0) then
+            INFOThermo = 85
+        else
+            INFOThermo = 12
+        end if
+    end if
 
     return
 
