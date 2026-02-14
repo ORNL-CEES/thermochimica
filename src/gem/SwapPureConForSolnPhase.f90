@@ -67,7 +67,7 @@ subroutine SwapPureConForSolnPhase(iPhaseChange,lPhasePass)
 
     implicit none
 
-    integer                      :: i, j, k, iPhaseChange, INFO, iterBack
+    integer                      :: i, j, k, iPhaseChange, INFO, iterBack, nVar
     integer,dimension(nElements) :: iAssemblageTest
     real(8)                      :: dTemp
     real(8),dimension(nElements) :: dTempVec
@@ -126,6 +126,8 @@ subroutine SwapPureConForSolnPhase(iPhaseChange,lPhasePass)
         iAssemblage(nConPhases) = iPhaseChange
 
         ! Check that this phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         if (nSolnPhases == 0) then

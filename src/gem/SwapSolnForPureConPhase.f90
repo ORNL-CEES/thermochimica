@@ -57,7 +57,7 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
 
     implicit none
 
-    integer                       :: i, j, k, iPhaseChange, INFO, iterBack
+    integer                       :: i, j, k, iPhaseChange, INFO, iterBack, nVar
     integer, dimension(nElements) :: iAssemblageTest, iAssemblageTemp
     real(8), dimension(nElements) :: dMolesPhaseTemp
     real(8), dimension(nSpecies)  :: dMolFractionTemp, dMolesSpeciesTemp
@@ -157,6 +157,8 @@ subroutine SwapSolnForPureConPhase(iPhaseChange,lPhasePass)
         call CompChemicalPotential(lCompEverything)
 
         ! Check that this phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         lRevertSystem = .FALSE.
