@@ -2,24 +2,34 @@
 ! Run Calculation List: Fe-C-Cu selective melting study
 ! Lines starting with '!' are comments.
 ! ============================================================
-data file         = data/CuFeC-Kang.dat
 
 temperature unit  = C
 pressure unit     = atm
-mass unit         = mol
+mass unit         = moles
+
+! Data File
+data file         = data/CuFeC-Kang.dat
 
 ! Outputs
 write json        = .TRUE.
+output            = FeCuC
+
+! Specify output and debug modes:
+print mode        = 2
 
 ! Number of elements
-nEl               = 2
+nEl               = 3
 
 ! Element order must match columns in the list below
 iEl               = 26 29 6
 
+! Build a list of calculations
+! Number of calculations using nCalc = Number of calculations
 ! Each row: Temperature  Pressure  Fe   Cu   C
-! list of calculations
-1380   1.0   87.0   13.0   1.5
+
+nCalc             = 5
+
+1380   1.0   86.8   9.8    1.5
 1390   1.0   86.4   9.2    1.5
 1400   1.0   85.8   5.5    1.5
 1410   1.0   85.1   2.0    1.5
