@@ -64,8 +64,8 @@ subroutine InitThermo
     ! therefore computed to 7 sig. fig.'s.  Note: SOLGASMIX uses 8.31433.
     dIdealConstant = 8.314472D0
 
-    ! Machine precision:
-    dEPS = 1D-14
+    ! Machine precision (actual double-precision machine epsilon, ~2.22D-16):
+    dEPS = EPSILON(1D0)
 
     ! Normalizing constant (applied to mass of each element) to minimize numerical errors in mass balance
     ! equations:
@@ -75,6 +75,17 @@ subroutine InitThermo
 
     ! Numerical tolerances:
     ! ---------------------
+    !
+    ! The minimum supportable mole fraction for an element is determined by the formula:
+    !     x_min = EPSILON(1D0) / dTolerance(1)
+    !
+    ! With the default dTolerance(1) = 1D-5, this yields x_min ~ 2.22D-11 (~22 ppt).
+    ! To support smaller concentrations at the cost of looser mass balance accuracy, the
+    ! calling code may reduce dTolerance(1) after InitThermo returns.  For example:
+    !     dTolerance(1) = 1D-3  ->  x_min ~ 2.22D-13  (~0.2 ppt)
+    !     dTolerance(1) = 1D-1  ->  x_min ~ 2.22D-15  (sub-femtomole fractions)
+    ! Note that dTolerance(2..15) are derived from dTolerance(1) here and must be
+    ! recomputed if dTolerance(1) is changed after this routine returns.
 
     ! Initialize variables:
     dTolerance     = 0D0
@@ -96,6 +107,7 @@ subroutine InitThermo
     dTolerance(5)  = DABS(DLOG(1D0 - dTolerance(2)))
 
     ! Tolerance for minimum number of moles of an element of the system:
+    ! (= dNormalizeInput * EPSILON(1D0) / dTolerance(1); as a mole fraction: EPSILON(1D0)/dTolerance(1))
     dTolerance(6)  = dNormalizeInput * dEPS / dTolerance(1)
 
     ! Tolerance for minimum number of moles of a phase:

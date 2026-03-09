@@ -1181,3 +1181,16 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
 
     return
   end subroutine SetGibbsMinCheckISO
+
+  subroutine SetMinMoleFractionISO(dMinMolFrac) &
+    bind(C, name="TCAPI_setMinMoleFraction")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+    real(C_DOUBLE), intent(in) :: dMinMolFrac
+
+    call SetMinMoleFraction(dMinMolFrac)
+
+    return
+  end subroutine SetMinMoleFractionISO

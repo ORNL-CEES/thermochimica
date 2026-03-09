@@ -815,3 +815,62 @@ subroutine SetGibbsMinCheck(lGibbsMinCheckIn)
 
   return
 end subroutine SetGibbsMinCheck
+
+!-----------------------------------------------------------------------
+! SetMinMoleFraction
+!
+! Sets the minimum mole fraction of an element that is considered by
+! the solver.  Elements below this threshold are excluded as numerically
+! invisible, so this routine provides a single, consistent place to
+! tighten or relax the concentration floor without touching internal
+! tolerance arrays directly.
+!
+! The minimum supportable mole fraction is governed by:
+!
+!     x_min = EPSILON(1D0) / dTolerance(1)
+!
+! so requesting x_min adjusts the primary mass balance tolerance
+! dTolerance(1) = EPSILON(1D0) / x_min and recomputes every tolerance
+! that depends on it (dTolerance 6, 14, 15).
+!
+! Trade-off:
+!   Smaller x_min  =>  larger dTolerance(1)  =>  looser mass balance
+!   convergence criterion, but trace elements are not discarded.
+!
+! Practical guidance:
+!   x_min = 2D-11   default after fixing dEPS (~22 ppt, no accuracy loss)
+!   x_min = 1D-13   ~0.1 ppt; dTolerance(1) ~ 2D-3 (0.2% mass balance)
+!   x_min = 1D-15   sub-femtomole; dTolerance(1) ~ 2D-1 (very loose)
+!
+! Must be called AFTER InitThermo (which sets the initial tolerances)
+! and BEFORE Thermochimica (which uses them).
+!-----------------------------------------------------------------------
+subroutine SetMinMoleFraction(dMinMolFrac)
+
+  USE ModuleThermo, ONLY: dTolerance, dNormalizeSum
+
+  implicit none
+
+  real(8), intent(in) :: dMinMolFrac
+  real(8)             :: dEPS, dMinClamped
+
+  ! Actual double-precision machine epsilon:
+  dEPS = EPSILON(1D0)
+
+  ! Clamp to be at least machine epsilon (below that is physically meaningless):
+  dMinClamped = MAX(dMinMolFrac, dEPS)
+
+  ! Primary mass balance relative-error tolerance:
+  dTolerance(1)  = dEPS / dMinClamped
+
+  ! Minimum normalised element moles in the system (used in CheckSystem):
+  dTolerance(6)  = dNormalizeSum * dEPS / dTolerance(1)
+
+  ! Extreme-case phase removal threshold:
+  dTolerance(14) = dTolerance(1) * dTolerance(7)
+
+  ! Miscibility-gap check functional-norm threshold (mirrors dTolerance(1)):
+  dTolerance(15) = dTolerance(1)
+
+  return
+end subroutine SetMinMoleFraction
