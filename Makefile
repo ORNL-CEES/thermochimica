@@ -21,7 +21,13 @@
 ## COMPILER VARIABLES:
 ## ===================
 AR          = ar
-FC          = gfortran
+# Check if mpif90 is available, otherwise use gfortran
+MPIF90      := $(shell command -v mpif90 2> /dev/null)
+ifdef MPIF90
+    FC      = mpif90
+else
+    FC      = gfortran
+endif
 CC          = g++
 FFPE_TRAPS  ?= zero
 FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'"
@@ -117,12 +123,25 @@ DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
 
+## ====================
+## TEST-DRIVE TESTS:
+## ====================
+TESTDRIVE_SRC     = testdrive.F90
+TESTDRIVE_OBJ     = $(OBJ_DIR)/$(TESTDRIVE_SRC:.F90=.o)
+TESTSUITE_SRC     = test_error_handling.F90 test_systems.F90
+TESTSUITE_OBJ     = $(addprefix $(OBJ_DIR)/,$(TESTSUITE_SRC:.F90=.o))
+TESTMAIN_SRC      = test_main.F90
+TESTMAIN_OBJ      = $(OBJ_DIR)/$(TESTMAIN_SRC:.F90=.o)
+TESTMAIN_BIN      = $(BIN_DIR)/test_main
+
 ## =======
 ## COMPILE
 ## =======
 all:  directories $(MODS_LNK) $(SHARED_LNK) $(SHARED_LIB) $(EXEC_LNK) $(EXE_BIN) $(C_LNK) $(C_LIB)
+	@echo "Compilation complete using $(FC)"
 
 directories: ${OBJ_DIR} ${BIN_DIR}
+	@echo "Using Fortran compiler: $(FC)"
 
 ${OBJ_DIR}:
 	${MKDIR_P} ${OBJ_DIR}
@@ -161,7 +180,7 @@ $(C_LIB): $(C_LNK)
 $(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK) | $(BIN_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) $(LDFLAGS) -o $(BIN_DIR)/$* $< $(SHARED_LNK) $(LDLOC)
 
-.PHONY: clean veryclean test doc cleandoc directories
+.PHONY: clean veryclean test doc cleandoc directories testdrive runtests
 
 ## =====
 ## CLEAN
@@ -228,10 +247,42 @@ dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
 $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
+## =====================
+## TEST-DRIVE FRAMEWORK
+## =====================
+# Compile testdrive framework
+$(TESTDRIVE_OBJ): $(TST_DIR)/$(TESTDRIVE_SRC) | $(OBJ_DIR)
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+# Compile test suite modules (depend on testdrive and Thermochimica modules)
+$(OBJ_DIR)/test_error_handling.o: $(TST_DIR)/test_error_handling.F90 $(TESTDRIVE_OBJ) $(MODS_LNK) | $(OBJ_DIR)
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/test_systems.o: $(TST_DIR)/test_systems.F90 $(TESTDRIVE_OBJ) $(MODS_LNK) | $(OBJ_DIR)
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+# Compile test main (depends on test suites and testdrive)
+$(TESTMAIN_OBJ): $(TST_DIR)/$(TESTMAIN_SRC) $(TESTDRIVE_OBJ) $(TESTSUITE_OBJ) | $(OBJ_DIR)
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+# Link test main executable
+$(TESTMAIN_BIN): $(TESTMAIN_OBJ) $(TESTSUITE_OBJ) $(TESTDRIVE_OBJ) $(SHARED_LNK) | $(BIN_DIR)
+	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) $(LDFLAGS) -o $@ $(TESTMAIN_OBJ) $(TESTSUITE_OBJ) $(TESTDRIVE_OBJ) $(SHARED_LNK) $(LDLOC)
+
+# Target to build test-drive test suite
+testdrive: $(MODS_LNK) $(SHARED_LNK) $(TESTMAIN_BIN)
+	@echo "Test-drive test suite built successfully: $(TESTMAIN_BIN)"
+
+# Target to build and run test-drive tests
+runtests: testdrive
+	@echo ""
+	@echo "Running test-drive test suite..."
+	@$(TESTMAIN_BIN)
+
 ## ===========
 ## ALL TESTS:
 ## ===========
-test: all dailytest
+test: all dailytest testdrive
 
 ## ===========
 ## DEBUG:
