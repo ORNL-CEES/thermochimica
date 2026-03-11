@@ -60,10 +60,11 @@ subroutine InitGEMSolver
     USE ModuleThermoIO, ONLY: INFOThermo, lReinitLoaded
     USE ModuleGEMSolver
     USE ModuleReinit
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer::                               i, j, k, l
+    integer::                               i, j, k, l, infoConstraints, nReal, nVarMax
     integer,dimension(nElements)::          iAssemblageLast
     real(8)::                               dTemp, dSum
     real(8),dimension(-1:nSolnPhasesSys)::  dTempVec
@@ -85,15 +86,16 @@ subroutine InitGEMSolver
         end if
 
         ! Check to see if the number of elements has changed:
+        nVarMax = 2 * (nElements + nPhaseConstraints)
         j = SIZE(dUpdateVar)
-        if (j /= nElements) then
+        if (j /= nVarMax) then
             deallocate(dUpdateVar,&
                 iterHistory, STAT = l)
             if (l /= 0) then
                 INFOThermo = 21
                 return
             end if
-            allocate(dUpdateVar(nElements*2))
+            allocate(dUpdateVar(nVarMax))
             allocate(iterHistory(nElements,iterGlobalMax))
         end if
 
@@ -125,7 +127,8 @@ subroutine InitGEMSolver
         l = MAX(1,nSolnPhasesSys)
         allocate(dMolesSpecies(nSpecies))
         allocate(dPartialExcessGibbs(nSpecies),dPartialExcessGibbsLast(nSpecies))
-        allocate(dUpdateVar(nElements*2))
+        nVarMax = 2 * (nElements + nPhaseConstraints)
+        allocate(dUpdateVar(nVarMax))
         allocate(iterHistory(nElements,iterGlobalMax))
         allocate(dSumMolFractionSoln(l))
         allocate(dDrivingForceSoln(l))
@@ -185,8 +188,143 @@ subroutine InitGEMSolver
     lConverged              = .FALSE.
     lRevertSystem           = .FALSE.
 
-    ! Regrettably, branching here depending on whether reinit data has been loaded
-    IF_ReinitLoaded: if (lReinitLoaded) then
+    ! Resolve and validate any phase constraints (if provided):
+    if (nPhaseConstraints > 0) then
+        call ResolvePhaseConstraints(infoConstraints)
+        if (infoConstraints /= 0) then
+            INFOThermo = 80
+            return
+        end if
+        call ValidatePhaseConstraints(infoConstraints)
+        if (infoConstraints /= 0) then
+            if (infoConstraints == 4) then
+                INFOThermo = 84
+            else
+                INFOThermo = 81
+            end if
+            return
+        end if
+        call UpdatePhaseConstraintTargets(infoConstraints)
+        if (infoConstraints /= 0) then
+            INFOThermo = 82
+            return
+        end if
+        if (allocated(dPhaseConstraintLambda)) then
+            if (SIZE(dPhaseConstraintLambda) /= nPhaseConstraints) then
+                deallocate(dPhaseConstraintLambda)
+            end if
+        end if
+        if (allocated(dPhaseConstraintLambdaLast)) then
+            if (SIZE(dPhaseConstraintLambdaLast) /= nPhaseConstraints) then
+                deallocate(dPhaseConstraintLambdaLast)
+            end if
+        end if
+        if (.NOT. allocated(dPhaseConstraintLambda)) allocate(dPhaseConstraintLambda(nPhaseConstraints))
+        if (.NOT. allocated(dPhaseConstraintLambdaLast)) allocate(dPhaseConstraintLambdaLast(nPhaseConstraints))
+        dPhaseConstraintLambda = 0D0
+        dPhaseConstraintLambdaLast = 0D0
+    else
+        if (allocated(dPhaseConstraintLambda)) deallocate(dPhaseConstraintLambda)
+        if (allocated(dPhaseConstraintLambdaLast)) deallocate(dPhaseConstraintLambdaLast)
+    end if
+
+    ! Regrettably, branching here depending on phase constraints and reinit status:
+    IF_PhaseConstraints: if (nPhaseConstraints > 0) then
+        lSolnPhases = .FALSE.
+        iAssemblage = 0
+        nConPhases  = 0
+        nSolnPhases = 0
+        nReal = nElements - nChargedConstraints
+        if (nReal < 1) nReal = nElements
+
+        ! Initialize mole fractions of all solution phase constituents:
+        LOOP_CompX_Constrained: do k = 1, nSolnPhasesSys
+            ! Reinitialize temporary variable:
+            dSum = 0D0
+
+            ! The default case assumes an ideal solution phase.
+            do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                dTemp = 0D0
+                do j = 1, nElements
+                    dTemp = dTemp + dElementPotential(j) * dStoichSpecies(i,j)
+                end do
+                dTemp           = dTemp / DFLOAT(iParticlesPerMole(i))
+                dMolFraction(i) = DEXP(dTemp - dStdGibbsEnergy(i) - dMagGibbsEnergy(i))
+                dMolFraction(i) = DMIN1(dMolFraction(i),1D0)
+                dSum            = dSum + dMolFraction(i)
+            end do
+
+            ! Normalize the mole fractions so that their sum equals unity:
+            if (dSum > 1D-200 .AND. dSum < 1D200) then
+                dSum = 1D0 / dSum
+                do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                    dMolFraction(i) = dMolFraction(i) * dSum
+                end do
+            else
+                do i = nSpeciesPhase(k - 1) + 1, nSpeciesPhase(k)
+                    dMolFraction(i) = 1D0 / (nSpeciesPhase(k) - nSpeciesPhase(k - 1))
+                end do
+            end if
+        end do LOOP_CompX_Constrained
+
+        ! Build phase assemblage from constrained phases only:
+        do i = 1, nPhaseConstraints
+            if (iPhaseConstraintKind(i) == 1) then
+                nConPhases = nConPhases + 1
+                iAssemblage(nConPhases) = iPhaseConstraintID(i)
+            else
+                nSolnPhases = nSolnPhases + 1
+                j = nElements - nSolnPhases + 1
+                iAssemblage(j) = -iPhaseConstraintID(i)
+                lSolnPhases(iPhaseConstraintID(i)) = .TRUE.
+            end if
+        end do
+
+        ! Initialize constrained phase moles:
+        do i = 1, nPhaseConstraints
+            if (iPhaseConstraintKind(i) == 0) then
+                k = iPhaseConstraintID(i)
+                call CompStoichSolnPhase(k)
+                dTemp = 0D0
+                do j = 1, nReal
+                    dTemp = dTemp + dEffStoichSolnPhase(k,j)
+                end do
+                if (dTemp <= 0D0) then
+                    INFOThermo = 83
+                    return
+                end if
+                l = 0
+                do j = nElements - nSolnPhases + 1, nElements
+                    if (iAssemblage(j) == -k) then
+                        l = j
+                        exit
+                    end if
+                end do
+                if (l > 0) dMolesPhase(l) = dPhaseConstraintElemTarget(i) / dTemp
+            else
+                k = iPhaseConstraintID(i)
+                dTemp = 0D0
+                do j = 1, nReal
+                    dTemp = dTemp + dStoichSpecies(k,j)
+                end do
+                if (dTemp <= 0D0) then
+                    INFOThermo = 83
+                    return
+                end if
+                l = 0
+                do j = 1, nConPhases
+                    if (iAssemblage(j) == k) then
+                        l = j
+                        exit
+                    end if
+                end do
+                if (l > 0) dMolesPhase(l) = dPhaseConstraintElemTarget(i) / dTemp
+            end if
+        end do
+
+        dMolesPhaseLast = dMolesPhase
+
+    elseif (lReinitLoaded) then
       iAssemblage = iAssemblageLast
       dMolFraction = dMolFraction_Old
       do i = 1, nElements
@@ -260,15 +398,15 @@ subroutine InitGEMSolver
                 end do
             end if
         end do LOOP_CompX
-    end if IF_ReinitLoaded
+    end if IF_PhaseConstraints
 
     ! If there aren't any solution phases currently predicted to be stable, check if any should be added:
-    if (nSolnPhases == 0) call InitGemCheckSolnPhase
+    if ((nSolnPhases == 0) .AND. (nPhaseConstraints == 0)) call InitGemCheckSolnPhase
 
     ! It may be possible that a single solution phase may be expected to form (as predicted by Leveling)
     ! but that there are zero moles of this particular phase.  This can cause problems establishing the
     ! Jacobian.
-    if ((nSolnPhases == 1).AND.(dMolesPhase(nElements) == 0D0)) then
+    if ((nSolnPhases == 1).AND.(dMolesPhase(nElements) == 0D0).AND.(nPhaseConstraints == 0)) then
 
         ! Adjust the number of moles of pure condensed phases:
         dMolesPhase = dMolesPhase * 0.95D0
@@ -299,7 +437,7 @@ subroutine InitGEMSolver
 
     ! Check the phase assemblage to make sure that the Jacobian matrix is appropriate.  Only do this if there is
     ! at least one solution phase:
-    if (nSolnPhases > 0) then
+    if ((nSolnPhases > 0) .AND. (nPhaseConstraints == 0)) then
 
         i = MAX(1,nConPhases)
 

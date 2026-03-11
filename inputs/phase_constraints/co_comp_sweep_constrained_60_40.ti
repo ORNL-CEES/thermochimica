@@ -1,0 +1,23 @@
+! CO system composition sweep (T=1000 K)
+data file         = data/CO.dat
+temperature unit  = 'K'
+pressure unit     = 'atm'
+mass unit         = 'moles'
+print mode        = 0
+write json        = .TRUE.
+phase fraction(gas_ideal)  = 0.6
+phase fraction(C_Graphite(s))  = 0.4
+nEl               = 2
+iEl               = 6 8
+nCalc             = 11
+1000 1 1.0 0.5
+1000 1 1.0 0.6
+1000 1 1.0 0.7
+1000 1 1.0 0.8
+1000 1 1.0 0.9
+1000 1 1.0 1.0
+1000 1 1.0 1.1
+1000 1 1.0 1.2
+1000 1 1.0 1.3
+1000 1 1.0 1.4
+1000 1 1.0 1.5

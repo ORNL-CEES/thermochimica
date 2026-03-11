@@ -72,6 +72,7 @@ subroutine CheckSolnPhaseRem
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -91,6 +92,14 @@ subroutine CheckSolnPhaseRem
 
         ! Index of phase in dMolesPhase/iAssemblage vectors (not absolute index):
         j = nElements - i + 1
+
+        ! Skip removal attempts for constrained solution phases:
+        if (nPhaseConstraints > 0) then
+            k = -iAssemblage(nElements - i + 1)
+            if (k > 0) then
+                if (lPhaseConstrainedSoln(k)) cycle LOOP_SolnRem
+            end if
+        end if
 
         ! Check if the number of moles of this solution phase is less than a specified value:
         IF_RemSolnPhase: if (dMolesPhase(j) < dTolerance(7)) then

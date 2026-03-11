@@ -35,6 +35,7 @@ extern "C"
   void TCAPI_presetElementMass(int *, double *);
   void TCAPI_setTemperaturePressure(double *, double *);
   void TCAPI_checkInfoThermo(int *);
+  char *TCAPI_getInfoThermoMessage(int *);
 
   void TCAPI_parseCSDataFile();
   void TCAPI_init();
@@ -96,4 +97,8 @@ extern "C"
   void TCAPI_setFuzzyStoich(bool *);
   void TCAPI_setFuzzyMagnitude(double *);
   void TCAPI_setGibbsMinCheck(bool *);
+
+  // Phase fraction constraints
+  void TCAPI_addPhaseFractionConstraint(const char *, std::size_t, const double *, int *);
+  void TCAPI_clearPhaseConstraints();
 }

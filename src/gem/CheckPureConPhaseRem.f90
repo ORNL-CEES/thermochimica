@@ -59,6 +59,7 @@ subroutine CheckPureConPhaseRem
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -95,6 +96,13 @@ subroutine CheckPureConPhaseRem
 
         if (dMolesPhase(iPhaseChange) < -1D3) dTemp = -1D0
         if (iterGlobal - iterLast >= 20)      dTemp = -1D0
+
+        ! Skip removal attempts for constrained pure condensed phases:
+        if (nPhaseConstraints > 0) then
+            if (iPhaseChange > 0) then
+                if (lPhaseConstrainedCon(iAssemblage(iPhaseChange))) cycle LOOP_PureConPhases
+            end if
+        end if
 
         ! Check if the # of moles of this phase is less than tolerance for two consecutive iterations and that
         ! it is decreasing by more than 1%:

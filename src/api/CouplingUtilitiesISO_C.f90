@@ -247,6 +247,25 @@ subroutine CheckINFOThermoISO(dbginfo) &
 
 end subroutine CheckINFOThermoISO
 
+function GetINFOThermoMessageISO(msg_len) &
+    bind(C, name="TCAPI_getInfoThermoMessage")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer(C_INT), intent(out) :: msg_len
+    type(c_ptr) :: GetINFOThermoMessageISO
+    character(len=256), target, save :: cInfoMessage
+
+    call GetINFOThermoMessage(cInfoMessage)
+    msg_len = len_trim(cInfoMessage)
+    GetINFOThermoMessageISO = c_loc(cInfoMessage)
+
+    return
+
+end function GetINFOThermoMessageISO
+
 subroutine ResetINFOThermoISO() &
     bind(C, name="TCAPI_resetInfoThermo")
 
@@ -1169,7 +1188,7 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
     return
   end subroutine SetFuzzyMagnitudeISO
 
-  subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
+subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
     bind(C, name="TCAPI_setGibbsMinCheck")
 
     USE,INTRINSIC :: ISO_C_BINDING
@@ -1180,4 +1199,39 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
     call SetGibbsMinCheck(lGibbsMinCheckIn)
 
     return
-  end subroutine SetGibbsMinCheckISO
+end subroutine SetGibbsMinCheckISO
+
+subroutine AddPhaseFractionConstraintISO(cPhaseName, lcPhaseName, dFraction, INFO) &
+    bind(C, name="TCAPI_addPhaseFractionConstraint")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModulePhaseConstraints
+
+    implicit none
+
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+    real(C_DOUBLE), intent(in)                       :: dFraction
+    integer(C_INT), intent(out)                      :: INFO
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+    call AddPhaseFractionConstraint(fPhaseName, dFraction)
+    INFO = 0
+
+    return
+
+end subroutine AddPhaseFractionConstraintISO
+
+subroutine ClearPhaseConstraintsISO() &
+    bind(C, name="TCAPI_clearPhaseConstraints")
+
+    USE ModulePhaseConstraints
+
+    implicit none
+
+    call ClearPhaseConstraints
+
+    return
+
+end subroutine ClearPhaseConstraintsISO

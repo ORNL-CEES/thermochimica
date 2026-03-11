@@ -72,6 +72,7 @@ subroutine CompMolSolnPhase
     USE ModuleThermoIO, ONLY: INFOThermo
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -86,6 +87,7 @@ subroutine CompMolSolnPhase
 
 
     ! Initialize variables:
+    if (nPhaseConstraints > 0) return
     TRANS     = 'N'
     NRHS      = 1
     INFO      = 0

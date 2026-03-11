@@ -108,11 +108,13 @@ subroutine CheckConvergence
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer :: i, j, k, l, c, iMaxDrivingForce
+    integer :: i, j, k, l, c, iMaxDrivingForce, nReal
     real(8) :: dResidual, dMaxDrivingForce, dTempGibbs, dMassNorm, dNormComponent
+    real(8) :: dConstraintMax, dConstraintTol, dSum, dTemp, dTotalElems
     logical :: lCompEverything, lPhaseChange
 
 
@@ -132,7 +134,7 @@ subroutine CheckConvergence
     ! This is a self-consistency check
     if (lDebugMode) print *, "Test self-consistency ", dMaxSpeciesChange
     if (dMaxSpeciesChange > LOG(2D0)) then
-        return
+        if (nPhaseConstraints <= 0) return
     end if
 
     ! TEST #1: Check if any of the phases in the assemblage are "dummy" phases:
@@ -185,6 +187,73 @@ subroutine CheckConvergence
             return
         end if
     end do LOOP_TEST8
+
+    ! If phase fraction constraints are active, converge based on constraint residuals + mass balance.
+    if (nPhaseConstraints > 0) then
+        nReal = nElements - nChargedConstraints
+        if (nReal < 1) nReal = nElements
+        dConstraintMax = 0D0
+        dConstraintTol = 1D-3
+        dTotalElems = 0D0
+        do i = 1, nReal
+            dTotalElems = dTotalElems + dMolesElement(i)
+        end do
+        if (dTotalElems <= 0D0) dTotalElems = 1D0
+
+        do c = 1, nPhaseConstraints
+            dTemp = 0D0
+            if (iPhaseConstraintKind(c) == 0) then
+                k = iPhaseConstraintID(c)
+                call CompStoichSolnPhase(k)
+                dSum = 0D0
+                do i = 1, nReal
+                    dSum = dSum + dEffStoichSolnPhase(k,i)
+                end do
+                l = 0
+                do i = nElements - nSolnPhases + 1, nElements
+                    if (iAssemblage(i) == -k) then
+                        l = i
+                        exit
+                    end if
+                end do
+                if (l > 0) then
+                    if (dMolesPhase(l) < dTolerance(7)) then
+                        dTemp = -dPhaseConstraintElemTarget(c)
+                    else
+                        dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                    end if
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
+            else
+                k = iPhaseConstraintID(c)
+                dSum = 0D0
+                do i = 1, nReal
+                    dSum = dSum + dStoichSpecies(k,i)
+                end do
+                l = 0
+                do i = 1, nConPhases
+                    if (iAssemblage(i) == k) then
+                        l = i
+                        exit
+                    end if
+                end do
+                if (l > 0) then
+                    if (dMolesPhase(l) < dTolerance(7)) then
+                        dTemp = -dPhaseConstraintElemTarget(c)
+                    else
+                        dTemp = dMolesPhase(l) * dSum - dPhaseConstraintElemTarget(c)
+                    end if
+                else
+                    dTemp = -dPhaseConstraintElemTarget(c)
+                end if
+            end if
+            dConstraintMax = MAX(dConstraintMax, DABS(dTemp) / dTotalElems)
+        end do
+
+        if (dConstraintMax <= dConstraintTol) lConverged = .TRUE.
+        return
+    end if
 
     dTempGibbs = 0D0
     do i = 1, nElements
