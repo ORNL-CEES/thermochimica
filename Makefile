@@ -24,7 +24,8 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FFPE_TRAPS  ?= zero
-FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'"
+DEFAULT_TOLERANCE_EPSILON ?= 1D-14
+FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'" -DTHERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON=$(DEFAULT_TOLERANCE_EPSILON)
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)

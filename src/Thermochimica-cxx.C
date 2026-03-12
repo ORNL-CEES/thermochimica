@@ -535,4 +535,14 @@ namespace Thermochimica
     TCAPI_setGibbsMinCheck(&requested);
   }
 
+  void setMinMoleFraction(double min_mole_fraction)
+  {
+    TCAPI_setMinMoleFraction(&min_mole_fraction);
+  }
+
+  void setMassBalanceTolerance(double tolerance)
+  {
+    TCAPI_setMassBalanceTolerance(&tolerance);
+  }
+
 }

@@ -513,7 +513,7 @@ subroutine ThermochimicaISO() &
 
     implicit none
 
-    call Thermochimica
+    call ThermochimicaAPI
 
     return
 
@@ -526,7 +526,7 @@ subroutine ThermochimicaSetupISO() &
 
     implicit none
 
-    call ThermochimicaSetup
+    call ThermochimicaSetupAPI
 
     return
 
@@ -565,7 +565,7 @@ subroutine ThermochimicaInitISO() &
 
     implicit none
 
-    call InitThermo
+    call InitThermoAPI
 
     return
 
@@ -1194,3 +1194,16 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
 
     return
   end subroutine SetMinMoleFractionISO
+
+  subroutine SetMassBalanceToleranceISO(dMassBalanceTolerance) &
+    bind(C, name="TCAPI_setMassBalanceTolerance")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+    real(C_DOUBLE), intent(in) :: dMassBalanceTolerance
+
+    call SetMassBalanceTolerance(dMassBalanceTolerance)
+
+    return
+  end subroutine SetMassBalanceToleranceISO
