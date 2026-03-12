@@ -815,3 +815,108 @@ subroutine SetGibbsMinCheck(lGibbsMinCheckIn)
 
   return
 end subroutine SetGibbsMinCheck
+
+subroutine InitThermoAPI
+
+  USE ModuleThermoTolerance, ONLY: SetMachineDefaultTolerances, ApplyToleranceOverride
+
+  implicit none
+
+  call InitThermo
+  call SetMachineDefaultTolerances
+  call ApplyToleranceOverride
+
+  return
+end subroutine InitThermoAPI
+
+subroutine ThermochimicaSetupAPI
+
+  USE ModuleThermoIO
+  USE ModuleThermo
+
+  implicit none
+
+  ! Check the input variables:
+  if (INFOThermo == 0) call CheckThermoInput
+
+  ! Initialize Thermochimica with API defaults:
+  if (INFOThermo == 0) call InitThermoAPI
+
+  ! Check that the system in the data-file is consistent with the input data variables:
+  if (INFOThermo == 0) call CheckSystem
+
+  ! Compute thermodynamic data using the parameters from the specified ChemSage data-file:
+  if (INFOThermo == 0) call CompThermoData
+
+  ! Check the thermodynamic database to ensure that it is appropriate:
+  if (INFOThermo == 0) call CheckThermoData
+
+  return
+end subroutine ThermochimicaSetupAPI
+
+subroutine ThermochimicaAPI
+
+  implicit none
+
+  call ThermochimicaSetupAPI
+  call ThermochimicaSolver
+
+  return
+end subroutine ThermochimicaAPI
+
+!-----------------------------------------------------------------------
+! SetMassBalanceTolerance
+!
+! Sets the primary relative-error tolerance used in the mass balance
+! equations.  The request is remembered and reapplied whenever the API
+! initialization path resets tolerances, so callers can set it once
+! before TCAPI_init / TCAPI_setup / TCAPI_thermochimica.
+!-----------------------------------------------------------------------
+subroutine SetMassBalanceTolerance(dMassBalanceTolerance)
+
+  USE ModuleThermoTolerance, ONLY: SetToleranceOverrideValue
+
+  implicit none
+
+  real(8), intent(in) :: dMassBalanceTolerance
+
+  call SetToleranceOverrideValue(dMassBalanceTolerance)
+
+  return
+end subroutine SetMassBalanceTolerance
+
+!-----------------------------------------------------------------------
+! SetMinMoleFraction
+!
+! Sets the minimum mole fraction of an element that is considered by
+! the solver.  Elements below this threshold are excluded as numerically
+! invisible.  The request is remembered and reapplied whenever the API
+! initialization path resets tolerances, so callers can set it once
+! before TCAPI_init / TCAPI_setup / TCAPI_thermochimica.
+!
+! The minimum supportable mole fraction is governed by:
+!
+!     x_min = dToleranceEpsilon / dTolerance(1)
+!
+! so requesting x_min adjusts the primary mass balance tolerance
+! dTolerance(1) = dToleranceEpsilon / x_min and recomputes every tolerance
+! that depends on it (dTolerance 6, 14, 15).
+!
+! Trade-off:
+!   Smaller x_min  =>  larger dTolerance(1)  =>  looser mass balance
+!   convergence criterion, but trace elements are not discarded.
+!
+! Under the API defaults, dToleranceEpsilon is the actual machine epsilon.
+!-----------------------------------------------------------------------
+subroutine SetMinMoleFraction(dMinMolFrac)
+
+  USE ModuleThermoTolerance, ONLY: SetMinMoleFractionOverrideValue
+
+  implicit none
+
+  real(8), intent(in) :: dMinMolFrac
+
+  call SetMinMoleFractionOverrideValue(dMinMolFrac)
+
+  return
+end subroutine SetMinMoleFraction

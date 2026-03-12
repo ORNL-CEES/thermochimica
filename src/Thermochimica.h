@@ -96,4 +96,6 @@ extern "C"
   void TCAPI_setFuzzyStoich(bool *);
   void TCAPI_setFuzzyMagnitude(double *);
   void TCAPI_setGibbsMinCheck(bool *);
+  void TCAPI_setMinMoleFraction(double *);
+  void TCAPI_setMassBalanceTolerance(double *);
 }

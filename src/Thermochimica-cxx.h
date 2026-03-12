@@ -115,5 +115,7 @@ namespace Thermochimica
   void setFuzzyStoich(bool requested);
   void setFuzzyMagnitude(double magnitude);
   void setGibbsMinCheck(bool requested);
+  void setMinMoleFraction(double min_mole_fraction);
+  void setMassBalanceTolerance(double tolerance);
 
 }
