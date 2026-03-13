@@ -51,7 +51,7 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     implicit none
 
-    integer                       :: i, iPhaseChange, INFO, iterBack
+    integer                       :: i, iPhaseChange, INFO, iterBack, nVar
     integer, dimension(nElements) :: iAssemblageTest
     real(8), dimension(nElements) :: dTempVec
     logical                       :: lSwapLater, lPhasePass
@@ -88,6 +88,8 @@ subroutine SwapPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
         iAssemblage(i)  = iPhaseChange
 
         ! Check that this phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         if (lPhasePass) then
