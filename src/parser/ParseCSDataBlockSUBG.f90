@@ -374,6 +374,9 @@ subroutine ParseCSDataBlockSUBG( i )
     j = 0
     LOOP_ExcessMixingSUBG: do
         j = j + 1
+        ! Grow arrays if capacity is exceeded:
+        if (nParamCS + 1 > size(iRegularParamCS, 1)) call GrowRegularParamArrays
+
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 
