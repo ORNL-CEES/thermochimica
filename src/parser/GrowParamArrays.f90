@@ -11,7 +11,7 @@
     !> \details The ChemSage format does not encode the total number of excess mixing parameters in the
     !! file header, so the parser cannot pre-allocate exact sizes.  These subroutines double the first
     !! dimension of the relevant arrays whenever the current capacity is exceeded, using Fortran's
-    !! move_alloc to avoid unnecessary copies.  They must be called before any write to
+    !! move_alloc. They must be called before any write to
     !! iRegularParamCS(nParamCS+1,...) or iMagneticParamCS(nMagParamCS+1,...).
     !
     !-------------------------------------------------------------------------------------------------------------
