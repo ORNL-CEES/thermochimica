@@ -143,6 +143,9 @@ subroutine ParseCSDataBlockSUBL(i)
     if (cSolnPhaseTypeCS(i) == 'SUBLM') then! call ParseCSMagneticMixing(i)
         LOOP_MagneticMixingSUBL: do
 
+            ! Grow arrays if capacity is exceeded:
+            if (nMagParamCS + 1 > size(iMagneticParamCS, 1)) call GrowMagneticParamArrays
+
             ! Read in number of constituents involved in parameter:
             read (1,*,IOSTAT = INFO) iMagneticParamCS(nMagParamCS+1,1)
 
@@ -186,6 +189,9 @@ subroutine ParseCSDataBlockSUBL(i)
 
     ! Loop through excess mixing parameters:
     LOOP_ExcessMixingSUBL: do
+
+        ! Grow arrays if capacity is exceeded:
+        if (nParamCS + 1 > size(iRegularParamCS, 1)) call GrowRegularParamArrays
 
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
