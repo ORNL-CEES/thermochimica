@@ -32,3 +32,6 @@ unsigned int checkPressure(const std::string &pressure_unit);
 unsigned int checkMass(const std::string &mass_unit);
 
 std::string elementName(unsigned int atomic_number);
+
+void SetMinMoleFraction(double);
+void SetMassBalanceTolerance(double);

@@ -24,7 +24,8 @@ AR          = ar
 FC          = gfortran
 CC          = g++
 FFPE_TRAPS  ?= zero
-FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'"
+DEFAULT_TOLERANCE_EPSILON ?= 1D-14
+FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'" -DTHERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON=$(DEFAULT_TOLERANCE_EPSILON)
 CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
@@ -133,6 +134,11 @@ ${BIN_DIR}:
 # Enforce module dependency rules
 $(OBJ_FILES): $(MODS_LNK)
 $(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
+
+# Auto-generate inter-module compile-order dependencies from USE statements
+$(foreach src,$(modfiles),$(foreach use,\
+  $(shell grep -Eio "USE[[:space:]]+Module[A-Za-z_0-9]+" "$(src)" 2>/dev/null | grep -Eio "Module[A-Za-z_0-9]+"),\
+  $(eval $(OBJ_DIR)/$(patsubst %.f90,%.o,$(notdir $(src))): $(filter $(OBJ_DIR)/$(use).o,$(MODS_LNK)))))
 
 $(OBJ_DIR)/%.o: %.f90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
