@@ -61,7 +61,7 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
 
     implicit none
 
-    integer                       :: i, j, iPhaseAdd, iPhaseRem, INFO, iterBack
+    integer                       :: i, j, iPhaseAdd, iPhaseRem, INFO, iterBack, nVar
     integer, dimension(nElements) :: iAssemblageTest
     real(8)                       :: dTemp
     logical                       :: lPhasePass, lCompEverything, lSwapLater
@@ -107,6 +107,8 @@ subroutine SwapSolnPhaseSpecific(iPhaseAdd,iPhaseRem,lPhasePass)
     call CompChemicalPotential(lCompEverything)
 
     ! Check that this phase change is acceptable:
+    nVar = nElements + nConPhases + nSolnPhases
+    call ResizeGEMWorkspace(nVar)
     call CheckPhaseChange(lPhasePass,INFO)
 
     if (lPhasePass) then
