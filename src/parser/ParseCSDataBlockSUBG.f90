@@ -300,6 +300,10 @@ subroutine ParseCSDataBlockSUBG( i )
         ya = y - nConstituentSublatticeCS(nCSCS,1)
 
         nA2X2 = nConstituentSublatticeCS(nCSCS,1) * nConstituentSublatticeCS(nCSCS,2)
+        iax = 0
+        iay = 0
+        ibx = 0
+        iby = 0
         do k = 1, nA2X2
             if   ((iConstituentSublatticeCS(nCSCS,1,k) == a) &
             .AND. (iConstituentSublatticeCS(nCSCS,2,k) == xa)) then
@@ -318,6 +322,10 @@ subroutine ParseCSDataBlockSUBG( i )
                 iby = k
             end if
         end do
+        if ((iax == 0) .OR. (iay == 0) .OR. (ibx == 0) .OR. (iby == 0)) then
+            INFO = 1600 + i
+            return
+        end if
 
         ia2x2 = a + ((xa - 1) * (nConstituentSublatticeCS(nCSCS,1) &
                                 * (nConstituentSublatticeCS(nCSCS,1) + 1) / 2))
@@ -366,6 +374,9 @@ subroutine ParseCSDataBlockSUBG( i )
     j = 0
     LOOP_ExcessMixingSUBG: do
         j = j + 1
+        ! Grow arrays if capacity is exceeded:
+        if (nParamCS + 1 > size(iRegularParamCS, 1)) call GrowRegularParamArrays
+
         ! Read in number of constituents involved in parameter:
         read (1,*,IOSTAT = INFO) iRegularParamCS(nParamCS+1,1)
 

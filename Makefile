@@ -31,23 +31,25 @@ else
 endif
 CC          ?= g++
 FFPE_TRAPS  ?= zero
-CCFLAGS     ?= -std=gnu++17
+DEFAULT_TOLERANCE_EPSILON ?= 1D-14
+FCFLAGS     = -Wall -O2 -ffree-line-length-none -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -cpp -D"DATA_DIRECTORY='$(DATA_DIR)'" -D"OUTPUT_DIRECTORY='$(OUTPUT_DIR)'" -DTHERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON=$(DEFAULT_TOLERANCE_EPSILON)
+CCFLAGS     = -std=gnu++17
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
     # links to lapack and blas libraries:
     LDLOC   = -L/usr/lib/lapack -llapack -L/usr/lib/libblas -lblas -lgfortran
     # link flags for linux users:
-    LDFLAGS = -O2 -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fbounds-check
 endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
-    LDFLAGS = -O2 -framework Accelerate -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -framework Accelerate -fbounds-check
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
     LDLOC   =  -llapack -lblas -lgfortran
     # link flags for Windows users:
-    LDFLAGS = -O2 -fno-automatic -fbounds-check
+    LDFLAGS = -O2 -fbounds-check
 endif
 
 ## ====================
@@ -68,6 +70,7 @@ SHARED_DIR  = $(SRC_DIR)
 SHARED_DIR += $(addprefix $(SRC_DIR)/,$(SRC_SDR))
 CURR_DIR    = $(shell pwd)
 DATA_DIR    = $(CURR_DIR)/data/
+OUTPUT_DIR    = $(CURR_DIR)/outputs/
 VPATH		= $(SHARED_DIR)
 
 # Separate modules and non-modules
@@ -136,34 +139,39 @@ ${BIN_DIR}:
 	${MKDIR_P} ${BIN_DIR}
 
 # Enforce module dependency rules
-$(OBJ_FILES): $(srcfiles) $(MODS_LNK)
+$(OBJ_FILES): $(MODS_LNK)
 $(EXEC_LNK) $(DTST_LNK): $(MODS_LNK)
 
-$(OBJ_DIR)/%.o: %.f90 $(OBJ_DIR)
+# Auto-generate inter-module compile-order dependencies from USE statements
+$(foreach src,$(modfiles),$(foreach use,\
+  $(shell grep -Eio "USE[[:space:]]+Module[A-Za-z_0-9]+" "$(src)" 2>/dev/null | grep -Eio "Module[A-Za-z_0-9]+"),\
+  $(eval $(OBJ_DIR)/$(patsubst %.f90,%.o,$(notdir $(src))): $(filter $(OBJ_DIR)/$(use).o,$(MODS_LNK)))))
+
+$(OBJ_DIR)/%.o: %.f90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: %.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: %.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(TST_DIR)/%.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(EXE_DIR)/%.F90 | $(OBJ_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
 
 $(SHARED_LIB): $(SHARED_LNK)
 	$(AR) rcs $@ $^
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.C | $(OBJ_DIR)
 	$(CC) $(CCFLAGS) -c $< -o $@
 
 $(C_LIB): $(C_LNK)
 	$(AR) rcs $@ $^
 
-$(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK)
+$(BIN_DIR)/%: $(OBJ_DIR)/%.o $(SHARED_LNK) | $(BIN_DIR)
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) $(LDFLAGS) -o $(BIN_DIR)/$* $< $(SHARED_LNK) $(LDLOC)
 
 .PHONY: clean veryclean test doc cleandoc directories
@@ -242,6 +250,6 @@ test: all dailytest
 ## DEBUG:
 ## ===========
 setdebug:
-	$(eval FCFLAGS = -Wall -O0 -g -fno-automatic -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -D"DATA_DIRECTORY='$(DATA_DIR)'")
+	$(eval FCFLAGS = -Wall -O0 -g -fbounds-check -ffpe-trap=$(FFPE_TRAPS) -D"DATA_DIRECTORY='$(DATA_DIR)'")
 
 debug: setdebug all dailytest

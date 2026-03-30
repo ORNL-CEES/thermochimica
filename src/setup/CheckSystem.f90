@@ -127,7 +127,7 @@ subroutine CheckSystem
 
     implicit none
 
-    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, nCountSublatticeTemp, iCon1, iCon2, iCon3, iCon4
+    integer                                 :: i, j, k, l, m, n, nMaxSpeciesPhase, iCon1, iCon2, iCon3, iCon4
     integer                                 :: mm, nn, nConstituentPass, c, s, nSpeciesCurrentPhase, nMinSpeciesPhase
     integer,dimension(0:nSolnPhasesSysCS+1) :: iTempVec
     real(8)                                 :: dSum, dElementMoleFractionMin
@@ -161,7 +161,6 @@ subroutine CheckSystem
     nMaxSublatticeSys   = 0
     nMaxConstituentSys  = 0
     nMaxSpeciesPhase    = 0
-    nCountSublatticeTemp   = 0
     nChargedConstraints = 0
     n                   = 0
     dSum                = 0D0
@@ -344,7 +343,6 @@ subroutine CheckSystem
         ! Store temporary counter for the number of charged phases from the CS data-file:
         if ((cSolnPhaseTypeCS(i) == 'SUBL').OR.(cSolnPhaseTypeCS(i) == 'SUBLM').OR. &
             (cSolnPhaseTypeCS(i) == 'SUBI').OR.(cSolnPhaseTypeCS(i) == 'SUBM')) then
-            nCountSublatticeTemp = nCountSublatticeTemp + 1
             if (nSpeciesCurrentPhase > 0) then
                 k = iPhaseSublatticeCS(i)
                 ! Loop through species in phase to determine which constituents are stable:
@@ -382,7 +380,7 @@ subroutine CheckSystem
                 end do LOOP_CHECK_SUBLATTICES
             end if
         else if ((cSolnPhaseTypeCS(i) == 'SUBG').OR.(cSolnPhaseTypeCS(i) == 'SUBQ')) then
-            nCountSublatticeTemp = nCountSublatticeTemp + 1
+            continue
         end if
 
         ! Count the number of solution phases in the system:
@@ -397,8 +395,9 @@ subroutine CheckSystem
                 ! Count the number of charged phases:
                 nCountSublattice = nCountSublattice + 1
                 ! Determine the maximum number of sublattice of any stable phase:
-                nMaxSublatticeSys  = MAX(nMaxSublatticeSys,nSublatticePhaseCS(nCountSublatticeTemp))
-                m = MAXVAL(nConstituentSublatticeCS(nCountSublatticeTemp,1:nMaxSublatticeCS))
+                k = iPhaseSublatticeCS(i)
+                nMaxSublatticeSys  = MAX(nMaxSublatticeSys,nSublatticePhaseCS(k))
+                m = MAXVAL(nConstituentSublatticeCS(k,1:nMaxSublatticeCS))
                 nMaxConstituentSys = MAX(nMaxConstituentSys,m)
             end if
         else if (iTempVec(nSolnPhasesSys+1) - iTempVec(nSolnPhasesSys) == 1) then

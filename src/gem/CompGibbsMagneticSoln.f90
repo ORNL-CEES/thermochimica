@@ -227,6 +227,11 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                 iChargedPhaseID = iPhaseSublattice(iSolnPhaseIndex)
                 nSublattice     = nSublatticePhase(iChargedPhaseID)
                 ! Reinitialize temporary variable:
+                x1 = 0D0
+                x2 = 0D0
+                iFirstParam = 0
+                iSecondParam = 0
+                iSubParam = 0
                 dPreFactor = 1D0
 
                 ! Store the number of constituents involved in this parameter:
@@ -255,6 +260,11 @@ subroutine CompGibbsMagneticSoln(iSolnPhaseIndex)
                         iSecondParam = c
                     end if
                 end do
+
+                if ((iFirstParam == 0) .OR. (iSecondParam == 0)) then
+                    INFOThermo = 43
+                    exit LOOP_Param
+                end if
 
                 ! Multiply prefactor term by excess Gibbs energy parameter:
                 dPreFactor = dPreFactor * dTemp * (x1 - x2)**iExponent

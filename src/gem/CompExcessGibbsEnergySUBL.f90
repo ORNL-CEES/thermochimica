@@ -260,9 +260,14 @@ subroutine CompExcessGibbsEnergySUBL(iSolnIndex)
             iFirstParam = 0
             iSecondParam = 0
             iThirdParam = 0
+            iSubParam = 0
+            iSubParam2 = 0
+            iExponent = 0
             dFirstParam = 0D0
             dSecondParam = 0D0
             dThirdParam = 0D0
+            dFirstParam2 = 0D0
+            dSecondParam2 = 0D0
             iFirstParam2 = 0
             iSecondParam2 = 0
 

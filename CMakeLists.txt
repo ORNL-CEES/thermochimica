@@ -9,10 +9,13 @@ if(LAPACK_FOUND AND BLAS_FOUND)
    set(lapackblas_libraries ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 endif()
 
+set(THERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON "1D-14" CACHE STRING
+    "Standalone Thermochimica default numerical epsilon used to derive solver tolerances")
+
 SET(Fortran_FLAGS
-    -fno-automatic
     -cpp
     -D"DATA_DIRECTORY='${CMAKE_CURRENT_SOURCE_DIR}/data/'"
+    -DTHERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON=${THERMOCHIMICA_DEFAULT_TOLERANCE_EPSILON}
 )
 
 FOREACH(flag ${Fortran_FLAGS})

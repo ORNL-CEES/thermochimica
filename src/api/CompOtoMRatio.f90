@@ -89,11 +89,15 @@ subroutine CompOtoMRatio(cPhaseIn, lcPhaseIn, dOtoMRatio, INFO)
         end if
     end do LOOP_CheckPhaseName
 
-    ! Make sure that the
-    if ((cSolnPhaseType(j) == 'SUBL').OR.(cSolnPhaseType(j) == 'SUBLM')) then
+    if (iPhaseID == 0) then
+        INFO = 2
+        return
+    end if
+
+    if ((cSolnPhaseType(iPhaseID) == 'SUBL').OR.(cSolnPhaseType(iPhaseID) == 'SUBLM')) then
 
         ! Store the index # of the charged phase:
-        iChargedPhaseID = iPhaseSublattice(j)
+        iChargedPhaseID = iPhaseSublattice(iPhaseID)
 
         ! Check to make sure that the correct number of sublattices:
         if (nSublatticePhase(iChargedPhaseID) /= 3) then

@@ -31,6 +31,16 @@ void SetUnits(const char *tunit, const char *punit, const char *munit)
   SetUnitMass(munit);
 }
 
+void SetMinMoleFraction(double min_mole_fraction)
+{
+  TCAPI_setMinMoleFraction(&min_mole_fraction);
+}
+
+void SetMassBalanceTolerance(double tolerance)
+{
+  TCAPI_setMassBalanceTolerance(&tolerance);
+}
+
 void GetOutputChemPot(char *elementName, double *chemPot, int *info)
 {
   TCAPI_getOutputChemPot(elementName, strlen(elementName), chemPot, info);

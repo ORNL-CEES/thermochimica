@@ -9,13 +9,16 @@ subroutine WriteJSON(append)
     logical, intent(in) :: append
     logical :: exist
     integer :: i, c, nElectron, its
+    character(:), allocatable :: cOutputFullPath
 
-    inquire(file=cOutputFilePath, exist=exist)
+    cOutputFullPath = GetResolvedOutputFilePath()
+
+    inquire(file= cOutputFullPath, exist=exist)
     if (append .AND. exist) then
-        open(1, file= cOutputFilePath, &
+        open(1, file= cOutputFullPath, &
               status='OLD', position='append', action='write')
     else
-        open(1, file=cOutputFilePath, &
+        open(1, file= cOutputFullPath, &
               status='REPLACE', action='write')
     end if
 
@@ -447,6 +450,7 @@ subroutine WriteJSONMQM(iSolnIndex)
 
     ! Use most abundant element in phase to normalize
     dMax = 0D0
+    iMax = 1
     do i = 1, nElements
         dSumElementQuads = 0D0
         do k = 1, nPairsSRO(iSPI,2)

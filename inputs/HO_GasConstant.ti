@@ -1,0 +1,25 @@
+! ============================================================
+! Input script: H-O ideal gas equilibrium at 1000 K
+! Lines starting with '!' are comments.
+! ============================================================
+
+! Path to the thermodynamic database (relative to the repo root)
+data file         = data/HO.dat
+
+! Temperature in Kelvin (single point)
+temperature       = 1000
+
+! Pressure in atmospheres
+pressure          = 1
+
+! Units for temperature, pressure, and element mass
+temperature unit = K
+pressure unit     = atm
+mass unit         = mol
+
+! Element masses (element symbol = amount in the chosen unit)
+mass(1)                 = 2.0
+mass(8)                 = 1.0
+
+! Write results to outputs/thermoout.json
+write json        = .TRUE.

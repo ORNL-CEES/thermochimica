@@ -40,3 +40,4 @@ private_tests
 # Ignore dynamic libraries
 *.dylib
 .libs
+*.DS_Store

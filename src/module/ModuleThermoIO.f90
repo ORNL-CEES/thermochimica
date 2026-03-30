@@ -58,6 +58,7 @@ module ModuleThermoIO
     character(15)                            :: cInputUnitTemperature, cInputUnitPressure, cInputUnitMass
     character(:), allocatable                :: cThermoFileName
     character(:), allocatable                :: cOutputFilePath
+    character(:), allocatable                :: cResolvedOutputFilePath
     logical                                  :: lReinitAvailable = .FALSE., lReinitLoaded = .FALSE., lReinitRequested = .FALSE.
     logical                                  :: lStepTogether = .FALSE., lWriteJSON = .FALSE.
     logical                                  :: lFuzzyStoich = .FALSE., lGibbsMinCheck = .FALSE.
@@ -79,5 +80,67 @@ module ModuleThermoIO
     character(25), dimension(:), allocatable :: cSolnPhaseNameOut, cPureConPhaseNameOut, cSpeciesNameOut, cSpeciesPhaseOut
     logical, dimension(:), allocatable       :: lSpeciesStable
     real(8)                                  :: dHeatCapacity = 0D0, dEntropy = 0D0, dEnthalpy = 0D0
+
+contains
+
+    logical function PathIsAbsolute(path)
+
+        character(*), intent(in) :: path
+        character(len(path)) :: trimmed
+        integer :: n
+
+        trimmed = adjustl(path)
+        n = len_trim(trimmed)
+
+        if (n <= 0) then
+            PathIsAbsolute = .FALSE.
+        else if ((trimmed(1:1) == '/') .OR. (trimmed(1:1) == '\\')) then
+            PathIsAbsolute = .TRUE.
+        else if (n >= 2) then
+            PathIsAbsolute = (trimmed(1:2) == '..')
+        else
+            PathIsAbsolute = .FALSE.
+        end if
+
+    end function PathIsAbsolute
+
+    subroutine SetDefaultOutputFilePath()
+
+        call UpdateOutputFilePath('thermochimica_out.json')
+
+    end subroutine SetDefaultOutputFilePath
+
+    subroutine UpdateOutputFilePath(rawPath)
+
+        character(*), intent(in) :: rawPath
+        character(len(rawPath)) :: cleaned
+        integer :: n
+
+        cleaned = adjustl(rawPath)
+        n = len_trim(cleaned)
+
+        cOutputFilePath = cleaned(1:n)
+
+        if (PathIsAbsolute(cleaned(1:n))) then
+            cResolvedOutputFilePath = cleaned(1:n)
+        else if ((INDEX(cleaned(1:n), '/') == 0) .AND. (INDEX(cleaned(1:n), '\\') == 0)) then
+            cResolvedOutputFilePath = OUTPUT_DIRECTORY // cleaned(1:n)
+        else
+            cResolvedOutputFilePath = OUTPUT_DIRECTORY // cleaned(1:n)
+        end if
+
+    end subroutine UpdateOutputFilePath
+
+    function GetResolvedOutputFilePath() result(path)
+        implicit none
+        character(len=:), allocatable :: path
+
+        ! In modern compilers, assignment automatically handles allocation
+        if (.not. allocated(cResolvedOutputFilePath)) call SetDefaultOutputFilePath()
+        if (.not. allocated(cResolvedOutputFilePath)) error stop "Resolved path not set"
+
+        path = cResolvedOutputFilePath
+
+    end function GetResolvedOutputFilePath
 
 end module ModuleThermoIO
