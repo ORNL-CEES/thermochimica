@@ -20,6 +20,7 @@ def WriteRunCalculationList(filename,datafile,elements,calcList,tunit='K',punit=
     with open(filename, 'w') as inputFile:
         inputFile.write('! Python-generated input file for Thermochimica\n')
         inputFile.write(f'data file         = {datafile}\n')
+        inputFile.write(f'output file       = thermoout.json\n')
         inputFile.write(f'temperature unit  = \'{tunit}\'\n')
         inputFile.write(f'pressure unit     = \'{punit}\'\n')
         inputFile.write(f'mass unit         = \'{munit}\'\n')
