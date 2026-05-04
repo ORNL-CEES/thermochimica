@@ -1,5 +1,5 @@
 import binaryPhaseDiagramFunctions
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import os
 import sys
 import pickle
