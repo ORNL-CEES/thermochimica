@@ -56,7 +56,7 @@ class diagram:
         self.exportDPI = 300
         self.resRef = 7
         self.resSmooth = 7
-        self.gapLimit = np.Inf
+        self.gapLimit = np.inf
         self.figureList = []
         self.boundaries = []
         self.phases = []

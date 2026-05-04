@@ -584,10 +584,10 @@ class InspectWindow:
                 self.parent.macro.append(f'macroPD.suppressed[{self.index}] = not(macroPD.suppressed[{self.index}])')
                 self.sgw['-status-'].update(f'{"Suppressed" if self.parent.calculation.suppressed[self.index] else "Active"}')
         elif event == 'Apply Filter':
-            tlo = -np.Inf
-            thi  = np.Inf
-            xlo = -np.Inf
-            xhi  = np.Inf
+            tlo = -np.inf
+            thi  = np.inf
+            xlo = -np.inf
+            xhi  = np.inf
             try:
                 tlo = float(values['-tfilterlow-'])
             except:
