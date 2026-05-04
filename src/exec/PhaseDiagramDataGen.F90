@@ -6,6 +6,7 @@ program PhaseDiagramDataGen
 
     implicit none
     character(1024) :: cInputFile
+    character(len=:), allocatable :: cOutputFullPath
     integer :: i, j, nt, nx, nSim, iEl1, iEl2
     real(8) :: tlo, thi, xlo, xhi, dTbase, dDeltaT, dDeltaX, dPress
     character(16) :: intStr
@@ -21,6 +22,9 @@ program PhaseDiagramDataGen
 
     call ParseCSDataFile(cThermoFileName)
 
+    call UpdateOutputFilePath('thermoout.json')
+    cOutputFullPath = GetResolvedOutputFilePath()
+
     ! Specify values:
     dPressure              = dPress
     if ((thi == tlo) .OR. dDeltaT == 0D0) then
@@ -34,7 +38,7 @@ program PhaseDiagramDataGen
       nx = CEILING((xhi - xlo) / dDeltaX)
     end if
 
-    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+    open(1, file= cOutputFullPath, &
         status='REPLACE', action='write')
     write(1,*) '{'
     close (1)
@@ -53,7 +57,7 @@ program PhaseDiagramDataGen
         dElementMass(iEl1) = 1D0-dElementMass(iEl2)
         call Thermochimica
         if (INFOThermo == 0) then
-          open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+          open(1, file= cOutputFullPath, &
               status='OLD', position='append', action='write')
           if ((i > 0) .OR. (j > 0)) write(1,*) ','
           write(intStr,*) nSim
@@ -70,7 +74,7 @@ program PhaseDiagramDataGen
       end do
     end do
 
-    open(1, file= DATA_DIRECTORY // '../outputs/thermoout.json', &
+    open(1, file= cOutputFullPath, &
         status='OLD', position='append', action='write')
     write(1,*) '}'
     close (1)

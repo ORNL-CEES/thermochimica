@@ -116,8 +116,9 @@ class diagram:
         self.backup = diagram(self.datafile, False, self.interactivePlot)
         for fig in self.figureList:
             plt.close(fig=fig)
-        self.runCalc()
+        success = self.runCalc()
         self.outline = MultiPolygon([Polygon([[0,self.mint], [0, self.maxt], [1, self.maxt], [1, self.mint]])])
+        return success
     def refinery(self):
         self.refineLimit(0,(self.maxt-self.mint)/(self.resRef**2)/10)
         self.refineLimit(1,(self.maxt-self.mint)/(self.resRef**2)/10)
@@ -134,7 +135,7 @@ class diagram:
         except:
             f.close()
             print('Data load failed, aborting phase diagram update')
-            return
+            return False
         if list(data.keys())[0] != '1':
             print('Output does not contain data series')
             exit()
@@ -228,11 +229,12 @@ class diagram:
             xtemp[1] = sorted(self.x1data[1])
             xtemp[2] = sorted(self.x1data[2])
             self.x1data = xtemp
+        return True
     def runCalc(self):
         print('Thermochimica calculation initiated.')
         subprocess.run(['./bin/PhaseDiagramDataGen',self.inputFileName])
         print('Thermochimica calculation finished.')
-        self.processPhaseDiagramData()
+        return self.processPhaseDiagramData()
     def phaseBoundaries(self):
         self.boundaries = []
         self.phases = []
