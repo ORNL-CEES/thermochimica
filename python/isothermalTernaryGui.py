@@ -1,4 +1,4 @@
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import json
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter

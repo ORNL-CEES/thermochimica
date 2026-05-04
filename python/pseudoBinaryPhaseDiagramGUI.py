@@ -1,5 +1,5 @@
 import pseudoBinaryPhaseDiagramFunctions
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 import matplotlib.pyplot as plt
 import os
 import sys
