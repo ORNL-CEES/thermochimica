@@ -49,7 +49,7 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
 
     implicit none
 
-    integer::                        i, j, k, iPhaseChange, INFO, nConPhasesLast
+    integer::                        i, j, k, iPhaseChange, INFO, nConPhasesLast, nVar
     integer,dimension(nConPhases)::  iTempVec
     real(8)::                        dTemp
     real(8),dimension(nConPhases)::  dTempVec
@@ -82,6 +82,8 @@ subroutine RemPureConPhase(iPhaseChange,lSwapLater,lPhasePass)
     k = MAX(1, nConPhases)
     do i = 1, k
 
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then

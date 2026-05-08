@@ -55,7 +55,7 @@ subroutine RemSolnAddPureConPhase(iPhaseAdd,iPhaseRem,lPhasePass)
 
     implicit none
 
-    integer::   j, iPhaseAdd, iPhaseRem, INFO, iTemp
+    integer::   j, iPhaseAdd, iPhaseRem, INFO, iTemp, nVar
     real(8)::   dTemp
     logical::   lPhasePass
 
@@ -91,6 +91,8 @@ subroutine RemSolnAddPureConPhase(iPhaseAdd,iPhaseRem,lPhasePass)
 
     else
         ! Check that this phase change is acceptable:
+        nVar = nElements + nConPhases + nSolnPhases
+        call ResizeGEMWorkspace(nVar)
         call CheckPhaseChange(lPhasePass,INFO)
 
         lRevertSystem = .FALSE.
