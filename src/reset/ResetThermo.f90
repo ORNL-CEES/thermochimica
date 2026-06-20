@@ -119,6 +119,12 @@ subroutine ResetThermo
     i = i + INFO
     if (allocated(dEffStoichSolnPhase)) deallocate(dEffStoichSolnPhase, STAT = INFO)
     i = i + INFO
+    if (allocated(GEM_A)) deallocate(GEM_A, STAT = INFO)
+    i = i + INFO
+    if (allocated(GEM_B)) deallocate(GEM_B, STAT = INFO)
+    i = i + INFO
+    if (allocated(GEM_IPIV)) deallocate(GEM_IPIV, STAT = INFO)
+    i = i + INFO
     if (allocated(lSolnPhases)) deallocate(lSolnPhases, STAT = INFO)
     i = i + INFO
     if (allocated(dGibbsSolnPhase)) deallocate(dGibbsSolnPhase, STAT = INFO)

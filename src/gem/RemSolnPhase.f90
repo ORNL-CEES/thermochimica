@@ -59,7 +59,7 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
 
     implicit none
 
-    integer::                      i, j, k, iPhaseChange, INFO, iSolnPhaseLastOld
+    integer::                      i, j, k, iPhaseChange, INFO, iSolnPhaseLastOld, nVar
     real(8)::                      dTemp
     real(8),dimension(nElements):: dTempVec
     logical::                      lPhasePass
@@ -103,6 +103,8 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
         j = MAX(1,nConPhases)
         LOOP_PhaseCheck: do i = 1, j
 
+            nVar = nElements + nConPhases + nSolnPhases
+            call ResizeGEMWorkspace(nVar)
             call CheckPhaseChange(lPhasePass,INFO)
 
             if ((INFO > nElements + nSolnPhases) .AND. (nConPhases > 0)) then

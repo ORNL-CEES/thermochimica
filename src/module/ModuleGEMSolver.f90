@@ -62,13 +62,39 @@ module ModuleGEMSolver
     integer                              ::  iConPhaseLast, iSolnPhaseLast,       iSolnSwap,  iPureConSwap
     integer,                 parameter   ::  iterGlobalMax = 3000
     integer, dimension(:,:), allocatable ::  iterHistory
+    integer, dimension(:),   allocatable ::  GEM_IPIV      ! Pivot indices for GEMNewton
 
     real(8)                              ::  dGEMFunctionNorm,    dGEMFunctionNormLast, dMaxSpeciesChange, dMinGibbs
-    real(8), dimension(:),   allocatable ::  dSumMolFractionSoln, dMolesPhaseLast, dUpdateVar, dDrivingForceSoln
+    real(8), dimension(:),   allocatable ::  dSumMolFractionSoln, dMolesPhaseLast, dUpdateVar, dDrivingForceSoln, GEM_B   ! Workspace vector for GEMNewton
     real(8), dimension(:),   allocatable ::  dPartialExcessGibbs, dPartialExcessGibbsLast
-    real(8), dimension(:,:), allocatable ::  dEffStoichSolnPhase
+    real(8), dimension(:,:), allocatable ::  dEffStoichSolnPhase, GEM_A   ! Workspace matrix for GEMNewton
 
     logical                              ::  lDebugMode, lRevertSystem, lConverged
     logical, dimension(:),   allocatable ::  lSolnPhases, lMiscibility
+
+contains
+
+    subroutine ResizeGEMWorkspace(nVar)
+
+        implicit none
+
+        integer, intent(in) :: nVar
+
+        if (allocated(GEM_A))    deallocate(GEM_A)
+        if (allocated(GEM_B))    deallocate(GEM_B)
+        if (allocated(GEM_IPIV)) deallocate(GEM_IPIV)
+        if (allocated(dUpdateVar)) deallocate(dUpdateVar)
+
+        allocate(GEM_A(nVar, nVar))
+        allocate(GEM_B(nVar))
+        allocate(GEM_IPIV(nVar))
+        allocate(dUpdateVar(nVar))
+
+        GEM_A      = 0D0
+        GEM_B      = 0D0
+        GEM_IPIV   = 0
+        dUpdateVar = 0D0
+
+    end subroutine ResizeGEMWorkspace
 
 end module ModuleGEMSolver

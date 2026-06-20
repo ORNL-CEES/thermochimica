@@ -232,22 +232,12 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
 
     ! Check if allocatable arrays are already allocated.  Deallocate if necessary:
     if (allocated(dChemicalPotentialStar)) deallocate(dChemicalPotentialStar)
-    if (allocated(dRHS))                   deallocate(dRHS)
-    if (allocated(dHessian))               deallocate(dHessian)
-    if (allocated(iHessian))               deallocate(iHessian)
+
+    ! Resize working arrays for the subminimization workspace
+    call ResizeSubMinWorkspace(iSolnPhaseIndex)
 
     ! Allocate allocatable arrays:
     allocate(dChemicalPotentialStar(nVar))
-
-    ! Determine prefactor for allocating arrays (depends on whether the phase is ionic):
-    if (iPhaseElectronID(iSolnPhaseIndex) == 0) then
-        i = 1
-    else
-        i = 2
-    end if
-
-    ! Allocate allocatable arrays:
-    allocate(dRHS(nVar+i), iHessian(nVar+i), dHessian(nVar+i,nVar+i))
 
     ! Initialize variables:
     dRHS                   = 0D0
@@ -300,6 +290,49 @@ subroutine SubMinInit(iSolnPhaseIndex,iterSubMax)
     end if
 
 end subroutine SubMinInit
+
+
+!-------------------------------------------------------------------------------------------------------------
+!> Resize workspace arrays used in the subminimization routine.
+!! This helper ensures that the Hessian matrix and related vectors are
+!! properly sized for the current solution phase.  The size depends on
+!! whether the phase is ionic (requiring an additional charge neutrality
+!! constraint) or neutral.
+subroutine ResizeSubMinWorkspace(iSolnPhaseIndex)
+
+    USE ModuleThermo, ONLY: iPhaseElectronID
+    USE ModuleSubMin
+
+    implicit none
+
+    integer, intent(in) :: iSolnPhaseIndex
+    integer :: offset, newSize
+
+    ! Determine prefactor for allocating arrays (depends on whether the phase is ionic):
+    if (iPhaseElectronID(iSolnPhaseIndex) == 0) then
+        offset = 1
+    else
+        offset = 2
+    end if
+
+    newSize = nVar + offset
+
+    ! Reallocate working arrays only if their size has changed:
+    if (allocated(dRHS)) then
+        if (size(dRHS) /= newSize) deallocate(dRHS)
+    end if
+    if (allocated(iHessian)) then
+        if (size(iHessian) /= newSize) deallocate(iHessian)
+    end if
+    if (allocated(dHessian)) then
+        if ( (size(dHessian,1) /= newSize) .OR. (size(dHessian,2) /= newSize) ) deallocate(dHessian)
+    end if
+
+    if (.not.allocated(dRHS))     allocate(dRHS(newSize))
+    if (.not.allocated(iHessian)) allocate(iHessian(newSize))
+    if (.not.allocated(dHessian)) allocate(dHessian(newSize,newSize))
+
+end subroutine ResizeSubMinWorkspace
 
 
 !-------------------------------------------------------------------------------------------------------------
