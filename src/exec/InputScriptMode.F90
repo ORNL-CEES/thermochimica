@@ -111,7 +111,7 @@ program ThermochimicaInputScriptMode
       if (INFOThermo == 0) then
           call ResetThermo
       else
-          call ResetThermoAll
+          call ResetThermoAllPreservePhaseConstraints
           INFOThermo = 0
           call ParseCSDataFile(cThermoFileName)
       end if

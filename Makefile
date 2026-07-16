@@ -38,6 +38,7 @@ endif
 ifeq ($(UNAME_S),Darwin)
     # link flags for mac users:
     LDFLAGS = -O2 -framework Accelerate -fbounds-check
+    CXX_FORTRAN_LIBS = $(shell $(FC) -print-file-name=libgfortran.dylib)
 endif
 ifneq (,$(findstring NT,$(UNAME_S)))
     LDLOC   =  -llapack -lblas -lgfortran
@@ -117,6 +118,7 @@ DTEST_OBJ   = $(DTEST_SRC:.F90=.o)
 DTEST_LNK   = $(addprefix $(OBJ_DIR)/,$(DTEST_OBJ))
 DTST_OBJ    = $(basename $(DTEST_SRC))
 DTST_BIN    = $(addprefix $(BIN_DIR)/,$(DTST_OBJ))
+PHASE_CONSTRAINT_API_TEST = $(BIN_DIR)/TestPhaseConstraintAPI
 
 ## =======
 ## COMPILE
@@ -229,10 +231,16 @@ cleandoc:
 ## ===========
 ## DAILY TESTS
 ## ===========
-dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN)
+dailytest: $(DTEST_LNK) $(SHARED_LNK) $(MODS_LNK) $(DTST_BIN) $(PHASE_CONSTRAINT_API_TEST)
 
 $(OBJ_DIR)/%.o: $(DTST_DIR)/%.F90
 	$(FC) -I$(OBJ_DIR) -J$(OBJ_DIR) $(FCFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/TestPhaseConstraintAPI.o: $(DTST_DIR)/TestPhaseConstraintAPI.C | $(OBJ_DIR)
+	$(CC) $(CCFLAGS) -I$(SRC_DIR) -DTHERMOCHIMICA_DATA_DIRECTORY=\"$(DATA_DIR)\" -c $< -o $@
+
+$(PHASE_CONSTRAINT_API_TEST): $(OBJ_DIR)/TestPhaseConstraintAPI.o $(C_LNK) $(SHARED_LNK) | $(BIN_DIR)
+	$(CC) $(CCFLAGS) $(filter-out -fbounds-check,$(LDFLAGS)) -o $@ $^ $(LDLOC) $(CXX_FORTRAN_LIBS)
 
 ## ===========
 ## ALL TESTS:

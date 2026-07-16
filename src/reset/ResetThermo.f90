@@ -39,6 +39,7 @@ subroutine ResetThermo
     USE ModuleThermoIO, ONLY: INFOThermo, lRetryAttempted
     USE ModuleGEMSolver
     USE ModuleSubMin
+    USE ModulePhaseConstraints, ONLY: lPhaseConstraintResultsAvailable
 
     implicit none
 
@@ -46,6 +47,7 @@ subroutine ResetThermo
 
     ! Initialize variables:
     i = 0
+    lPhaseConstraintResultsAvailable = .FALSE.
 
     if (allocated(dStoichSpecies)) deallocate(dStoichSpecies, STAT = INFO)
     i = i + INFO

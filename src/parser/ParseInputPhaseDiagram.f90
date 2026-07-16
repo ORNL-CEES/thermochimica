@@ -32,20 +32,25 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
   USE ModuleThermoIO
   USE ModuleGEMSolver
   USE ModuleParseCS
+  USE ModulePhaseConstraints
 
   implicit none
 
   character(*)                :: cInputFileName
   integer                     :: iDelimiterPosition, iOpenPosition, iClosePosition, iElementNumber, iColon1, iColon2
+  integer                     :: iReadStatus
   logical                     :: lEnd, lPressure, lTemperature, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lX!, lMass
-  character(:), allocatable   :: cLine, cTag, cValue, cElementNumber
+  logical                     :: lParenHasNumber
+  character(:), allocatable   :: cLine, cTag, cValue, cParenValue
   character(128)              :: cErrMsg
   character(1024)             :: cLineInit, cThermoFileNameTemp
   real(8), intent(out)        :: dTempLow, dTempHigh, dPress, dXlo, dXhi, dDeltaT, dDeltaX
   integer, intent(out)        :: iEl1, iEl2
+  real(8)                     :: dPhaseFraction
 
   ! Initialize INFO
   INFO = 0
+  call ClearPhaseConstraints
   ! Open input file
   open (UNIT = 1, FILE = cInputFileName, STATUS = 'old', ACTION = 'read', IOSTAT = INFO)
   ! Check for error on attempt to open
@@ -76,6 +81,7 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
     endif
     ! Remove leading then trailing spaces on line
     cLine = trim(adjustl(cLineInit))
+    if (allocated(cParenValue)) deallocate(cParenValue)
     ! Check for comment line (going to be liberal with choices of comment indicators)
     if (scan(cLine,'!@#$%&*/\?|') == 1) then
       cycle LOOP_ReadFile
@@ -93,8 +99,12 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
     ! Check if line contains a mass, need to treat these separately
     ! Masses will be the only lines to contain '()', so look for these
     iOpenPosition = scan(cLine,'(')
+    lParenHasNumber = .FALSE.
     if (iOpenPosition > 0) then
-      iClosePosition = scan(cLine,')')
+      iClosePosition = 0
+      do iClosePosition = iDelimiterPosition - 1, 1, -1
+        if (cLine(iClosePosition:iClosePosition) == ')') exit
+      end do
       ! Check for no close ')'
       if (iClosePosition == 0) then
         INFOThermo = 42
@@ -102,14 +112,12 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
         print *,  trim(cErrMsg)
         return
       endif
-      cElementNumber = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
-      read(cElementNumber,*,IOSTAT = INFO) iElementNumber
-      if (INFO /= 0) then
-        INFOThermo = 43
-        write (cErrMsg, '(A36,I10)') 'Cannot read element number on line: ', iCounter
-        print *,  trim(cErrMsg)
-        return
-      endif
+      cParenValue = trim(adjustl(cTag((iOpenPosition + 1) : (iClosePosition - 1))))
+      iReadStatus = 0
+      read(cParenValue,*,IOSTAT = iReadStatus) iElementNumber
+      if (iReadStatus == 0) then
+        lParenHasNumber = .TRUE.
+      end if
       cTag = trim(adjustl(cTag(1 : (iOpenPosition - 1))))
     endif
 
@@ -254,6 +262,22 @@ subroutine ParseInputPhaseDiagram(cInputFileName,dTempLow,dTempHigh,dDeltaT,dXlo
           return
         endif
         lMassUnit = .TRUE.
+      case ('phase fraction','Phase fraction','phase_fraction','Phase_fraction','phasefraction',&
+        'PhaseFraction','phase frac','Phase frac','phase_frac','Phase_frac')
+        if (.NOT. allocated(cParenValue)) then
+          INFOThermo = 44
+          write (cErrMsg, '(A51,I10)') 'Phase fraction missing phase name on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        read(cValue,*,IOSTAT = INFO) dPhaseFraction
+        if (INFO /= 0) then
+          INFOThermo = 44
+          write (cErrMsg, '(A44,I10)') 'Cannot read phase fraction on line: ', iCounter
+          print *,  trim(cErrMsg)
+          return
+        end if
+        call AddPhaseFractionConstraint(cParenValue, dPhaseFraction)
       case ('data','Data','data_file','Data_file','data file','Data file','Data File',&
         'dat','Dat','dat_file','Dat_file','dat file','Dat file','Dat File')
         read(cValue,'(A)',IOSTAT = INFO) cThermoFileNameTemp

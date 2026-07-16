@@ -108,11 +108,13 @@ subroutine CheckConvergence
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer :: i, j, k, l, c, iMaxDrivingForce
+    integer :: i, j, k, l, c, iMaxDrivingForce, infoConstraint
     real(8) :: dResidual, dMaxDrivingForce, dTempGibbs, dMassNorm, dNormComponent
+    real(8) :: dConstraintMax, dConstraintTol, dAchieved
     logical :: lCompEverything, lPhaseChange
 
 
@@ -131,9 +133,7 @@ subroutine CheckConvergence
     ! Test if the largest relative change in species mole fraction is large
     ! This is a self-consistency check
     if (lDebugMode) print *, "Test self-consistency ", dMaxSpeciesChange
-    if (dMaxSpeciesChange > LOG(2D0)) then
-        return
-    end if
+    if (dMaxSpeciesChange > LOG(2D0)) return
 
     ! TEST #1: Check if any of the phases in the assemblage are "dummy" phases:
     ! -------------------------------------------------------------------------
@@ -185,6 +185,42 @@ subroutine CheckConvergence
             return
         end if
     end do LOOP_TEST8
+
+    ! If phase fraction constraints are active, converge based on constraint residuals + mass balance.
+    if (nPhaseConstraints > 0) then
+        dConstraintMax = 0D0
+        dConstraintTol = dTolerance(1)
+
+        do c = 1, nPhaseConstraints
+            call GetPhaseConstraintResult(c, dAchieved, dResidual, infoConstraint)
+            if (infoConstraint /= 0) return
+            dConstraintMax = MAX(dConstraintMax, DABS(dResidual))
+        end do
+
+        ! A constrained solution must satisfy the full functional/KKT norm as well as the
+        ! explicit phase-fraction residual. Stability checks for phases outside the fixed
+        ! constrained assemblage are intentionally not applied.
+        if (dConstraintMax > dConstraintTol) return
+        if (dGEMFunctionNorm > dTolerance(1)) return
+
+        ! Check site-fraction normalization for constrained sublattice phases.
+        LOOP_CONSTRAINT_TEST6: do j = 1, nSolnPhases
+            k = -iAssemblage(nElements - j + 1)
+            if ((cSolnPhaseType(k) == 'SUBL').OR.(cSolnPhaseType(k) == 'SUBLM')) then
+                l = iPhaseSublattice(k)
+                do i = 1, nSublatticePhase(l)
+                    dResidual = -1D0
+                    do c = 1, nConstituentSublattice(l,i)
+                        dResidual = dResidual + dSiteFraction(l,i,c)
+                    end do
+                    if (DABS(dResidual) > dTolerance(2)) return
+                end do
+            end if
+        end do LOOP_CONSTRAINT_TEST6
+
+        lConverged = .TRUE.
+        return
+    end if
 
     dTempGibbs = 0D0
     do i = 1, nElements

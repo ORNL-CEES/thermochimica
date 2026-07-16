@@ -445,8 +445,11 @@ end subroutine ThermochimicaSetup
 subroutine ThermochimicaSolver
     USE ModuleThermoIO
     USE ModuleThermo
+    USE ModulePhaseConstraints, ONLY: nPhaseConstraints, lPhaseConstraintResultsAvailable
 
     implicit none
+
+    lPhaseConstraintResultsAvailable = .FALSE.
 
     ! Check is load is requested and data available:
     lReinitLoaded = .FALSE.
@@ -478,6 +481,10 @@ subroutine ThermochimicaSolver
     end if
 
     if (lHeatCapacityEntropyEnthalpy .AND. .NOT. lHeatCapacityCurrent) call HeatCapacity
+
+    if ((INFOThermo == 0) .AND. (nPhaseConstraints > 0)) then
+        lPhaseConstraintResultsAvailable = .TRUE.
+    end if
 
     return
 

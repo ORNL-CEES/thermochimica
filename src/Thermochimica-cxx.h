@@ -25,6 +25,7 @@ namespace Thermochimica
   void presetElementMass(int element, double mass);
   void setElementMass(int element, double mass);
   int checkInfoThermo();
+  std::string getInfoThermoMessage();
   void parseThermoFile();
   void setPrintResultsMode(int mode);
   void printResults();
@@ -117,5 +118,21 @@ namespace Thermochimica
   void setGibbsMinCheck(bool requested);
   void setMinMoleFraction(double min_mole_fraction);
   void setMassBalanceTolerance(double tolerance);
+
+  // Phase fraction constraints
+  struct PhaseFractionConstraint
+  {
+    std::string phaseName;
+    double targetFraction = 0.0;
+    double achievedFraction = 0.0;
+    double residual = 0.0;
+    double lagrangeMultiplier = 0.0;
+  };
+
+  int addPhaseFractionConstraint(const std::string &phaseName, double fraction);
+  void clearPhaseConstraints();
+  std::size_t getNumberPhaseFractionConstraints();
+  std::pair<PhaseFractionConstraint, int>
+  getPhaseFractionConstraintAtIndex(std::size_t constraintIndex);
 
 }

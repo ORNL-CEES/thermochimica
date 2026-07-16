@@ -3,13 +3,16 @@ subroutine WriteJSON(append)
     USE ModuleThermo
     USE ModuleThermoIO
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
     logical, intent(in) :: append
     logical :: exist
-    integer :: i, c, nElectron, its
+    integer :: i, c, nElectron, its, infoConstraint
+    real(8) :: dAchievedConstraint, dConstraintResidual
     character(:), allocatable :: cOutputFullPath
+    character(256) :: cInfoMessage
 
     cOutputFullPath = GetResolvedOutputFilePath()
 
@@ -26,16 +29,39 @@ subroutine WriteJSON(append)
 
     ! Only proceed for a successful calculation:
     if (INFOThermo /= 0) then
+        write(1,*) '  "info": ', INFOThermo, ','
+        call GetINFOThermoMessage(cInfoMessage)
+        write(1,*) '  "info message": "', trim(cInfoMessage), '"'
         write(1,*) '}'
         close (1)
         return
     end if
+
+    write(1,*) '  "info": ', INFOThermo, ','
 
     ! Print the results for solution phases:
     call WriteJSONSolnPhase
 
     ! Print the results for pure condensed phases:
     call WriteJSONPureConPhase
+
+    if (nPhaseConstraints > 0) then
+        write(1,*) '  "phase constraints": {'
+        do c = 1, nPhaseConstraints
+            call GetPhaseConstraintResult(c, dAchievedConstraint, dConstraintResidual, infoConstraint)
+            write(1,*) '    "', trim(cPhaseConstraintName(c)), '": {'
+            write(1,*) '      "target fraction": ', dPhaseConstraintTarget(c), ','
+            write(1,*) '      "achieved fraction": ', dAchievedConstraint, ','
+            write(1,*) '      "residual": ', dConstraintResidual, ','
+            write(1,*) '      "lagrange multiplier": ', dPhaseConstraintLambda(c)
+            if (c < nPhaseConstraints) then
+                write(1,*) '    },'
+            else
+                write(1,*) '    }'
+            end if
+        end do
+        write(1,*) '  },'
+    end if
 
     nElectron = 0
     do c = 1, nElements

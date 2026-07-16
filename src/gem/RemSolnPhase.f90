@@ -56,6 +56,7 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
     USE ModuleThermoIO, ONLY: INFOTHermo
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
@@ -68,6 +69,15 @@ subroutine RemSolnPhase(iPhaseChange,lPhasePass)
     ! Initialize variables:
     lPhasePass = .FALSE.
     dTempVec   = dMolesPhase
+
+    if (nPhaseConstraints > 0) then
+        k = nElements - iPhaseChange + 1
+        if (k >= 1 .AND. k <= nElements) then
+            if (-iAssemblage(k) > 0) then
+                if (lPhaseConstrainedSoln(-iAssemblage(k))) return
+            end if
+        end if
+    end if
 
     ! Remove this solution phase:
     j               = nElements - nSolnPhases  + 1

@@ -247,6 +247,25 @@ subroutine CheckINFOThermoISO(dbginfo) &
 
 end subroutine CheckINFOThermoISO
 
+function GetINFOThermoMessageISO(msg_len) &
+    bind(C, name="TCAPI_getInfoThermoMessage")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+
+    implicit none
+
+    integer(C_INT), intent(out) :: msg_len
+    type(c_ptr) :: GetINFOThermoMessageISO
+    character(len=256), target, save :: cInfoMessage
+
+    call GetINFOThermoMessage(cInfoMessage)
+    msg_len = len_trim(cInfoMessage)
+    GetINFOThermoMessageISO = c_loc(cInfoMessage)
+
+    return
+
+end function GetINFOThermoMessageISO
+
 subroutine ResetINFOThermoISO() &
     bind(C, name="TCAPI_resetInfoThermo")
 
@@ -1169,7 +1188,7 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
     return
   end subroutine SetFuzzyMagnitudeISO
 
-  subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
+subroutine SetGibbsMinCheckISO(lGibbsMinCheckIn) &
     bind(C, name="TCAPI_setGibbsMinCheck")
 
     USE,INTRINSIC :: ISO_C_BINDING
@@ -1207,3 +1226,97 @@ subroutine SetFuzzyStoichISO(lFuzzyStoichIn) &
 
     return
   end subroutine SetMassBalanceToleranceISO
+
+subroutine AddPhaseFractionConstraintISO(cPhaseName, lcPhaseName, dFraction, INFO) &
+    bind(C, name="TCAPI_addPhaseFractionConstraint")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModulePhaseConstraints
+
+    implicit none
+
+    character(kind=c_char,len=1), target, intent(in) :: cPhaseName(*)
+    integer(c_size_t), intent(in), value             :: lcPhaseName
+    character(kind=c_char,len=lcPhaseName), pointer  :: fPhaseName
+    real(C_DOUBLE), intent(in)                       :: dFraction
+    integer(C_INT), intent(out)                      :: INFO
+
+    if (lcPhaseName == 0) then
+        INFO = 1
+        return
+    end if
+    if ((dFraction /= dFraction) .OR. (dFraction < 0D0) .OR. (dFraction > 1D0)) then
+        INFO = 2
+        return
+    end if
+
+    call c_f_pointer(cptr=c_loc(cPhaseName), fptr=fPhaseName)
+    call AddPhaseFractionConstraint(fPhaseName, dFraction)
+    INFO = 0
+
+    return
+
+end subroutine AddPhaseFractionConstraintISO
+
+subroutine ClearPhaseConstraintsISO() &
+    bind(C, name="TCAPI_clearPhaseConstraints")
+
+    USE ModulePhaseConstraints
+
+    implicit none
+
+    call ClearPhaseConstraints
+
+    return
+
+end subroutine ClearPhaseConstraintsISO
+
+subroutine GetNumberPhaseFractionConstraintsISO(nConstraints) &
+    bind(C, name="TCAPI_getNumberPhaseFractionConstraints")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModulePhaseConstraints, ONLY: nPhaseConstraints
+
+    implicit none
+
+    integer(C_INT), intent(out) :: nConstraints
+
+    nConstraints = nPhaseConstraints
+
+    return
+
+end subroutine GetNumberPhaseFractionConstraintsISO
+
+function GetPhaseFractionConstraintAtIndexISO(iConstraint, lcPhaseName, dTarget, dAchieved, &
+    dResidual, dLambda, INFO) result(cPhaseNamePtr) &
+    bind(C, name="TCAPI_getPhaseFractionConstraintAtIndex")
+
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModulePhaseConstraints
+
+    implicit none
+
+    integer(C_INT), intent(in) :: iConstraint
+    integer(C_INT), intent(out) :: lcPhaseName
+    real(C_DOUBLE), intent(out) :: dTarget, dAchieved, dResidual, dLambda
+    integer(C_INT), intent(out) :: INFO
+    type(C_PTR) :: cPhaseNamePtr
+    character(kind=C_CHAR), target, save :: cPhaseNameBuffer(25)
+    integer :: i
+
+    cPhaseNamePtr = C_NULL_PTR
+    cPhaseNameBuffer = C_NULL_CHAR
+    lcPhaseName = 0
+
+    call GetPhaseConstraintData(iConstraint, dTarget, dAchieved, dResidual, dLambda, INFO)
+    if (INFO /= 0) return
+
+    lcPhaseName = len_trim(cPhaseConstraintName(iConstraint))
+    do i = 1, lcPhaseName
+        cPhaseNameBuffer(i) = cPhaseConstraintName(iConstraint)(i:i)
+    end do
+    cPhaseNamePtr = c_loc(cPhaseNameBuffer(1))
+
+    return
+
+end function GetPhaseFractionConstraintAtIndexISO

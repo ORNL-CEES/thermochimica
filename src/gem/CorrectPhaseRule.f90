@@ -47,10 +47,11 @@ subroutine CorrectPhaseRule(lPhaseChange)
 
     USE ModuleThermo
     USE ModuleGEMSolver
+    USE ModulePhaseConstraints
 
     implicit none
 
-    integer                            :: i, j
+    integer                            :: i, j, k
     integer, dimension(:), allocatable :: iTempVec
     real(8), dimension(:), allocatable :: dTempVec
     logical                            :: lPhasePass, lPhaseChange
@@ -85,6 +86,14 @@ subroutine CorrectPhaseRule(lPhaseChange)
         LOOP_SolnRem: do i = 1, nSolnPhases
 
             j = iTempVec(i)
+
+            ! Skip removal attempts for constrained solution phases:
+            if (nPhaseConstraints > 0) then
+                k = -iAssemblage(nElements - j + 1)
+                if (k > 0) then
+                    if (lPhaseConstrainedSoln(k)) cycle LOOP_SolnRem
+                end if
+            end if
 
             ! Try removing this solution phase from the system:
             call RemSolnPhase(j, lPhasePass)
