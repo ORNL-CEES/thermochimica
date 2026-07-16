@@ -1,6 +1,8 @@
-#include <utility>
-#include <tuple>
 #include <string>
+#include <tuple>
+#pragma once
+
+#include <utility>
 #include <vector>
 
 // #include "checkUnits.h"
@@ -15,6 +17,10 @@ namespace Thermochimica
   void compThermoData();
 
   void setThermoFilename(const std::string &filename);
+  /** Exclude the named phases from subsequent equilibrium calculations; return zero on success. */
+  int setExcludedPhases(const std::vector<std::string> &phases);
+  /** Exclude every phase except the named phases; return zero on success. */
+  int setIncludedPhases(const std::vector<std::string> &phases);
   void setUnitTemperature(const std::string &tunit);
   void setUnitPressure(const std::string &punit);
   void setUnitMass(const std::string &munit);
@@ -43,6 +49,7 @@ namespace Thermochimica
   std::vector<std::size_t> getNumberSpeciesSystem();
   std::vector<std::string> getSpeciesInPhase(int phase_index);
   std::vector<std::vector<std::string>> getSpeciesSystem();
+  std::vector<std::string> getThermodynamicSpeciesInPhase(int phase_index);
 
   // re-initialization-related functions
   void saveReinitData();
@@ -54,40 +61,48 @@ namespace Thermochimica
   std::vector<double> getAllElementPotential();
   double getElementFraction(int atomicNumber);
 
-  std::pair<double, int>
-  getOutputChemPot(const std::string &elementName);
-  std::tuple<double, double, int>
-  getOutputSolnSpecies(const std::string &phaseName, const std::string &speciesName);
-  std::tuple<double, double, int>
-  getOutputMolSpecies(const std::string &speciesName);
-  std::pair<double, int>
-  getOutputMolSpeciesPhase(const std::string &phaseName, const std::string &speciesName);
-  std::pair<double, int>
-  getElementMolesInPhase(const std::string &elementName, const std::string &phaseName);
-  std::pair<double, int>
-  getElementMoleFractionInPhase(const std::string &elementName, const std::string &phaseName);
-  std::pair<double, int>
-  getSolnPhaseMol(const std::string &phaseName);
-  std::pair<double, int>
-  getPureConPhaseMol(const std::string &phaseName);
-  std::pair<int, int>
-  getPhaseIndex(const std::string &phaseName);
-  std::pair<double, int>
-  getOutputSiteFraction(const std::string &phaseName, int sublattice, int constituent);
-  std::pair<double, int>
-  getSublSiteMol(const std::string &phaseName, int sublattice, int constituent);
+  std::pair<double, int> getOutputChemPot(const std::string &elementName);
+  std::tuple<double, double, int> getOutputSolnSpecies(const std::string &phaseName, const std::string &speciesName);
+  std::tuple<double, double, int> getOutputMolSpecies(const std::string &speciesName);
+  std::pair<double, int> getOutputMolSpeciesPhase(const std::string &phaseName, const std::string &speciesName);
+  std::pair<double, int> getOutputMolSpeciesPhase(int phaseSystemIndex, int speciesPhaseIndex);
+  std::pair<double, int> getElementMolesInPhase(const std::string &elementName, const std::string &phaseName);
+  std::pair<double, int> getElementMolesInPhase(int elementSystemIndex, int phaseSystemIndex);
+  std::pair<double, int> getElementMoleFractionInPhase(const std::string &elementName, const std::string &phaseName);
+  std::pair<double, int> getSolnPhaseMol(const std::string &phaseName);
+  std::pair<double, int> getPureConPhaseMol(const std::string &phaseName);
+  std::pair<int, int> getPhaseIndex(const std::string &phaseName);
+  std::pair<int, int> getPhaseIndex(int phaseSystemIndex);
+  std::pair<double, int> getPhaseMoles(int phaseSystemIndex);
+  std::pair<double, int> getSpeciesChemicalPotential(int phaseSystemIndex, int speciesPhaseIndex);
+  std::pair<double, int> getMqmqaEndmemberStoichiometricPotential(int phaseSystemIndex, int endmemberIndex);
+  struct PhaseGibbsEnergy
+  {
+    double total;
+    double molar;
+    int status;
+  };
+  PhaseGibbsEnergy getPhaseGibbsEnergy(int phaseSystemIndex);
+  std::pair<double, int> getPhaseDrivingForce(int phaseSystemIndex);
+  std::pair<double, int> getSystemGibbsEnergy();
+  /** Return constituent names by sublattice for a zero-based system phase index. */
+  std::vector<std::vector<std::string>> getConstituentsInPhase(int phaseSystemIndex);
+  /** Return a constituent fraction using zero-based phase, sublattice, and constituent indices. */
+  std::pair<double, int> getConstituentFraction(int phaseSystemIndex,
+                                                int sublatticeIndex,
+                                                int constituentIndex);
+  std::pair<int, int> getElementIndex(int atomicNumber);
+  std::pair<double, int> getElementPotential(int elementSystemIndex);
+  std::pair<double, int> getOutputSiteFraction(const std::string &phaseName, int sublattice, int constituent);
+  std::pair<double, int> getSublSiteMol(const std::string &phaseName, int sublattice, int constituent);
 
   bool isPhaseGas(const int phaseIndex);
 
   bool isPhaseMQM(const int phaseIndex);
-  std::pair<double, int>
-  getMqmqaMolesPairs(const std::string &phaseName);
-  std::pair<double, int>
-  getMqmqaPairMolFraction(const std::string &phaseName, const std::string &pairName);
-  std::tuple<int, int, int>
-  getMqmqaNumberPairsQuads(const std::string &phaseName);
-  std::pair<double, int>
-  getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
+  std::pair<double, int> getMqmqaMolesPairs(const std::string &phaseName);
+  std::pair<double, int> getMqmqaPairMolFraction(const std::string &phaseName, const std::string &pairName);
+  std::tuple<int, int, int> getMqmqaNumberPairsQuads(const std::string &phaseName);
+  std::pair<double, int> getMqmqaConstituentFraction(const std::string &phaseName, int sublattice, const std::string &constituent);
 
   // Reinitialization data
   struct ReinitializationData
@@ -105,7 +120,20 @@ namespace Thermochimica
   };
 
   ReinitializationData getReinitData();
-  void setReinitData(const ReinitializationData & data);
+  void setReinitData(const ReinitializationData &data);
+
+  struct ReinitializationDataView
+  {
+    int *assemblage;
+    double *molesPhase;
+    double *elementPotential;
+    double *chemicalPotential;
+    double *moleFraction;
+    int *elementsUsed;
+  };
+
+  std::pair<bool, int> getReinitData(ReinitializationDataView data);
+  void setReinitData(ReinitializationDataView data);
 
   // Heat capacity, enthalpy, and entropy
   void setHeatCapacityEnthalpyEntropyRequested(bool requested);
@@ -118,4 +146,4 @@ namespace Thermochimica
   void setMinMoleFraction(double min_mole_fraction);
   void setMassBalanceTolerance(double tolerance);
 
-}
+} // namespace Thermochimica

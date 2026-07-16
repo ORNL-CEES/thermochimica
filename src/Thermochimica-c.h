@@ -10,12 +10,17 @@ void GetOutputChemPot(char *, double *, int *);
 void GetOutputSolnSpecies(const char *, char *, double *, double *, int *);
 void GetOutputMolSpecies(const char *, double *, double *, int *);
 void GetOutputMolSpeciesPhase(const char *, const char *, double *, int *);
+void GetOutputMolSpeciesPhaseByIndex(int, int, double *, int *);
 void GetElementMolesInPhase(const char *, const char *, double *, int *);
+void GetElementMolesInPhaseByIndex(int, int, double *, int *);
 void GetElementMoleFractionInPhase(const char *, const char *, double *, int *);
 
 void GetSolnPhaseMol(const char *, double *, int *);
 void GetPureConPhaseMol(const char *, double *, int *);
 void GetPhaseIndex(const char *, int *, int *);
+void GetPhaseIndexBySystemIndex(int, int *, int *);
+void GetPhaseMolesBySystemIndex(int, double *, int *);
+void GetElementIndexByAtomicNumber(int, int *, int *);
 
 void GetOutputSiteFraction(const char *, int *, int *, double *, int *);
 void GetSublSiteMol(const char *, int *, int *, double *, int *);

@@ -304,7 +304,7 @@ subroutine GetMqmqaConstituentFraction(cPhase, iSublattice, cConstituent, dConst
         else if (iSublattice == 2) then
             ! Anions:
             do i = 1, nSub
-                j = i + nConstituentSublattice(iSPI,iSublattice)
+                j = i + nConstituentSublattice(iSPI,1)
                 do k = 1, nPairsSRO(iSPI,2)
                     l = iFirst + k - 1
                     dZx = dCoordinationNumber(iSPI,k,3)
