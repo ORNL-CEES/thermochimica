@@ -114,4 +114,13 @@ extern "C"
   void TCAPI_setGibbsMinCheck(bool *);
   void TCAPI_setMinMoleFraction(double *);
   void TCAPI_setMassBalanceTolerance(double *);
+  void TCAPI_computeEquilibriumSensitivity(int *, double *);
+  void TCAPI_applyEquilibriumSensitivity(const double *, int *, int *);
+  void TCAPI_restoreEquilibriumSensitivity(int *);
+  void TCAPI_getEquilibriumSensitivityInputs(double *, int *, int *);
+  void TCAPI_getActiveSolutionSpecies(int *, int *, int *, int *);
+  void TCAPI_getEquilibriumSensitivityQualification(int *, int *);
+  void TCAPI_getEquilibriumSensitivityDiagnostics(double *, int *, int *, int *);
+  void TCAPI_getEquilibriumAssemblageToken(int *, int *, int *, int *);
+  void TCAPI_getEquilibriumSensitivityState(double *, double *, int *, int *, int *, int *, int *);
 }

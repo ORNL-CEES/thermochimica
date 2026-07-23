@@ -1848,3 +1848,109 @@ subroutine GetConstituentFractionByIndexISO(iPhase, iSublattice, iConstituent, d
     end if
 
 end subroutine GetConstituentFractionByIndexISO
+
+subroutine ComputeEquilibriumSensitivityISO(INFO, dRcond) &
+    bind(C, name="TCAPI_computeEquilibriumSensitivity")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(out) :: INFO
+    real(C_DOUBLE), intent(out) :: dRcond
+    call ComputeEquilibriumSensitivity(INFO,dRcond)
+end subroutine ComputeEquilibriumSensitivityISO
+
+subroutine ApplyEquilibriumSensitivityISO(delta, nParam, INFO) &
+    bind(C, name="TCAPI_applyEquilibriumSensitivity")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(in) :: nParam
+    integer(C_INT), intent(out) :: INFO
+    real(C_DOUBLE), dimension(nParam), intent(in) :: delta
+    call ApplyEquilibriumSensitivity(delta,nParam,INFO)
+end subroutine ApplyEquilibriumSensitivityISO
+
+subroutine RestoreEquilibriumSensitivityISO(INFO) &
+    bind(C, name="TCAPI_restoreEquilibriumSensitivity")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(out) :: INFO
+    call RestoreEquilibriumSensitivity(INFO)
+end subroutine RestoreEquilibriumSensitivityISO
+
+subroutine GetEquilibriumSensitivityInputsISO(inputs, nParam, INFO) &
+    bind(C, name="TCAPI_getEquilibriumSensitivityInputs")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(in) :: nParam
+    integer(C_INT), intent(out) :: INFO
+    real(C_DOUBLE), dimension(nParam), intent(out) :: inputs
+    call GetEquilibriumSensitivityInputs(inputs,nParam,INFO)
+end subroutine GetEquilibriumSensitivityInputsISO
+
+subroutine GetActiveSolutionSpeciesISO(species, nSpeciesCapacity, nActive, INFO) &
+    bind(C, name="TCAPI_getActiveSolutionSpecies")
+    USE,INTRINSIC :: ISO_C_BINDING
+    USE ModuleThermo
+    USE ModuleGEMSolver
+    implicit none
+    integer(C_INT), intent(in) :: nSpeciesCapacity
+    integer(C_INT), dimension(nSpeciesCapacity), intent(out) :: species
+    integer(C_INT), intent(out) :: nActive, INFO
+    integer :: i, j, k
+
+    species = 0
+    nActive = 0
+    INFO = 0
+    do i = 1, nSolnPhases
+        k = -iAssemblage(nElements-i+1)
+        do j = nSpeciesPhase(k-1) + 1, nSpeciesPhase(k)
+            if (dMolFraction(j) <= 1.66D-24) cycle
+            nActive = nActive + 1
+            if (nActive > nSpeciesCapacity) then
+                INFO = 1
+                return
+            end if
+            species(nActive) = j
+        end do
+    end do
+end subroutine GetActiveSolutionSpeciesISO
+
+subroutine GetEquilibriumSensitivityQualificationISO(qualified, INFO) &
+    bind(C, name="TCAPI_getEquilibriumSensitivityQualification")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(out) :: qualified, INFO
+    call GetEquilibriumSensitivityQualification(qualified,INFO)
+end subroutine GetEquilibriumSensitivityQualificationISO
+
+subroutine GetEquilibriumSensitivityDiagnosticsISO(diagnostics, nDiagnostics, qualified, INFO) &
+    bind(C, name="TCAPI_getEquilibriumSensitivityDiagnostics")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(in) :: nDiagnostics
+    integer(C_INT), intent(out) :: qualified, INFO
+    real(C_DOUBLE), dimension(nDiagnostics), intent(out) :: diagnostics
+    call GetEquilibriumSensitivityDiagnostics(diagnostics,nDiagnostics,qualified,INFO)
+end subroutine GetEquilibriumSensitivityDiagnosticsISO
+
+subroutine GetEquilibriumAssemblageTokenISO(token, nTokenCapacity, nToken, INFO) &
+    bind(C, name="TCAPI_getEquilibriumAssemblageToken")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(in) :: nTokenCapacity
+    integer(C_INT), dimension(nTokenCapacity), intent(out) :: token
+    integer(C_INT), intent(out) :: nToken, INFO
+    call GetEquilibriumAssemblageToken(token,nTokenCapacity,nToken,INFO)
+end subroutine GetEquilibriumAssemblageTokenISO
+
+subroutine GetEquilibriumSensitivityStateISO(logAmounts, jacobian, nAmountCapacity, &
+                                              nParamCapacity, nAmounts, nParam, INFO) &
+    bind(C, name="TCAPI_getEquilibriumSensitivityState")
+    USE,INTRINSIC :: ISO_C_BINDING
+    implicit none
+    integer(C_INT), intent(in) :: nAmountCapacity, nParamCapacity
+    integer(C_INT), intent(out) :: nAmounts, nParam, INFO
+    real(C_DOUBLE), dimension(nAmountCapacity), intent(out) :: logAmounts
+    real(C_DOUBLE), dimension(nAmountCapacity,nParamCapacity), intent(out) :: jacobian
+    call GetEquilibriumSensitivityState(logAmounts,jacobian,nAmountCapacity,nParamCapacity, &
+                                        nAmounts,nParam,INFO)
+end subroutine GetEquilibriumSensitivityStateISO

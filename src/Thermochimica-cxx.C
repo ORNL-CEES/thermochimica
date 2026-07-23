@@ -733,4 +733,118 @@ namespace Thermochimica
     TCAPI_setMassBalanceTolerance(&tolerance);
   }
 
+  std::pair<int, double> computeEquilibriumSensitivity()
+  {
+    int info = 0;
+    double rcond = 0.0;
+    TCAPI_computeEquilibriumSensitivity(&info, &rcond);
+    return {info, rcond};
+  }
+
+  std::pair<std::vector<double>, int> getEquilibriumSensitivityInputs()
+  {
+    auto [elements, species] = getReinitDataSizes();
+    (void)species;
+    std::vector<double> inputs(elements + 2);
+    int size = inputs.size();
+    int info = 0;
+    TCAPI_getEquilibriumSensitivityInputs(inputs.data(), &size, &info);
+    return {std::move(inputs), info};
+  }
+
+  int applyEquilibriumSensitivity(const std::vector<double> &delta)
+  {
+    int size = delta.size();
+    int info = 0;
+    TCAPI_applyEquilibriumSensitivity(delta.data(), &size, &info);
+    return info;
+  }
+
+  int restoreEquilibriumSensitivity()
+  {
+    int info = 0;
+    TCAPI_restoreEquilibriumSensitivity(&info);
+    return info;
+  }
+
+  std::pair<std::vector<int>, int> getActiveSolutionSpecies()
+  {
+    auto species_capacity = getReinitDataSizes().second;
+    std::vector<int> species(species_capacity);
+    int active = 0;
+    int info = 0;
+    TCAPI_getActiveSolutionSpecies(species.data(), &species_capacity, &active, &info);
+    species.resize(info == 0 ? active : 0);
+    return {std::move(species), info};
+  }
+
+  std::pair<bool, int> getEquilibriumSensitivityQualification()
+  {
+    int qualified = 0;
+    int info = 0;
+    TCAPI_getEquilibriumSensitivityQualification(&qualified, &info);
+    return {qualified != 0, info};
+  }
+
+  EquilibriumSensitivityDiagnostics getEquilibriumSensitivityDiagnostics()
+  {
+    std::vector<double> values(7);
+    int size = values.size();
+    int qualified = 0;
+    EquilibriumSensitivityDiagnostics result;
+    TCAPI_getEquilibriumSensitivityDiagnostics(values.data(), &size, &qualified, &result.status);
+    if (result.status == 0)
+    {
+      result.scaled_rcond = values[0];
+      result.raw_rcond = values[1];
+      result.base_residual = values[2];
+      result.linear_residual = values[3];
+      result.backward_error = values[4];
+      result.minimum_active_fraction = values[5];
+      result.minimum_active_moles = values[6];
+      result.qualified = qualified != 0;
+    }
+    return result;
+  }
+
+  std::pair<std::vector<int>, int> getEquilibriumAssemblageToken()
+  {
+    const auto [elements, species] = getReinitDataSizes();
+    int capacity = static_cast<int>(4 + 5 * elements + species);
+    std::vector<int> token(capacity);
+    int size = 0;
+    int info = 0;
+    TCAPI_getEquilibriumAssemblageToken(token.data(), &capacity, &size, &info);
+    token.resize(info == 0 ? size : 0);
+    return {std::move(token), info};
+  }
+
+  EquilibriumSensitivityState getEquilibriumSensitivityState()
+  {
+    const auto [elements, species] = getReinitDataSizes();
+    int amount_capacity = static_cast<int>(elements + species);
+    int parameter_capacity = static_cast<int>(elements + 2);
+    int amounts = 0;
+    int parameters = 0;
+    std::vector<double> log_amounts(amount_capacity);
+    std::vector<double> column_major(amount_capacity * parameter_capacity);
+    EquilibriumSensitivityState result;
+    TCAPI_getEquilibriumSensitivityState(log_amounts.data(),
+                                         column_major.data(),
+                                         &amount_capacity,
+                                         &parameter_capacity,
+                                         &amounts,
+                                         &parameters,
+                                         &result.status);
+    if (result.status != 0)
+      return result;
+    result.log_amounts.assign(log_amounts.begin(), log_amounts.begin() + amounts);
+    result.parameters = parameters;
+    result.jacobian.resize(amounts * parameters);
+    for (int row = 0; row < amounts; ++row)
+      for (int column = 0; column < parameters; ++column)
+        result.jacobian[row * parameters + column] = column_major[column * amount_capacity + row];
+    return result;
+  }
+
 } // namespace Thermochimica

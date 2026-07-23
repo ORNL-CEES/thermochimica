@@ -39,6 +39,7 @@ subroutine ResetThermo
     USE ModuleThermoIO, ONLY: INFOThermo, lRetryAttempted
     USE ModuleGEMSolver
     USE ModuleSubMin
+    USE ModuleEquilibriumSensitivity, ONLY: ResetEquilibriumSensitivity
 
     implicit none
 
@@ -46,6 +47,7 @@ subroutine ResetThermo
 
     ! Initialize variables:
     i = 0
+    call ResetEquilibriumSensitivity
 
     if (allocated(dStoichSpecies)) deallocate(dStoichSpecies, STAT = INFO)
     i = i + INFO

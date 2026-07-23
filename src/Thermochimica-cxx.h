@@ -146,4 +146,41 @@ namespace Thermochimica
   void setMinMoleFraction(double min_mole_fraction);
   void setMassBalanceTolerance(double tolerance);
 
+  /** Compute fixed-assemblage sensitivities for the current converged equilibrium state. */
+  std::pair<int, double> computeEquilibriumSensitivity();
+  /** Return the internal Kelvin, atmosphere, and elemental-mole sensitivity inputs. */
+  std::pair<std::vector<double>, int> getEquilibriumSensitivityInputs();
+  /** Apply a physical input displacement using the current fixed-assemblage linearization. */
+  int applyEquilibriumSensitivity(const std::vector<double> &delta);
+  /** Restore the exact state from which the current sensitivity was constructed. */
+  int restoreEquilibriumSensitivity();
+  /** Return the one-based indices of active constituents in stable solution phases. */
+  std::pair<std::vector<int>, int> getActiveSolutionSpecies();
+  /** Report whether every solution model in the current system is sensitivity-qualified. */
+  std::pair<bool, int> getEquilibriumSensitivityQualification();
+  struct EquilibriumSensitivityDiagnostics
+  {
+    double scaled_rcond = 0.0;
+    double raw_rcond = 0.0;
+    double base_residual = 0.0;
+    double linear_residual = 0.0;
+    double backward_error = 0.0;
+    double minimum_active_fraction = 0.0;
+    double minimum_active_moles = 0.0;
+    bool qualified = false;
+    int status = 0;
+  };
+  EquilibriumSensitivityDiagnostics getEquilibriumSensitivityDiagnostics();
+  /** Return a versioned token describing the complete fixed active set. */
+  std::pair<std::vector<int>, int> getEquilibriumAssemblageToken();
+  struct EquilibriumSensitivityState
+  {
+    std::vector<double> log_amounts;
+    /** Row-major derivatives of log amounts with respect to physical sensitivity inputs. */
+    std::vector<double> jacobian;
+    std::size_t parameters = 0;
+    int status = 0;
+  };
+  EquilibriumSensitivityState getEquilibriumSensitivityState();
+
 } // namespace Thermochimica
