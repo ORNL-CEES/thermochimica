@@ -20,6 +20,7 @@
     !   04/01/2018      M.H.A. Piro         Original code.
     !   12/10/2018      M.H.A. Piro         Fixed a bug in the partial molar excess Gibbs energy
     !                                        expression for BB and AB.
+    !   08/24/2026      L. Vargas Suarez    Corrected SUBQ pair-fraction weighting.
     !
     !
     ! Purpose:
@@ -80,6 +81,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     logical :: lIsException
     real(8) :: dSum, dConfEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
+    real(8) :: dTotalPairIncidence, dTotalWeightedPairIncidence
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
     real(8) :: dTernarySum1, dTernarySum2, dChiFactor
@@ -267,7 +269,11 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
             end if
         end do
 
-        ! Loop over n_i/j contributions to entropy
+        ! Loop over n_i/j contributions to entropy.
+        ! Also accumulate the ordinary and zeta-weighted quadruplet incidences
+        ! needed for the SUBQ weighted-normalization derivative below.
+        dTotalPairIncidence = 0D0
+        dTotalWeightedPairIncidence = 0D0
         ! m = 0
         do i = 1, nSub1
             do j = 1, nSub2
@@ -294,6 +300,9 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
                 dConfEntropy = dConfEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
                             * (nA * nX / dZetaSpecies(iSPI,m)))
+                dTotalPairIncidence = dTotalPairIncidence + DFLOAT(nA*nX)
+                dTotalWeightedPairIncidence = dTotalWeightedPairIncidence + &
+                    DFLOAT(nA*nX)/dZetaSpecies(iSPI,m)
             end do
         end do
 
@@ -323,12 +332,24 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end if
 
         if (.NOT. (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll) == 0D0)) then
-            dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
-                            / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
+            ! SUBG uses ordinary pair fractions; SUBQ uses normalized zeta-weighted pair fractions.
+            if (cSolnPhaseType(iSolnIndex) == 'SUBG') then
+                dSum = iWeight * (dXij(ii,ka) * dXij(ii,la) * dXij(jj,ka) * dXij(jj,la))**dPowXij &
+                                / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
+            else
+                dSum = iWeight * (dXsij(ii,ka) * dXsij(ii,la) * dXsij(jj,ka) * dXsij(jj,la))**dPowXij &
+                                / (dYi(ii) * dYi(jj) * dYi(kk) * dYi(ll))**dPowYi
+            end if
             if (dSum == 0) then
                 dConfEntropy = 100D0
             else
                 dConfEntropy = dConfEntropy + DLOG(dMolFraction(l) / dSum)
+                if (cSolnPhaseType(iSolnIndex) == 'SUBQ') then
+                    ! Include the composition dependence of the weighted
+                    ! normalization. This term vanishes for uniform zeta.
+                    dConfEntropy = dConfEntropy-dPowXij*(dTotalPairIncidence- &
+                        dSumNij*dTotalWeightedPairIncidence/dSumNsij)
+                end if
             end if
         end if
 
