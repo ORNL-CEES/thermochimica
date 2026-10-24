@@ -61,6 +61,10 @@
     ! dY(:)                     A temporary double vector used to represent the coordinate equivalent
     !                            fractions of the species.
     !
+    ! dPairAmountDerivative and dWeightedPairAmountDerivative are derivatives of the total
+    ! ordinary and zeta-weighted pair amounts, respectively, with respect to the amount of
+    ! the current quadruplet, holding all other quadruplet amounts and zeta values fixed.
+    !
 !-------------------------------------------------------------------------------------------------------------
 
 
@@ -81,7 +85,7 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
     logical, allocatable, dimension(:) :: lAsymmetric1, lAsymmetric2
     logical :: lIsException
     real(8) :: dSum, dConfEntropy, dRef, dPowXij, dPowYi, dSumNij, dSumNsij, p, q, r, s
-    real(8) :: dTotalPairIncidence, dTotalWeightedPairIncidence
+    real(8) :: dPairAmountDerivative, dWeightedPairAmountDerivative
     real(8) :: dZa, dZb, dZx, dZy, dGex, dDgex, dDgexBase, dXtot
     real(8) :: dXi1, dXi2, dChi1, dChi2, dXiDen, dChiDen, dTernaryFactorG, dTernaryFactorDG, dYik, dYjk, dYdk
     real(8) :: dTernarySum1, dTernarySum2, dChiFactor
@@ -270,10 +274,10 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
         end do
 
         ! Loop over n_i/j contributions to entropy.
-        ! Also accumulate the ordinary and zeta-weighted quadruplet incidences
+        ! Also accumulate the ordinary and zeta-weighted pair-amount derivatives
         ! needed for the SUBQ weighted-normalization derivative below.
-        dTotalPairIncidence = 0D0
-        dTotalWeightedPairIncidence = 0D0
+        dPairAmountDerivative = 0D0
+        dWeightedPairAmountDerivative = 0D0
         ! m = 0
         do i = 1, nSub1
             do j = 1, nSub2
@@ -300,8 +304,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 end do
                 dConfEntropy = dConfEntropy + (DLOG(dXsij(i,j) / (dFi(i) * dFi(j + nSub1))) &
                             * (nA * nX / dZetaSpecies(iSPI,m)))
-                dTotalPairIncidence = dTotalPairIncidence + DFLOAT(nA*nX)
-                dTotalWeightedPairIncidence = dTotalWeightedPairIncidence + &
+                dPairAmountDerivative = dPairAmountDerivative + DFLOAT(nA*nX)
+                dWeightedPairAmountDerivative = dWeightedPairAmountDerivative + &
                     DFLOAT(nA*nX)/dZetaSpecies(iSPI,m)
             end do
         end do
@@ -347,8 +351,8 @@ subroutine CompExcessGibbsEnergySUBG(iSolnIndex)
                 if (cSolnPhaseType(iSolnIndex) == 'SUBQ') then
                     ! Include the composition dependence of the weighted
                     ! normalization. This term vanishes for uniform zeta.
-                    dConfEntropy = dConfEntropy-dPowXij*(dTotalPairIncidence- &
-                        dSumNij*dTotalWeightedPairIncidence/dSumNsij)
+                    dConfEntropy = dConfEntropy-dPowXij*(dPairAmountDerivative- &
+                        dSumNij*dWeightedPairAmountDerivative/dSumNsij)
                 end if
             end if
         end if
