@@ -43,6 +43,7 @@ tail -1 test12out.txt
 ./TestThermo55
 ./TestThermo56
 ./TestThermo57
+./TestSUBQNonuniformZeta
 ./TestThermo58
 ./TestThermo59
 ./TestThermo60
