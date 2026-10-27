@@ -4,8 +4,11 @@ program RunCalculationList
     USE ModuleGEMSolver
     USE ModuleThermo
     USE ModuleParseCS
-
     implicit none
+#ifdef USE_MPI
+  include 'mpif.h'
+#endif
+
     character(1024) :: cInputFile
     integer :: i, j, nElIn, nCalc
     integer, dimension(:), allocatable :: iEls
@@ -16,12 +19,15 @@ program RunCalculationList
     character(1024) :: cLineInit, cThermoFileNameTemp, cOutputFilePathTemp
     logical :: lEnd, lPressureUnit, lTemperatureUnit, lMassUnit, lData, lEl, lNel
     character(15) :: cRunUnitTemperature, cRunUnitPressure, cRunUnitMass
-
-    character(16) :: intStr
-
+    character(16) :: cIntStr
+    character(1024) :: cFileOut
+    character(1024) :: cIntegerString
+#ifdef USE_MPI
+    integer :: ierr
+    integer :: MPI_rank,MPI_size
+#endif
     ! Initialize INFO
     INFO = 0
-
     ! lWriteJSON true by default
     lWriteJSON = .TRUE.
     ! Read input argument to get filename
@@ -360,13 +366,28 @@ program RunCalculationList
     call ParseCSDataFile(cThermoFileName)
     cOutputFullPath = GetResolvedOutputFilePath()
     ! Specify values:
+#ifdef USE_MPI
+    call MPI_INIT(ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,MPI_rank,ierr)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,MPI_size,ierr)
+    write(cIntegerString,'(I0)') MPI_rank
+    cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
     if (lWriteJSON) then
         OPEN(2, file= cOutputFullPath, &
             status='REPLACE', action='write')
         WRITE(2,*) '{'
         CLOSE(2)
     end if
-
+#else
+    write(cIntegerString,'(I0)') 1
+    cOutputFilePath = trim(DATA_DIRECTORY) // '../outputs/' // trim(cFileOut) // '_' // trim(adjustl(cIntegerString)) // '.json'
+    if (lWriteJSON) then
+      OPEN(2, file= cOutputFilePath, &
+          status='REPLACE', action='write')
+      WRITE(2,*) '{'
+      CLOSE(2)
+    end if
+#endif
     do i = 1, nCalc
       cInputUnitPressure = cRunUnitPressure
       cInputUnitTemperature = cRunUnitTemperature
@@ -376,14 +397,40 @@ program RunCalculationList
       do j = 1, nElIn
         dElementMass(iEls(j)) = dEls(j)
       end do
+#ifdef USE_MPI
+      if(mod(i,MPI_size) == MPI_rank) then
+        call Thermochimica
+        call PrintResults
+        if (iPrintResultsMode > 0) call ThermoDebug
+        open(2, file=cOutputFilePath, &
+          status='OLD', position='append', action='write')
+        if (i > 1 .AND. i > MPI_size) write(2,*) ','
+        write(cIntStr,*) i
+        write(2,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
+        close (2)
+        if (lWriteJSON) then
+            call WriteJSON(.TRUE.)
+        end if
+        ! Reset Thermochimica:
+        if (INFOThermo == 0) then
+            call ResetThermo
+        else
+            call ResetThermoAll
+            INFOThermo = 0
+            call ParseCSDataFile(cThermoFileName)
+        end if
+      else
+        CYCLE
+      end if
+#else
       call Thermochimica
       call PrintResults
       if (iPrintResultsMode > 0) call ThermoDebug
       open(2, file= cOutputFullPath, &
           status='OLD', position='append', action='write')
       if (i > 1) write(2,*) ','
-      write(intStr,*) i
-      write(2,*) '"', TRIM(ADJUSTL(intStr)) ,'":'
+      write(cIntStr,*) i
+      write(2,*) '"', TRIM(ADJUSTL(cIntStr)) ,'":'
       close (2)
       if (lWriteJSON) then
           call WriteJSON(.TRUE.)
@@ -396,9 +443,9 @@ program RunCalculationList
           INFOThermo = 0
           call ParseCSDataFile(cThermoFileName)
       end if
+#endif
     end do
     CLOSE(3)
-
     if (lWriteJSON) then
         open(2, file= cOutputFullPath, &
             status='OLD', position='append', action='write')
@@ -406,4 +453,7 @@ program RunCalculationList
         close (2)
     end if
 
+#ifdef USE_MPI    
+    call MPI_FINALIZE(ierr)
+#endif
 end program RunCalculationList
